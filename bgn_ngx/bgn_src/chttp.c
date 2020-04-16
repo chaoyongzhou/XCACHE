@@ -5356,6 +5356,11 @@ char *chttp_req_get_ipaddr_str(const CHTTP_REQ *chttp_req)
     return CHTTP_REQ_IPADDR_STR(chttp_req);
 }
 
+EC_BOOL chttp_req_is_local(const CHTTP_REQ *chttp_req)
+{
+    return c_ipv4_is_local(CHTTP_REQ_IPADDR(chttp_req));
+}
+
 EC_BOOL chttp_req_set_port(CHTTP_REQ *chttp_req, const char *port)
 {
     CHTTP_REQ_PORT(chttp_req) = c_str_to_word(port);
@@ -5386,6 +5391,16 @@ EC_BOOL chttp_req_disable_ssl(CHTTP_REQ *chttp_req)
 {
     CHTTP_REQ_SSL_FLAG(chttp_req) = EC_FALSE;
     return (EC_TRUE);
+}
+
+EC_BOOL chttp_req_is_enabled_ssl(CHTTP_REQ *chttp_req)
+{
+    if(EC_TRUE == CHTTP_REQ_SSL_FLAG(chttp_req))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
 }
 
 EC_BOOL chttp_req_set_ssl(CHTTP_REQ *chttp_req, const UINT32 ssl_flag)

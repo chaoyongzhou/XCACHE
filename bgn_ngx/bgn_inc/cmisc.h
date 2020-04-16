@@ -448,6 +448,10 @@ UINT32  c_finger_ip_from_netcards(const CSET *cnetcard_set);
 
 CSET * c_collect_netcards();
 
+EC_BOOL c_has_ipv4(const CSET *cnetcard_set, const UINT32 ipv4);
+
+EC_BOOL c_ipv4_is_local(const UINT32 ipv4);
+
 EC_BOOL c_save_args(const int argc, const char **argv);
 
 EC_BOOL c_save_environ();

@@ -2854,6 +2854,26 @@ EC_BOOL cmp4_content_head_header_in_filter_port(const UINT32 cmp4_md_id)
         return (EC_TRUE);
     }
 
+    if(EC_TRUE == chttp_req_is_local(chttp_req))
+    {
+        /*set default head port*/
+        if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_port: "
+                                                 "[default] set default port '%d' to http req done\n",
+                                                 CNGX_ORIG_HTTP_PORT_DEFAULT);
+        }
+        else
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_port: "
+                                                 "[default] set default port '%d' to https req done\n",
+                                                 CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        }
+        return (EC_TRUE);
+    }
+
     /*when cngx NOT config head port*/
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
     {
@@ -2934,10 +2954,20 @@ EC_BOOL cmp4_content_head_header_in_filter_port(const UINT32 cmp4_md_id)
     /*should never reach here*/
 
     /*set default head port*/
-    chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
-    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
-                                         "[default] set default port '%d' to http req done\n",
-                                         CNGX_ORIG_PORT_DEFAULT);
+    if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_port: "
+                                             "[default] set default port '%d' to http req done\n",
+                                             CNGX_ORIG_HTTP_PORT_DEFAULT);
+    }
+    else
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_port: "
+                                             "[default] set default port '%d' to https req done\n",
+                                             CNGX_ORIG_HTTPS_PORT_DEFAULT);
+    }
     return (EC_TRUE);
 }
 
@@ -3025,6 +3055,113 @@ EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id)
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
     r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(CMP4_MD_CHTTP_REQ(cmp4_md));
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter: "
+                                                     "[conf] set ca '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0036);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0037);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
+                                                 "[conf] set ca '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0038);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter: "
+                                                     "[conf] set certificate '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0039);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0040);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
+                                                 "[conf] set certificate '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0041);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter: "
+                                                     "[conf] set certificate key '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0042);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0043);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
+                                                 "[conf] set certificate key '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0044);
+
+            /*fall through*/
+        }
+    }while(0);
 
     /*set http request server or ipaddr*/
     do
@@ -3140,113 +3277,6 @@ EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id)
                                                      "filter server failed\n");
                 return (EC_FALSE);
             }
-        }
-    }while(0);
-
-    /*set ssl flag*/
-    do
-    {
-        UINT32  ssl_flag;
-
-        /*when cngx switch ssl on, then orig over https*/
-        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
-        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
-        if(SWITCH_OFF == ssl_flag)
-        {
-            break;
-        }
-
-        /*ssl on*/
-        chttp_req_enable_ssl(CMP4_MD_CHTTP_REQ(cmp4_md));
-
-        /*[optional] cngx configure CA*/
-        k = (const char *)CNGX_VAR_SSL_CA;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ca_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter: "
-                                                     "[conf] set ca '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0036);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0037);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
-                                                 "[conf] set ca '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0038);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_certificate_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter: "
-                                                     "[conf] set certificate '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0039);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0040);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
-                                                 "[conf] set certificate '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0041);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate key*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_private_key_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter: "
-                                                     "[conf] set certificate key '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0042);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0043);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
-                                                 "[conf] set certificate key '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0044);
-
-            /*fall through*/
         }
     }while(0);
 
@@ -4033,6 +4063,26 @@ EC_BOOL cmp4_content_direct_header_in_filter_port(const UINT32 cmp4_md_id)
         return (EC_TRUE);
     }
 
+    if(EC_TRUE == chttp_req_is_local(chttp_req))
+    {
+        /*set default direct port*/
+        if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_port: "
+                                                 "[default] set default port '%d' to http req done\n",
+                                                 CNGX_ORIG_HTTP_PORT_DEFAULT);
+        }
+        else
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_port: "
+                                                 "[default] set default port '%d' to https req done\n",
+                                                 CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        }
+        return (EC_TRUE);
+    }
+
     /*when cngx NOT config direct port*/
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
     {
@@ -4113,10 +4163,20 @@ EC_BOOL cmp4_content_direct_header_in_filter_port(const UINT32 cmp4_md_id)
     /*should never reach here*/
 
     /*set default direct port*/
-    chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
-    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
-                                         "[default] set default port '%d' to http req done\n",
-                                         CNGX_ORIG_PORT_DEFAULT);
+    if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_port: "
+                                             "[default] set default port '%d' to http req done\n",
+                                             CNGX_ORIG_HTTP_PORT_DEFAULT);
+    }
+    else
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_port: "
+                                             "[default] set default port '%d' to https req done\n",
+                                             CNGX_ORIG_HTTPS_PORT_DEFAULT);
+    }
     return (EC_TRUE);
 }
 
@@ -4204,6 +4264,113 @@ EC_BOOL cmp4_content_direct_header_in_filter(const UINT32 cmp4_md_id)
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
     r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(CMP4_MD_CHTTP_REQ(cmp4_md));
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter: "
+                                                     "[conf] set ca '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0081);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0082);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
+                                                 "[conf] set ca '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0083);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter: "
+                                                     "[conf] set certificate '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0084);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0085);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
+                                                 "[conf] set certificate '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0086);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter: "
+                                                     "[conf] set certificate key '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0087);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0088);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
+                                                 "[conf] set certificate key '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0089);
+
+            /*fall through*/
+        }
+    }while(0);
 
     /*set http request server or ipaddr*/
     do
@@ -4318,113 +4485,6 @@ EC_BOOL cmp4_content_direct_header_in_filter(const UINT32 cmp4_md_id)
                                                      "filter server failed\n");
                 return (EC_FALSE);
             }
-        }
-    }while(0);
-
-    /*set ssl flag*/
-    do
-    {
-        UINT32  ssl_flag;
-
-        /*when cngx switch ssl on, then orig over https*/
-        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
-        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
-        if(SWITCH_OFF == ssl_flag)
-        {
-            break;
-        }
-
-        /*ssl on*/
-        chttp_req_enable_ssl(CMP4_MD_CHTTP_REQ(cmp4_md));
-
-        /*[optional] cngx configure CA*/
-        k = (const char *)CNGX_VAR_SSL_CA;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ca_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter: "
-                                                     "[conf] set ca '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0081);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0082);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
-                                                 "[conf] set ca '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0083);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_certificate_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter: "
-                                                     "[conf] set certificate '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0084);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0085);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
-                                                 "[conf] set certificate '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0086);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate key*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_private_key_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter: "
-                                                     "[conf] set certificate key '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0087);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0088);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
-                                                 "[conf] set certificate key '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0089);
-
-            /*fall through*/
         }
     }while(0);
 
@@ -6046,6 +6106,26 @@ EC_BOOL cmp4_content_repair2_header_in_filter_port(const UINT32 cmp4_md_id)
         return (EC_TRUE);
     }
 
+    if(EC_TRUE == chttp_req_is_local(chttp_req))
+    {
+        /*set default direct port*/
+        if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter_port: "
+                                                 "[default] set default port '%d' to http req done\n",
+                                                 CNGX_ORIG_HTTP_PORT_DEFAULT);
+        }
+        else
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter_port: "
+                                                 "[default] set default port '%d' to https req done\n",
+                                                 CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        }
+        return (EC_TRUE);
+    }
+
     /*when cngx NOT config direct port*/
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
     {
@@ -6126,10 +6206,20 @@ EC_BOOL cmp4_content_repair2_header_in_filter_port(const UINT32 cmp4_md_id)
     /*should never reach here*/
 
     /*set default direct port*/
-    chttp_req_set_port_word(CMP4_MD_CHTTP_REQ(cmp4_md), CNGX_ORIG_PORT_DEFAULT);
-    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
-                                         "[default] set default port '%d' to http req done\n",
-                                         CNGX_ORIG_PORT_DEFAULT);
+    if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter_port: "
+                                             "[default] set default port '%d' to http req done\n",
+                                             CNGX_ORIG_HTTP_PORT_DEFAULT);
+    }
+    else
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter_port: "
+                                             "[default] set default port '%d' to https req done\n",
+                                             CNGX_ORIG_HTTPS_PORT_DEFAULT);
+    }
     return (EC_TRUE);
 }
 
@@ -6217,6 +6307,113 @@ EC_BOOL cmp4_content_repair2_header_in_filter(const UINT32 cmp4_md_id)
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
     r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(CMP4_MD_CHTTP_REQ(cmp4_md));
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter: "
+                                                     "[conf] set ca '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0130);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0131);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
+                                                 "[conf] set ca '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0132);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter: "
+                                                     "[conf] set certificate '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0133);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0134);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
+                                                 "[conf] set certificate '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0135);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter: "
+                                                     "[conf] set certificate key '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0136);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0137);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
+                                                 "[conf] set certificate key '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0138);
+
+            /*fall through*/
+        }
+    }while(0);
 
     /*set http request server or ipaddr*/
     do
@@ -6331,114 +6528,6 @@ EC_BOOL cmp4_content_repair2_header_in_filter(const UINT32 cmp4_md_id)
             }
         }
     }while(0);
-
-    /*set ssl flag*/
-    do
-    {
-        UINT32  ssl_flag;
-
-        /*when cngx switch ssl on, then orig over https*/
-        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
-        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
-        if(SWITCH_OFF == ssl_flag)
-        {
-            break;
-        }
-
-        /*ssl on*/
-        chttp_req_enable_ssl(CMP4_MD_CHTTP_REQ(cmp4_md));
-
-        /*[optional] cngx configure CA*/
-        k = (const char *)CNGX_VAR_SSL_CA;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ca_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter: "
-                                                     "[conf] set ca '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0130);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0131);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
-                                                 "[conf] set ca '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0132);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_certificate_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter: "
-                                                     "[conf] set certificate '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0133);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0134);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
-                                                 "[conf] set certificate '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0135);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate key*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_private_key_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter: "
-                                                     "[conf] set certificate key '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0136);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0137);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
-                                                 "[conf] set certificate key '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0138);
-
-            /*fall through*/
-        }
-    }while(0);
-
 
     /*set http request method*/
     if(EC_FALSE == cngx_get_req_method_str(r, &v))
@@ -7772,6 +7861,26 @@ EC_BOOL cmp4_content_orig_header_in_filter_port(const UINT32 cmp4_md_id)
         return (EC_TRUE);
     }
 
+    if(EC_TRUE == chttp_req_is_local(chttp_req))
+    {
+        /*set default orig port*/
+        if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
+                                                 "[default] set default port '%d' to http req done\n",
+                                                 CNGX_ORIG_HTTP_PORT_DEFAULT);
+        }
+        else
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
+                                                 "[default] set default port '%d' to https req done\n",
+                                                 CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        }
+        return (EC_TRUE);
+    }
+
     /*extract request port from request line*/
     if(EC_TRUE == cngx_get_req_port(r, &v) && NULL_PTR != v)
     {
@@ -7866,10 +7975,20 @@ EC_BOOL cmp4_content_orig_header_in_filter_port(const UINT32 cmp4_md_id)
     /*should never reach here*/
 
     /*set default orig port*/
-    chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
-    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
-                                         "[default] set default port '%d' to http req done\n",
-                                         CNGX_ORIG_PORT_DEFAULT);
+    if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
+                                             "[default] set default port '%d' to http req done\n",
+                                             CNGX_ORIG_HTTP_PORT_DEFAULT);
+    }
+    else
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
+                                             "[default] set default port '%d' to https req done\n",
+                                             CNGX_ORIG_HTTPS_PORT_DEFAULT);
+    }
     return (EC_TRUE);
 }
 
@@ -7961,6 +8080,113 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
     r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
 
     chttp_req = CMP4_MD_CHTTP_REQ(cmp4_md);
+
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(chttp_req);
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(chttp_req, v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
+                                                     "[conf] set ca '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0178);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0179);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
+                                                 "[conf] set ca '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0180);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(chttp_req, v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
+                                                     "[conf] set certificate '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0181);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0182);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
+                                                 "[conf] set certificate '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0183);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(chttp_req, v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
+                                                     "[conf] set certificate key '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0184);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0185);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
+                                                 "[conf] set certificate key '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0186);
+
+            /*fall through*/
+        }
+    }while(0);
 
     /*set http request server or ipaddr*/
     do
@@ -8073,113 +8299,6 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
                                                      "filter server failed\n");
                 return (EC_FALSE);
             }
-        }
-    }while(0);
-
-    /*set ssl flag*/
-    do
-    {
-        UINT32  ssl_flag;
-
-        /*when cngx switch ssl on, then orig over https*/
-        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
-        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
-        if(SWITCH_OFF == ssl_flag)
-        {
-            break;
-        }
-
-        /*ssl on*/
-        chttp_req_enable_ssl(chttp_req);
-
-        /*[optional] cngx configure CA*/
-        k = (const char *)CNGX_VAR_SSL_CA;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ca_file(chttp_req, v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
-                                                     "[conf] set ca '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0178);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0179);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
-                                                 "[conf] set ca '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0180);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_certificate_file(chttp_req, v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
-                                                     "[conf] set certificate '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0181);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0182);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
-                                                 "[conf] set certificate '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0183);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate key*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_private_key_file(chttp_req, v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
-                                                     "[conf] set certificate key '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0184);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0185);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
-                                                 "[conf] set certificate key '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0186);
-
-            /*fall through*/
         }
     }while(0);
 
@@ -10090,6 +10209,26 @@ EC_BOOL cmp4_content_ms_header_in_filter_port(const UINT32 cmp4_md_id)
         return (EC_TRUE);
     }
 
+    if(EC_TRUE == chttp_req_is_local(chttp_req))
+    {
+        /*set default orig port*/
+        if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
+                                                 "[default] set default port '%d' to http req done\n",
+                                                 CNGX_ORIG_HTTP_PORT_DEFAULT);
+        }
+        else
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
+                                                 "[default] set default port '%d' to https req done\n",
+                                                 CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        }
+        return (EC_TRUE);
+    }
+
     /*extract request port from request line*/
     if(EC_TRUE == cngx_get_req_port(r, &v) && NULL_PTR != v)
     {
@@ -10184,10 +10323,20 @@ EC_BOOL cmp4_content_ms_header_in_filter_port(const UINT32 cmp4_md_id)
     /*should never reach here*/
 
     /*set default orig port*/
-    chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
-    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
-                                         "[default] set default port '%d' to http req done\n",
-                                         CNGX_ORIG_PORT_DEFAULT);
+    if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
+                                             "[default] set default port '%d' to http req done\n",
+                                             CNGX_ORIG_HTTP_PORT_DEFAULT);
+    }
+    else
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
+                                             "[default] set default port '%d' to https req done\n",
+                                             CNGX_ORIG_HTTPS_PORT_DEFAULT);
+    }
     return (EC_TRUE);
 }
 
@@ -10279,6 +10428,113 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
     r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
 
     chttp_req = CMP4_MD_CHTTP_REQ(cmp4_md);
+
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(chttp_req);
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(chttp_req, v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
+                                                     "[conf] set ca '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0233);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0234);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
+                                                 "[conf] set ca '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0235);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(chttp_req, v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
+                                                     "[conf] set certificate '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0236);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0237);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
+                                                 "[conf] set certificate '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0238);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(chttp_req, v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
+                                                     "[conf] set certificate key '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0239);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0240);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
+                                                 "[conf] set certificate key '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0241);
+
+            /*fall through*/
+        }
+    }while(0);
 
     /*set http request server or ipaddr*/
     do
@@ -10394,113 +10650,6 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
                                                      "filter server failed\n");
                 return (EC_FALSE);
             }
-        }
-    }while(0);
-
-    /*set ssl flag*/
-    do
-    {
-        UINT32  ssl_flag;
-
-        /*when cngx switch ssl on, then orig over https*/
-        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
-        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
-        if(SWITCH_OFF == ssl_flag)
-        {
-            break;
-        }
-
-        /*ssl on*/
-        chttp_req_enable_ssl(chttp_req);
-
-        /*[optional] cngx configure CA*/
-        k = (const char *)CNGX_VAR_SSL_CA;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ca_file(chttp_req, v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
-                                                     "[conf] set ca '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0233);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0234);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
-                                                 "[conf] set ca '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0235);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_certificate_file(chttp_req, v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
-                                                     "[conf] set certificate '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0236);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0237);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
-                                                 "[conf] set certificate '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0238);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate key*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_private_key_file(chttp_req, v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
-                                                     "[conf] set certificate key '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0239);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0240);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
-                                                 "[conf] set certificate key '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0241);
-
-            /*fall through*/
         }
     }while(0);
 
@@ -13214,7 +13363,25 @@ EC_BOOL cmp4_content_ims_header_in_filter_port(const UINT32 cmp4_md_id)
         return (EC_TRUE);
     }
 
-    /*when cngx NOT config ims port*/
+    if(EC_TRUE == chttp_req_is_local(chttp_req))
+    {
+        /*set default ims port*/
+        if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
+                                                 "[default] set default port '%d' to http req done\n",
+                                                 CNGX_ORIG_HTTP_PORT_DEFAULT);
+        }
+        else
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
+                                                 "[default] set default port '%d' to https req done\n",
+                                                 CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        }
+        return (EC_TRUE);
+    }
 
     /*when cngx NOT config orig port*/
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
@@ -13296,10 +13463,20 @@ EC_BOOL cmp4_content_ims_header_in_filter_port(const UINT32 cmp4_md_id)
     /*should never reach here*/
 
     /*set default ims port*/
-    chttp_req_set_port_word(CMP4_MD_CHTTP_REQ(cmp4_md), CNGX_ORIG_PORT_DEFAULT);
-    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
-                                        "[default] set default port '%d' to http req done\n",
-                                        CNGX_ORIG_PORT_DEFAULT);
+    if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
+                                             "[default] set default port '%d' to http req done\n",
+                                             CNGX_ORIG_HTTP_PORT_DEFAULT);
+    }
+    else
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
+                                             "[default] set default port '%d' to https req done\n",
+                                             CNGX_ORIG_HTTPS_PORT_DEFAULT);
+    }
     return (EC_TRUE);
 }
 
@@ -13387,6 +13564,113 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
     r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(CMP4_MD_CHTTP_REQ(cmp4_md));
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
+                                                     "[conf] set ca '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0301);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0302);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
+                                                 "[conf] set ca '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0303);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
+                                                     "[conf] set certificate '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0304);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0305);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
+                                                 "[conf] set certificate '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0306);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
+                                                     "[conf] set certificate key '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0307);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0308);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
+                                                 "[conf] set certificate key '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0309);
+
+            /*fall through*/
+        }
+    }while(0);
 
     /*set http request server or ipaddr*/
     do
@@ -13499,113 +13783,6 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
                                                      "filter server failed\n");
                 return (EC_FALSE);
             }
-        }
-    }while(0);
-
-    /*set ssl flag*/
-    do
-    {
-        UINT32  ssl_flag;
-
-        /*when cngx switch ssl on, then orig over https*/
-        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
-        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
-        if(SWITCH_OFF == ssl_flag)
-        {
-            break;
-        }
-
-        /*ssl on*/
-        chttp_req_enable_ssl(CMP4_MD_CHTTP_REQ(cmp4_md));
-
-        /*[optional] cngx configure CA*/
-        k = (const char *)CNGX_VAR_SSL_CA;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ca_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
-                                                     "[conf] set ca '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0301);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0302);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
-                                                 "[conf] set ca '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0303);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_certificate_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
-                                                     "[conf] set certificate '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0304);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0305);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
-                                                 "[conf] set certificate '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0306);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate key*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_private_key_file(CMP4_MD_CHTTP_REQ(cmp4_md), v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
-                                                     "[conf] set certificate key '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0307);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0308);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
-                                                 "[conf] set certificate key '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0309);
-
-            /*fall through*/
         }
     }while(0);
 
@@ -15176,6 +15353,26 @@ EC_BOOL cmp4_content_repair_header_in_filter_port(const UINT32 cmp4_md_id)
         return (EC_TRUE);
     }
 
+    if(EC_TRUE == chttp_req_is_local(chttp_req))
+    {
+        /*set default repair port*/
+        if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
+                                                 "[default] set default port '%d' to http req done\n",
+                                                 CNGX_ORIG_HTTP_PORT_DEFAULT);
+        }
+        else
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
+                                                 "[default] set default port '%d' to https req done\n",
+                                                 CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        }
+        return (EC_TRUE);
+    }
+
     /*when cngx NOT config orig port*/
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
     {
@@ -15257,10 +15454,20 @@ EC_BOOL cmp4_content_repair_header_in_filter_port(const UINT32 cmp4_md_id)
     /*should never reach here*/
 
     /*set default repair port*/
-    chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
-    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
-                                         "[default] set default port '%d' to http req done\n",
-                                         CNGX_ORIG_PORT_DEFAULT);
+    if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
+                                             "[default] set default port '%d' to http req done\n",
+                                             CNGX_ORIG_HTTP_PORT_DEFAULT);
+    }
+    else
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
+                                             "[default] set default port '%d' to https req done\n",
+                                             CNGX_ORIG_HTTPS_PORT_DEFAULT);
+    }
     return (EC_TRUE);
 }
 
@@ -15351,6 +15558,113 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
     r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
 
     chttp_req = CMP4_MD_CHTTP_REQ(cmp4_md);
+
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(chttp_req);
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(chttp_req, v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter: "
+                                                     "[conf] set ca '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0347);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0348);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
+                                                 "[conf] set ca '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0349);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(chttp_req, v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter: "
+                                                     "[conf] set certificate '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0350);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0351);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
+                                                 "[conf] set certificate '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0352);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(chttp_req, v))
+            {
+                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter: "
+                                                     "[conf] set certificate key '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CMP4_0353);
+
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0354);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
+                                                 "[conf] set certificate key '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CMP4_0355);
+
+            /*fall through*/
+        }
+    }while(0);
 
     /*set http request server or ipaddr*/
     do
@@ -15463,113 +15777,6 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
                                                      "filter server failed\n");
                 return (EC_FALSE);
             }
-        }
-    }while(0);
-
-    /*set ssl flag*/
-    do
-    {
-        UINT32  ssl_flag;
-
-        /*when cngx switch ssl on, then orig over https*/
-        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
-        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
-        if(SWITCH_OFF == ssl_flag)
-        {
-            break;
-        }
-
-        /*ssl on*/
-        chttp_req_enable_ssl(chttp_req);
-
-        /*[optional] cngx configure CA*/
-        k = (const char *)CNGX_VAR_SSL_CA;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ca_file(chttp_req, v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter: "
-                                                     "[conf] set ca '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0347);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0348);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
-                                                 "[conf] set ca '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0349);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_certificate_file(chttp_req, v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter: "
-                                                     "[conf] set certificate '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0350);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0351);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
-                                                 "[conf] set certificate '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0352);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate key*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_private_key_file(chttp_req, v))
-            {
-                dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter: "
-                                                     "[conf] set certificate key '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CMP4_0353);
-
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0354);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
-                                                 "[conf] set certificate key '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CMP4_0355);
-
-            /*fall through*/
         }
     }while(0);
 

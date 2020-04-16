@@ -2518,6 +2518,27 @@ EC_BOOL cflv_content_head_header_in_filter_port(const UINT32 cflv_md_id)
         return (EC_TRUE);
     }
 
+    if(EC_TRUE == chttp_req_is_local(chttp_req))
+    {
+        /*set default head port*/
+        if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
+                                                 "[default] set default port '%d' to http req done\n",
+                                                 CNGX_ORIG_HTTP_PORT_DEFAULT);
+        }
+        else
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
+                                                 "[default] set default port '%d' to https req done\n",
+                                                 CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        }
+
+        return (EC_TRUE);
+    }
+
     /*when cngx NOT config head port*/
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
     {
@@ -2598,10 +2619,21 @@ EC_BOOL cflv_content_head_header_in_filter_port(const UINT32 cflv_md_id)
     /*should never reach here*/
 
     /*set default head port*/
-    chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
-    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
-                                         "[default] set default port '%d' to http req done\n",
-                                         CNGX_ORIG_PORT_DEFAULT);
+    if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
+                                             "[default] set default port '%d' to http req done\n",
+                                             CNGX_ORIG_HTTP_PORT_DEFAULT);
+    }
+    else
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
+                                             "[default] set default port '%d' to https req done\n",
+                                             CNGX_ORIG_HTTPS_PORT_DEFAULT);
+    }
+
     return (EC_TRUE);
 }
 
@@ -2689,6 +2721,113 @@ EC_BOOL cflv_content_head_header_in_filter(const UINT32 cflv_md_id)
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
     r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(CFLV_MD_CHTTP_REQ(cflv_md));
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter: "
+                                                     "[conf] set ca '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0031);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0032);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
+                                                 "[conf] set ca '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0033);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter: "
+                                                     "[conf] set certificate '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0034);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0035);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
+                                                 "[conf] set certificate '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0036);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter: "
+                                                     "[conf] set certificate key '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0037);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0038);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
+                                                 "[conf] set certificate key '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0039);
+
+            /*fall through*/
+        }
+    }while(0);
 
     /*set http request server or ipaddr*/
     do
@@ -2804,113 +2943,6 @@ EC_BOOL cflv_content_head_header_in_filter(const UINT32 cflv_md_id)
                                                      "filter server failed\n");
                 return (EC_FALSE);
             }
-        }
-    }while(0);
-
-    /*set ssl flag*/
-    do
-    {
-        UINT32  ssl_flag;
-
-        /*when cngx switch ssl on, then orig over https*/
-        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
-        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
-        if(SWITCH_OFF == ssl_flag)
-        {
-            break;
-        }
-
-        /*ssl on*/
-        chttp_req_enable_ssl(CFLV_MD_CHTTP_REQ(cflv_md));
-
-        /*[optional] cngx configure CA*/
-        k = (const char *)CNGX_VAR_SSL_CA;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ca_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter: "
-                                                     "[conf] set ca '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0031);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0032);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
-                                                 "[conf] set ca '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0033);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_certificate_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter: "
-                                                     "[conf] set certificate '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0034);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0035);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
-                                                 "[conf] set certificate '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0036);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate key*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_private_key_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter: "
-                                                     "[conf] set certificate key '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0037);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0038);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
-                                                 "[conf] set certificate key '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0039);
-
-            /*fall through*/
         }
     }while(0);
 
@@ -3697,6 +3729,26 @@ EC_BOOL cflv_content_direct_header_in_filter_port(const UINT32 cflv_md_id)
         return (EC_TRUE);
     }
 
+    if(EC_TRUE == chttp_req_is_local(chttp_req))
+    {
+        /*set default direct port*/
+        if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
+                                                 "[default] set default port '%d' to http req done\n",
+                                                 CNGX_ORIG_HTTP_PORT_DEFAULT);
+        }
+        else
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
+                                                 "[default] set default port '%d' to https req done\n",
+                                                 CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        }
+        return (EC_TRUE);
+    }
+
     /*when cngx NOT config direct port*/
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
     {
@@ -3777,10 +3829,20 @@ EC_BOOL cflv_content_direct_header_in_filter_port(const UINT32 cflv_md_id)
     /*should never reach here*/
 
     /*set default direct port*/
-    chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
-    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
-                                         "[default] set default port '%d' to http req done\n",
-                                         CNGX_ORIG_PORT_DEFAULT);
+    if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
+                                             "[default] set default port '%d' to http req done\n",
+                                             CNGX_ORIG_HTTP_PORT_DEFAULT);
+    }
+    else
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
+                                             "[default] set default port '%d' to https req done\n",
+                                             CNGX_ORIG_HTTPS_PORT_DEFAULT);
+    }
     return (EC_TRUE);
 }
 
@@ -3868,6 +3930,113 @@ EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id)
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
     r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(CFLV_MD_CHTTP_REQ(cflv_md));
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter: "
+                                                     "[conf] set ca '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0076);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0077);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
+                                                 "[conf] set ca '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0078);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter: "
+                                                     "[conf] set certificate '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0079);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0080);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
+                                                 "[conf] set certificate '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0081);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter: "
+                                                     "[conf] set certificate key '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0082);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0083);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
+                                                 "[conf] set certificate key '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0084);
+
+            /*fall through*/
+        }
+    }while(0);
 
     /*set http request server or ipaddr*/
     do
@@ -3983,113 +4152,6 @@ EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id)
                                                      "filter server failed\n");
                 return (EC_FALSE);
             }
-        }
-    }while(0);
-
-    /*set ssl flag*/
-    do
-    {
-        UINT32  ssl_flag;
-
-        /*when cngx switch ssl on, then orig over https*/
-        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
-        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
-        if(SWITCH_OFF == ssl_flag)
-        {
-            break;
-        }
-
-        /*ssl on*/
-        chttp_req_enable_ssl(CFLV_MD_CHTTP_REQ(cflv_md));
-
-        /*[optional] cngx configure CA*/
-        k = (const char *)CNGX_VAR_SSL_CA;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ca_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter: "
-                                                     "[conf] set ca '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0076);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0077);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
-                                                 "[conf] set ca '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0078);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_certificate_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter: "
-                                                     "[conf] set certificate '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0079);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0080);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
-                                                 "[conf] set certificate '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0081);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate key*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_private_key_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter: "
-                                                     "[conf] set certificate key '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0082);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0083);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
-                                                 "[conf] set certificate key '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0084);
-
-            /*fall through*/
         }
     }while(0);
 
@@ -5709,6 +5771,26 @@ EC_BOOL cflv_content_repair_header_in_filter_port(const UINT32 cflv_md_id)
         return (EC_TRUE);
     }
 
+    if(EC_FALSE == chttp_req_is_local(chttp_req))
+    {
+        /*set default direct port*/
+        if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
+                                                 "[default] set default port '%d' to http req done\n",
+                                                 CNGX_ORIG_HTTP_PORT_DEFAULT);
+        }
+        else
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
+                                                 "[default] set default port '%d' to https req done\n",
+                                                 CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        }
+        return (EC_TRUE);
+    }
+
     /*when cngx NOT config direct port*/
 
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
@@ -5790,10 +5872,21 @@ EC_BOOL cflv_content_repair_header_in_filter_port(const UINT32 cflv_md_id)
     /*should never reach here*/
 
     /*set default direct port*/
-    chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
-    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
-                                         "[default] set default port '%d' to http req done\n",
-                                         CNGX_ORIG_PORT_DEFAULT);
+    if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
+                                             "[default] set default port '%d' to http req done\n",
+                                             CNGX_ORIG_HTTP_PORT_DEFAULT);
+    }
+    else
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
+                                             "[default] set default port '%d' to https req done\n",
+                                             CNGX_ORIG_HTTPS_PORT_DEFAULT);
+    }
+
     return (EC_TRUE);
 }
 
@@ -5881,6 +5974,113 @@ EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
     r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(CFLV_MD_CHTTP_REQ(cflv_md));
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
+                                                     "[conf] set ca '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0125);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0126);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
+                                                 "[conf] set ca '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0127);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
+                                                     "[conf] set certificate '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0128);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0129);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
+                                                 "[conf] set certificate '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0130);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
+                                                     "[conf] set certificate key '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0131);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0132);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
+                                                 "[conf] set certificate key '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0133);
+
+            /*fall through*/
+        }
+    }while(0);
 
     /*set http request server or ipaddr*/
     do
@@ -5996,113 +6196,6 @@ EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
                                                      "filter server failed\n");
                 return (EC_FALSE);
             }
-        }
-    }while(0);
-
-    /*set ssl flag*/
-    do
-    {
-        UINT32  ssl_flag;
-
-        /*when cngx switch ssl on, then orig over https*/
-        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
-        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
-        if(SWITCH_OFF == ssl_flag)
-        {
-            break;
-        }
-
-        /*ssl on*/
-        chttp_req_enable_ssl(CFLV_MD_CHTTP_REQ(cflv_md));
-
-        /*[optional] cngx configure CA*/
-        k = (const char *)CNGX_VAR_SSL_CA;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ca_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
-                                                     "[conf] set ca '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0125);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0126);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
-                                                 "[conf] set ca '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0127);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_certificate_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
-                                                     "[conf] set certificate '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0128);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0129);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
-                                                 "[conf] set certificate '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0130);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate key*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_private_key_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
-                                                     "[conf] set certificate key '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0131);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0132);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
-                                                 "[conf] set certificate key '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0133);
-
-            /*fall through*/
         }
     }while(0);
 
@@ -7464,6 +7557,26 @@ EC_BOOL cflv_content_orig_header_in_filter_port(const UINT32 cflv_md_id)
         return (EC_TRUE);
     }
 
+    if(EC_TRUE == chttp_req_is_local(chttp_req))
+    {
+        /*set default orig port*/
+        if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                 "[default] set default port '%d' to http req done\n",
+                                                 CNGX_ORIG_HTTP_PORT_DEFAULT);
+        }
+        else
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                 "[default] set default port '%d' to https req done\n",
+                                                 CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        }
+        return (EC_TRUE);
+    }
+
     /*extract request port from request line*/
     if(EC_TRUE == cngx_get_req_port(r, &v) && NULL_PTR != v)
     {
@@ -7558,10 +7671,20 @@ EC_BOOL cflv_content_orig_header_in_filter_port(const UINT32 cflv_md_id)
     /*should never reach here*/
 
     /*set default orig port*/
-    chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
-    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
-                                         "[default] set default port '%d' to http req done\n",
-                                         CNGX_ORIG_PORT_DEFAULT);
+    if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                             "[default] set default port '%d' to http req done\n",
+                                             CNGX_ORIG_HTTP_PORT_DEFAULT);
+    }
+    else
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                             "[default] set default port '%d' to https req done\n",
+                                             CNGX_ORIG_HTTPS_PORT_DEFAULT);
+    }
     return (EC_TRUE);
 }
 
@@ -7653,6 +7776,113 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
     r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
 
     chttp_req = CFLV_MD_CHTTP_REQ(cflv_md);
+
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(chttp_req);
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(chttp_req, v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
+                                                     "[conf] set ca '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0176);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0177);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                 "[conf] set ca '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0178);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(chttp_req, v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
+                                                     "[conf] set certificate '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0179);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0180);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                 "[conf] set certificate '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0181);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(chttp_req, v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
+                                                     "[conf] set certificate key '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0182);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0183);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
+                                                 "[conf] set certificate key '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0184);
+
+            /*fall through*/
+        }
+    }while(0);
 
     /*set http request server or ipaddr*/
     do
@@ -7767,113 +7997,6 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                                                      "filter server failed\n");
                 return (EC_FALSE);
             }
-        }
-    }while(0);
-
-    /*set ssl flag*/
-    do
-    {
-        UINT32  ssl_flag;
-
-        /*when cngx switch ssl on, then orig over https*/
-        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
-        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
-        if(SWITCH_OFF == ssl_flag)
-        {
-            break;
-        }
-
-        /*ssl on*/
-        chttp_req_enable_ssl(CFLV_MD_CHTTP_REQ(cflv_md));
-
-        /*[optional] cngx configure CA*/
-        k = (const char *)CNGX_VAR_SSL_CA;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ca_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
-                                                     "[conf] set ca '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0176);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0177);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
-                                                 "[conf] set ca '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0178);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_certificate_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
-                                                     "[conf] set certificate '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0179);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0180);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
-                                                 "[conf] set certificate '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0181);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate key*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_private_key_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
-                                                     "[conf] set certificate key '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0182);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0183);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
-                                                 "[conf] set certificate key '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0184);
-
-            /*fall through*/
         }
     }while(0);
 
@@ -9714,6 +9837,26 @@ EC_BOOL cflv_content_ms_header_in_filter_port(const UINT32 cflv_md_id)
         return (EC_TRUE);
     }
 
+    if(EC_TRUE == chttp_req_is_local(chttp_req))
+    {
+        /*set default orig port*/
+        if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
+                                                 "[default] set default port '%d' to http req done\n",
+                                                 CNGX_ORIG_HTTP_PORT_DEFAULT);
+        }
+        else
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
+                                                 "[default] set default port '%d' to https req done\n",
+                                                 CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        }
+        return (EC_TRUE);
+    }
+
     /*extract request port from request line*/
     if(EC_TRUE == cngx_get_req_port(r, &v) && NULL_PTR != v)
     {
@@ -9808,10 +9951,20 @@ EC_BOOL cflv_content_ms_header_in_filter_port(const UINT32 cflv_md_id)
     /*should never reach here*/
 
     /*set default orig port*/
-    chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
-    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
-                                         "[default] set default port '%d' to http req done\n",
-                                         CNGX_ORIG_PORT_DEFAULT);
+    if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
+                                             "[default] set default port '%d' to http req done\n",
+                                             CNGX_ORIG_HTTP_PORT_DEFAULT);
+    }
+    else
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
+                                             "[default] set default port '%d' to https req done\n",
+                                             CNGX_ORIG_HTTPS_PORT_DEFAULT);
+    }
     return (EC_TRUE);
 }
 
@@ -9903,6 +10056,113 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
     r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
 
     chttp_req = CFLV_MD_CHTTP_REQ(cflv_md);
+
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(chttp_req);
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(chttp_req, v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
+                                                     "[conf] set ca '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0235);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0236);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
+                                                 "[conf] set ca '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0237);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(chttp_req, v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
+                                                     "[conf] set certificate '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0238);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0239);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
+                                                 "[conf] set certificate '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0240);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(chttp_req, v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
+                                                     "[conf] set certificate key '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0241);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0242);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
+                                                 "[conf] set certificate key '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0243);
+
+            /*fall through*/
+        }
+    }while(0);
 
     /*set http request server or ipaddr*/
     do
@@ -10020,114 +10280,6 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
             }
         }
     }while(0);
-
-    /*set ssl flag*/
-    do
-    {
-        UINT32  ssl_flag;
-
-        /*when cngx switch ssl on, then orig over https*/
-        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
-        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
-        if(SWITCH_OFF == ssl_flag)
-        {
-            break;
-        }
-
-        /*ssl on*/
-        chttp_req_enable_ssl(CFLV_MD_CHTTP_REQ(cflv_md));
-
-        /*[optional] cngx configure CA*/
-        k = (const char *)CNGX_VAR_SSL_CA;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ca_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
-                                                     "[conf] set ca '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0235);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0236);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
-                                                 "[conf] set ca '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0237);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_certificate_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
-                                                     "[conf] set certificate '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0238);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0239);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
-                                                 "[conf] set certificate '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0240);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate key*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_private_key_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
-                                                     "[conf] set certificate key '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0241);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0242);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
-                                                 "[conf] set certificate key '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0243);
-
-            /*fall through*/
-        }
-    }while(0);
-
 
     /*set http request method*/
     if(EC_FALSE == cngx_get_req_method_str(r, &v))
@@ -12903,6 +13055,26 @@ EC_BOOL cflv_content_ims_header_in_filter_port(const UINT32 cflv_md_id)
         return (EC_TRUE);
     }
 
+    if(EC_TRUE == chttp_req_is_local(chttp_req))
+    {
+        /*set default ims port*/
+        if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
+                                                 "[default] set default port '%d' to http req done\n",
+                                                 CNGX_ORIG_HTTP_PORT_DEFAULT);
+        }
+        else
+        {
+            chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
+                                                 "[default] set default port '%d' to https req done\n",
+                                                 CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        }
+        return (EC_TRUE);
+    }
+
     /*when cngx NOT config orig port*/
     for(tag_idx = 0; tag_idx < sizeof(tags)/sizeof(tags[ 0 ]); tag_idx ++)
     {
@@ -12981,11 +13153,23 @@ EC_BOOL cflv_content_ims_header_in_filter_port(const UINT32 cflv_md_id)
         return (EC_TRUE);
     }
 
+    /*should never reach here*/
+
     /*set default ims port*/
-    chttp_req_set_port_word(chttp_req, CNGX_ORIG_PORT_DEFAULT);
-    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
-                                        "[default] set default port '%d' to http req done\n",
-                                        CNGX_ORIG_PORT_DEFAULT);
+    if(EC_FALSE == chttp_req_is_enabled_ssl(chttp_req))
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTP_PORT_DEFAULT);
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
+                                             "[default] set default port '%d' to http req done\n",
+                                             CNGX_ORIG_HTTP_PORT_DEFAULT);
+    }
+    else
+    {
+        chttp_req_set_port_word(chttp_req, CNGX_ORIG_HTTPS_PORT_DEFAULT);
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
+                                             "[default] set default port '%d' to https req done\n",
+                                             CNGX_ORIG_HTTPS_PORT_DEFAULT);
+    }
     return (EC_TRUE);
 }
 
@@ -13073,6 +13257,113 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
     cflv_md = CFLV_MD_GET(cflv_md_id);
 
     r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+
+    /*set ssl flag*/
+    do
+    {
+        UINT32  ssl_flag;
+
+        /*when cngx switch ssl on, then orig over https*/
+        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
+        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
+        if(SWITCH_OFF == ssl_flag)
+        {
+            break;
+        }
+
+        /*ssl on*/
+        chttp_req_enable_ssl(CFLV_MD_CHTTP_REQ(cflv_md));
+
+        /*[optional] cngx configure CA*/
+        k = (const char *)CNGX_VAR_SSL_CA;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_ca_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
+                                                     "[conf] set ca '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0304);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0305);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
+                                                 "[conf] set ca '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0306);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_certificate_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
+                                                     "[conf] set certificate '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0307);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0308);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
+                                                 "[conf] set certificate '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0309);
+
+            /*fall through*/
+        }
+
+        /*cngx configure certificate key*/
+        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
+        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
+        && NULL_PTR != v)
+        {
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
+                                                 "[conf] get var '%s':'%s' done\n",
+                                                 k, v);
+
+            if(EC_FALSE == chttp_req_set_client_private_key_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
+            {
+                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
+                                                     "[conf] set certificate key '%s' to http req failed\n",
+                                                     v);
+                safe_free(v, LOC_CFLV_0310);
+
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0311);
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
+                                                 "[conf] set certificate key '%s' to http req done\n",
+                                                 v);
+
+            safe_free(v, LOC_CFLV_0312);
+
+            /*fall through*/
+        }
+    }while(0);
 
     /*set http request server or ipaddr*/
     do
@@ -13188,113 +13479,6 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
                                                      "filter server failed\n");
                 return (EC_FALSE);
             }
-        }
-    }while(0);
-
-    /*set ssl flag*/
-    do
-    {
-        UINT32  ssl_flag;
-
-        /*when cngx switch ssl on, then orig over https*/
-        k = (const char *)CNGX_VAR_SSL_ORIG_SWITCH;
-        cngx_get_var_switch(r, k, &ssl_flag, SWITCH_OFF);
-        if(SWITCH_OFF == ssl_flag)
-        {
-            break;
-        }
-
-        /*ssl on*/
-        chttp_req_enable_ssl(CFLV_MD_CHTTP_REQ(cflv_md));
-
-        /*[optional] cngx configure CA*/
-        k = (const char *)CNGX_VAR_SSL_CA;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_ca_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
-                                                     "[conf] set ca '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0304);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0305);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
-                                                 "[conf] set ca '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0306);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_certificate_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
-                                                     "[conf] set certificate '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0307);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0308);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
-                                                 "[conf] set certificate '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0309);
-
-            /*fall through*/
-        }
-
-        /*cngx configure certificate key*/
-        k = (const char *)CNGX_VAR_SSL_CERTIFICATE_KEY;
-        if(EC_TRUE == cngx_get_var_str(r, k, &v, NULL_PTR)
-        && NULL_PTR != v)
-        {
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
-                                                 "[conf] get var '%s':'%s' done\n",
-                                                 k, v);
-
-            if(EC_FALSE == chttp_req_set_client_private_key_file(CFLV_MD_CHTTP_REQ(cflv_md), v))
-            {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
-                                                     "[conf] set certificate key '%s' to http req failed\n",
-                                                     v);
-                safe_free(v, LOC_CFLV_0310);
-
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0311);
-
-                return (EC_FALSE);
-            }
-
-            dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
-                                                 "[conf] set certificate key '%s' to http req done\n",
-                                                 v);
-
-            safe_free(v, LOC_CFLV_0312);
-
-            /*fall through*/
         }
     }while(0);
 

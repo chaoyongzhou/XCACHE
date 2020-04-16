@@ -190,6 +190,8 @@ static char  *g_months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
 static int    g_dev_null_fd = -1;       /*fd of device /dev/null*/
 static FILE  *g_dev_null_fp = NULL_PTR; /*fp of device /dev/null*/
 
+static CSET  *g_local_netcard_set = NULL_PTR;
+
 #define CMISC_MAX_ERRNO         (128)
 #define CMISC_STRERR_MAX_SIZE   (256)
 
@@ -6364,6 +6366,39 @@ CSET * c_collect_netcards()
     }
 
     return (cnetcard_set);
+}
+
+EC_BOOL c_has_ipv4(const CSET *cnetcard_set, const UINT32 ipv4)
+{
+    CSET_DATA       *cset_data;
+
+    CSET_LOOP_NEXT(cnetcard_set, cset_data)
+    {
+        CNETCARD *cnetcard;
+
+        cnetcard = CSET_DATA_DATA(cset_data);
+        if(ipv4 == CNETCARD_IPV4VAL(cnetcard))
+        {
+            return (EC_TRUE);
+        }
+    }
+
+    return(EC_FALSE);
+}
+
+EC_BOOL c_ipv4_is_local(const UINT32 ipv4)
+{
+    if(NULL_PTR == g_local_netcard_set)
+    {
+        g_local_netcard_set = c_collect_netcards();
+        if(NULL_PTR == g_local_netcard_set)
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_ipv4_is_local: collect netcards failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    return c_has_ipv4(g_local_netcard_set, ipv4);
 }
 
 EC_BOOL c_save_args(const int argc, const char **argv)
