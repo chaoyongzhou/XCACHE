@@ -718,7 +718,7 @@ void mcast_cfg_print_xml(LOG *log, const MCAST_CFG *mcast_cfg, const UINT32 leve
 SDISC_CFG *sdisc_cfg_new()
 {
     SDISC_CFG *sdisc_cfg;
-    alloc_static_mem(MM_SDISC_CFG, &sdisc_cfg, LOC_CSYSCFG_0017);
+    alloc_static_mem(MM_SDISC_CFG, &sdisc_cfg, LOC_CSYSCFG_0019);
     if(NULL_PTR != sdisc_cfg)
     {
         sdisc_cfg_init(sdisc_cfg);
@@ -753,7 +753,7 @@ EC_BOOL sdisc_cfg_free(SDISC_CFG *sdisc_cfg)
     if(NULL_PTR != sdisc_cfg)
     {
         sdisc_cfg_clean(sdisc_cfg);
-        free_static_mem(MM_SDISC_CFG, sdisc_cfg, LOC_CSYSCFG_0018);
+        free_static_mem(MM_SDISC_CFG, sdisc_cfg, LOC_CSYSCFG_0020);
     }
     return (EC_TRUE);
 }
@@ -828,7 +828,7 @@ void sdisc_cfg_print_xml(LOG *log, const SDISC_CFG *sdisc_cfg, const UINT32 leve
 BCAST_DHCP_CFG *bcast_dhcp_cfg_new()
 {
     BCAST_DHCP_CFG *bcast_dhcp_cfg;
-    alloc_static_mem(MM_BCAST_DHCP_CFG, &bcast_dhcp_cfg, LOC_CSYSCFG_0019);
+    alloc_static_mem(MM_BCAST_DHCP_CFG, &bcast_dhcp_cfg, LOC_CSYSCFG_0021);
     if(NULL_PTR != bcast_dhcp_cfg)
     {
         bcast_dhcp_cfg_init(bcast_dhcp_cfg);
@@ -864,7 +864,7 @@ EC_BOOL bcast_dhcp_cfg_free(BCAST_DHCP_CFG *bcast_dhcp_cfg)
     if(NULL_PTR != bcast_dhcp_cfg)
     {
         bcast_dhcp_cfg_clean(bcast_dhcp_cfg);
-        free_static_mem(MM_BCAST_DHCP_CFG, bcast_dhcp_cfg, LOC_CSYSCFG_0020);
+        free_static_mem(MM_BCAST_DHCP_CFG, bcast_dhcp_cfg, LOC_CSYSCFG_0022);
     }
     return (EC_TRUE);
 }
@@ -990,7 +990,7 @@ STATIC_CAST static void __cparacfg_log_level_print_xml(LOG *log, const CPARACFG 
     {
         CVECTOR *log_sector_vec;
         log_sector_vec = &(log_sector_vec_tab[ log_level ]);
-        cvector_init(log_sector_vec, 0, MM_UINT32, CVECTOR_LOCK_ENABLE, LOC_CSYSCFG_0021);
+        cvector_init(log_sector_vec, 0, MM_UINT32, CVECTOR_LOCK_ENABLE, LOC_CSYSCFG_0023);
     }
 
     log_level_tab = (UINT32 *)CPARACFG_LOG_LEVEL_TAB(cparacfg);
@@ -1020,14 +1020,14 @@ STATIC_CAST static void __cparacfg_log_level_print_xml(LOG *log, const CPARACFG 
             char *sector_str;
             sector_str = uint32_vec_to_str(log_sector_vec);
             sys_print(log, "%s:%ld", sector_str, log_level);
-            safe_free(sector_str, LOC_CSYSCFG_0022);
+            safe_free(sector_str, LOC_CSYSCFG_0024);
         }
         else
         {
             char *sector_str;
             sector_str = uint32_vec_to_str(log_sector_vec);
             sys_print(log, ",%s:%ld", sector_str, log_level);
-            safe_free(sector_str, LOC_CSYSCFG_0023);
+            safe_free(sector_str, LOC_CSYSCFG_0025);
         }
 
         count ++;
@@ -1038,7 +1038,7 @@ STATIC_CAST static void __cparacfg_log_level_print_xml(LOG *log, const CPARACFG 
     {
         CVECTOR *log_sector_vec;
         log_sector_vec = &(log_sector_vec_tab[ log_level ]);
-        cvector_clean(log_sector_vec, NULL_PTR, LOC_CSYSCFG_0024);
+        cvector_clean(log_sector_vec, NULL_PTR, LOC_CSYSCFG_0026);
     }
     return;
 }
@@ -1237,7 +1237,7 @@ void paras_cfg_print_xml(LOG *log, const CVECTOR *paras_cfg, const UINT32 level)
         c_ident_print(log, level);
         sys_print(log, "<parasConfig>\n");
 
-        CVECTOR_LOCK(paras_cfg, LOC_CSYSCFG_0025);
+        CVECTOR_LOCK(paras_cfg, LOC_CSYSCFG_0027);
         for(pos = 0; pos < num; pos ++)
         {
             CPARACFG *cparacfg;
@@ -1250,7 +1250,7 @@ void paras_cfg_print_xml(LOG *log, const CVECTOR *paras_cfg, const UINT32 level)
 
             cparacfg_print_xml(log, cparacfg, level + 1);
         }
-        CVECTOR_UNLOCK(paras_cfg, LOC_CSYSCFG_0026);
+        CVECTOR_UNLOCK(paras_cfg, LOC_CSYSCFG_0028);
 
         c_ident_print(log, level);
         sys_print(log, "</parasConfig>\n");
@@ -1262,7 +1262,7 @@ void paras_cfg_print_xml(LOG *log, const CVECTOR *paras_cfg, const UINT32 level)
 MACIP_CFG *macip_cfg_new()
 {
     MACIP_CFG *macip_cfg;
-    alloc_static_mem(MM_MACIP_CFG, &macip_cfg, LOC_CSYSCFG_0027);
+    alloc_static_mem(MM_MACIP_CFG, &macip_cfg, LOC_CSYSCFG_0029);
     if(NULL_PTR != macip_cfg)
     {
         macip_cfg_init(macip_cfg);
@@ -1289,7 +1289,7 @@ EC_BOOL macip_cfg_free(MACIP_CFG *macip_cfg)
     if(NULL_PTR != macip_cfg)
     {
         macip_cfg_clean(macip_cfg);
-        free_static_mem(MM_MACIP_CFG, macip_cfg, LOC_CSYSCFG_0028);
+        free_static_mem(MM_MACIP_CFG, macip_cfg, LOC_CSYSCFG_0030);
     }
     return (EC_TRUE);
 }
@@ -1360,7 +1360,7 @@ void macip_cfg_vec_print_xml(LOG *log, const CVECTOR *macip_cfg_vec, const UINT3
     c_ident_print(log, level);
     sys_print(log, "<macIpMapsConfig>\n");
 
-    CVECTOR_LOCK(macip_cfg_vec, LOC_CSYSCFG_0029);
+    CVECTOR_LOCK(macip_cfg_vec, LOC_CSYSCFG_0031);
     for(pos = 0; pos < num; pos ++)
     {
         MACIP_CFG *macip_cfg;
@@ -1373,7 +1373,7 @@ void macip_cfg_vec_print_xml(LOG *log, const CVECTOR *macip_cfg_vec, const UINT3
 
         macip_cfg_print_xml(log, macip_cfg, level + 1);
     }
-    CVECTOR_UNLOCK(macip_cfg_vec, LOC_CSYSCFG_0030);
+    CVECTOR_UNLOCK(macip_cfg_vec, LOC_CSYSCFG_0032);
 
     c_ident_print(log, level);
     sys_print(log, "</macIpMapsConfig>\n");
@@ -1384,7 +1384,7 @@ SYS_CFG *sys_cfg_new()
 {
     SYS_CFG *sys_cfg;
 
-    alloc_static_mem(MM_SYS_CFG, &sys_cfg, LOC_CSYSCFG_0031);
+    alloc_static_mem(MM_SYS_CFG, &sys_cfg, LOC_CSYSCFG_0033);
     if(NULL_PTR != sys_cfg)
     {
         sys_cfg_init(sys_cfg);
@@ -1395,9 +1395,9 @@ SYS_CFG *sys_cfg_new()
 EC_BOOL sys_cfg_init(SYS_CFG *sys_cfg)
 {
     task_cfg_init(SYS_CFG_TASK_CFG(sys_cfg));
-    cvector_init(SYS_CFG_CLUSTER_VEC(sys_cfg)  , 0, MM_CLUSTER_CFG, CVECTOR_LOCK_ENABLE, LOC_CSYSCFG_0032);
-    cvector_init(SYS_CFG_MACIP_CFG_VEC(sys_cfg), 0, MM_MACIP_CFG  , CVECTOR_LOCK_ENABLE, LOC_CSYSCFG_0033);
-    cvector_init(SYS_CFG_PARAS_CFG(sys_cfg)    , 0, MM_CPARACFG   , CVECTOR_LOCK_ENABLE, LOC_CSYSCFG_0034);
+    cvector_init(SYS_CFG_CLUSTER_VEC(sys_cfg)  , 0, MM_CLUSTER_CFG, CVECTOR_LOCK_ENABLE, LOC_CSYSCFG_0034);
+    cvector_init(SYS_CFG_MACIP_CFG_VEC(sys_cfg), 0, MM_MACIP_CFG  , CVECTOR_LOCK_ENABLE, LOC_CSYSCFG_0035);
+    cvector_init(SYS_CFG_PARAS_CFG(sys_cfg)    , 0, MM_CPARACFG   , CVECTOR_LOCK_ENABLE, LOC_CSYSCFG_0036);
 
     mcast_cfg_init(SYS_CFG_MCAST_CFG(sys_cfg));
     bcast_dhcp_cfg_init(SYS_CFG_BCAST_DHCP_CFG(sys_cfg));
@@ -1408,9 +1408,9 @@ EC_BOOL sys_cfg_init(SYS_CFG *sys_cfg)
 EC_BOOL sys_cfg_clean(SYS_CFG *sys_cfg)
 {
     task_cfg_clean(SYS_CFG_TASK_CFG(sys_cfg));
-    cvector_clean(SYS_CFG_CLUSTER_VEC(sys_cfg)  , (CVECTOR_DATA_CLEANER)cluster_cfg_free, LOC_CSYSCFG_0035);
-    cvector_clean(SYS_CFG_MACIP_CFG_VEC(sys_cfg), (CVECTOR_DATA_CLEANER)macip_cfg_free  , LOC_CSYSCFG_0036);
-    cvector_clean(SYS_CFG_PARAS_CFG(sys_cfg)    , (CVECTOR_DATA_CLEANER)cparacfg_free   , LOC_CSYSCFG_0037);
+    cvector_clean(SYS_CFG_CLUSTER_VEC(sys_cfg)  , (CVECTOR_DATA_CLEANER)cluster_cfg_free, LOC_CSYSCFG_0037);
+    cvector_clean(SYS_CFG_MACIP_CFG_VEC(sys_cfg), (CVECTOR_DATA_CLEANER)macip_cfg_free  , LOC_CSYSCFG_0038);
+    cvector_clean(SYS_CFG_PARAS_CFG(sys_cfg)    , (CVECTOR_DATA_CLEANER)cparacfg_free   , LOC_CSYSCFG_0039);
 
     mcast_cfg_clean(SYS_CFG_MCAST_CFG(sys_cfg));
     bcast_dhcp_cfg_clean(SYS_CFG_BCAST_DHCP_CFG(sys_cfg));
@@ -1423,7 +1423,7 @@ EC_BOOL sys_cfg_free(SYS_CFG *sys_cfg)
     if(NULL_PTR != sys_cfg)
     {
         sys_cfg_clean(sys_cfg);
-        free_static_mem(MM_SYS_CFG, sys_cfg, LOC_CSYSCFG_0038);
+        free_static_mem(MM_SYS_CFG, sys_cfg, LOC_CSYSCFG_0040);
     }
     return (EC_TRUE);
 }
@@ -1460,7 +1460,7 @@ CPARACFG *sys_cfg_search_cparacfg(const SYS_CFG *sys_cfg, const UINT32 tcid, con
 
     paras_cfg = SYS_CFG_PARAS_CFG((SYS_CFG *)sys_cfg);
 
-    CVECTOR_LOCK(paras_cfg, LOC_CSYSCFG_0039);
+    CVECTOR_LOCK(paras_cfg, LOC_CSYSCFG_0041);
     for(pos = 0; pos < cvector_size(paras_cfg); pos ++)
     {
         CPARACFG *cparacfg;
@@ -1473,11 +1473,11 @@ CPARACFG *sys_cfg_search_cparacfg(const SYS_CFG *sys_cfg, const UINT32 tcid, con
 
         if(tcid == CPARACFG_TCID(cparacfg) && rank == CPARACFG_RANK(cparacfg))
         {
-            CVECTOR_UNLOCK(paras_cfg, LOC_CSYSCFG_0040);
+            CVECTOR_UNLOCK(paras_cfg, LOC_CSYSCFG_0042);
             return (cparacfg);
         }
     }
-    CVECTOR_UNLOCK(paras_cfg, LOC_CSYSCFG_0041);
+    CVECTOR_UNLOCK(paras_cfg, LOC_CSYSCFG_0043);
     return (NULL_PTR);
 }
 

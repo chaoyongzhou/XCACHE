@@ -1142,7 +1142,7 @@ ssize_t dhcp_if_send ( const INET_INFO *inet_info,
        so we have to do a sentdo every time. */
     memset (&sa, 0, sizeof(sa));
     sa.spkt_family = AF_PACKET;
-    strncpy ((char *)sa.spkt_device, (const char *)&(inet_info->ifr_hw), sizeof(sa.spkt_device));
+    strncpy ((char *)sa.spkt_device, (const char *)&(inet_info->ifr_hw), sizeof(sa.spkt_device) - 1);
     sa.spkt_protocol = htons(ETH_P_IP);
 
     result = sendto(inet_info->wfdesc,

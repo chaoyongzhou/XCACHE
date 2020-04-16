@@ -11996,10 +11996,10 @@ EC_BOOL task_brd_default_stop_logs()
 
 EC_BOOL task_brd_no_busy(TASK_BRD *task_brd)
 {
-    COROUTINE_POOL *coroutine_pool;
+    CROUTINE_POOL *croutine_pool;
 
-    coroutine_pool = TASK_REQ_CTHREAD_POOL(task_brd);
-    if(0 == croutine_pool_busy_num(coroutine_pool))
+    croutine_pool = TASK_REQ_CTHREAD_POOL(task_brd);
+    if(0 == croutine_pool_busy_num(croutine_pool))
     {
         return (EC_TRUE);
     }

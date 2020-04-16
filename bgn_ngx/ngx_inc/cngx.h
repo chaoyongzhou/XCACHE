@@ -17,8 +17,6 @@ extern "C"{
 #include <ngx_config.h>
 #include <ngx_core.h>
 #include <ngx_http.h>
-//#include <ndk_array.h>
-//#include <ndk_string.h>
 
 #include "type.h"
 #include "cstring.h"
@@ -65,7 +63,7 @@ extern "C"{
 
 #define  CNGX_VAR_CACHE_SEG_SIZE                  ("c_cache_seg_size")          /*default: 256KB*/
 #define  CNGX_VAR_CACHE_SEG_MAX_NUM               ("c_cache_seg_max_num")       /*default: 1024 * 4 * 64*/
-#define  CNGX_VAR_CACHE_PATH                      ("c_cache_path")              /*default: ngx.var.http_host .. ngx.var.request_uri*/
+#define  CNGX_VAR_CACHE_PATH                      ("c_cache_path")              /*default: ngx.var.http_host .. ngx.var.uri*/
 #define  CNGX_VAR_CACHE_STATUS                    ("c_cache_status")
 
 #define  CNGX_VAR_SSL_ORIG_SWITCH                 ("c_orig_ssl_switch")         /*default: off*/

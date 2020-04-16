@@ -2089,8 +2089,20 @@ EC_BOOL csocket_stop_udp_bcast_recver( const int sockfd )
 EC_BOOL csocket_set_promisc(const char *nif, int sock)
 {
     struct ifreq ifr;
+    uint32_t  len;
 
-    strncpy(ifr.ifr_name, nif,strlen(nif)+1);
+    len = strlen(nif);
+
+    if(sizeof(ifr.ifr_name) <= len)
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_set_promisc: nif '%s' is too long\n",
+                            nif);
+        return (EC_FALSE);
+    }
+
+    /*len < sizeof(ifr.ifr_name)*/
+    BCOPY((void *)nif, (void *)ifr.ifr_name, len + 1);
+
     if(-1 == ioctl(sock, SIOCGIFFLAGS, &ifr))
     {
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_set_promisc: get %s flags failed, errno = %d, errstr = %s\n",

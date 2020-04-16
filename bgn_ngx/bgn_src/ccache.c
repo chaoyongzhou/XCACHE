@@ -614,7 +614,7 @@ EC_BOOL ccache_file_write_over_bgn(const UINT32 store_srv_tcid, const UINT32 sto
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs or xfs*/
 
     dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "[DEBUG] ccache_file_write_over_bgn: p2p: [token %s] file_path '%.*s', data %p [len %ld] => store_srv_tcid %s\n",
                 (char *)cstring_get_str(auth_token),
@@ -744,7 +744,7 @@ EC_BOOL ccache_renew_headers_over_bgn(const UINT32 store_srv_tcid, const UINT32 
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs or xfs*/
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_renew_headers_over_bgn: renew headers of '%.*s' on tcid %s\n",
                     (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
@@ -952,7 +952,7 @@ EC_BOOL ccache_file_terminate_over_bgn(const UINT32 store_srv_tcid, const UINT32
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs or xfs*/
 
     dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "[DEBUG] ccache_file_terminate_over_bgn: p2p: file_path '%.*s'[NONE] => tcid %s\n",
                 (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
@@ -1424,7 +1424,7 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs or xfs*/
 
     ret = EC_FALSE;
 
@@ -2273,7 +2273,7 @@ EC_BOOL ccache_dir_delete_over_bgn(const CSTRING *file_path)
             MOD_NODE_TCID(&recv_mod_node) = CMON_NODE_TCID(&cmon_node);
             MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
             MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-            MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs*/
+            MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs or xfs*/
 
             task_p2p_inc(task_mgr, 0, &recv_mod_node,
                     &ret, FI_crfs_delete_dir, CMPI_ERROR_MODI, file_path);
