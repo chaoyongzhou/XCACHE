@@ -3706,6 +3706,7 @@ EC_BOOL cmp4_content_head_procedure(const UINT32 cmp4_md_id)
     CMP4_MD                     *cmp4_md;
 
     ngx_http_request_t          *r;
+    uint32_t                     status; /*response status*/
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -3729,6 +3730,18 @@ EC_BOOL cmp4_content_head_procedure(const UINT32 cmp4_md_id)
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_procedure: "
                                          "send request done\n");
+
+    /*check and intercept error pages*/
+    status = CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md));
+    if(EC_TRUE == cngx_need_intercept_errors(r, status))
+    {
+        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0011);
+
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "warn:cmp4_content_head_procedure: "
+                                             "intercept rsp status %u done\n",
+                                             status);
+        return (EC_FALSE); /*terminate and back to ngx procedure*/
+    }
 
     if(EC_FALSE == cngx_script_dir2_filter(r))
     {
@@ -5747,6 +5760,7 @@ EC_BOOL cmp4_content_direct_procedure(const UINT32 cmp4_md_id)
     CMP4_MD                     *cmp4_md;
 
     ngx_http_request_t          *r;
+    uint32_t                     status; /*response status*/
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -5770,6 +5784,18 @@ EC_BOOL cmp4_content_direct_procedure(const UINT32 cmp4_md_id)
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_procedure: "
                                          "send request done\n");
+
+    /*check and intercept error pages*/
+    status = CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md));
+    if(EC_TRUE == cngx_need_intercept_errors(r, status))
+    {
+        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0011);
+
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "warn:cmp4_content_direct_procedure: "
+                                             "intercept rsp status %u done\n",
+                                             status);
+        return (EC_FALSE); /*terminate and back to ngx procedure*/
+    }
 
     if(EC_FALSE == cngx_script_dir2_filter(r))
     {
@@ -7512,6 +7538,7 @@ EC_BOOL cmp4_content_repair2_procedure(const UINT32 cmp4_md_id)
     CMP4_MD                     *cmp4_md;
 
     ngx_http_request_t          *r;
+    uint32_t                     status; /*response status*/
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -7535,6 +7562,18 @@ EC_BOOL cmp4_content_repair2_procedure(const UINT32 cmp4_md_id)
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_procedure: "
                                          "send request done\n");
+
+    /*check and intercept error pages*/
+    status = CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md));
+    if(EC_TRUE == cngx_need_intercept_errors(r, status))
+    {
+        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0011);
+
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "warn:cmp4_content_repair2_procedure: "
+                                             "intercept rsp status %u done\n",
+                                             status);
+        return (EC_FALSE); /*terminate and back to ngx procedure*/
+    }
 
     if(EC_FALSE == cngx_script_dir2_filter(r))
     {
@@ -9812,6 +9851,7 @@ EC_BOOL cmp4_content_orig_procedure(const UINT32 cmp4_md_id)
 {
     CMP4_MD                     *cmp4_md;
     ngx_http_request_t          *r;
+    uint32_t                     status; /*response status*/
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -9835,6 +9875,18 @@ EC_BOOL cmp4_content_orig_procedure(const UINT32 cmp4_md_id)
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_procedure: "
                                          "send request done\n");
+
+    /*check and intercept error pages*/
+    status = CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md));
+    if(EC_TRUE == cngx_need_intercept_errors(r, status))
+    {
+        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0011);
+
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "warn:cmp4_content_orig_procedure: "
+                                             "intercept rsp status %u done\n",
+                                             status);
+        return (EC_FALSE); /*terminate and back to ngx procedure*/
+    }
 
     /*301/302 redirect*/
     if(EC_TRUE == cmp4_is_redirect_rsp(cmp4_md_id))
@@ -12259,6 +12311,7 @@ EC_BOOL cmp4_content_ms_procedure(const UINT32 cmp4_md_id)
     CMP4_MD                     *cmp4_md;
 
     ngx_http_request_t          *r;
+    uint32_t                     status; /*response status*/
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -12282,6 +12335,18 @@ EC_BOOL cmp4_content_ms_procedure(const UINT32 cmp4_md_id)
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_procedure: "
                                          "send request done\n");
+
+    /*check and intercept error pages*/
+    status = CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md));
+    if(EC_TRUE == cngx_need_intercept_errors(r, status))
+    {
+        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0011);
+
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "warn:cmp4_content_ms_procedure: "
+                                             "intercept rsp status %u done\n",
+                                             status);
+        return (EC_FALSE); /*terminate and back to ngx procedure*/
+    }
 
     /*301/302 redirect*/
     if(EC_TRUE == cmp4_is_redirect_rsp(cmp4_md_id))
@@ -16144,6 +16209,7 @@ EC_BOOL cmp4_content_repair_procedure(const UINT32 cmp4_md_id, const CRANGE_SEG 
 {
     CMP4_MD                     *cmp4_md;
     ngx_http_request_t          *r;
+    uint32_t                     status; /*response status*/
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -16226,6 +16292,18 @@ EC_BOOL cmp4_content_repair_procedure(const UINT32 cmp4_md_id, const CRANGE_SEG 
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_procedure: "
                                          "send request done\n");
+
+    /*check and intercept error pages*/
+    status = CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md));
+    if(EC_TRUE == cngx_need_intercept_errors(r, status))
+    {
+        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0011);
+
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "warn:cmp4_content_repair_procedure: "
+                                             "intercept rsp status %u done\n",
+                                             status);
+        return (EC_FALSE); /*terminate and back to ngx procedure*/
+    }
 
     /*301/302 redirect*/
     if(EC_TRUE == cmp4_is_redirect_rsp(cmp4_md_id))

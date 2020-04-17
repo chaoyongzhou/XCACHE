@@ -3372,6 +3372,7 @@ EC_BOOL cflv_content_head_procedure(const UINT32 cflv_md_id)
     CFLV_MD                     *cflv_md;
 
     ngx_http_request_t          *r;
+    uint32_t                     status; /*response status*/
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -3395,6 +3396,18 @@ EC_BOOL cflv_content_head_procedure(const UINT32 cflv_md_id)
     }
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_procedure: "
                                          "send request done\n");
+
+    /*check and intercept error pages*/
+    status = CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md));
+    if(EC_TRUE == cngx_need_intercept_errors(r, status))
+    {
+        cflv_set_ngx_rc(cflv_md_id, status, LOC_CFLV_0011);
+
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "warn:cflv_content_head_procedure: "
+                                             "intercept rsp status %u done\n",
+                                             status);
+        return (EC_FALSE); /*terminate and back to ngx procedure*/
+    }
 
     if(EC_FALSE == cngx_script_dir2_filter(r))
     {
@@ -5414,6 +5427,7 @@ EC_BOOL cflv_content_direct_procedure(const UINT32 cflv_md_id)
     CFLV_MD                     *cflv_md;
 
     ngx_http_request_t          *r;
+    uint32_t                     status; /*response status*/
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -5437,6 +5451,18 @@ EC_BOOL cflv_content_direct_procedure(const UINT32 cflv_md_id)
     }
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_procedure: "
                                          "send request done\n");
+
+    /*check and intercept error pages*/
+    status = CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md));
+    if(EC_TRUE == cngx_need_intercept_errors(r, status))
+    {
+        cflv_set_ngx_rc(cflv_md_id, status, LOC_CFLV_0011);
+
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "warn:cflv_content_direct_procedure: "
+                                             "intercept rsp status %u done\n",
+                                             status);
+        return (EC_FALSE); /*terminate and back to ngx procedure*/
+    }
 
     if(EC_FALSE == cngx_script_dir2_filter(r))
     {
@@ -7208,6 +7234,7 @@ EC_BOOL cflv_content_repair_procedure(const UINT32 cflv_md_id)
     CFLV_MD                     *cflv_md;
 
     ngx_http_request_t          *r;
+    uint32_t                     status; /*response status*/
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -7231,6 +7258,18 @@ EC_BOOL cflv_content_repair_procedure(const UINT32 cflv_md_id)
     }
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_procedure: "
                                          "send request done\n");
+
+    /*check and intercept error pages*/
+    status = CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md));
+    if(EC_TRUE == cngx_need_intercept_errors(r, status))
+    {
+        cflv_set_ngx_rc(cflv_md_id, status, LOC_CFLV_0011);
+
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "warn:cflv_content_repair_procedure: "
+                                             "intercept rsp status %u done\n",
+                                             status);
+        return (EC_FALSE); /*terminate and back to ngx procedure*/
+    }
 
     if(EC_FALSE == cngx_script_dir2_filter(r))
     {
@@ -9440,6 +9479,7 @@ EC_BOOL cflv_content_orig_procedure(const UINT32 cflv_md_id)
     CFLV_MD                     *cflv_md;
 
     ngx_http_request_t          *r;
+    uint32_t                     status; /*response status*/
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -9463,6 +9503,18 @@ EC_BOOL cflv_content_orig_procedure(const UINT32 cflv_md_id)
     }
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_procedure: "
                                          "send request done\n");
+
+    /*check and intercept error pages*/
+    status = CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md));
+    if(EC_TRUE == cngx_need_intercept_errors(r, status))
+    {
+        cflv_set_ngx_rc(cflv_md_id, status, LOC_CFLV_0011);
+
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "warn:cflv_content_orig_procedure: "
+                                             "intercept rsp status %u done\n",
+                                             status);
+        return (EC_FALSE); /*terminate and back to ngx procedure*/
+    }
 
     /*301/302 redirect*/
     if(EC_TRUE == cflv_is_redirect_rsp(cflv_md_id))
@@ -11886,6 +11938,7 @@ EC_BOOL cflv_content_ms_procedure(const UINT32 cflv_md_id)
     CFLV_MD                     *cflv_md;
 
     ngx_http_request_t          *r;
+    uint32_t                     status; /*response status*/
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -11909,6 +11962,18 @@ EC_BOOL cflv_content_ms_procedure(const UINT32 cflv_md_id)
     }
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_procedure: "
                                          "send request done\n");
+
+    /*check and intercept error pages*/
+    status = CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md));
+    if(EC_TRUE == cngx_need_intercept_errors(r, status))
+    {
+        cflv_set_ngx_rc(cflv_md_id, status, LOC_CFLV_0011);
+
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "warn:cflv_content_ms_procedure: "
+                                             "intercept rsp status %u done\n",
+                                             status);
+        return (EC_FALSE); /*terminate and back to ngx procedure*/
+    }
 
     /*301/302 redirect*/
     if(EC_TRUE == cflv_is_redirect_rsp(cflv_md_id))

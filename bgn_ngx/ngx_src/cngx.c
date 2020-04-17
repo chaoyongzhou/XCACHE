@@ -1960,6 +1960,41 @@ EC_BOOL cngx_set_deny_reason(ngx_http_request_t *r, const UINT32 deny_reason)
     return (EC_TRUE);
 }
 
+EC_BOOL cngx_need_intercept_errors(ngx_http_request_t *r, const uint32_t status)
+{
+    UINT32                       intercept_errors_switch;
+    const char                  *k;
+
+    if(NGX_HTTP_SPECIAL_RESPONSE > status)
+    {
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_need_intercept_errors: "
+                                             "rsp status %u => not intercept\n",
+                                             status);
+
+        return (EC_FALSE);
+    }
+
+    /*
+     * if cngx switch intercept errors on,
+     * then set rc and back to ngx procedure (ngx_http_finalize_request)
+     *
+     */
+    k = (const char *)CNGX_VAR_ORIG_INTERCEPT_ERRORS_SWITCH;
+    cngx_get_var_switch(r, k, &intercept_errors_switch, SWITCH_OFF);
+    if(SWITCH_ON == intercept_errors_switch)
+    {
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_need_intercept_errors: "
+                                             "rsp status %u => intercept\n",
+                                             status);
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_need_intercept_errors: "
+                                         "rsp status %u and switch off => not intercept\n",
+                                         status);
+
+    return (EC_FALSE);
+}
 
 EC_BOOL cngx_finalize(ngx_http_request_t *r, ngx_int_t status)
 {

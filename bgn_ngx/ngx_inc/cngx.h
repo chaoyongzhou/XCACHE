@@ -87,6 +87,8 @@ extern "C"{
 #define  CNGX_VAR_ORIG_KEEPALIVE_SWITCH           ("c_orig_keepalive_switch")    /*default: on*/
 #define  CNGX_VAR_ORIG_TIMEOUT_NSEC               ("c_orig_timeout_nsec")        /*default: 20 sec defined by CHTTP_SOCKET_TIMEOUT_NSEC*/
 
+#define  CNGX_VAR_ORIG_INTERCEPT_ERRORS_SWITCH    ("c_orig_intercept_errors_switch")/*default: off. if switch on, intercept errors (status >= 300)*/
+
 #define  CNGX_VAR_DIRECT_IMS_SWITCH               ("c_direct_ims_switch")        /*default: off. if switch on, direct orig when miss*/
 
 /*#define  CNGX_VAR_MERGE_LOCK_EXPIRES_NSEC         ("c_merge_lock_expires_nsec")*/  /*default: 60s. lock storage expires*/
@@ -254,6 +256,8 @@ EC_BOOL cngx_get_header_in(const ngx_http_request_t *r, const char *k, char **v)
 EC_BOOL cngx_set_cache_status(ngx_http_request_t *r, const char *cache_status);
 
 EC_BOOL cngx_set_deny_reason(ngx_http_request_t *r, const UINT32 deny_reason);
+
+EC_BOOL cngx_need_intercept_errors(ngx_http_request_t *r, const uint32_t status);
 
 EC_BOOL cngx_finalize(ngx_http_request_t *r, ngx_int_t status);
 

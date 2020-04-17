@@ -3277,6 +3277,7 @@ EC_BOOL cvendor_content_head_procedure(const UINT32 cvendor_md_id)
     CVENDOR_MD                  *cvendor_md;
 
     ngx_http_request_t          *r;
+    uint32_t                     status; /*response status*/
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -3300,6 +3301,18 @@ EC_BOOL cvendor_content_head_procedure(const UINT32 cvendor_md_id)
     }
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_procedure: "
                                             "send request done\n");
+
+    /*check and intercept error pages*/
+    status = CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md));
+    if(EC_TRUE == cngx_need_intercept_errors(r, status))
+    {
+        cvendor_set_ngx_rc(cvendor_md_id, status, LOC_CVENDOR_0011);
+
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "warn:cvendor_content_head_procedure: "
+                                                "intercept rsp status %u done\n",
+                                                status);
+        return (EC_FALSE); /*terminate and back to ngx procedure*/
+    }
 
     if(EC_FALSE == cngx_script_dir2_filter(r))
     {
@@ -5317,6 +5330,7 @@ EC_BOOL cvendor_content_direct_procedure(const UINT32 cvendor_md_id)
     CVENDOR_MD                  *cvendor_md;
 
     ngx_http_request_t          *r;
+    uint32_t                     status; /*response status*/
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -5340,6 +5354,18 @@ EC_BOOL cvendor_content_direct_procedure(const UINT32 cvendor_md_id)
     }
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_procedure: "
                                             "send request done\n");
+
+    /*check and intercept error pages*/
+    status = CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md));
+    if(EC_TRUE == cngx_need_intercept_errors(r, status))
+    {
+        cvendor_set_ngx_rc(cvendor_md_id, status, LOC_CVENDOR_0011);
+
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "warn:cvendor_content_direct_procedure: "
+                                                "intercept rsp status %u done\n",
+                                                status);
+        return (EC_FALSE); /*terminate and back to ngx procedure*/
+    }
 
     if(EC_FALSE == cngx_script_dir2_filter(r))
     {
@@ -7066,6 +7092,7 @@ EC_BOOL cvendor_content_repair_procedure(const UINT32 cvendor_md_id)
     CVENDOR_MD                  *cvendor_md;
 
     ngx_http_request_t          *r;
+    uint32_t                     status; /*response status*/
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -7089,6 +7116,18 @@ EC_BOOL cvendor_content_repair_procedure(const UINT32 cvendor_md_id)
     }
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_procedure: "
                                             "send request done\n");
+
+    /*check and intercept error pages*/
+    status = CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md));
+    if(EC_TRUE == cngx_need_intercept_errors(r, status))
+    {
+        cvendor_set_ngx_rc(cvendor_md_id, status, LOC_CVENDOR_0011);
+
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "warn:cvendor_content_repair_procedure: "
+                                                "intercept rsp status %u done\n",
+                                                status);
+        return (EC_FALSE); /*terminate and back to ngx procedure*/
+    }
 
     if(EC_FALSE == cngx_script_dir2_filter(r))
     {
@@ -9666,6 +9705,7 @@ EC_BOOL cvendor_content_orig_procedure(const UINT32 cvendor_md_id)
     CVENDOR_MD                  *cvendor_md;
 
     ngx_http_request_t          *r;
+    uint32_t                     status; /*response status*/
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -9689,6 +9729,18 @@ EC_BOOL cvendor_content_orig_procedure(const UINT32 cvendor_md_id)
     }
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_procedure: "
                                             "send request done\n");
+
+    /*check and intercept error pages*/
+    status = CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md));
+    if(EC_TRUE == cngx_need_intercept_errors(r, status))
+    {
+        cvendor_set_ngx_rc(cvendor_md_id, status, LOC_CVENDOR_0011);
+
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "warn:cvendor_content_orig_procedure: "
+                                                "intercept rsp status %u done\n",
+                                                status);
+        return (EC_FALSE); /*terminate and back to ngx procedure*/
+    }
 
     /*301/302 redirect*/
     if(EC_TRUE == cvendor_is_redirect_rsp(cvendor_md_id))
@@ -12235,6 +12287,7 @@ EC_BOOL cvendor_content_ms_procedure(const UINT32 cvendor_md_id)
     CVENDOR_MD                  *cvendor_md;
 
     ngx_http_request_t          *r;
+    uint32_t                     status; /*response status*/
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -12258,6 +12311,18 @@ EC_BOOL cvendor_content_ms_procedure(const UINT32 cvendor_md_id)
     }
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_procedure: "
                                             "send request done\n");
+
+    /*check and intercept error pages*/
+    status = CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md));
+    if(EC_TRUE == cngx_need_intercept_errors(r, status))
+    {
+        cvendor_set_ngx_rc(cvendor_md_id, status, LOC_CVENDOR_0011);
+
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "warn:cvendor_content_ms_procedure: "
+                                                "intercept rsp status %u done\n",
+                                                status);
+        return (EC_FALSE); /*terminate and back to ngx procedure*/
+    }
 
     /*301/302 redirect*/
     if(EC_TRUE == cvendor_is_redirect_rsp(cvendor_md_id))
