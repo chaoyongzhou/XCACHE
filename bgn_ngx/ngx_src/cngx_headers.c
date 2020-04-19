@@ -52,7 +52,7 @@ EC_BOOL cngx_headers_kv_wash_k(ngx_http_request_t *r, ngx_http_bgn_header_kv_t *
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_headers_kv_wash_k: "
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_kv_wash_k: "
                                 "'%.*s' => '%.*s'\n",
                                 (size_t)(kv->complex_k_source.len), (const char *)(kv->complex_k_source.data),
                                 (size_t)(k->len), (const char *)(k->data));
@@ -83,7 +83,7 @@ EC_BOOL cngx_headers_kv_wash_v(ngx_http_request_t *r, ngx_http_bgn_header_kv_t *
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_headers_kv_wash_v: "
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_headers_kv_wash_v: "
                                 "'%.*s' => '%.*s'\n",
                                 (size_t)(kv->complex_v_source.len), (const char *)(kv->complex_v_source.data),
                                 (size_t)(v->len), (const char *)(v->data));
