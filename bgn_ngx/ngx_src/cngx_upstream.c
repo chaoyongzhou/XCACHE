@@ -231,8 +231,22 @@ EC_BOOL cngx_upstream_fetch(ngx_http_request_t *r, UINT32 *ipaddr, UINT32 *port)
     }
 
     if(NULL_PTR == blcf->bgn_upstream.proxy_lengths) {
-        u->schema = blcf->bgn_upstream.vars.schema;
-        name = &(blcf->bgn_upstream.vars.host_header);
+        uint32_t    ipv4_t;
+        uint16_t    port_t;
+
+        if (ngx_http_bgn_url_eval(r, blcf, &ipv4_t, &port_t) != NGX_OK) {
+                return (EC_FALSE);
+        }
+
+        if(NULL_PTR != ipaddr) {
+            (*ipaddr) = ipv4_t;
+        }
+
+        if(NULL_PTR != port) {
+            (*port) = port_t;
+        }
+
+        return (EC_TRUE);
     }
     else {
         if(NULL_PTR == u->resolved) {
