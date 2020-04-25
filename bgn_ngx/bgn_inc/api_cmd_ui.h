@@ -56,6 +56,13 @@ void    api_cmd_ui_do_once(CMD_TREE *cmd_tree, CMD_HELP_VEC *cmd_help_vec, char 
 
 EC_BOOL api_cmd_ui_dns_resolve_demo(CMD_PARA_VEC * param);
 
+EC_BOOL api_cmd_ui_dns_cache_enable(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_dns_cache_disable(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_dns_cache_set_expired_nsec(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_dns_cache_resolve(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_dns_cache_retire(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_dns_cache_show(CMD_PARA_VEC * param);
+
 EC_BOOL api_cmd_ui_activate_sys_cfg(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_activate_sys_cfg_all(CMD_PARA_VEC * param);
 

@@ -52,7 +52,7 @@ extern "C"{
 #include "ccache.h"
 #include "ccallback.h"
 #include "super.h"
-
+#include "cdnscache.h"
 #include "findex.inc"
 
 
@@ -5052,6 +5052,9 @@ EC_BOOL chttp_req_init(CHTTP_REQ *chttp_req)
     CHTTP_REQ_IPADDR(chttp_req) = CMPI_ERROR_IPADDR;
     CHTTP_REQ_PORT(chttp_req)   = CMPI_ERROR_SRVPORT;
 
+#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
+    cstring_init(CHTTP_REQ_DOMAIN(chttp_req), NULL_PTR);
+#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
     CHTTP_REQ_SSL_FLAG(chttp_req) = EC_FALSE;
 
     cstring_init(CHTTP_REQ_METHOD(chttp_req), NULL_PTR);
@@ -5076,6 +5079,10 @@ EC_BOOL chttp_req_clean(CHTTP_REQ *chttp_req)
 {
     CHTTP_REQ_IPADDR(chttp_req) = CMPI_ERROR_IPADDR;
     CHTTP_REQ_PORT(chttp_req)   = CMPI_ERROR_SRVPORT;
+
+#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
+    cstring_clean(CHTTP_REQ_DOMAIN(chttp_req));
+#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
 
     CHTTP_REQ_SSL_FLAG(chttp_req) = EC_FALSE;
 
@@ -5113,6 +5120,11 @@ void chttp_req_print(LOG *log, const CHTTP_REQ *chttp_req)
     sys_log(log, "chttp_req_print: chttp_req: %p\n", chttp_req);
     sys_log(log, "chttp_req_print: ipaddr: %s\n", CHTTP_REQ_IPADDR_STR(chttp_req));
     sys_log(log, "chttp_req_print: port: %ld\n" , CHTTP_REQ_PORT(chttp_req));
+
+#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
+    sys_log(log, "chttp_req_print: domain: %s\n" , cstring_get_str(CHTTP_REQ_DOMAIN(chttp_req)));
+#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
+
     sys_log(log, "chttp_req_print: ssl: %s\n" , c_bool_str(CHTTP_REQ_SSL_FLAG(chttp_req)));
 
     sys_log(log, "chttp_req_print: method: %.*s\n", (uint32_t)cstring_get_len(CHTTP_REQ_METHOD(chttp_req)), cstring_get_str(CHTTP_REQ_METHOD(chttp_req)));
@@ -5281,14 +5293,40 @@ EC_BOOL chttp_req_set_server(CHTTP_REQ *chttp_req, const char *server)
     }
 
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_req_set_server: try to resolve host '%s'\n", fields[0]);
-    //if(EC_FALSE == __chttp_req_resolve_host(fields[0], &ipaddr))
-    if(EC_FALSE == c_dns_resolve(fields[0], &ipaddr))
+#if 0
+    if(EC_FALSE == __chttp_req_resolve_host(fields[0], &ipaddr))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_req_set_server: resolve host '%s' failed\n",
                             fields[0]);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_req_set_server: resolve host '%s' => %s\n", fields[0], c_word_to_ipv4(ipaddr));
+#endif
+
+    if(SWITCH_ON == DNS_CACHE_SWITCH)
+    {
+        if(EC_FALSE == cdnscache_dns_resolve(fields[0], &ipaddr))
+        {
+            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_req_set_server: [cache] resolve host '%s' failed\n",
+                                fields[0]);
+            return (EC_FALSE);
+        }
+
+#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
+        cstring_init(CHTTP_REQ_DOMAIN(chttp_req), (const UINT8 *)fields[0]);
+#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
+
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_req_set_server: [cache] resolve host '%s' => ip '%s'\n", fields[0], c_word_to_ipv4(ipaddr));
+    }
+    else
+    {
+        if(EC_FALSE == c_dns_resolve(fields[0], &ipaddr))
+        {
+            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_req_set_server: [ncache] resolve host '%s' failed\n",
+                                fields[0]);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_req_set_server: [ncache] resolve host '%s' => ip '%s'\n", fields[0], c_word_to_ipv4(ipaddr));
+    }
 
     CHTTP_REQ_IPADDR(chttp_req) = ipaddr;
     CHTTP_REQ_PORT(chttp_req)   = c_str_to_word(fields[1]);
@@ -5319,20 +5357,37 @@ EC_BOOL chttp_req_set_ipaddr(CHTTP_REQ *chttp_req, const char *ipaddr)
                             ipaddr);
         return (EC_FALSE);
     }
- #endif
- #if 1
-    if(EC_FALSE == c_dns_resolve(ipaddr, &ip))
+#endif
+
+    if(SWITCH_ON == DNS_CACHE_SWITCH)
     {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_req_set_ipaddr: resolve host '%s' failed\n",
-                            ipaddr);
-        return (EC_FALSE);
+        if(EC_FALSE == cdnscache_dns_resolve(ipaddr, &ip))
+        {
+            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_req_set_ipaddr: [cache] resolve host '%s' failed\n",
+                                ipaddr);
+            return (EC_FALSE);
+        }
+
+#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
+        cstring_init(CHTTP_REQ_DOMAIN(chttp_req), (const UINT8 *)ipaddr);
+#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
+
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_req_set_ipaddr: [cache] resolve host '%s' => ip '%s'\n",
+                        ipaddr, c_word_to_ipv4(ip));
     }
- #endif
+    else
+    {
+        if(EC_FALSE == c_dns_resolve(ipaddr, &ip))
+        {
+            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_req_set_ipaddr: [ncache] resolve host '%s' failed\n",
+                                ipaddr);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_req_set_ipaddr: [ncache] resolve host '%s' => ip '%s'\n",
+                        ipaddr, c_word_to_ipv4(ip));
+    }
 
     CHTTP_REQ_IPADDR(chttp_req) = ip;
-
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_req_set_ipaddr: resolve host '%s' => ip '%s'\n",
-                        ipaddr, c_word_to_ipv4(ip));
 
     return (EC_TRUE);
 }
@@ -5534,6 +5589,10 @@ EC_BOOL chttp_req_clone(CHTTP_REQ *chttp_req_des, const CHTTP_REQ *chttp_req_src
 {
     CHTTP_REQ_IPADDR(chttp_req_des) = CHTTP_REQ_IPADDR(chttp_req_src);
     CHTTP_REQ_PORT(chttp_req_des)   = CHTTP_REQ_PORT(chttp_req_src);
+
+#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
+    cstring_clone(CHTTP_REQ_DOMAIN(chttp_req_src), CHTTP_REQ_DOMAIN(chttp_req_des));
+#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
 
     CHTTP_REQ_SSL_FLAG(chttp_req_des)  = CHTTP_REQ_SSL_FLAG(chttp_req_src);
 
@@ -9269,6 +9328,14 @@ EC_BOOL chttp_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, CH
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_block: connect server %s:%ld failed\n",
                             CHTTP_REQ_IPADDR_STR(chttp_req), CHTTP_REQ_PORT(chttp_req));
 
+#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
+        if(EC_FALSE == cstring_is_empty(CHTTP_REQ_DOMAIN(chttp_req)))
+        {
+            cdnscache_dns_retire((char *)cstring_get_str(CHTTP_REQ_DOMAIN(chttp_req)),
+                                CHTTP_REQ_IPADDR(chttp_req));
+        }
+#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
+
         if(NULL_PTR != CHTTP_REQ_CONN_FAIL_CALLBACK_FUNC(chttp_req))
         {
             /*mark ngx upstream peer down*/
@@ -9543,6 +9610,14 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_basic: connect server %s:%ld failed\n",
                             CHTTP_REQ_IPADDR_STR(chttp_req), CHTTP_REQ_PORT(chttp_req));
+
+#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
+        if(EC_FALSE == cstring_is_empty(CHTTP_REQ_DOMAIN(chttp_req)))
+        {
+            cdnscache_dns_retire((char *)cstring_get_str(CHTTP_REQ_DOMAIN(chttp_req)),
+                                CHTTP_REQ_IPADDR(chttp_req));
+        }
+#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
 
         if(NULL_PTR != CHTTP_REQ_CONN_FAIL_CALLBACK_FUNC(chttp_req))
         {

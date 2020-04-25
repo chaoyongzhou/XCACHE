@@ -25,6 +25,8 @@ extern "C"{
 #include "chashalgo.h"
 #include "chttp.h"
 
+#define  CNGX_BGN_VERSION                         ("__NGX_BGN_VERSION__")
+
 #define  CNGX_BGN_MOD_SO_PATH_DEFAULT             ("/usr/local/xcache/lib")
 
 #define  CNGX_SEND_BODY_NO_MORE_FLAG              ((unsigned)0x0001)
@@ -54,6 +56,8 @@ extern "C"{
 #define  CNGX_BGN_MOD_DBG_X_METHOD_CACHABLE_TAG   ("X-METHOD-CACHABLE")
 
 /*cngx var configuration*/
+#define  CNGX_VAR_CACHE_VERSION                   ("c_cache_version")
+
 #define  CNGX_VAR_BGN_MODE_SO_PATH                ("c_bgn_mod_so_path")
 
 #define  CNGX_VAR_CACHE_HTTP_METHOD               ("c_cache_http_method")

@@ -53,6 +53,7 @@ extern "C"{
 #include "crfshttps.h"
 #include "cxfshttps.h"
 #include "cdns.h"
+#include "cdnscache.h"
 #include "findex.inc"
 
 #if (SWITCH_ON == NGX_BGN_SWITCH)
@@ -8992,6 +8993,162 @@ EC_BOOL super_dns_resolve_demo(const UINT32 super_md_id, const CSTRING *dns_serv
     }
 
     return (EC_TRUE);
+}
+
+/**
+*
+* enable dns cache
+*
+**/
+EC_BOOL super_dns_cache_switch_on(const UINT32 super_md_id)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_dns_cache_switch_on: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    CPARACFG_DNS_CACHE_SWITCH(cparacfg) = SWITCH_ON;
+
+    return (EC_TRUE);
+}
+
+/**
+*
+* disable dns cache
+*
+**/
+EC_BOOL super_dns_cache_switch_off(const UINT32 super_md_id)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_dns_cache_switch_off: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    CPARACFG_DNS_CACHE_SWITCH(cparacfg) = SWITCH_OFF;
+
+    return (EC_TRUE);
+}
+
+/**
+*
+* set dns resolve result expired in nsec
+*
+**/
+EC_BOOL super_dns_cache_expired_nsec_set(const UINT32 super_md_id, const UINT32 nsec)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_dns_cache_expired_nsec_set: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    CPARACFG_DNS_CACHE_EXPIRED_NSEC(cparacfg) = nsec;
+
+    return (EC_TRUE);
+}
+
+/**
+*
+* dns cache show
+*
+**/
+EC_BOOL super_dns_cache_show(const UINT32 super_md_id, const CSTRING *domain, LOG *log)
+{
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_dns_cache_show: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    if(EC_TRUE == cstring_is_empty(domain))
+    {
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_dns_cache_show: domain is empty\n");
+        return (EC_FALSE);
+    }
+
+    return cdnscache_dns_show(log, (const char *)cstring_get_str(domain));
+}
+
+/**
+*
+* dns cache resolver
+*
+**/
+EC_BOOL super_dns_cache_resolve(const UINT32 super_md_id, const CSTRING *domain, UINT32 *ipv4)
+{
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_dns_cache_resolve: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    if(EC_TRUE == cstring_is_empty(domain))
+    {
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_dns_cache_resolve: domain is empty\n");
+        return (EC_FALSE);
+    }
+
+    return cdnscache_dns_resolve((const char *)cstring_get_str(domain), ipv4);
+}
+
+/**
+*
+* dns cache retire one ipv4
+*
+**/
+EC_BOOL super_dns_cache_retire(const UINT32 super_md_id, const CSTRING *domain, const UINT32 ipv4)
+{
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_dns_cache_retire: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    if(EC_TRUE == cstring_is_empty(domain))
+    {
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_dns_cache_retire: domain is empty\n");
+        return (EC_FALSE);
+    }
+
+    return cdnscache_dns_retire((const char *)cstring_get_str(domain), ipv4);
 }
 
 /**

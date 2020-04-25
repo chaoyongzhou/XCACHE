@@ -2045,7 +2045,7 @@ EC_BOOL cflv_content_handler(const UINT32 cflv_md_id)
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_handler: "
                                              "headers dir0 filter failed\n");
 
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0005);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0006);
         return (EC_FALSE);
     }
 
@@ -2070,7 +2070,7 @@ EC_BOOL cflv_content_handler(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_handler: set cachable method failed\n");
 
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_REQUEST, LOC_CFLV_0005);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_REQUEST, LOC_CFLV_0007);
         return (EC_FALSE);
     }
 
@@ -2111,7 +2111,7 @@ EC_BOOL cflv_content_handler(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_handler: "
                                              "get Range from cngx req failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_REQUEST, LOC_CFLV_0006);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_REQUEST, LOC_CFLV_0008);
         return (EC_FALSE);
     }
 
@@ -2189,7 +2189,7 @@ EC_BOOL cflv_content_handler(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_handler: set store_path failed\n");
 
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0007);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0009);
         return (EC_FALSE);
     }
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_handler: set store_path '%s'\n",
@@ -2271,7 +2271,7 @@ EC_BOOL cflv_content_head_header_in_filter_upstream(const UINT32 cflv_md_id)
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
                                              c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0008);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0010);
         return (EC_FALSE);
     }
     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_upstream: "
@@ -2285,7 +2285,7 @@ EC_BOOL cflv_content_head_header_in_filter_upstream(const UINT32 cflv_md_id)
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
                                              upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0009);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0011);
         return (EC_FALSE);
     }
 
@@ -2361,14 +2361,14 @@ EC_BOOL cflv_content_head_header_in_filter_server(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
-                safe_free(v, LOC_CFLV_0010);
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0011);
+                safe_free(v, LOC_CFLV_0012);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0013);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CFLV_0012);
+            safe_free(v, LOC_CFLV_0014);
 
             return (EC_TRUE);
         }
@@ -2424,8 +2424,8 @@ EC_BOOL cflv_content_head_header_in_filter_host(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter_host: "
                                                  "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0013);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0014);
+            safe_free(v, LOC_CFLV_0015);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0016);
             return (EC_FALSE);
         }
 
@@ -2438,15 +2438,15 @@ EC_BOOL cflv_content_head_header_in_filter_host(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter_host: "
                                                  "[conf] set host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0015);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0016);
+            safe_free(v, LOC_CFLV_0017);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0018);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0017);
+        safe_free(v, LOC_CFLV_0019);
 
         return (EC_TRUE);
     }
@@ -2508,13 +2508,13 @@ EC_BOOL cflv_content_head_header_in_filter_port(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter_port: "
                                                  "[conf] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0018);
+            safe_free(v, LOC_CFLV_0020);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_port: "
                                              "[conf] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0019);
+        safe_free(v, LOC_CFLV_0021);
         return (EC_TRUE);
     }
 
@@ -2568,19 +2568,19 @@ EC_BOOL cflv_content_head_header_in_filter_port(const UINT32 cflv_md_id)
                     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter_port: "
                                                          "[cngx] set port '%s' to http req failed\n",
                                                          segs[ 1 ]);
-                    safe_free(v, LOC_CFLV_0020);
+                    safe_free(v, LOC_CFLV_0022);
                     return (EC_FALSE);
                 }
 
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req done\n",
                                                      segs[ 1 ]);
-                safe_free(v, LOC_CFLV_0021);
+                safe_free(v, LOC_CFLV_0023);
 
                 return (EC_TRUE);
             }
 
-            safe_free(v, LOC_CFLV_0022);
+            safe_free(v, LOC_CFLV_0024);
 
             /*continue*/
         }
@@ -2605,13 +2605,13 @@ EC_BOOL cflv_content_head_header_in_filter_port(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0023);
+            safe_free(v, LOC_CFLV_0025);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0024);
+        safe_free(v, LOC_CFLV_0026);
 
         return (EC_TRUE);
     }
@@ -2683,8 +2683,8 @@ EC_BOOL cflv_content_head_header_in_filter_ipaddr(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter_ipaddr: "
                                                  "[conf] set ipaddr '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0025);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0026);
+            safe_free(v, LOC_CFLV_0027);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0028);
             return (EC_FALSE);
         }
 
@@ -2692,7 +2692,7 @@ EC_BOOL cflv_content_head_header_in_filter_ipaddr(const UINT32 cflv_md_id)
                                              "[conf] set ipaddr  '%s' to http req done\n",
                                              v);
 
-        safe_free(v, LOC_CFLV_0027);
+        safe_free(v, LOC_CFLV_0029);
 
         return (EC_TRUE);
     }
@@ -2752,9 +2752,9 @@ EC_BOOL cflv_content_head_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter: "
                                                      "[conf] set ca '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0031);
+                safe_free(v, LOC_CFLV_0030);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0032);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0031);
 
                 return (EC_FALSE);
             }
@@ -2763,7 +2763,7 @@ EC_BOOL cflv_content_head_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set ca '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0033);
+            safe_free(v, LOC_CFLV_0032);
 
             /*fall through*/
         }
@@ -2782,9 +2782,9 @@ EC_BOOL cflv_content_head_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter: "
                                                      "[conf] set certificate '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0034);
+                safe_free(v, LOC_CFLV_0033);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0035);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0034);
 
                 return (EC_FALSE);
             }
@@ -2793,7 +2793,7 @@ EC_BOOL cflv_content_head_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set certificate '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0036);
+            safe_free(v, LOC_CFLV_0035);
 
             /*fall through*/
         }
@@ -2812,9 +2812,9 @@ EC_BOOL cflv_content_head_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter: "
                                                      "[conf] set certificate key '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0037);
+                safe_free(v, LOC_CFLV_0036);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0038);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0037);
 
                 return (EC_FALSE);
             }
@@ -2823,7 +2823,7 @@ EC_BOOL cflv_content_head_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set certificate key '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0039);
+            safe_free(v, LOC_CFLV_0038);
 
             /*fall through*/
         }
@@ -2853,9 +2853,9 @@ EC_BOOL cflv_content_head_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter: "
                                                      "[conf] set server '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0028);
+                safe_free(v, LOC_CFLV_0039);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0029);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0040);
 
                 return (EC_FALSE);
             }
@@ -2864,7 +2864,7 @@ EC_BOOL cflv_content_head_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set server '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0030);
+            safe_free(v, LOC_CFLV_0041);
 
             /*set or overwrite ipaddr*/
             if(EC_FALSE == cflv_content_head_header_in_filter_ipaddr(cflv_md_id))
@@ -2958,10 +2958,10 @@ EC_BOOL cflv_content_head_header_in_filter(const UINT32 cflv_md_id)
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter: "
                                              "set method '%s' failed\n",
                                              v);
-        safe_free(v, LOC_CFLV_0040);
+        safe_free(v, LOC_CFLV_0042);
         return (EC_FALSE);
     }
-    safe_free(v, LOC_CFLV_0041);
+    safe_free(v, LOC_CFLV_0043);
 
     /*set http request uri*/
     do
@@ -2987,13 +2987,13 @@ EC_BOOL cflv_content_head_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter: "
                                                      "[conf] set uri '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0042);
+                safe_free(v, LOC_CFLV_0044);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
                                                  "[conf] set uri '%s' to http req done\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0043);
+            safe_free(v, LOC_CFLV_0045);
 
             break; /*ok*/
         }
@@ -3011,13 +3011,13 @@ EC_BOOL cflv_content_head_header_in_filter(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter: "
                                                  "[cngx] set uri '%s' failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0044);
+            safe_free(v, LOC_CFLV_0046);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter: "
                                              "[cngx] set uri '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0045);
+        safe_free(v, LOC_CFLV_0047);
     }while(0);
 
     /*set range*/
@@ -3091,7 +3091,7 @@ EC_BOOL cflv_content_head_header_out_rsp_status_filter(const UINT32 cflv_md_id)
 
         if(CHTTP_NOT_FOUND == response_status)
         {
-            cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0046);
+            cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0048);
 
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_out_rsp_status_filter: "
@@ -3238,7 +3238,7 @@ EC_BOOL cflv_content_head_send_request(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_send_request: "
                                                  "new chttp_req failed\n");
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0047);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0049);
             return (EC_FALSE);
         }
         CFLV_MD_CHTTP_REQ(cflv_md) = chttp_req;
@@ -3258,7 +3258,7 @@ EC_BOOL cflv_content_head_send_request(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_send_request: "
                                                  "new chttp_rsp failed\n");
             chttp_req_free(chttp_req);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0048);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0050);
             return (EC_FALSE);
         }
         CFLV_MD_CHTTP_RSP(cflv_md) = chttp_rsp;
@@ -3273,14 +3273,14 @@ EC_BOOL cflv_content_head_send_request(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_send_request: "
                                              "export headers_in to http req failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0049);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0051);
         return (EC_FALSE);
     }
     if(EC_FALSE == cflv_content_head_header_in_filter(cflv_md_id))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_send_request: "
                                              "header_in filter failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0050);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0052);
         return (EC_FALSE);
     }
 
@@ -3293,7 +3293,7 @@ EC_BOOL cflv_content_head_send_request(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_send_request: "
                                              "http request failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CFLV_0051);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CFLV_0053);
         return (EC_FALSE);
     }
     if(do_log(SEC_0146_CFLV, 9))
@@ -3336,7 +3336,7 @@ EC_BOOL cflv_content_head_send_response(const UINT32 cflv_md_id)
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_send_response: "
                                                      "header_out filter failed\n");
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0052);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0054);
                 return (EC_FALSE);
             }
 
@@ -3401,7 +3401,7 @@ EC_BOOL cflv_content_head_procedure(const UINT32 cflv_md_id)
     status = CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md));
     if(EC_TRUE == cngx_need_intercept_errors(r, status))
     {
-        cflv_set_ngx_rc(cflv_md_id, status, LOC_CFLV_0011);
+        cflv_set_ngx_rc(cflv_md_id, status, LOC_CFLV_0055);
 
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "warn:cflv_content_head_procedure: "
                                              "intercept rsp status %u done\n",
@@ -3495,7 +3495,7 @@ EC_BOOL cflv_content_direct_header_in_filter_upstream(const UINT32 cflv_md_id)
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
                                              c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0053);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0056);
         return (EC_FALSE);
     }
     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_upstream: "
@@ -3509,7 +3509,7 @@ EC_BOOL cflv_content_direct_header_in_filter_upstream(const UINT32 cflv_md_id)
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
                                              upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0054);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0057);
         return (EC_FALSE);
     }
 
@@ -3585,14 +3585,14 @@ EC_BOOL cflv_content_direct_header_in_filter_server(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
-                safe_free(v, LOC_CFLV_0055);
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0056);
+                safe_free(v, LOC_CFLV_0058);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0059);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CFLV_0057);
+            safe_free(v, LOC_CFLV_0060);
 
             return (EC_TRUE);
         }
@@ -3648,8 +3648,8 @@ EC_BOOL cflv_content_direct_header_in_filter_host(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter_host: "
                                                  "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0058);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0059);
+            safe_free(v, LOC_CFLV_0061);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0062);
             return (EC_FALSE);
         }
 
@@ -3662,15 +3662,15 @@ EC_BOOL cflv_content_direct_header_in_filter_host(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter_host: "
                                                  "[conf] set host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0060);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0061);
+            safe_free(v, LOC_CFLV_0063);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0064);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0062);
+        safe_free(v, LOC_CFLV_0065);
 
         return (EC_TRUE);
     }
@@ -3732,13 +3732,13 @@ EC_BOOL cflv_content_direct_header_in_filter_port(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter_port: "
                                                  "[conf] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0063);
+            safe_free(v, LOC_CFLV_0066);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_port: "
                                              "[conf] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0064);
+        safe_free(v, LOC_CFLV_0067);
         return (EC_TRUE);
     }
 
@@ -3791,19 +3791,19 @@ EC_BOOL cflv_content_direct_header_in_filter_port(const UINT32 cflv_md_id)
                     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter_port: "
                                                          "[cngx] set port '%s' to http req failed\n",
                                                          segs[ 1 ]);
-                    safe_free(v, LOC_CFLV_0065);
+                    safe_free(v, LOC_CFLV_0068);
                     return (EC_FALSE);
                 }
 
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req done\n",
                                                      segs[ 1 ]);
-                safe_free(v, LOC_CFLV_0066);
+                safe_free(v, LOC_CFLV_0069);
 
                 return (EC_TRUE);
             }
 
-            safe_free(v, LOC_CFLV_0067);
+            safe_free(v, LOC_CFLV_0070);
 
             /*continue*/
         }
@@ -3828,13 +3828,13 @@ EC_BOOL cflv_content_direct_header_in_filter_port(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0068);
+            safe_free(v, LOC_CFLV_0071);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0069);
+        safe_free(v, LOC_CFLV_0072);
 
         return (EC_TRUE);
     }
@@ -3905,8 +3905,8 @@ EC_BOOL cflv_content_direct_header_in_filter_ipaddr(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter_ipaddr: "
                                                  "[conf] set ipaddr '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0070);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0071);
+            safe_free(v, LOC_CFLV_0073);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0074);
             return (EC_FALSE);
         }
 
@@ -3914,7 +3914,7 @@ EC_BOOL cflv_content_direct_header_in_filter_ipaddr(const UINT32 cflv_md_id)
                                              "[conf] set ipaddr  '%s' to http req done\n",
                                              v);
 
-        safe_free(v, LOC_CFLV_0072);
+        safe_free(v, LOC_CFLV_0075);
 
         return (EC_TRUE);
     }
@@ -4075,9 +4075,9 @@ EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter: "
                                                      "[conf] set server '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0073);
+                safe_free(v, LOC_CFLV_0085);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0074);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0086);
 
                 return (EC_FALSE);
             }
@@ -4086,7 +4086,7 @@ EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set server '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0075);
+            safe_free(v, LOC_CFLV_0087);
 
             /*set or overwrite ipaddr*/
             if(EC_FALSE == cflv_content_direct_header_in_filter_ipaddr(cflv_md_id))
@@ -4180,10 +4180,10 @@ EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id)
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter: "
                                              "set method '%s' failed\n",
                                              v);
-        safe_free(v, LOC_CFLV_0085);
+        safe_free(v, LOC_CFLV_0088);
         return (EC_FALSE);
     }
-    safe_free(v, LOC_CFLV_0086);
+    safe_free(v, LOC_CFLV_0089);
 
     /*set http request uri*/
     do
@@ -4209,13 +4209,13 @@ EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter: "
                                                      "[conf] set uri '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0087);
+                safe_free(v, LOC_CFLV_0090);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
                                                  "[conf] set uri '%s' to http req done\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0088);
+            safe_free(v, LOC_CFLV_0091);
 
             break; /*ok*/
         }
@@ -4233,13 +4233,13 @@ EC_BOOL cflv_content_direct_header_in_filter(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter: "
                                                  "[cngx] set uri '%s' failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0089);
+            safe_free(v, LOC_CFLV_0092);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter: "
                                              "[cngx] set uri '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0090);
+        safe_free(v, LOC_CFLV_0093);
     }while(0);
 
     /*set range*/
@@ -4502,7 +4502,7 @@ EC_BOOL cflv_content_direct_header_out_rsp_status_filter(const UINT32 cflv_md_id
 
         if(CHTTP_NOT_FOUND == response_status)
         {
-            cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0091);
+            cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0094);
 
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_rsp_status_filter: "
@@ -4611,7 +4611,7 @@ EC_BOOL cflv_content_direct_header_out_filter(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_out_filter: "
                                                  "chttp rsp header_in range filter failed\n");
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CFLV_0092);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CFLV_0095);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_filter: "
@@ -4794,7 +4794,7 @@ EC_BOOL cflv_content_direct_send_request(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_request: "
                                                  "new chttp_req failed\n");
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0093);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0096);
             return (EC_FALSE);
         }
         CFLV_MD_CHTTP_REQ(cflv_md) = chttp_req;
@@ -4814,7 +4814,7 @@ EC_BOOL cflv_content_direct_send_request(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_request: "
                                                  "new chttp_rsp failed\n");
             chttp_req_free(chttp_req);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0094);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0097);
             return (EC_FALSE);
         }
         CFLV_MD_CHTTP_RSP(cflv_md) = chttp_rsp;
@@ -4829,14 +4829,14 @@ EC_BOOL cflv_content_direct_send_request(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_request: "
                                              "export headers_in to http req failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0095);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0098);
         return (EC_FALSE);
     }
     if(EC_FALSE == cflv_content_direct_header_in_filter(cflv_md_id))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_request: "
                                              "header_in filter failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0096);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0099);
         return (EC_FALSE);
     }
 
@@ -4854,7 +4854,7 @@ EC_BOOL cflv_content_direct_send_request(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_request: "
                                                  "new chttp_store failed\n");
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0097);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0100);
             return (EC_FALSE);
         }
         CFLV_MD_CHTTP_STORE(cflv_md) = chttp_store;
@@ -4869,7 +4869,7 @@ EC_BOOL cflv_content_direct_send_request(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_request: "
                                              "set chttp_store failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0098);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0101);
         return (EC_FALSE);
     }
 
@@ -4884,7 +4884,7 @@ EC_BOOL cflv_content_direct_send_request(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_request: "
                                              "http request failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CFLV_0099);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CFLV_0102);
         return (EC_FALSE);
     }
 
@@ -5261,7 +5261,7 @@ EC_BOOL cflv_content_direct_send_response(const UINT32 cflv_md_id)
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_response: "
                                                      "header_out filter failed\n");
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0100);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0103);
                 return (EC_FALSE);
             }
 
@@ -5334,7 +5334,7 @@ EC_BOOL cflv_content_direct_send_response(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_response: "
                                              "chttp rsp header_in range filter failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CFLV_0101);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CFLV_0104);
         return (EC_FALSE);
     }
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_send_response: "
@@ -5456,7 +5456,7 @@ EC_BOOL cflv_content_direct_procedure(const UINT32 cflv_md_id)
     status = CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md));
     if(EC_TRUE == cngx_need_intercept_errors(r, status))
     {
-        cflv_set_ngx_rc(cflv_md_id, status, LOC_CFLV_0011);
+        cflv_set_ngx_rc(cflv_md_id, status, LOC_CFLV_0105);
 
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "warn:cflv_content_direct_procedure: "
                                              "intercept rsp status %u done\n",
@@ -5550,7 +5550,7 @@ EC_BOOL cflv_content_repair_header_in_filter_upstream(const UINT32 cflv_md_id)
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
                                              c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0102);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0106);
         return (EC_FALSE);
     }
     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter_upstream: "
@@ -5564,7 +5564,7 @@ EC_BOOL cflv_content_repair_header_in_filter_upstream(const UINT32 cflv_md_id)
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
                                              upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0103);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0107);
         return (EC_FALSE);
     }
 
@@ -5640,14 +5640,14 @@ EC_BOOL cflv_content_repair_header_in_filter_server(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
-                safe_free(v, LOC_CFLV_0104);
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0105);
+                safe_free(v, LOC_CFLV_0108);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0109);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CFLV_0106);
+            safe_free(v, LOC_CFLV_0110);
 
             return (EC_TRUE);
         }
@@ -5703,8 +5703,8 @@ EC_BOOL cflv_content_repair_header_in_filter_host(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter_host: "
                                                  "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0107);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0108);
+            safe_free(v, LOC_CFLV_0111);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0112);
             return (EC_FALSE);
         }
 
@@ -5717,15 +5717,15 @@ EC_BOOL cflv_content_repair_header_in_filter_host(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter_host: "
                                                  "[conf] set host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0109);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0110);
+            safe_free(v, LOC_CFLV_0113);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0114);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0111);
+        safe_free(v, LOC_CFLV_0115);
 
         return (EC_TRUE);
     }
@@ -5787,13 +5787,13 @@ EC_BOOL cflv_content_repair_header_in_filter_port(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter_port: "
                                                  "[conf] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0112);
+            safe_free(v, LOC_CFLV_0116);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter_port: "
                                              "[conf] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0113);
+        safe_free(v, LOC_CFLV_0117);
         return (EC_TRUE);
     }
 
@@ -5847,19 +5847,19 @@ EC_BOOL cflv_content_repair_header_in_filter_port(const UINT32 cflv_md_id)
                     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter_port: "
                                                          "[cngx] set port '%s' to http req failed\n",
                                                          segs[ 1 ]);
-                    safe_free(v, LOC_CFLV_0114);
+                    safe_free(v, LOC_CFLV_0118);
                     return (EC_FALSE);
                 }
 
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req done\n",
                                                      segs[ 1 ]);
-                safe_free(v, LOC_CFLV_0115);
+                safe_free(v, LOC_CFLV_0119);
 
                 return (EC_TRUE);
             }
 
-            safe_free(v, LOC_CFLV_0116);
+            safe_free(v, LOC_CFLV_0120);
 
             /*continue*/
         }
@@ -5884,13 +5884,13 @@ EC_BOOL cflv_content_repair_header_in_filter_port(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0117);
+            safe_free(v, LOC_CFLV_0121);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0118);
+        safe_free(v, LOC_CFLV_0122);
 
         return (EC_TRUE);
     }
@@ -5962,8 +5962,8 @@ EC_BOOL cflv_content_repair_header_in_filter_ipaddr(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter_ipaddr: "
                                                  "[conf] set ipaddr '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0119);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0120);
+            safe_free(v, LOC_CFLV_0123);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0124);
             return (EC_FALSE);
         }
 
@@ -5971,7 +5971,7 @@ EC_BOOL cflv_content_repair_header_in_filter_ipaddr(const UINT32 cflv_md_id)
                                              "[conf] set ipaddr  '%s' to http req done\n",
                                              v);
 
-        safe_free(v, LOC_CFLV_0121);
+        safe_free(v, LOC_CFLV_0125);
 
         return (EC_TRUE);
     }
@@ -6031,9 +6031,9 @@ EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
                                                      "[conf] set ca '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0125);
+                safe_free(v, LOC_CFLV_0126);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0126);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0127);
 
                 return (EC_FALSE);
             }
@@ -6042,7 +6042,7 @@ EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set ca '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0127);
+            safe_free(v, LOC_CFLV_0128);
 
             /*fall through*/
         }
@@ -6061,9 +6061,9 @@ EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
                                                      "[conf] set certificate '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0128);
+                safe_free(v, LOC_CFLV_0129);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0129);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0130);
 
                 return (EC_FALSE);
             }
@@ -6072,7 +6072,7 @@ EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set certificate '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0130);
+            safe_free(v, LOC_CFLV_0131);
 
             /*fall through*/
         }
@@ -6091,9 +6091,9 @@ EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
                                                      "[conf] set certificate key '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0131);
+                safe_free(v, LOC_CFLV_0132);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0132);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0133);
 
                 return (EC_FALSE);
             }
@@ -6102,7 +6102,7 @@ EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set certificate key '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0133);
+            safe_free(v, LOC_CFLV_0134);
 
             /*fall through*/
         }
@@ -6132,9 +6132,9 @@ EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
                                                      "[conf] set server '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0122);
+                safe_free(v, LOC_CFLV_0135);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0123);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0136);
 
                 return (EC_FALSE);
             }
@@ -6143,7 +6143,7 @@ EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set server '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0124);
+            safe_free(v, LOC_CFLV_0137);
 
             /*set or overwrite ipaddr*/
             if(EC_FALSE == cflv_content_repair_header_in_filter_ipaddr(cflv_md_id))
@@ -6237,10 +6237,10 @@ EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
                                              "set method '%s' failed\n",
                                              v);
-        safe_free(v, LOC_CFLV_0134);
+        safe_free(v, LOC_CFLV_0138);
         return (EC_FALSE);
     }
-    safe_free(v, LOC_CFLV_0135);
+    safe_free(v, LOC_CFLV_0139);
 
     /*set http request uri*/
     do
@@ -6266,13 +6266,13 @@ EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
                                                      "[conf] set uri '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0136);
+                safe_free(v, LOC_CFLV_0140);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
                                                  "[conf] set uri '%s' to http req done\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0137);
+            safe_free(v, LOC_CFLV_0141);
 
             break; /*ok*/
         }
@@ -6290,13 +6290,13 @@ EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
                                                  "[cngx] set uri '%s' failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0138);
+            safe_free(v, LOC_CFLV_0142);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
                                              "[cngx] set uri '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0139);
+        safe_free(v, LOC_CFLV_0143);
 
         /*FLV: carray on args to orig*/
         if(EC_TRUE == cngx_get_req_arg(r, &v) && NULL_PTR != v)
@@ -6309,7 +6309,7 @@ EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
                                                      "[cngx] append '?' failed\n");
-                safe_free(v, LOC_CFLV_0140);
+                safe_free(v, LOC_CFLV_0144);
                 return (EC_FALSE);
             }
 
@@ -6318,13 +6318,13 @@ EC_BOOL cflv_content_repair_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter: "
                                                      "[cngx] append args '%s' failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0141);
+                safe_free(v, LOC_CFLV_0145);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter: "
                                                  "[cngx] append args '%s' done\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0142);
+            safe_free(v, LOC_CFLV_0146);
         }
     }while(0);
 
@@ -6608,7 +6608,7 @@ EC_BOOL cflv_content_repair_header_out_rsp_status_filter(const UINT32 cflv_md_id
 
         if(CHTTP_NOT_FOUND == response_status)
         {
-            cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0143);
+            cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0147);
 
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_out_rsp_status_filter: "
@@ -6803,7 +6803,7 @@ EC_BOOL cflv_content_repair_send_request(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_send_request: "
                                                  "new chttp_req failed\n");
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0144);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0148);
             return (EC_FALSE);
         }
         CFLV_MD_CHTTP_REQ(cflv_md) = chttp_req;
@@ -6823,7 +6823,7 @@ EC_BOOL cflv_content_repair_send_request(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_send_request: "
                                                  "new chttp_rsp failed\n");
             chttp_req_free(chttp_req);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0145);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0149);
             return (EC_FALSE);
         }
         CFLV_MD_CHTTP_RSP(cflv_md) = chttp_rsp;
@@ -6838,14 +6838,14 @@ EC_BOOL cflv_content_repair_send_request(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_send_request: "
                                              "export headers_in to http req failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0146);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0150);
         return (EC_FALSE);
     }
     if(EC_FALSE == cflv_content_repair_header_in_filter(cflv_md_id))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_send_request: "
                                              "header_in filter failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0147);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0151);
         return (EC_FALSE);
     }
 
@@ -6858,7 +6858,7 @@ EC_BOOL cflv_content_repair_send_request(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_send_request: "
                                              "http request failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CFLV_0148);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CFLV_0152);
         return (EC_FALSE);
     }
     if(do_log(SEC_0146_CFLV, 9))
@@ -7068,7 +7068,7 @@ EC_BOOL cflv_content_repair_send_response(const UINT32 cflv_md_id)
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_send_response: "
                                                      "header_out filter failed\n");
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0149);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0153);
                 return (EC_FALSE);
             }
 
@@ -7141,7 +7141,7 @@ EC_BOOL cflv_content_repair_send_response(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_send_response: "
                                              "chttp rsp header_in range filter failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CFLV_0150);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CFLV_0154);
         return (EC_FALSE);
     }
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_send_response: "
@@ -7263,7 +7263,7 @@ EC_BOOL cflv_content_repair_procedure(const UINT32 cflv_md_id)
     status = CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md));
     if(EC_TRUE == cngx_need_intercept_errors(r, status))
     {
-        cflv_set_ngx_rc(cflv_md_id, status, LOC_CFLV_0011);
+        cflv_set_ngx_rc(cflv_md_id, status, LOC_CFLV_0155);
 
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "warn:cflv_content_repair_procedure: "
                                              "intercept rsp status %u done\n",
@@ -7357,7 +7357,7 @@ EC_BOOL cflv_content_orig_header_in_filter_upstream(const UINT32 cflv_md_id)
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
                                              c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0151);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0156);
         return (EC_FALSE);
     }
     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_upstream: "
@@ -7371,7 +7371,7 @@ EC_BOOL cflv_content_orig_header_in_filter_upstream(const UINT32 cflv_md_id)
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
                                              upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0152);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0157);
         return (EC_FALSE);
     }
 
@@ -7447,14 +7447,14 @@ EC_BOOL cflv_content_orig_header_in_filter_server(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
-                safe_free(v, LOC_CFLV_0153);
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0154);
+                safe_free(v, LOC_CFLV_0158);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0159);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CFLV_0155);
+            safe_free(v, LOC_CFLV_0160);
 
             return (EC_TRUE);
         }
@@ -7510,8 +7510,8 @@ EC_BOOL cflv_content_orig_header_in_filter_host(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_host: "
                                                  "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0156);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0157);
+            safe_free(v, LOC_CFLV_0161);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0162);
             return (EC_FALSE);
         }
 
@@ -7524,15 +7524,15 @@ EC_BOOL cflv_content_orig_header_in_filter_host(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_host: "
                                                  "[conf] set host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0158);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0159);
+            safe_free(v, LOC_CFLV_0163);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0164);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0160);
+        safe_free(v, LOC_CFLV_0165);
 
         return (EC_TRUE);
     }
@@ -7586,13 +7586,13 @@ EC_BOOL cflv_content_orig_header_in_filter_port(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_port: "
                                                  "[conf] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0161);
+            safe_free(v, LOC_CFLV_0166);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_port: "
                                              "[conf] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0162);
+        safe_free(v, LOC_CFLV_0167);
         return (EC_TRUE);
     }
 
@@ -7624,13 +7624,13 @@ EC_BOOL cflv_content_orig_header_in_filter_port(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0163);
+            safe_free(v, LOC_CFLV_0168);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0164);
+        safe_free(v, LOC_CFLV_0169);
         return (EC_TRUE);
     }
 
@@ -7659,19 +7659,19 @@ EC_BOOL cflv_content_orig_header_in_filter_port(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req failed\n",
                                                      segs[ 1 ]);
-                safe_free(v, LOC_CFLV_0165);
+                safe_free(v, LOC_CFLV_0170);
                 return (EC_FALSE);
             }
 
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req done\n",
                                                  segs[ 1 ]);
-            safe_free(v, LOC_CFLV_0166);
+            safe_free(v, LOC_CFLV_0171);
 
             return (EC_TRUE);
         }
 
-        safe_free(v, LOC_CFLV_0167);
+        safe_free(v, LOC_CFLV_0172);
 
         /*continue*/
     }
@@ -7696,13 +7696,13 @@ EC_BOOL cflv_content_orig_header_in_filter_port(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0168);
+            safe_free(v, LOC_CFLV_0173);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0169);
+        safe_free(v, LOC_CFLV_0174);
 
         return (EC_TRUE);
     }
@@ -7773,8 +7773,8 @@ EC_BOOL cflv_content_orig_header_in_filter_ipaddr(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_ipaddr: "
                                                  "[conf] set ipaddr '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0170);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0171);
+            safe_free(v, LOC_CFLV_0175);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0176);
             return (EC_FALSE);
         }
 
@@ -7782,7 +7782,7 @@ EC_BOOL cflv_content_orig_header_in_filter_ipaddr(const UINT32 cflv_md_id)
                                              "[conf] set ipaddr  '%s' to http req done\n",
                                              v);
 
-        safe_free(v, LOC_CFLV_0172);
+        safe_free(v, LOC_CFLV_0177);
 
         return (EC_TRUE);
     }
@@ -7846,9 +7846,9 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
                                                      "[conf] set ca '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0176);
+                safe_free(v, LOC_CFLV_0178);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0177);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0179);
 
                 return (EC_FALSE);
             }
@@ -7857,7 +7857,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set ca '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0178);
+            safe_free(v, LOC_CFLV_0180);
 
             /*fall through*/
         }
@@ -7876,9 +7876,9 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
                                                      "[conf] set certificate '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0179);
+                safe_free(v, LOC_CFLV_0181);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0180);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0182);
 
                 return (EC_FALSE);
             }
@@ -7887,7 +7887,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set certificate '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0181);
+            safe_free(v, LOC_CFLV_0183);
 
             /*fall through*/
         }
@@ -7906,9 +7906,9 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
                                                      "[conf] set certificate key '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0182);
+                safe_free(v, LOC_CFLV_0184);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0183);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0185);
 
                 return (EC_FALSE);
             }
@@ -7917,7 +7917,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set certificate key '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0184);
+            safe_free(v, LOC_CFLV_0186);
 
             /*fall through*/
         }
@@ -7947,9 +7947,9 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
                                                      "[conf] set server '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0173);
+                safe_free(v, LOC_CFLV_0187);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0174);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0188);
 
                 return (EC_FALSE);
             }
@@ -7958,7 +7958,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set server '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0175);
+            safe_free(v, LOC_CFLV_0189);
 
             /*set or overwrite ipaddr*/
             if(EC_FALSE == cflv_content_orig_header_in_filter_ipaddr(cflv_md_id))
@@ -8051,10 +8051,10 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
                                              "set method '%s' failed\n",
                                              v);
-        safe_free(v, LOC_CFLV_0185);
+        safe_free(v, LOC_CFLV_0190);
         return (EC_FALSE);
     }
-    safe_free(v, LOC_CFLV_0186);
+    safe_free(v, LOC_CFLV_0191);
 
     /*set http request uri*/
     do
@@ -8091,7 +8091,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                 {
                     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
                                                          "[cngx] append '/' failed\n");
-                    safe_free(v, LOC_CFLV_0187);
+                    safe_free(v, LOC_CFLV_0192);
                     return (EC_FALSE);
                 }
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
@@ -8104,13 +8104,13 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
                                                      "[conf] set uri '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0188);
+                safe_free(v, LOC_CFLV_0193);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
                                                  "[conf] set uri '%s' to http req done\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0189);
+            safe_free(v, LOC_CFLV_0194);
 
             break; /*ok*/
         }
@@ -8128,13 +8128,13 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
                                                  "[cngx] set uri '%s' failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0190);
+            safe_free(v, LOC_CFLV_0195);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
                                              "[cngx] set uri '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0191);
+        safe_free(v, LOC_CFLV_0196);
 
         /*FLV: not carray on start/end arg to orig*/
         if(EC_TRUE == cngx_get_req_arg(r, &v) && NULL_PTR != v)
@@ -8170,12 +8170,12 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
             {
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
                                                      "[cngx] append nothing to uri\n");
-                safe_free(v, LOC_CFLV_0192);
+                safe_free(v, LOC_CFLV_0197);
                 break;
             }
 
             args = c_str_join((const char *)"&", (const char **)arg_fields, arg_left_num);
-            safe_free(v, LOC_CFLV_0193);
+            safe_free(v, LOC_CFLV_0198);
 
             v = args; /*move args to v*/
 
@@ -8183,7 +8183,7 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
                                                      "[cngx] append '?' failed\n");
-                safe_free(v, LOC_CFLV_0194);
+                safe_free(v, LOC_CFLV_0199);
                 return (EC_FALSE);
             }
 
@@ -8192,13 +8192,13 @@ EC_BOOL cflv_content_orig_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter: "
                                                      "[cngx] append args '%s' failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0195);
+                safe_free(v, LOC_CFLV_0200);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter: "
                                                  "[cngx] append args '%s' done\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0196);
+            safe_free(v, LOC_CFLV_0201);
         }
     }while(0);
 
@@ -8342,7 +8342,7 @@ EC_BOOL cflv_content_orig_header_out_if_modified_since_filter(const UINT32 cflv_
 
     ims_1st = c_parse_http_time((uint8_t *)v, (size_t)strlen(v));
 
-    safe_free(v, LOC_CFLV_0197);
+    safe_free(v, LOC_CFLV_0202);
 
     k = (const char *)"Last-Modified";
     v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
@@ -8444,7 +8444,7 @@ EC_BOOL cflv_content_orig_header_out_if_none_match_filter(const UINT32 cflv_md_i
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_if_none_match_filter: "
                                              "[rsp] no '%s'\n",
                                              k);
-        safe_free(etag_des, LOC_CFLV_0198);
+        safe_free(etag_des, LOC_CFLV_0203);
         return (EC_TRUE);
     }
     etag_src = v;
@@ -8620,7 +8620,7 @@ EC_BOOL cflv_content_orig_header_out_rsp_status_filter(const UINT32 cflv_md_id)
 
         if(CHTTP_NOT_FOUND == response_status)
         {
-            cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0199);
+            cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0204);
 
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_rsp_status_filter: "
@@ -9032,7 +9032,7 @@ EC_BOOL cflv_content_orig_send_request(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_send_request: "
                                                  "new chttp_req failed\n");
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0200);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0205);
             return (EC_FALSE);
         }
         CFLV_MD_CHTTP_REQ(cflv_md) = chttp_req;
@@ -9051,7 +9051,7 @@ EC_BOOL cflv_content_orig_send_request(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_send_request: "
                                                  "new chttp_rsp failed\n");
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0201);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0206);
             return (EC_FALSE);
         }
         CFLV_MD_CHTTP_RSP(cflv_md) = chttp_rsp;
@@ -9070,7 +9070,7 @@ EC_BOOL cflv_content_orig_send_request(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_send_request: "
                                                  "new chttp_store failed\n");
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0202);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0207);
             return (EC_FALSE);
         }
         CFLV_MD_CHTTP_STORE(cflv_md) = chttp_store;
@@ -9085,7 +9085,7 @@ EC_BOOL cflv_content_orig_send_request(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_send_request: "
                                              "set chttp_store failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0203);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0208);
         return (EC_FALSE);
     }
 
@@ -9104,7 +9104,7 @@ EC_BOOL cflv_content_orig_send_request(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_send_request: "
                                                  "new chttp_stat failed\n");
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0204);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0209);
             return (EC_FALSE);
         }
         CFLV_MD_CHTTP_STAT(cflv_md)  = chttp_stat;
@@ -9119,7 +9119,7 @@ EC_BOOL cflv_content_orig_send_request(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_send_request: "
                                              "export headers_in to http req failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0205);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0210);
         return (EC_FALSE);
     }
 
@@ -9127,7 +9127,7 @@ EC_BOOL cflv_content_orig_send_request(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_send_request: "
                                              "header_in filter failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0206);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0211);
         return (EC_FALSE);
     }
 
@@ -9144,11 +9144,11 @@ EC_BOOL cflv_content_orig_send_request(const UINT32 cflv_md_id)
 
         if(0 < CHTTP_STAT_RSP_STATUS(chttp_stat))
         {
-            cflv_set_ngx_rc(cflv_md_id, CHTTP_STAT_RSP_STATUS(chttp_stat), LOC_CFLV_0207);
+            cflv_set_ngx_rc(cflv_md_id, CHTTP_STAT_RSP_STATUS(chttp_stat), LOC_CFLV_0212);
         }
         else
         {
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CFLV_0208);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CFLV_0213);
         }
         return (EC_FALSE);
     }
@@ -9259,7 +9259,7 @@ EC_BOOL cflv_content_orig_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG *
                                              CRANGE_SEG_NO(crange_seg));
 
         cbytes_clean(&seg_cbytes);
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_NOT_FOUND, LOC_CFLV_0209);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_NOT_FOUND, LOC_CFLV_0214);
         return (EC_FALSE);
     }
 
@@ -9508,7 +9508,7 @@ EC_BOOL cflv_content_orig_procedure(const UINT32 cflv_md_id)
     status = CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md));
     if(EC_TRUE == cngx_need_intercept_errors(r, status))
     {
-        cflv_set_ngx_rc(cflv_md_id, status, LOC_CFLV_0011);
+        cflv_set_ngx_rc(cflv_md_id, status, LOC_CFLV_0215);
 
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "warn:cflv_content_orig_procedure: "
                                              "intercept rsp status %u done\n",
@@ -9650,7 +9650,7 @@ EC_BOOL cflv_content_ms_header_in_filter_upstream(const UINT32 cflv_md_id)
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
                                              c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0210);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0216);
         return (EC_FALSE);
     }
     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_upstream: "
@@ -9664,7 +9664,7 @@ EC_BOOL cflv_content_ms_header_in_filter_upstream(const UINT32 cflv_md_id)
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
                                              upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0211);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0217);
         return (EC_FALSE);
     }
 
@@ -9740,14 +9740,14 @@ EC_BOOL cflv_content_ms_header_in_filter_server(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
-                safe_free(v, LOC_CFLV_0212);
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0213);
+                safe_free(v, LOC_CFLV_0218);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0219);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CFLV_0214);
+            safe_free(v, LOC_CFLV_0220);
 
             return (EC_TRUE);
         }
@@ -9803,8 +9803,8 @@ EC_BOOL cflv_content_ms_header_in_filter_host(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter_host: "
                                                  "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0215);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0216);
+            safe_free(v, LOC_CFLV_0221);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0222);
             return (EC_FALSE);
         }
 
@@ -9817,15 +9817,15 @@ EC_BOOL cflv_content_ms_header_in_filter_host(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter_host: "
                                                  "[conf] set host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0217);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0218);
+            safe_free(v, LOC_CFLV_0223);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0224);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0219);
+        safe_free(v, LOC_CFLV_0225);
 
         return (EC_TRUE);
     }
@@ -9879,13 +9879,13 @@ EC_BOOL cflv_content_ms_header_in_filter_port(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter_port: "
                                                  "[conf] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0220);
+            safe_free(v, LOC_CFLV_0226);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_port: "
                                              "[conf] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0221);
+        safe_free(v, LOC_CFLV_0227);
         return (EC_TRUE);
     }
 
@@ -9917,13 +9917,13 @@ EC_BOOL cflv_content_ms_header_in_filter_port(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0222);
+            safe_free(v, LOC_CFLV_0228);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0223);
+        safe_free(v, LOC_CFLV_0229);
         return (EC_TRUE);
     }
 
@@ -9952,19 +9952,19 @@ EC_BOOL cflv_content_ms_header_in_filter_port(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req failed\n",
                                                      segs[ 1 ]);
-                safe_free(v, LOC_CFLV_0224);
+                safe_free(v, LOC_CFLV_0230);
                 return (EC_FALSE);
             }
 
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req done\n",
                                                  segs[ 1 ]);
-            safe_free(v, LOC_CFLV_0225);
+            safe_free(v, LOC_CFLV_0231);
 
             return (EC_TRUE);
         }
 
-        safe_free(v, LOC_CFLV_0226);
+        safe_free(v, LOC_CFLV_0232);
 
         /*continue*/
     }
@@ -9989,13 +9989,13 @@ EC_BOOL cflv_content_ms_header_in_filter_port(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0227);
+            safe_free(v, LOC_CFLV_0233);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0228);
+        safe_free(v, LOC_CFLV_0234);
 
         return (EC_TRUE);
     }
@@ -10066,8 +10066,8 @@ EC_BOOL cflv_content_ms_header_in_filter_ipaddr(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter_ipaddr: "
                                                  "[conf] set ipaddr '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0229);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0230);
+            safe_free(v, LOC_CFLV_0235);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0236);
             return (EC_FALSE);
         }
 
@@ -10075,7 +10075,7 @@ EC_BOOL cflv_content_ms_header_in_filter_ipaddr(const UINT32 cflv_md_id)
                                              "[conf] set ipaddr  '%s' to http req done\n",
                                              v);
 
-        safe_free(v, LOC_CFLV_0231);
+        safe_free(v, LOC_CFLV_0237);
 
         return (EC_TRUE);
     }
@@ -10139,9 +10139,9 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
                                                      "[conf] set ca '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0235);
+                safe_free(v, LOC_CFLV_0238);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0236);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0239);
 
                 return (EC_FALSE);
             }
@@ -10150,7 +10150,7 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set ca '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0237);
+            safe_free(v, LOC_CFLV_0240);
 
             /*fall through*/
         }
@@ -10169,9 +10169,9 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
                                                      "[conf] set certificate '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0238);
+                safe_free(v, LOC_CFLV_0241);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0239);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0242);
 
                 return (EC_FALSE);
             }
@@ -10180,7 +10180,7 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set certificate '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0240);
+            safe_free(v, LOC_CFLV_0243);
 
             /*fall through*/
         }
@@ -10199,9 +10199,9 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
                                                      "[conf] set certificate key '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0241);
+                safe_free(v, LOC_CFLV_0244);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0242);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0245);
 
                 return (EC_FALSE);
             }
@@ -10210,7 +10210,7 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set certificate key '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0243);
+            safe_free(v, LOC_CFLV_0246);
 
             /*fall through*/
         }
@@ -10240,9 +10240,9 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
                                                      "[conf] set server '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0232);
+                safe_free(v, LOC_CFLV_0247);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0233);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0248);
 
                 return (EC_FALSE);
             }
@@ -10251,7 +10251,7 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set server '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0234);
+            safe_free(v, LOC_CFLV_0249);
 
             /*set or overwrite ipaddr*/
             if(EC_FALSE == cflv_content_ms_header_in_filter_ipaddr(cflv_md_id))
@@ -10345,10 +10345,10 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
                                              "set method '%s' failed\n",
                                              v);
-        safe_free(v, LOC_CFLV_0244);
+        safe_free(v, LOC_CFLV_0250);
         return (EC_FALSE);
     }
-    safe_free(v, LOC_CFLV_0245);
+    safe_free(v, LOC_CFLV_0251);
 
     /*set http request uri*/
     do
@@ -10385,7 +10385,7 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
                 {
                     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
                                                          "[cngx] append '/' failed\n");
-                    safe_free(v, LOC_CFLV_0246);
+                    safe_free(v, LOC_CFLV_0252);
                     return (EC_FALSE);
                 }
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
@@ -10398,13 +10398,13 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
                                                      "[conf] set uri '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0247);
+                safe_free(v, LOC_CFLV_0253);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
                                                  "[conf] set uri '%s' to http req done\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0248);
+            safe_free(v, LOC_CFLV_0254);
 
             break; /*ok*/
         }
@@ -10422,13 +10422,13 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
                                                  "[cngx] set uri '%s' failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0249);
+            safe_free(v, LOC_CFLV_0255);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
                                              "[cngx] set uri '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0250);
+        safe_free(v, LOC_CFLV_0256);
 
         if(EC_TRUE == cngx_get_req_arg(r, &v) && NULL_PTR != v)
         {
@@ -10440,7 +10440,7 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
                                                      "[cngx] set '?' failed\n");
-                safe_free(v, LOC_CFLV_0251);
+                safe_free(v, LOC_CFLV_0257);
                 return (EC_FALSE);
             }
 
@@ -10449,13 +10449,13 @@ EC_BOOL cflv_content_ms_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter: "
                                                      "[cngx] set args '%s' failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0252);
+                safe_free(v, LOC_CFLV_0258);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter: "
                                                  "[cngx] set args '%s' to http req done\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0253);
+            safe_free(v, LOC_CFLV_0259);
         }
     }while(0);
 
@@ -10599,7 +10599,7 @@ EC_BOOL cflv_content_ms_header_out_if_modified_since_filter(const UINT32 cflv_md
 
     ims_1st = c_parse_http_time((uint8_t *)v, (size_t)strlen(v));
 
-    safe_free(v, LOC_CFLV_0254);
+    safe_free(v, LOC_CFLV_0260);
 
     k = (const char *)"Last-Modified";
     v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
@@ -10701,7 +10701,7 @@ EC_BOOL cflv_content_ms_header_out_if_none_match_filter(const UINT32 cflv_md_id)
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_out_if_none_match_filter: "
                                              "[rsp] no '%s'\n",
                                              k);
-        safe_free(etag_des, LOC_CFLV_0255);
+        safe_free(etag_des, LOC_CFLV_0261);
         return (EC_TRUE);
     }
     etag_src = v;
@@ -10921,7 +10921,7 @@ EC_BOOL cflv_content_ms_header_out_rsp_status_filter(const UINT32 cflv_md_id)
 
         if(CHTTP_NOT_FOUND == response_status)
         {
-            cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0256);
+            cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0262);
 
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_out_rsp_status_filter: "
@@ -11300,7 +11300,7 @@ EC_BOOL cflv_content_ms_send_request(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_send_request: "
                                                  "new chttp_req failed\n");
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0257);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0263);
             return (EC_FALSE);
         }
         CFLV_MD_CHTTP_REQ(cflv_md) = chttp_req;
@@ -11319,7 +11319,7 @@ EC_BOOL cflv_content_ms_send_request(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_send_request: "
                                                  "new chttp_rsp failed\n");
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0258);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0264);
             return (EC_FALSE);
         }
         CFLV_MD_CHTTP_RSP(cflv_md) = chttp_rsp;
@@ -11338,7 +11338,7 @@ EC_BOOL cflv_content_ms_send_request(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_send_request: "
                                                  "new chttp_store failed\n");
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0259);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0265);
             return (EC_FALSE);
         }
         CFLV_MD_CHTTP_STORE(cflv_md) = chttp_store;
@@ -11353,7 +11353,7 @@ EC_BOOL cflv_content_ms_send_request(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_send_request: "
                                              "set chttp_store failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0260);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0266);
         return (EC_FALSE);
     }
 
@@ -11372,7 +11372,7 @@ EC_BOOL cflv_content_ms_send_request(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_send_request: "
                                                  "new chttp_stat failed\n");
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0261);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0267);
             return (EC_FALSE);
         }
         CFLV_MD_CHTTP_STAT(cflv_md)  = chttp_stat;
@@ -11387,7 +11387,7 @@ EC_BOOL cflv_content_ms_send_request(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_send_request: "
                                              "export headers_in to http req failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0262);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0268);
         return (EC_FALSE);
     }
 
@@ -11395,7 +11395,7 @@ EC_BOOL cflv_content_ms_send_request(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_send_request: "
                                              "header_in filter failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0263);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0269);
         return (EC_FALSE);
     }
 
@@ -11412,11 +11412,11 @@ EC_BOOL cflv_content_ms_send_request(const UINT32 cflv_md_id)
 
         if(0 < CHTTP_STAT_RSP_STATUS(chttp_stat))
         {
-            cflv_set_ngx_rc(cflv_md_id, CHTTP_STAT_RSP_STATUS(chttp_stat), LOC_CFLV_0264);
+            cflv_set_ngx_rc(cflv_md_id, CHTTP_STAT_RSP_STATUS(chttp_stat), LOC_CFLV_0270);
         }
         else
         {
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CFLV_0265);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CFLV_0271);
         }
 
         return (EC_FALSE);
@@ -11466,7 +11466,7 @@ EC_BOOL cflv_content_ms_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG *cr
                                              CRANGE_SEG_NO(crange_seg));
 
         cbytes_clean(&seg_cbytes);
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_NOT_FOUND, LOC_CFLV_0266);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_NOT_FOUND, LOC_CFLV_0272);
         return (EC_FALSE);
     }
 
@@ -11967,7 +11967,7 @@ EC_BOOL cflv_content_ms_procedure(const UINT32 cflv_md_id)
     status = CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md));
     if(EC_TRUE == cngx_need_intercept_errors(r, status))
     {
-        cflv_set_ngx_rc(cflv_md_id, status, LOC_CFLV_0011);
+        cflv_set_ngx_rc(cflv_md_id, status, LOC_CFLV_0273);
 
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "warn:cflv_content_ms_procedure: "
                                              "intercept rsp status %u done\n",
@@ -12086,7 +12086,7 @@ EC_BOOL cflv_content_preload_parse_header(const UINT32 cflv_md_id, const CBYTES 
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_preload_parse_header: "
                                              "new chttp_rsp failed\n");
 
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0267);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0274);
         return (EC_FALSE);
     }
 
@@ -12095,7 +12095,7 @@ EC_BOOL cflv_content_preload_parse_header(const UINT32 cflv_md_id, const CBYTES 
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_preload_parse_header: "
                                              "parse header failed\n");
 
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0268);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0275);
         return (EC_FALSE);
     }
 
@@ -12251,7 +12251,7 @@ EC_BOOL cflv_content_preload_header_out_rsp_status_filter(const UINT32 cflv_md_i
 
         if(CHTTP_NOT_FOUND == response_status)
         {
-            cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0269);
+            cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0276);
 
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_preload_header_out_rsp_status_filter: "
@@ -12401,7 +12401,7 @@ EC_BOOL cflv_content_preload_send_response(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_preload_send_response: "
                                                  "header_out filter failed\n");
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0270);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0277);
             return (EC_FALSE);
         }
 
@@ -12517,7 +12517,7 @@ EC_BOOL cflv_content_preload_procedure(const UINT32 cflv_md_id)
 
             if(BIT_TRUE == CNGX_OPTION_ONLY_IF_CACHED(CFLV_MD_CNGX_OPTION(cflv_md)))
             {
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CFLV_0271);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CFLV_0278);
 
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_preload_procedure: "
                                                      "only-if-cached is true => %u\n",
@@ -12651,7 +12651,7 @@ EC_BOOL cflv_content_preload_procedure(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_preload_procedure: "
                                                      "get range segs from chttp rsp failed\n");
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_REQUEST, LOC_CFLV_0272);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_REQUEST, LOC_CFLV_0279);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_preload_procedure: "
@@ -12662,7 +12662,7 @@ EC_BOOL cflv_content_preload_procedure(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_preload_procedure: "
                                                  "chttp rsp header_in range filter failed\n");
-            cflv_set_ngx_rc(cflv_md_id, CHTTP_REQUESTEDR_RANGE_NOT_SATISFIABLE, LOC_CFLV_0273);
+            cflv_set_ngx_rc(cflv_md_id, CHTTP_REQUESTEDR_RANGE_NOT_SATISFIABLE, LOC_CFLV_0280);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_preload_procedure: "
@@ -12736,15 +12736,15 @@ EC_BOOL cflv_content_redirect_procedure(const UINT32 cflv_md_id)
         {
             if(NULL_PTR != host)
             {
-                safe_free(host, LOC_CFLV_0274);
+                safe_free(host, LOC_CFLV_0281);
             }
             if(NULL_PTR != port)
             {
-                safe_free(port, LOC_CFLV_0275);
+                safe_free(port, LOC_CFLV_0282);
             }
             if(NULL_PTR != uri)
             {
-                safe_free(uri, LOC_CFLV_0276);
+                safe_free(uri, LOC_CFLV_0283);
             }
             break;
         }
@@ -12759,16 +12759,16 @@ EC_BOOL cflv_content_redirect_procedure(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_redirect_procedure: location '%s' =>  host '%s'\n", loc, host);
             chttp_req_set_ipaddr(&chttp_req_t, host);
-            safe_free(host, LOC_CFLV_0277);
+            safe_free(host, LOC_CFLV_0284);
 
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0278);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0285);
         }
 
         if(NULL_PTR != port)
         {
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_redirect_procedure: location '%s' =>  port '%s'\n", loc, port);
             chttp_req_set_port(&chttp_req_t, port);
-            safe_free(port, LOC_CFLV_0279);
+            safe_free(port, LOC_CFLV_0286);
         }
 
         if(NULL_PTR == uri)
@@ -12783,7 +12783,7 @@ EC_BOOL cflv_content_redirect_procedure(const UINT32 cflv_md_id)
 
         cstring_clean(CHTTP_REQ_URI(&chttp_req_t));
         chttp_req_set_uri(&chttp_req_t, uri);
-        safe_free(uri, LOC_CFLV_0280);
+        safe_free(uri, LOC_CFLV_0287);
 
         if(do_log(SEC_0146_CFLV, 9))
         {
@@ -12873,7 +12873,7 @@ EC_BOOL cflv_content_ims_header_in_filter_upstream(const UINT32 cflv_md_id)
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
                                              c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0281);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0288);
         return (EC_FALSE);
     }
     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_upstream: "
@@ -12887,7 +12887,7 @@ EC_BOOL cflv_content_ims_header_in_filter_upstream(const UINT32 cflv_md_id)
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
                                              upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0282);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0289);
         return (EC_FALSE);
     }
 
@@ -12963,14 +12963,14 @@ EC_BOOL cflv_content_ims_header_in_filter_server(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
-                safe_free(v, LOC_CFLV_0283);
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0284);
+                safe_free(v, LOC_CFLV_0290);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0291);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CFLV_0285);
+            safe_free(v, LOC_CFLV_0292);
 
             return (EC_TRUE);
         }
@@ -13026,8 +13026,8 @@ EC_BOOL cflv_content_ims_header_in_filter_host(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter_host: "
                                                  "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0286);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0287);
+            safe_free(v, LOC_CFLV_0293);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0294);
             return (EC_FALSE);
         }
 
@@ -13040,15 +13040,15 @@ EC_BOOL cflv_content_ims_header_in_filter_host(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter_host: "
                                                  "[conf] set host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0288);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0289);
+            safe_free(v, LOC_CFLV_0295);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0296);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0290);
+        safe_free(v, LOC_CFLV_0297);
 
         return (EC_TRUE);
     }
@@ -13110,13 +13110,13 @@ EC_BOOL cflv_content_ims_header_in_filter_port(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter_port: "
                                                  "[conf] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0291);
+            safe_free(v, LOC_CFLV_0298);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_port: "
                                              "[conf] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0292);
+        safe_free(v, LOC_CFLV_0299);
         return (EC_TRUE);
     }
 
@@ -13169,19 +13169,19 @@ EC_BOOL cflv_content_ims_header_in_filter_port(const UINT32 cflv_md_id)
                     dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter_port: "
                                                          "[cngx] set port '%s' to http req failed\n",
                                                          segs[ 1 ]);
-                    safe_free(v, LOC_CFLV_0293);
+                    safe_free(v, LOC_CFLV_0300);
                     return (EC_FALSE);
                 }
 
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req done\n",
                                                      segs[ 1 ]);
-                safe_free(v, LOC_CFLV_0294);
+                safe_free(v, LOC_CFLV_0301);
 
                 return (EC_TRUE);
             }
 
-            safe_free(v, LOC_CFLV_0295);
+            safe_free(v, LOC_CFLV_0302);
 
             /*continue*/
         }
@@ -13207,13 +13207,13 @@ EC_BOOL cflv_content_ims_header_in_filter_port(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0296);
+            safe_free(v, LOC_CFLV_0303);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0297);
+        safe_free(v, LOC_CFLV_0304);
 
         return (EC_TRUE);
     }
@@ -13284,8 +13284,8 @@ EC_BOOL cflv_content_ims_header_in_filter_ipaddr(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter_ipaddr: "
                                                  "[conf] set ipaddr '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0298);
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0299);
+            safe_free(v, LOC_CFLV_0305);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0306);
             return (EC_FALSE);
         }
 
@@ -13293,7 +13293,7 @@ EC_BOOL cflv_content_ims_header_in_filter_ipaddr(const UINT32 cflv_md_id)
                                              "[conf] set ipaddr  '%s' to http req done\n",
                                              v);
 
-        safe_free(v, LOC_CFLV_0300);
+        safe_free(v, LOC_CFLV_0307);
 
         return (EC_TRUE);
     }
@@ -13353,9 +13353,9 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
                                                      "[conf] set ca '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0304);
+                safe_free(v, LOC_CFLV_0308);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0305);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0309);
 
                 return (EC_FALSE);
             }
@@ -13364,7 +13364,7 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set ca '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0306);
+            safe_free(v, LOC_CFLV_0310);
 
             /*fall through*/
         }
@@ -13383,9 +13383,9 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
                                                      "[conf] set certificate '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0307);
+                safe_free(v, LOC_CFLV_0311);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0308);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0312);
 
                 return (EC_FALSE);
             }
@@ -13394,7 +13394,7 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set certificate '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0309);
+            safe_free(v, LOC_CFLV_0313);
 
             /*fall through*/
         }
@@ -13413,9 +13413,9 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
                                                      "[conf] set certificate key '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0310);
+                safe_free(v, LOC_CFLV_0314);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0311);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0315);
 
                 return (EC_FALSE);
             }
@@ -13424,7 +13424,7 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set certificate key '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0312);
+            safe_free(v, LOC_CFLV_0316);
 
             /*fall through*/
         }
@@ -13454,9 +13454,9 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
                                                      "[conf] set server '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0301);
+                safe_free(v, LOC_CFLV_0317);
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0302);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0318);
 
                 return (EC_FALSE);
             }
@@ -13465,7 +13465,7 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
                                                  "[conf] set server '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CFLV_0303);
+            safe_free(v, LOC_CFLV_0319);
 
             /*set or overwrite ipaddr*/
             if(EC_FALSE == cflv_content_ims_header_in_filter_ipaddr(cflv_md_id))
@@ -13559,10 +13559,10 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
                                              "set method '%s' failed\n",
                                              v);
-        safe_free(v, LOC_CFLV_0313);
+        safe_free(v, LOC_CFLV_0320);
         return (EC_FALSE);
     }
-    safe_free(v, LOC_CFLV_0314);
+    safe_free(v, LOC_CFLV_0321);
 
     /*set http request uri*/
     do
@@ -13588,13 +13588,13 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
                                                      "[conf] set uri '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0315);
+                safe_free(v, LOC_CFLV_0322);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
                                                  "[conf] set uri '%s' to http req done\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0316);
+            safe_free(v, LOC_CFLV_0323);
 
             break; /*ok*/
         }
@@ -13612,13 +13612,13 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
                                                  "[cngx] set uri '%s' failed\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0317);
+            safe_free(v, LOC_CFLV_0324);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
                                              "[cngx] set uri '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CFLV_0318);
+        safe_free(v, LOC_CFLV_0325);
 
         /*FLV: not carray on start/end arg to orig*/
         if(EC_TRUE == cngx_get_req_arg(r, &v) && NULL_PTR != v)
@@ -13654,12 +13654,12 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
             {
                 dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
                                                      "[cngx] append nothing to uri\n");
-                safe_free(v, LOC_CFLV_0319);
+                safe_free(v, LOC_CFLV_0326);
                 break;
             }
 
             args = c_str_join((const char *)"&", (const char **)arg_fields, arg_left_num);
-            safe_free(v, LOC_CFLV_0320);
+            safe_free(v, LOC_CFLV_0327);
 
             v = args; /*move args to v*/
 
@@ -13667,7 +13667,7 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
                                                      "[cngx] set '?' failed\n");
-                safe_free(v, LOC_CFLV_0321);
+                safe_free(v, LOC_CFLV_0328);
                 return (EC_FALSE);
             }
 
@@ -13676,13 +13676,13 @@ EC_BOOL cflv_content_ims_header_in_filter(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter: "
                                                      "[cngx] set args '%s' failed\n",
                                                      v);
-                safe_free(v, LOC_CFLV_0322);
+                safe_free(v, LOC_CFLV_0329);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter: "
                                                  "[cngx] set args '%s' to http req done\n",
                                                  v);
-            safe_free(v, LOC_CFLV_0323);
+            safe_free(v, LOC_CFLV_0330);
         }
     }while(0);
 
@@ -14614,7 +14614,7 @@ EC_BOOL cflv_content_ims_send_request(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_send_request: "
                                                  "new chttp_req failed\n");
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0324);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0331);
             return (EC_FALSE);
         }
         CFLV_MD_CHTTP_REQ(cflv_md) = chttp_req;
@@ -14633,7 +14633,7 @@ EC_BOOL cflv_content_ims_send_request(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_send_request: "
                                                  "new chttp_rsp failed\n");
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0325);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0332);
             return (EC_FALSE);
         }
         CFLV_MD_CHTTP_RSP(cflv_md) = chttp_rsp;
@@ -14648,7 +14648,7 @@ EC_BOOL cflv_content_ims_send_request(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_send_request: "
                                              "export headers_in to http req failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0326);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0333);
         return (EC_FALSE);
     }
 
@@ -14656,7 +14656,7 @@ EC_BOOL cflv_content_ims_send_request(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_send_request: "
                                              "header_in filter failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0327);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0334);
         return (EC_FALSE);
     }
 
@@ -14670,7 +14670,7 @@ EC_BOOL cflv_content_ims_send_request(const UINT32 cflv_md_id)
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_send_request: "
                                              "http request failed\n");
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CFLV_0328);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CFLV_0335);
         return (EC_FALSE);
     }
 
@@ -15072,7 +15072,7 @@ EC_BOOL cflv_content_expired_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SE
 
         if(BIT_TRUE == CNGX_OPTION_ONLY_IF_CACHED(CFLV_MD_CNGX_OPTION(cflv_md)))
         {
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CFLV_0329);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CFLV_0336);
 
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_expired_send_seg_n: "
                                                  "only-if-cached is true => %u\n",
@@ -15255,7 +15255,7 @@ EC_BOOL cflv_content_expired_send_response(const UINT32 cflv_md_id)
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_expired_send_response: "
                                                      "header_out filter failed\n");
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0330);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0337);
                 return (EC_FALSE);
             }
 
@@ -15476,7 +15476,7 @@ EC_BOOL cflv_content_expired_procedure(const UINT32 cflv_md_id)
                                              cflv_md_id_t);
 
         cflv_get_ngx_rc(cflv_md_id_t, &rc, NULL_PTR);
-        cflv_set_ngx_rc(cflv_md_id, rc, LOC_CFLV_0331);
+        cflv_set_ngx_rc(cflv_md_id, rc, LOC_CFLV_0338);
 
         cflv_end(cflv_md_id_t);
         return (EC_FALSE);
@@ -15487,7 +15487,7 @@ EC_BOOL cflv_content_expired_procedure(const UINT32 cflv_md_id)
                                          cflv_md_id_t);
 
     cflv_get_ngx_rc(cflv_md_id_t, &rc, NULL_PTR);
-    cflv_set_ngx_rc(cflv_md_id, rc, LOC_CFLV_0332);
+    cflv_set_ngx_rc(cflv_md_id, rc, LOC_CFLV_0339);
 
     cflv_end(cflv_md_id_t);
 
@@ -15526,7 +15526,7 @@ EC_BOOL cflv_content_cache_parse_header(const UINT32 cflv_md_id, const CBYTES *h
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_parse_header: "
                                              "new chttp_rsp failed\n");
 
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0333);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0340);
         return (EC_FALSE);
     }
 
@@ -15535,7 +15535,7 @@ EC_BOOL cflv_content_cache_parse_header(const UINT32 cflv_md_id, const CBYTES *h
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_parse_header: "
                                              "parse header failed\n");
 
-        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0334);
+        cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0341);
         return (EC_FALSE);
     }
 
@@ -15665,7 +15665,7 @@ EC_BOOL cflv_content_cache_header_out_if_modified_since_filter(const UINT32 cflv
 
     ims_1st = c_parse_http_time((uint8_t *)v, (size_t)strlen(v));
 
-    safe_free(v, LOC_CFLV_0335);
+    safe_free(v, LOC_CFLV_0342);
 
     k = (const char *)"Last-Modified";
     v = chttp_rsp_get_header(CFLV_MD_CHTTP_RSP(cflv_md), k);
@@ -15767,7 +15767,7 @@ EC_BOOL cflv_content_cache_header_out_if_none_match_filter(const UINT32 cflv_md_
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_if_none_match_filter: "
                                              "[rsp] no '%s'\n",
                                              k);
-        safe_free(etag_des, LOC_CFLV_0336);
+        safe_free(etag_des, LOC_CFLV_0343);
         return (EC_TRUE);
     }
     etag_src = v;
@@ -15945,7 +15945,7 @@ EC_BOOL cflv_content_cache_header_out_rsp_status_filter(const UINT32 cflv_md_id)
 
         if(CHTTP_NOT_FOUND == response_status)
         {
-            cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0337);
+            cflv_set_ngx_rc(cflv_md_id, CHTTP_NOT_FOUND, LOC_CFLV_0344);
 
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_rsp_status_filter: "
@@ -16208,7 +16208,7 @@ EC_BOOL cflv_content_cache_header_out_age_filter(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_age_filter: "
                                                  "[rsp] cannot fetch number from '%s':'%s'\n",
                                                  k, v);
-            safe_free(v, LOC_CFLV_0338);
+            safe_free(v, LOC_CFLV_0345);
             break;
         }
 
@@ -16218,7 +16218,7 @@ EC_BOOL cflv_content_cache_header_out_age_filter(const UINT32 cflv_md_id)
                                                  "[rsp] '%s':'%s' => aged\n",
                                                  k, v);
 
-            safe_free(v, LOC_CFLV_0339);
+            safe_free(v, LOC_CFLV_0346);
 
             CFLV_MD_CACHE_EXPIRED_FLAG(cflv_md) = BIT_TRUE;
 
@@ -16247,7 +16247,7 @@ EC_BOOL cflv_content_cache_header_out_age_filter(const UINT32 cflv_md_id)
             return (EC_TRUE);
         }
 
-        safe_free(v, LOC_CFLV_0340);
+        safe_free(v, LOC_CFLV_0347);
 
         /*fall through*/
     }while(0);
@@ -16346,7 +16346,7 @@ EC_BOOL cflv_content_cache_header_out_age_filter(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_age_filter: "
                                                  "[cngx] cannot fetch number from '%s':'%s'\n",
                                                  k, v);
-            safe_free(v, LOC_CFLV_0341);
+            safe_free(v, LOC_CFLV_0348);
             break;
         }
 
@@ -16360,7 +16360,7 @@ EC_BOOL cflv_content_cache_header_out_age_filter(const UINT32 cflv_md_id)
                                                  "[cngx] '%s':'%s' => aged, cache => force orig procedure\n",
                                                  k, v);
 
-            safe_free(v, LOC_CFLV_0342);
+            safe_free(v, LOC_CFLV_0349);
 
             CFLV_MD_CACHE_EXPIRED_FLAG(cflv_md) = BIT_TRUE;
 
@@ -16393,7 +16393,7 @@ EC_BOOL cflv_content_cache_header_out_age_filter(const UINT32 cflv_md_id)
                                              "[cngx] '%s':'%s' => not aged\n",
                                              k, v);
 
-        safe_free(v, LOC_CFLV_0343);
+        safe_free(v, LOC_CFLV_0350);
         /*fall through*/
     }while(0);
 
@@ -16430,7 +16430,7 @@ EC_BOOL cflv_content_cache_header_out_age_filter(const UINT32 cflv_md_id)
                                                  "[cngx] '%s':'%s' => aged, cache => force orig procedure\n",
                                                  k, v);
 
-            safe_free(v, LOC_CFLV_0344);
+            safe_free(v, LOC_CFLV_0351);
 
             CFLV_MD_CACHE_EXPIRED_FLAG(cflv_md) = BIT_TRUE;
 
@@ -16463,7 +16463,7 @@ EC_BOOL cflv_content_cache_header_out_age_filter(const UINT32 cflv_md_id)
                                              "[cngx] '%s':'%s' => not aged\n",
                                              k, v);
 
-        safe_free(v, LOC_CFLV_0345);
+        safe_free(v, LOC_CFLV_0352);
         /*fall through*/
     }while(0);
 
@@ -16822,7 +16822,7 @@ EC_BOOL cflv_content_cache_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG 
 
         if(BIT_TRUE == CNGX_OPTION_ONLY_IF_CACHED(CFLV_MD_CNGX_OPTION(cflv_md)))
         {
-            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CFLV_0346);
+            cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CFLV_0353);
 
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_send_seg_n: "
                                                 "only-if-cached is true => %u\n",
@@ -17004,7 +17004,7 @@ EC_BOOL cflv_content_cache_send_response(const UINT32 cflv_md_id)
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_send_response: "
                                                      "header_out filter failed\n");
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0347);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0354);
                 return (EC_FALSE);
             }
 
@@ -17236,7 +17236,7 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
 
             if(BIT_TRUE == CNGX_OPTION_ONLY_IF_CACHED(CFLV_MD_CNGX_OPTION(cflv_md)))
             {
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CFLV_0348);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CFLV_0355);
 
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: "
                                                      "only-if-cached is true => %u\n",
@@ -17383,7 +17383,7 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: "
                                                      "get range segs from chttp rsp failed\n");
 
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_REQUEST, LOC_CFLV_0349);
+                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_BAD_REQUEST, LOC_CFLV_0356);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "
@@ -17394,7 +17394,7 @@ EC_BOOL cflv_content_cache_procedure(const UINT32 cflv_md_id)
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_procedure: "
                                                  "chttp rsp header_in range filter failed\n");
-            cflv_set_ngx_rc(cflv_md_id, CHTTP_REQUESTEDR_RANGE_NOT_SATISFIABLE, LOC_CFLV_0350);
+            cflv_set_ngx_rc(cflv_md_id, CHTTP_REQUESTEDR_RANGE_NOT_SATISFIABLE, LOC_CFLV_0357);
             return (EC_FALSE);
         }
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_procedure: "

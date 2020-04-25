@@ -79,6 +79,39 @@ extern "C"{
 #define CXFS_WAIT_SYNC_MAX_MSEC             (30000)  /*30s*/
 #endif
 
+/*statistics*/
+typedef struct
+{
+    uint64_t            read_times_counter;
+    uint64_t            read_nbytes_count;
+
+    uint64_t            write_times_counter;
+    uint64_t            write_nbytes_count;
+
+    uint64_t            delete_times_counter;
+
+    uint64_t            update_times_counter;
+    uint64_t            update_nbytes_count;
+
+    uint64_t            retire_times_counter;
+
+    uint64_t            recycle_times_counter;
+}CXFS_STAT;
+
+#define CXFS_STAT_READ_TIMES_COUNTER(cxfs_stat)           ((cxfs_stat)->read_times_counter)
+#define CXFS_STAT_READ_NBYTES_COUNTER(cxfs_stat)          ((cxfs_stat)->read_nbytes_count)
+
+#define CXFS_STAT_WRITE_TIMES_COUNTER(cxfs_stat)          ((cxfs_stat)->write_times_counter)
+#define CXFS_STAT_WRITE_NBYTES_COUNTER(cxfs_stat)         ((cxfs_stat)->write_nbytes_count)
+
+#define CXFS_STAT_DELETE_TIMES_COUNTER(cxfs_stat)         ((cxfs_stat)->delete_times_counter)
+
+#define CXFS_STAT_UPDATE_TIMES_COUNTER(cxfs_stat)         ((cxfs_stat)->update_times_counter)
+#define CXFS_STAT_UPDATE_NBYTES_COUNTER(cxfs_stat)        ((cxfs_stat)->update_nbytes_count)
+
+#define CXFS_STAT_RETIRE_TIMES_COUNTER(cxfs_stat)         ((cxfs_stat)->retire_times_counter)
+
+#define CXFS_STAT_RECYCLE_TIMES_COUNTER(cxfs_stat)        ((cxfs_stat)->recycle_times_counter)
 
 #define CXFS_ERR_STATE                      ((UINT32)  0)
 #define CXFS_WORK_STATE                     ((UINT32)  1)
@@ -127,6 +160,9 @@ typedef struct
     UINT32               cxfsop_dump_offset;/*relative offset in op table*/
     CMMAP_NODE          *np_cmmap_node;
     CMMAP_NODE          *dn_cmmap_node;
+
+    /*statistics*/
+    CXFS_STAT            cxfs_stat;
 }CXFS_MD;
 
 #define CXFS_MD_READ_ONLY_FLAG(cxfs_md)                 ((cxfs_md)->read_only_flag)
@@ -153,6 +189,7 @@ typedef struct
 #define CXFS_MD_OP_MGR(cxfs_md)                         ((cxfs_md)->cxfsop_mgr)
 #define CXFS_MD_OP_MGR_LIST(cxfs_md)                    (&((cxfs_md)->cxfsop_mgr_list))
 #define CXFS_MD_OP_DUMP_OFFSET(cxfs_md)                 ((cxfs_md)->cxfsop_dump_offset)
+#define CXFS_MD_STAT(cxfs_md)                           (&((cxfs_md)->cxfs_stat))
 
 typedef struct
 {
@@ -276,6 +313,10 @@ EC_BOOL cxfs_sync_sata_bad_bitmap(CXFS_MD *cxfs_md);
 
 EC_BOOL cxfs_close_sata_bad_bitmap(CXFS_MD *cxfs_md);
 
+EC_BOOL cxfs_stat_init(CXFS_STAT *cxfs_stat);
+
+EC_BOOL cxfs_stat_clean(CXFS_STAT *cxfs_stat);
+
 CXFSNP_FNODE *cxfs_fnode_new(const UINT32 cxfs_md_id);
 
 EC_BOOL cxfs_fnode_init(const UINT32 cxfs_md_id, CXFSNP_FNODE *cxfsnp_fnode);
@@ -350,6 +391,13 @@ CXFSNP_MGR *cxfs_get_npp(const UINT32 cxfs_md_id);
 *
 **/
 CXFSDN *cxfs_get_dn(const UINT32 cxfs_md_id);
+
+/**
+*
+*  get stat of the module
+*
+**/
+CXFS_STAT *cxfs_get_stat(const UINT32 cxfs_md_id);
 
 /**
 *

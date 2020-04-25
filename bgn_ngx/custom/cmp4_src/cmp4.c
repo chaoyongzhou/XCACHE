@@ -2367,7 +2367,7 @@ EC_BOOL cmp4_content_handler(const UINT32 cmp4_md_id)
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_handler: "
                                              "script dir0 filter failed\n");
 
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0005);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0010);
         return (EC_FALSE);
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_handler: "
@@ -2378,7 +2378,7 @@ EC_BOOL cmp4_content_handler(const UINT32 cmp4_md_id)
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_handler: "
                                              "headers dir0 filter failed\n");
 
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0005);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0011);
         return (EC_FALSE);
     }
 
@@ -2403,7 +2403,7 @@ EC_BOOL cmp4_content_handler(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_handler: set cachable method failed\n");
 
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_REQUEST, LOC_CMP4_0010);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_REQUEST, LOC_CMP4_0012);
         return (EC_FALSE);
     }
 
@@ -2444,7 +2444,7 @@ EC_BOOL cmp4_content_handler(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_handler: "
                                              "get Range from cngx req failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_REQUEST, LOC_CMP4_0011);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_REQUEST, LOC_CMP4_0013);
         return (EC_FALSE);
     }
 
@@ -2525,7 +2525,7 @@ EC_BOOL cmp4_content_handler(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_handler: set store_path failed\n");
 
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0012);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0014);
         return (EC_FALSE);
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_handler: set store_path '%s'\n",
@@ -2607,7 +2607,7 @@ EC_BOOL cmp4_content_head_header_in_filter_upstream(const UINT32 cmp4_md_id)
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
                                              c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0013);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0015);
         return (EC_FALSE);
     }
     dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_upstream: "
@@ -2621,7 +2621,7 @@ EC_BOOL cmp4_content_head_header_in_filter_upstream(const UINT32 cmp4_md_id)
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
                                              upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0014);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0016);
         return (EC_FALSE);
     }
 
@@ -2697,14 +2697,14 @@ EC_BOOL cmp4_content_head_header_in_filter_server(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
-                safe_free(v, LOC_CMP4_0015);
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0016);
+                safe_free(v, LOC_CMP4_0017);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0018);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CMP4_0017);
+            safe_free(v, LOC_CMP4_0019);
 
             return (EC_TRUE);
         }
@@ -2760,8 +2760,8 @@ EC_BOOL cmp4_content_head_header_in_filter_host(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter_host: "
                                                  "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0018);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0019);
+            safe_free(v, LOC_CMP4_0020);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0021);
             return (EC_FALSE);
         }
 
@@ -2774,15 +2774,15 @@ EC_BOOL cmp4_content_head_header_in_filter_host(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter_host: "
                                                  "[conf] set host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0020);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0021);
+            safe_free(v, LOC_CMP4_0022);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0023);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0022);
+        safe_free(v, LOC_CMP4_0024);
 
         return (EC_TRUE);
     }
@@ -2844,13 +2844,13 @@ EC_BOOL cmp4_content_head_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter_port: "
                                                  "[conf] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0023);
+            safe_free(v, LOC_CMP4_0025);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_port: "
                                              "[conf] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0024);
+        safe_free(v, LOC_CMP4_0026);
         return (EC_TRUE);
     }
 
@@ -2903,19 +2903,19 @@ EC_BOOL cmp4_content_head_header_in_filter_port(const UINT32 cmp4_md_id)
                     dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter_port: "
                                                          "[cngx] set port '%s' to http req failed\n",
                                                          segs[ 1 ]);
-                    safe_free(v, LOC_CMP4_0025);
+                    safe_free(v, LOC_CMP4_0027);
                     return (EC_FALSE);
                 }
 
                 dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req done\n",
                                                      segs[ 1 ]);
-                safe_free(v, LOC_CMP4_0026);
+                safe_free(v, LOC_CMP4_0028);
 
                 return (EC_TRUE);
             }
 
-            safe_free(v, LOC_CMP4_0027);
+            safe_free(v, LOC_CMP4_0029);
 
             /*continue*/
         }
@@ -2940,13 +2940,13 @@ EC_BOOL cmp4_content_head_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0028);
+            safe_free(v, LOC_CMP4_0030);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0029);
+        safe_free(v, LOC_CMP4_0031);
 
         return (EC_TRUE);
     }
@@ -3017,8 +3017,8 @@ EC_BOOL cmp4_content_head_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter_ipaddr: "
                                                  "[conf] set ipaddr '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0030);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0031);
+            safe_free(v, LOC_CMP4_0032);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0033);
             return (EC_FALSE);
         }
 
@@ -3026,7 +3026,7 @@ EC_BOOL cmp4_content_head_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
                                              "[conf] set ipaddr  '%s' to http req done\n",
                                              v);
 
-        safe_free(v, LOC_CMP4_0032);
+        safe_free(v, LOC_CMP4_0034);
 
         return (EC_TRUE);
     }
@@ -3086,9 +3086,9 @@ EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter: "
                                                      "[conf] set ca '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0036);
+                safe_free(v, LOC_CMP4_0035);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0037);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0036);
 
                 return (EC_FALSE);
             }
@@ -3097,7 +3097,7 @@ EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set ca '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0038);
+            safe_free(v, LOC_CMP4_0037);
 
             /*fall through*/
         }
@@ -3116,9 +3116,9 @@ EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter: "
                                                      "[conf] set certificate '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0039);
+                safe_free(v, LOC_CMP4_0038);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0040);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0039);
 
                 return (EC_FALSE);
             }
@@ -3127,7 +3127,7 @@ EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set certificate '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0041);
+            safe_free(v, LOC_CMP4_0040);
 
             /*fall through*/
         }
@@ -3146,9 +3146,9 @@ EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter: "
                                                      "[conf] set certificate key '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0042);
+                safe_free(v, LOC_CMP4_0041);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0043);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0042);
 
                 return (EC_FALSE);
             }
@@ -3157,7 +3157,7 @@ EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set certificate key '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0044);
+            safe_free(v, LOC_CMP4_0043);
 
             /*fall through*/
         }
@@ -3187,9 +3187,9 @@ EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter: "
                                                      "[conf] set server '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0033);
+                safe_free(v, LOC_CMP4_0044);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0034);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0045);
 
                 return (EC_FALSE);
             }
@@ -3198,7 +3198,7 @@ EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set server '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0035);
+            safe_free(v, LOC_CMP4_0046);
 
             /*set or overwrite ipaddr*/
             if(EC_FALSE == cmp4_content_head_header_in_filter_ipaddr(cmp4_md_id))
@@ -3292,10 +3292,10 @@ EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id)
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter: "
                                              "set method '%s' failed\n",
                                              v);
-        safe_free(v, LOC_CMP4_0045);
+        safe_free(v, LOC_CMP4_0047);
         return (EC_FALSE);
     }
-    safe_free(v, LOC_CMP4_0046);
+    safe_free(v, LOC_CMP4_0048);
 
     /*set http request uri*/
     do
@@ -3321,13 +3321,13 @@ EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter: "
                                                      "[conf] set uri '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0047);
+                safe_free(v, LOC_CMP4_0049);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
                                                  "[conf] set uri '%s' to http req done\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0048);
+            safe_free(v, LOC_CMP4_0050);
 
             break; /*ok*/
         }
@@ -3345,13 +3345,13 @@ EC_BOOL cmp4_content_head_header_in_filter(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_header_in_filter: "
                                                  "[cngx] set uri '%s' failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0049);
+            safe_free(v, LOC_CMP4_0051);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter: "
                                              "[cngx] set uri '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0050);
+        safe_free(v, LOC_CMP4_0052);
     }while(0);
 
     /*set range*/
@@ -3425,7 +3425,7 @@ EC_BOOL cmp4_content_head_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
 
         if(CHTTP_NOT_FOUND == response_status)
         {
-            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0051);
+            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0053);
 
             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_out_rsp_status_filter: "
@@ -3572,7 +3572,7 @@ EC_BOOL cmp4_content_head_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_send_request: "
                                                  "new chttp_req failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0052);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0054);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_REQ(cmp4_md) = chttp_req;
@@ -3592,7 +3592,7 @@ EC_BOOL cmp4_content_head_send_request(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_send_request: "
                                                  "new chttp_rsp failed\n");
             chttp_req_free(chttp_req);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0053);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0055);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_RSP(cmp4_md) = chttp_rsp;
@@ -3607,14 +3607,14 @@ EC_BOOL cmp4_content_head_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_send_request: "
                                              "export headers_in to http req failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0054);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0056);
         return (EC_FALSE);
     }
     if(EC_FALSE == cmp4_content_head_header_in_filter(cmp4_md_id))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_send_request: "
                                              "header_in filter failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0055);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0057);
         return (EC_FALSE);
     }
 
@@ -3627,7 +3627,7 @@ EC_BOOL cmp4_content_head_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_send_request: "
                                              "http request failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CMP4_0056);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CMP4_0058);
         return (EC_FALSE);
     }
     if(do_log(SEC_0147_CMP4, 9))
@@ -3670,7 +3670,7 @@ EC_BOOL cmp4_content_head_send_response(const UINT32 cmp4_md_id)
             {
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_head_send_response: "
                                                      "header_out filter failed\n");
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0057);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0059);
                 return (EC_FALSE);
             }
 
@@ -3735,7 +3735,7 @@ EC_BOOL cmp4_content_head_procedure(const UINT32 cmp4_md_id)
     status = CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md));
     if(EC_TRUE == cngx_need_intercept_errors(r, status))
     {
-        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0011);
+        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0060);
 
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "warn:cmp4_content_head_procedure: "
                                              "intercept rsp status %u done\n",
@@ -3829,7 +3829,7 @@ EC_BOOL cmp4_content_direct_header_in_filter_upstream(const UINT32 cmp4_md_id)
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
                                              c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0058);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0061);
         return (EC_FALSE);
     }
     dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_upstream: "
@@ -3843,7 +3843,7 @@ EC_BOOL cmp4_content_direct_header_in_filter_upstream(const UINT32 cmp4_md_id)
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
                                              upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0059);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0062);
         return (EC_FALSE);
     }
 
@@ -3919,14 +3919,14 @@ EC_BOOL cmp4_content_direct_header_in_filter_server(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
-                safe_free(v, LOC_CMP4_0060);
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0061);
+                safe_free(v, LOC_CMP4_0063);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0064);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CMP4_0062);
+            safe_free(v, LOC_CMP4_0065);
 
             return (EC_TRUE);
         }
@@ -3982,8 +3982,8 @@ EC_BOOL cmp4_content_direct_header_in_filter_host(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter_host: "
                                                  "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0063);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0064);
+            safe_free(v, LOC_CMP4_0066);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0067);
             return (EC_FALSE);
         }
 
@@ -3996,15 +3996,15 @@ EC_BOOL cmp4_content_direct_header_in_filter_host(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter_host: "
                                                  "[conf] set host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0065);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0066);
+            safe_free(v, LOC_CMP4_0068);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0069);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0067);
+        safe_free(v, LOC_CMP4_0070);
 
         return (EC_TRUE);
     }
@@ -4066,13 +4066,13 @@ EC_BOOL cmp4_content_direct_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter_port: "
                                                  "[conf] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0068);
+            safe_free(v, LOC_CMP4_0071);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_port: "
                                              "[conf] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0069);
+        safe_free(v, LOC_CMP4_0072);
         return (EC_TRUE);
     }
 
@@ -4125,19 +4125,19 @@ EC_BOOL cmp4_content_direct_header_in_filter_port(const UINT32 cmp4_md_id)
                     dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter_port: "
                                                          "[cngx] set port '%s' to http req failed\n",
                                                          segs[ 1 ]);
-                    safe_free(v, LOC_CMP4_0070);
+                    safe_free(v, LOC_CMP4_0073);
                     return (EC_FALSE);
                 }
 
                 dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req done\n",
                                                      segs[ 1 ]);
-                safe_free(v, LOC_CMP4_0071);
+                safe_free(v, LOC_CMP4_0074);
 
                 return (EC_TRUE);
             }
 
-            safe_free(v, LOC_CMP4_0072);
+            safe_free(v, LOC_CMP4_0075);
 
             /*continue*/
         }
@@ -4162,13 +4162,13 @@ EC_BOOL cmp4_content_direct_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0073);
+            safe_free(v, LOC_CMP4_0076);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0074);
+        safe_free(v, LOC_CMP4_0077);
 
         return (EC_TRUE);
     }
@@ -4239,8 +4239,8 @@ EC_BOOL cmp4_content_direct_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter_ipaddr: "
                                                  "[conf] set ipaddr '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0075);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0076);
+            safe_free(v, LOC_CMP4_0078);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0079);
             return (EC_FALSE);
         }
 
@@ -4248,7 +4248,7 @@ EC_BOOL cmp4_content_direct_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
                                              "[conf] set ipaddr  '%s' to http req done\n",
                                              v);
 
-        safe_free(v, LOC_CMP4_0077);
+        safe_free(v, LOC_CMP4_0080);
 
         return (EC_TRUE);
     }
@@ -4409,9 +4409,9 @@ EC_BOOL cmp4_content_direct_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter: "
                                                      "[conf] set server '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0078);
+                safe_free(v, LOC_CMP4_0090);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0079);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0091);
 
                 return (EC_FALSE);
             }
@@ -4420,7 +4420,7 @@ EC_BOOL cmp4_content_direct_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set server '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0080);
+            safe_free(v, LOC_CMP4_0092);
 
             /*set or overwrite ipaddr*/
             if(EC_FALSE == cmp4_content_direct_header_in_filter_ipaddr(cmp4_md_id))
@@ -4513,10 +4513,10 @@ EC_BOOL cmp4_content_direct_header_in_filter(const UINT32 cmp4_md_id)
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter: "
                                              "set method '%s' failed\n",
                                              v);
-        safe_free(v, LOC_CMP4_0090);
+        safe_free(v, LOC_CMP4_0093);
         return (EC_FALSE);
     }
-    safe_free(v, LOC_CMP4_0091);
+    safe_free(v, LOC_CMP4_0094);
 
     /*set http request uri*/
     do
@@ -4542,13 +4542,13 @@ EC_BOOL cmp4_content_direct_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter: "
                                                      "[conf] set uri '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0092);
+                safe_free(v, LOC_CMP4_0095);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
                                                  "[conf] set uri '%s' to http req done\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0093);
+            safe_free(v, LOC_CMP4_0096);
 
             break; /*ok*/
         }
@@ -4566,13 +4566,13 @@ EC_BOOL cmp4_content_direct_header_in_filter(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_in_filter: "
                                                  "[cngx] set uri '%s' failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0094);
+            safe_free(v, LOC_CMP4_0097);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter: "
                                              "[cngx] set uri '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0095);
+        safe_free(v, LOC_CMP4_0098);
     }while(0);
 
 
@@ -4836,7 +4836,7 @@ EC_BOOL cmp4_content_direct_header_out_rsp_status_filter(const UINT32 cmp4_md_id
 
         if(CHTTP_NOT_FOUND == response_status)
         {
-            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0096);
+            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0099);
 
             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_rsp_status_filter: "
@@ -4945,7 +4945,7 @@ EC_BOOL cmp4_content_direct_header_out_filter(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_header_out_filter: "
                                                  "chttp rsp header_in range filter failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CMP4_0097);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CMP4_0100);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_filter: "
@@ -5128,7 +5128,7 @@ EC_BOOL cmp4_content_direct_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_request: "
                                                  "new chttp_req failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0098);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0101);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_REQ(cmp4_md) = chttp_req;
@@ -5148,7 +5148,7 @@ EC_BOOL cmp4_content_direct_send_request(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_request: "
                                                  "new chttp_rsp failed\n");
             chttp_req_free(chttp_req);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0099);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0102);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_RSP(cmp4_md) = chttp_rsp;
@@ -5163,14 +5163,14 @@ EC_BOOL cmp4_content_direct_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_request: "
                                              "export headers_in to http req failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0100);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0103);
         return (EC_FALSE);
     }
     if(EC_FALSE == cmp4_content_direct_header_in_filter(cmp4_md_id))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_request: "
                                              "header_in filter failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0101);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0104);
         return (EC_FALSE);
     }
 
@@ -5188,7 +5188,7 @@ EC_BOOL cmp4_content_direct_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_request: "
                                                  "new chttp_store failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0102);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0105);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_STORE(cmp4_md) = chttp_store;
@@ -5203,7 +5203,7 @@ EC_BOOL cmp4_content_direct_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_request: "
                                              "set chttp_store failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0103);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0106);
         return (EC_FALSE);
     }
 
@@ -5218,7 +5218,7 @@ EC_BOOL cmp4_content_direct_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_request: "
                                              "http request failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CMP4_0104);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CMP4_0107);
         return (EC_FALSE);
     }
 
@@ -5594,7 +5594,7 @@ EC_BOOL cmp4_content_direct_send_response(const UINT32 cmp4_md_id)
             {
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_response: "
                                                      "header_out filter failed\n");
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0105);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0108);
                 return (EC_FALSE);
             }
 
@@ -5667,7 +5667,7 @@ EC_BOOL cmp4_content_direct_send_response(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_response: "
                                              "chttp rsp header_in range filter failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CMP4_0106);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CMP4_0109);
         return (EC_FALSE);
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_send_response: "
@@ -5789,7 +5789,7 @@ EC_BOOL cmp4_content_direct_procedure(const UINT32 cmp4_md_id)
     status = CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md));
     if(EC_TRUE == cngx_need_intercept_errors(r, status))
     {
-        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0011);
+        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0110);
 
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "warn:cmp4_content_direct_procedure: "
                                              "intercept rsp status %u done\n",
@@ -5883,7 +5883,7 @@ EC_BOOL cmp4_content_repair2_header_in_filter_upstream(const UINT32 cmp4_md_id)
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
                                              c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0107);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0111);
         return (EC_FALSE);
     }
     dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter_upstream: "
@@ -5897,7 +5897,7 @@ EC_BOOL cmp4_content_repair2_header_in_filter_upstream(const UINT32 cmp4_md_id)
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
                                              upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0108);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0112);
         return (EC_FALSE);
     }
 
@@ -5975,14 +5975,14 @@ EC_BOOL cmp4_content_repair2_header_in_filter_server(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
-                safe_free(v, LOC_CMP4_0109);
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0110);
+                safe_free(v, LOC_CMP4_0113);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0114);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CMP4_0111);
+            safe_free(v, LOC_CMP4_0115);
 
             return (EC_TRUE);
         }
@@ -6038,8 +6038,8 @@ EC_BOOL cmp4_content_repair2_header_in_filter_host(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter_host: "
                                                  "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0112);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0113);
+            safe_free(v, LOC_CMP4_0116);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0117);
             return (EC_FALSE);
         }
 
@@ -6052,15 +6052,15 @@ EC_BOOL cmp4_content_repair2_header_in_filter_host(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter_host: "
                                                  "[conf] set host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0114);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0115);
+            safe_free(v, LOC_CMP4_0118);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0119);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0116);
+        safe_free(v, LOC_CMP4_0120);
 
         return (EC_TRUE);
     }
@@ -6122,13 +6122,13 @@ EC_BOOL cmp4_content_repair2_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter_port: "
                                                  "[conf] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0117);
+            safe_free(v, LOC_CMP4_0121);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter_port: "
                                              "[conf] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0118);
+        safe_free(v, LOC_CMP4_0122);
         return (EC_TRUE);
     }
 
@@ -6181,19 +6181,19 @@ EC_BOOL cmp4_content_repair2_header_in_filter_port(const UINT32 cmp4_md_id)
                     dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter_port: "
                                                          "[cngx] set port '%s' to http req failed\n",
                                                          segs[ 1 ]);
-                    safe_free(v, LOC_CMP4_0119);
+                    safe_free(v, LOC_CMP4_0123);
                     return (EC_FALSE);
                 }
 
                 dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req done\n",
                                                      segs[ 1 ]);
-                safe_free(v, LOC_CMP4_0120);
+                safe_free(v, LOC_CMP4_0124);
 
                 return (EC_TRUE);
             }
 
-            safe_free(v, LOC_CMP4_0121);
+            safe_free(v, LOC_CMP4_0125);
 
             /*continue*/
         }
@@ -6218,13 +6218,13 @@ EC_BOOL cmp4_content_repair2_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0122);
+            safe_free(v, LOC_CMP4_0126);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0123);
+        safe_free(v, LOC_CMP4_0127);
 
         return (EC_TRUE);
     }
@@ -6295,8 +6295,8 @@ EC_BOOL cmp4_content_repair2_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter_ipaddr: "
                                                  "[conf] set ipaddr '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0124);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0125);
+            safe_free(v, LOC_CMP4_0128);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0129);
             return (EC_FALSE);
         }
 
@@ -6304,7 +6304,7 @@ EC_BOOL cmp4_content_repair2_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
                                              "[conf] set ipaddr  '%s' to http req done\n",
                                              v);
 
-        safe_free(v, LOC_CMP4_0126);
+        safe_free(v, LOC_CMP4_0130);
 
         return (EC_TRUE);
     }
@@ -6364,9 +6364,9 @@ EC_BOOL cmp4_content_repair2_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter: "
                                                      "[conf] set ca '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0130);
+                safe_free(v, LOC_CMP4_0131);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0131);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0132);
 
                 return (EC_FALSE);
             }
@@ -6375,7 +6375,7 @@ EC_BOOL cmp4_content_repair2_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set ca '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0132);
+            safe_free(v, LOC_CMP4_0133);
 
             /*fall through*/
         }
@@ -6394,9 +6394,9 @@ EC_BOOL cmp4_content_repair2_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter: "
                                                      "[conf] set certificate '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0133);
+                safe_free(v, LOC_CMP4_0134);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0134);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0135);
 
                 return (EC_FALSE);
             }
@@ -6405,7 +6405,7 @@ EC_BOOL cmp4_content_repair2_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set certificate '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0135);
+            safe_free(v, LOC_CMP4_0136);
 
             /*fall through*/
         }
@@ -6424,9 +6424,9 @@ EC_BOOL cmp4_content_repair2_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter: "
                                                      "[conf] set certificate key '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0136);
+                safe_free(v, LOC_CMP4_0137);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0137);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0138);
 
                 return (EC_FALSE);
             }
@@ -6435,7 +6435,7 @@ EC_BOOL cmp4_content_repair2_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set certificate key '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0138);
+            safe_free(v, LOC_CMP4_0139);
 
             /*fall through*/
         }
@@ -6465,8 +6465,8 @@ EC_BOOL cmp4_content_repair2_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter: "
                                                      "[conf] set server '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0127);
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0128);
+                safe_free(v, LOC_CMP4_0140);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0141);
                 return (EC_FALSE);
             }
 
@@ -6474,7 +6474,7 @@ EC_BOOL cmp4_content_repair2_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set server '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0129);
+            safe_free(v, LOC_CMP4_0142);
 
             /*set or overwrite ipaddr*/
             if(EC_FALSE == cmp4_content_repair2_header_in_filter_ipaddr(cmp4_md_id))
@@ -6567,10 +6567,10 @@ EC_BOOL cmp4_content_repair2_header_in_filter(const UINT32 cmp4_md_id)
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter: "
                                              "set method '%s' failed\n",
                                              v);
-        safe_free(v, LOC_CMP4_0139);
+        safe_free(v, LOC_CMP4_0143);
         return (EC_FALSE);
     }
-    safe_free(v, LOC_CMP4_0140);
+    safe_free(v, LOC_CMP4_0144);
 
     /*set http request uri*/
     do
@@ -6596,13 +6596,13 @@ EC_BOOL cmp4_content_repair2_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter: "
                                                      "[conf] set uri '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0141);
+                safe_free(v, LOC_CMP4_0145);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
                                                  "[conf] set uri '%s' to http req done\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0142);
+            safe_free(v, LOC_CMP4_0146);
 
             break; /*ok*/
         }
@@ -6620,13 +6620,13 @@ EC_BOOL cmp4_content_repair2_header_in_filter(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_header_in_filter: "
                                                  "[cngx] set uri '%s' failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0143);
+            safe_free(v, LOC_CMP4_0147);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter: "
                                              "[cngx] set uri '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0144);
+        safe_free(v, LOC_CMP4_0148);
     }while(0);
 
     /*set range*/
@@ -6911,7 +6911,7 @@ EC_BOOL cmp4_content_repair2_header_out_rsp_status_filter(const UINT32 cmp4_md_i
 
         if(CHTTP_NOT_FOUND == response_status)
         {
-            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0145);
+            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0149);
 
             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_out_rsp_status_filter: "
@@ -7106,7 +7106,7 @@ EC_BOOL cmp4_content_repair2_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_send_request: "
                                                  "new chttp_req failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0146);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0150);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_REQ(cmp4_md) = chttp_req;
@@ -7126,7 +7126,7 @@ EC_BOOL cmp4_content_repair2_send_request(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_send_request: "
                                                  "new chttp_rsp failed\n");
             chttp_req_free(chttp_req);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0147);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0151);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_RSP(cmp4_md) = chttp_rsp;
@@ -7141,14 +7141,14 @@ EC_BOOL cmp4_content_repair2_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_send_request: "
                                              "export headers_in to http req failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0148);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0152);
         return (EC_FALSE);
     }
     if(EC_FALSE == cmp4_content_repair2_header_in_filter(cmp4_md_id))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_send_request: "
                                              "header_in filter failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0149);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0153);
         return (EC_FALSE);
     }
 
@@ -7161,7 +7161,7 @@ EC_BOOL cmp4_content_repair2_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_send_request: "
                                              "http request failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CMP4_0150);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CMP4_0154);
         return (EC_FALSE);
     }
     if(do_log(SEC_0147_CMP4, 9))
@@ -7371,7 +7371,7 @@ EC_BOOL cmp4_content_repair2_send_response(const UINT32 cmp4_md_id)
             {
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_send_response: "
                                                      "header_out filter failed\n");
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0151);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0155);
                 return (EC_FALSE);
             }
 
@@ -7445,7 +7445,7 @@ EC_BOOL cmp4_content_repair2_send_response(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_send_response: "
                                              "chttp rsp header_in range filter failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CMP4_0152);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_RANGE_NOT_SATISFIABLE, LOC_CMP4_0156);
         return (EC_FALSE);
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_send_response: "
@@ -7567,7 +7567,7 @@ EC_BOOL cmp4_content_repair2_procedure(const UINT32 cmp4_md_id)
     status = CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md));
     if(EC_TRUE == cngx_need_intercept_errors(r, status))
     {
-        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0011);
+        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0157);
 
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "warn:cmp4_content_repair2_procedure: "
                                              "intercept rsp status %u done\n",
@@ -7661,7 +7661,7 @@ EC_BOOL cmp4_content_orig_header_in_filter_upstream(const UINT32 cmp4_md_id)
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
                                              c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0153);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0158);
         return (EC_FALSE);
     }
     dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_upstream: "
@@ -7675,7 +7675,7 @@ EC_BOOL cmp4_content_orig_header_in_filter_upstream(const UINT32 cmp4_md_id)
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
                                              upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0154);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0159);
         return (EC_FALSE);
     }
 
@@ -7751,14 +7751,14 @@ EC_BOOL cmp4_content_orig_header_in_filter_server(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
-                safe_free(v, LOC_CMP4_0155);
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0156);
+                safe_free(v, LOC_CMP4_0160);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0161);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CMP4_0157);
+            safe_free(v, LOC_CMP4_0162);
 
             return (EC_TRUE);
         }
@@ -7814,8 +7814,8 @@ EC_BOOL cmp4_content_orig_header_in_filter_host(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter_host: "
                                                  "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0158);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0159);
+            safe_free(v, LOC_CMP4_0163);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0164);
             return (EC_FALSE);
         }
 
@@ -7828,15 +7828,15 @@ EC_BOOL cmp4_content_orig_header_in_filter_host(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter_host: "
                                                  "[conf] set host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0160);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0161);
+            safe_free(v, LOC_CMP4_0165);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0166);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0162);
+        safe_free(v, LOC_CMP4_0167);
 
         return (EC_TRUE);
     }
@@ -7890,13 +7890,13 @@ EC_BOOL cmp4_content_orig_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter_port: "
                                                  "[conf] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0163);
+            safe_free(v, LOC_CMP4_0168);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
                                              "[conf] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0164);
+        safe_free(v, LOC_CMP4_0169);
         return (EC_TRUE);
     }
 
@@ -7928,13 +7928,13 @@ EC_BOOL cmp4_content_orig_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0165);
+            safe_free(v, LOC_CMP4_0170);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0166);
+        safe_free(v, LOC_CMP4_0171);
         return (EC_TRUE);
     }
 
@@ -7963,19 +7963,19 @@ EC_BOOL cmp4_content_orig_header_in_filter_port(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req failed\n",
                                                      segs[ 1 ]);
-                safe_free(v, LOC_CMP4_0167);
+                safe_free(v, LOC_CMP4_0172);
                 return (EC_FALSE);
             }
 
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req done\n",
                                                  segs[ 1 ]);
-            safe_free(v, LOC_CMP4_0168);
+            safe_free(v, LOC_CMP4_0173);
 
             return (EC_TRUE);
         }
 
-        safe_free(v, LOC_CMP4_0169);
+        safe_free(v, LOC_CMP4_0174);
 
         /*continue*/
     }
@@ -8000,13 +8000,13 @@ EC_BOOL cmp4_content_orig_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0170);
+            safe_free(v, LOC_CMP4_0175);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0171);
+        safe_free(v, LOC_CMP4_0176);
 
         return (EC_TRUE);
     }
@@ -8077,8 +8077,8 @@ EC_BOOL cmp4_content_orig_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter_ipaddr: "
                                                  "[conf] set ipaddr '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0172);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0173);
+            safe_free(v, LOC_CMP4_0177);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0178);
             return (EC_FALSE);
         }
 
@@ -8086,7 +8086,7 @@ EC_BOOL cmp4_content_orig_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
                                              "[conf] set ipaddr  '%s' to http req done\n",
                                              v);
 
-        safe_free(v, LOC_CMP4_0174);
+        safe_free(v, LOC_CMP4_0179);
 
         return (EC_TRUE);
     }
@@ -8150,9 +8150,9 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
                                                      "[conf] set ca '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0178);
+                safe_free(v, LOC_CMP4_0180);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0179);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0181);
 
                 return (EC_FALSE);
             }
@@ -8161,7 +8161,7 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set ca '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0180);
+            safe_free(v, LOC_CMP4_0182);
 
             /*fall through*/
         }
@@ -8180,9 +8180,9 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
                                                      "[conf] set certificate '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0181);
+                safe_free(v, LOC_CMP4_0183);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0182);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0184);
 
                 return (EC_FALSE);
             }
@@ -8191,7 +8191,7 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set certificate '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0183);
+            safe_free(v, LOC_CMP4_0185);
 
             /*fall through*/
         }
@@ -8210,9 +8210,9 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
                                                      "[conf] set certificate key '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0184);
+                safe_free(v, LOC_CMP4_0186);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0185);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0187);
 
                 return (EC_FALSE);
             }
@@ -8221,7 +8221,7 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set certificate key '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0186);
+            safe_free(v, LOC_CMP4_0188);
 
             /*fall through*/
         }
@@ -8251,8 +8251,8 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
                                                      "[conf] set server '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0175);
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0176);
+                safe_free(v, LOC_CMP4_0189);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0190);
                 return (EC_FALSE);
             }
 
@@ -8260,7 +8260,7 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set server '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0177);
+            safe_free(v, LOC_CMP4_0191);
 
             /*set or overwrite ipaddr*/
             if(EC_FALSE == cmp4_content_orig_header_in_filter_ipaddr(cmp4_md_id))
@@ -8353,10 +8353,10 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
                                              "set method '%s' failed\n",
                                              v);
-        safe_free(v, LOC_CMP4_0187);
+        safe_free(v, LOC_CMP4_0192);
         return (EC_FALSE);
     }
-    safe_free(v, LOC_CMP4_0188);
+    safe_free(v, LOC_CMP4_0193);
 
     /*set http request uri*/
     do
@@ -8393,7 +8393,7 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
                 {
                     dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
                                                          "[cngx] append '/' failed\n");
-                    safe_free(v, LOC_CMP4_0189);
+                    safe_free(v, LOC_CMP4_0194);
                     return (EC_FALSE);
                 }
                 dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
@@ -8406,13 +8406,13 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
                                                      "[conf] set uri '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0190);
+                safe_free(v, LOC_CMP4_0195);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
                                                  "[conf] set uri '%s' to http req done\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0191);
+            safe_free(v, LOC_CMP4_0196);
 
             break; /*ok*/
         }
@@ -8430,13 +8430,13 @@ EC_BOOL cmp4_content_orig_header_in_filter(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_header_in_filter: "
                                                  "[cngx] set uri '%s' failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0192);
+            safe_free(v, LOC_CMP4_0197);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter: "
                                              "[cngx] set uri '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0193);
+        safe_free(v, LOC_CMP4_0198);
 
         /*FLV: not carray on args to orig*/
     }while(0);
@@ -8581,7 +8581,7 @@ EC_BOOL cmp4_content_orig_header_out_if_modified_since_filter(const UINT32 cmp4_
 
     ims_1st = c_parse_http_time((uint8_t *)v, (size_t)strlen(v));
 
-    safe_free(v, LOC_CMP4_0194);
+    safe_free(v, LOC_CMP4_0199);
 
     k = (const char *)"Last-Modified";
     v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
@@ -8683,7 +8683,7 @@ EC_BOOL cmp4_content_orig_header_out_if_none_match_filter(const UINT32 cmp4_md_i
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_if_none_match_filter: "
                                              "[rsp] no '%s'\n",
                                              k);
-        safe_free(etag_des, LOC_CMP4_0195);
+        safe_free(etag_des, LOC_CMP4_0200);
         return (EC_TRUE);
     }
     etag_src = v;
@@ -8858,7 +8858,7 @@ EC_BOOL cmp4_content_orig_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
 
         if(CHTTP_NOT_FOUND == response_status)
         {
-            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0196);
+            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0201);
 
             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_rsp_status_filter: "
@@ -9232,7 +9232,7 @@ EC_BOOL cmp4_content_orig_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_send_request: "
                                                  "new chttp_req failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0197);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0202);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_REQ(cmp4_md) = chttp_req;
@@ -9251,7 +9251,7 @@ EC_BOOL cmp4_content_orig_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_send_request: "
                                                  "new chttp_rsp failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0198);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0203);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_RSP(cmp4_md) = chttp_rsp;
@@ -9270,7 +9270,7 @@ EC_BOOL cmp4_content_orig_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_send_request: "
                                                  "new chttp_store failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0199);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0204);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_STORE(cmp4_md) = chttp_store;
@@ -9285,7 +9285,7 @@ EC_BOOL cmp4_content_orig_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_send_request: "
                                              "set chttp_store failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0200);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0205);
         return (EC_FALSE);
     }
 
@@ -9304,7 +9304,7 @@ EC_BOOL cmp4_content_orig_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_send_request: "
                                                  "new chttp_stat failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0201);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0206);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_STAT(cmp4_md)  = chttp_stat;
@@ -9319,7 +9319,7 @@ EC_BOOL cmp4_content_orig_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_send_request: "
                                              "export headers_in to http req failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0202);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0207);
         return (EC_FALSE);
     }
 
@@ -9327,7 +9327,7 @@ EC_BOOL cmp4_content_orig_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_send_request: "
                                              "header_in filter failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0203);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0208);
         return (EC_FALSE);
     }
 
@@ -9344,11 +9344,11 @@ EC_BOOL cmp4_content_orig_send_request(const UINT32 cmp4_md_id)
 
         if(0 < CHTTP_STAT_RSP_STATUS(chttp_stat))
         {
-            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_STAT_RSP_STATUS(chttp_stat), LOC_CMP4_0204);
+            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_STAT_RSP_STATUS(chttp_stat), LOC_CMP4_0209);
         }
         else
         {
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CMP4_0205);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CMP4_0210);
         }
         return (EC_FALSE);
     }
@@ -9439,7 +9439,7 @@ EC_BOOL cmp4_content_orig_send_mp4_meta(const UINT32 cmp4_md_id)
     if(rc == NGX_ERROR || rc > NGX_OK)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_send_mp4_meta: send body failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, rc, LOC_CMP4_0206);
+        cmp4_set_ngx_rc(cmp4_md_id, rc, LOC_CMP4_0211);
         return (EC_FALSE);
     }
 
@@ -9604,7 +9604,7 @@ EC_BOOL cmp4_content_orig_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG *
                                              CRANGE_SEG_NO(crange_seg));
 
         cbytes_clean(&seg_cbytes);
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_NOT_FOUND, LOC_CMP4_0207);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_NOT_FOUND, LOC_CMP4_0212);
         return (EC_FALSE);
     }
 
@@ -9880,7 +9880,7 @@ EC_BOOL cmp4_content_orig_procedure(const UINT32 cmp4_md_id)
     status = CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md));
     if(EC_TRUE == cngx_need_intercept_errors(r, status))
     {
-        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0011);
+        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0213);
 
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "warn:cmp4_content_orig_procedure: "
                                              "intercept rsp status %u done\n",
@@ -10022,7 +10022,7 @@ EC_BOOL cmp4_content_ms_header_in_filter_upstream(const UINT32 cmp4_md_id)
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
                                              c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0208);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0214);
         return (EC_FALSE);
     }
     dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter_upstream: "
@@ -10036,7 +10036,7 @@ EC_BOOL cmp4_content_ms_header_in_filter_upstream(const UINT32 cmp4_md_id)
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
                                              upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0209);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0215);
         return (EC_FALSE);
     }
 
@@ -10112,14 +10112,14 @@ EC_BOOL cmp4_content_ms_header_in_filter_server(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
-                safe_free(v, LOC_CMP4_0210);
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0211);
+                safe_free(v, LOC_CMP4_0216);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0217);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CMP4_0212);
+            safe_free(v, LOC_CMP4_0218);
 
             return (EC_TRUE);
         }
@@ -10175,8 +10175,8 @@ EC_BOOL cmp4_content_ms_header_in_filter_host(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter_host: "
                                                  "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0213);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0214);
+            safe_free(v, LOC_CMP4_0219);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0220);
             return (EC_FALSE);
         }
 
@@ -10189,15 +10189,15 @@ EC_BOOL cmp4_content_ms_header_in_filter_host(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter_host: "
                                                  "[conf] set host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0215);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0216);
+            safe_free(v, LOC_CMP4_0221);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0222);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0217);
+        safe_free(v, LOC_CMP4_0223);
 
         return (EC_TRUE);
     }
@@ -10251,13 +10251,13 @@ EC_BOOL cmp4_content_ms_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter_port: "
                                                  "[conf] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0218);
+            safe_free(v, LOC_CMP4_0224);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter_port: "
                                              "[conf] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0219);
+        safe_free(v, LOC_CMP4_0225);
         return (EC_TRUE);
     }
 
@@ -10289,13 +10289,13 @@ EC_BOOL cmp4_content_ms_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0220);
+            safe_free(v, LOC_CMP4_0226);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0221);
+        safe_free(v, LOC_CMP4_0227);
         return (EC_TRUE);
     }
 
@@ -10324,19 +10324,19 @@ EC_BOOL cmp4_content_ms_header_in_filter_port(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req failed\n",
                                                      segs[ 1 ]);
-                safe_free(v, LOC_CMP4_0222);
+                safe_free(v, LOC_CMP4_0228);
                 return (EC_FALSE);
             }
 
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req done\n",
                                                  segs[ 1 ]);
-            safe_free(v, LOC_CMP4_0223);
+            safe_free(v, LOC_CMP4_0229);
 
             return (EC_TRUE);
         }
 
-        safe_free(v, LOC_CMP4_0224);
+        safe_free(v, LOC_CMP4_0230);
 
         /*continue*/
     }
@@ -10361,13 +10361,13 @@ EC_BOOL cmp4_content_ms_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0225);
+            safe_free(v, LOC_CMP4_0231);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0226);
+        safe_free(v, LOC_CMP4_0232);
 
         return (EC_TRUE);
     }
@@ -10438,8 +10438,8 @@ EC_BOOL cmp4_content_ms_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter_ipaddr: "
                                                  "[conf] set ipaddr '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0227);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0228);
+            safe_free(v, LOC_CMP4_0233);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0234);
             return (EC_FALSE);
         }
 
@@ -10447,7 +10447,7 @@ EC_BOOL cmp4_content_ms_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
                                              "[conf] set ipaddr  '%s' to http req done\n",
                                              v);
 
-        safe_free(v, LOC_CMP4_0229);
+        safe_free(v, LOC_CMP4_0235);
 
         return (EC_TRUE);
     }
@@ -10511,9 +10511,9 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
                                                      "[conf] set ca '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0233);
+                safe_free(v, LOC_CMP4_0236);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0234);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0237);
 
                 return (EC_FALSE);
             }
@@ -10522,7 +10522,7 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set ca '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0235);
+            safe_free(v, LOC_CMP4_0238);
 
             /*fall through*/
         }
@@ -10541,9 +10541,9 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
                                                      "[conf] set certificate '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0236);
+                safe_free(v, LOC_CMP4_0239);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0237);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0240);
 
                 return (EC_FALSE);
             }
@@ -10552,7 +10552,7 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set certificate '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0238);
+            safe_free(v, LOC_CMP4_0241);
 
             /*fall through*/
         }
@@ -10571,9 +10571,9 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
                                                      "[conf] set certificate key '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0239);
+                safe_free(v, LOC_CMP4_0242);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0240);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0243);
 
                 return (EC_FALSE);
             }
@@ -10582,7 +10582,7 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set certificate key '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0241);
+            safe_free(v, LOC_CMP4_0244);
 
             /*fall through*/
         }
@@ -10612,9 +10612,9 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
                                                      "[conf] set server '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0230);
+                safe_free(v, LOC_CMP4_0245);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0231);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0246);
 
                 return (EC_FALSE);
             }
@@ -10623,7 +10623,7 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set server '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0232);
+            safe_free(v, LOC_CMP4_0247);
 
             /*set or overwrite ipaddr*/
             if(EC_FALSE == cmp4_content_ms_header_in_filter_ipaddr(cmp4_md_id))
@@ -10717,10 +10717,10 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
                                              "set method '%s' failed\n",
                                              v);
-        safe_free(v, LOC_CMP4_0242);
+        safe_free(v, LOC_CMP4_0248);
         return (EC_FALSE);
     }
-    safe_free(v, LOC_CMP4_0243);
+    safe_free(v, LOC_CMP4_0249);
 
     /*set http request uri*/
     do
@@ -10757,7 +10757,7 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
                 {
                     dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
                                                          "[cngx] append '/' failed\n");
-                    safe_free(v, LOC_CMP4_0244);
+                    safe_free(v, LOC_CMP4_0250);
                     return (EC_FALSE);
                 }
                 dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
@@ -10770,13 +10770,13 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
                                                      "[conf] set uri '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0245);
+                safe_free(v, LOC_CMP4_0251);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
                                                  "[conf] set uri '%s' to http req done\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0246);
+            safe_free(v, LOC_CMP4_0252);
 
             break; /*ok*/
         }
@@ -10794,13 +10794,13 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
                                                  "[cngx] set uri '%s' failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0247);
+            safe_free(v, LOC_CMP4_0253);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
                                              "[cngx] set uri '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0248);
+        safe_free(v, LOC_CMP4_0254);
 
         if(EC_TRUE == cngx_get_req_arg(r, &v) && NULL_PTR != v)
         {
@@ -10812,7 +10812,7 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
             {
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
                                                      "[cngx] set '?' failed\n");
-                safe_free(v, LOC_CMP4_0249);
+                safe_free(v, LOC_CMP4_0255);
                 return (EC_FALSE);
             }
 
@@ -10821,13 +10821,13 @@ EC_BOOL cmp4_content_ms_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_header_in_filter: "
                                                      "[cngx] set args '%s' failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0250);
+                safe_free(v, LOC_CMP4_0256);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter: "
                                                  "[cngx] set args '%s' to http req done\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0251);
+            safe_free(v, LOC_CMP4_0257);
         }
     }while(0);
 
@@ -10971,7 +10971,7 @@ EC_BOOL cmp4_content_ms_header_out_if_modified_since_filter(const UINT32 cmp4_md
 
     ims_1st = c_parse_http_time((uint8_t *)v, (size_t)strlen(v));
 
-    safe_free(v, LOC_CMP4_0252);
+    safe_free(v, LOC_CMP4_0258);
 
     k = (const char *)"Last-Modified";
     v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
@@ -11073,7 +11073,7 @@ EC_BOOL cmp4_content_ms_header_out_if_none_match_filter(const UINT32 cmp4_md_id)
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_out_if_none_match_filter: "
                                              "[rsp] no '%s'\n",
                                              k);
-        safe_free(etag_des, LOC_CMP4_0253);
+        safe_free(etag_des, LOC_CMP4_0259);
         return (EC_TRUE);
     }
     etag_src = v;
@@ -11293,7 +11293,7 @@ EC_BOOL cmp4_content_ms_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
 
         if(CHTTP_NOT_FOUND == response_status)
         {
-            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0254);
+            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0260);
 
             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_out_rsp_status_filter: "
@@ -11672,7 +11672,7 @@ EC_BOOL cmp4_content_ms_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_send_request: "
                                                  "new chttp_req failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0255);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0261);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_REQ(cmp4_md) = chttp_req;
@@ -11691,7 +11691,7 @@ EC_BOOL cmp4_content_ms_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_send_request: "
                                                  "new chttp_rsp failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0256);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0262);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_RSP(cmp4_md) = chttp_rsp;
@@ -11710,7 +11710,7 @@ EC_BOOL cmp4_content_ms_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_send_request: "
                                                  "new chttp_store failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0257);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0263);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_STORE(cmp4_md) = chttp_store;
@@ -11725,7 +11725,7 @@ EC_BOOL cmp4_content_ms_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_send_request: "
                                              "set chttp_store failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0258);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0264);
         return (EC_FALSE);
     }
 
@@ -11744,7 +11744,7 @@ EC_BOOL cmp4_content_ms_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_send_request: "
                                                  "new chttp_stat failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0259);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0265);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_STAT(cmp4_md)  = chttp_stat;
@@ -11759,7 +11759,7 @@ EC_BOOL cmp4_content_ms_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_send_request: "
                                              "export headers_in to http req failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0260);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0266);
         return (EC_FALSE);
     }
 
@@ -11767,7 +11767,7 @@ EC_BOOL cmp4_content_ms_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_send_request: "
                                              "header_in filter failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0261);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0267);
         return (EC_FALSE);
     }
 
@@ -11784,11 +11784,11 @@ EC_BOOL cmp4_content_ms_send_request(const UINT32 cmp4_md_id)
 
         if(0 < CHTTP_STAT_RSP_STATUS(chttp_stat))
         {
-            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_STAT_RSP_STATUS(chttp_stat), LOC_CMP4_0262);
+            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_STAT_RSP_STATUS(chttp_stat), LOC_CMP4_0268);
         }
         else
         {
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CMP4_0263);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CMP4_0269);
         }
 
         return (EC_FALSE);
@@ -11838,7 +11838,7 @@ EC_BOOL cmp4_content_ms_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG *cr
                                              CRANGE_SEG_NO(crange_seg));
 
         cbytes_clean(&seg_cbytes);
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_NOT_FOUND, LOC_CMP4_0264);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_NOT_FOUND, LOC_CMP4_0270);
         return (EC_FALSE);
     }
 
@@ -12340,7 +12340,7 @@ EC_BOOL cmp4_content_ms_procedure(const UINT32 cmp4_md_id)
     status = CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md));
     if(EC_TRUE == cngx_need_intercept_errors(r, status))
     {
-        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0011);
+        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0271);
 
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "warn:cmp4_content_ms_procedure: "
                                              "intercept rsp status %u done\n",
@@ -12459,7 +12459,7 @@ EC_BOOL cmp4_content_preload_parse_header(const UINT32 cmp4_md_id, const CBYTES 
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_preload_parse_header: "
                                              "new chttp_rsp failed\n");
 
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0265);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0272);
         return (EC_FALSE);
     }
 
@@ -12468,7 +12468,7 @@ EC_BOOL cmp4_content_preload_parse_header(const UINT32 cmp4_md_id, const CBYTES 
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_preload_parse_header: "
                                              "parse header failed\n");
 
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0266);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0273);
         return (EC_FALSE);
     }
 
@@ -12623,7 +12623,7 @@ EC_BOOL cmp4_content_preload_header_out_rsp_status_filter(const UINT32 cmp4_md_i
 
         if(CHTTP_NOT_FOUND == response_status)
         {
-            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0267);
+            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0274);
 
             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_preload_header_out_rsp_status_filter: "
@@ -12830,7 +12830,7 @@ EC_BOOL cmp4_content_preload_send_response(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_preload_send_response: "
                                                  "header_out filter failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0268);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0275);
             return (EC_FALSE);
         }
 
@@ -12959,7 +12959,7 @@ EC_BOOL cmp4_content_preload_procedure(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_preload_procedure: "
                                                      "get range segs from chttp rsp failed\n");
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_REQUEST, LOC_CMP4_0269);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_REQUEST, LOC_CMP4_0276);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_preload_procedure: "
@@ -12970,7 +12970,7 @@ EC_BOOL cmp4_content_preload_procedure(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_preload_procedure: "
                                                  "chttp rsp header_in range filter failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_REQUESTEDR_RANGE_NOT_SATISFIABLE, LOC_CMP4_0270);
+            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_REQUESTEDR_RANGE_NOT_SATISFIABLE, LOC_CMP4_0277);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_preload_procedure: "
@@ -13044,15 +13044,15 @@ EC_BOOL cmp4_content_redirect_procedure(const UINT32 cmp4_md_id)
         {
             if(NULL_PTR != host)
             {
-                safe_free(host, LOC_CMP4_0271);
+                safe_free(host, LOC_CMP4_0278);
             }
             if(NULL_PTR != port)
             {
-                safe_free(port, LOC_CMP4_0272);
+                safe_free(port, LOC_CMP4_0279);
             }
             if(NULL_PTR != uri)
             {
-                safe_free(uri, LOC_CMP4_0273);
+                safe_free(uri, LOC_CMP4_0280);
             }
             break;
         }
@@ -13067,16 +13067,16 @@ EC_BOOL cmp4_content_redirect_procedure(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_redirect_procedure: location '%s' =>  host '%s'\n", loc, host);
             chttp_req_set_ipaddr(&chttp_req_t, host);
-            safe_free(host, LOC_CMP4_0274);
+            safe_free(host, LOC_CMP4_0281);
 
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0275);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0282);
         }
 
         if(NULL_PTR != port)
         {
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_redirect_procedure: location '%s' =>  port '%s'\n", loc, port);
             chttp_req_set_port(&chttp_req_t, port);
-            safe_free(port, LOC_CMP4_0276);
+            safe_free(port, LOC_CMP4_0283);
         }
 
         if(NULL_PTR == uri)
@@ -13091,7 +13091,7 @@ EC_BOOL cmp4_content_redirect_procedure(const UINT32 cmp4_md_id)
 
         cstring_clean(CHTTP_REQ_URI(&chttp_req_t));
         chttp_req_set_uri(&chttp_req_t, uri);
-        safe_free(uri, LOC_CMP4_0277);
+        safe_free(uri, LOC_CMP4_0284);
 
         if(do_log(SEC_0147_CMP4, 9))
         {
@@ -13181,7 +13181,7 @@ EC_BOOL cmp4_content_ims_header_in_filter_upstream(const UINT32 cmp4_md_id)
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
                                              c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0278);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0285);
         return (EC_FALSE);
     }
     dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter_upstream: "
@@ -13195,7 +13195,7 @@ EC_BOOL cmp4_content_ims_header_in_filter_upstream(const UINT32 cmp4_md_id)
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
                                              upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0279);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0286);
         return (EC_FALSE);
     }
 
@@ -13271,14 +13271,14 @@ EC_BOOL cmp4_content_ims_header_in_filter_server(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
-                safe_free(v, LOC_CMP4_0280);
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0281);
+                safe_free(v, LOC_CMP4_0287);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0288);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CMP4_0282);
+            safe_free(v, LOC_CMP4_0289);
 
             return (EC_TRUE);
         }
@@ -13334,8 +13334,8 @@ EC_BOOL cmp4_content_ims_header_in_filter_host(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter_host: "
                                                  "[conf] set host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0283);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0284);
+            safe_free(v, LOC_CMP4_0290);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0291);
             return (EC_FALSE);
         }
 
@@ -13348,15 +13348,15 @@ EC_BOOL cmp4_content_ims_header_in_filter_host(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter_host: "
                                                  "[conf] set host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0285);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0286);
+            safe_free(v, LOC_CMP4_0292);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0293);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0287);
+        safe_free(v, LOC_CMP4_0294);
 
         return (EC_TRUE);
     }
@@ -13418,13 +13418,13 @@ EC_BOOL cmp4_content_ims_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter_port: "
                                                  "[conf] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0288);
+            safe_free(v, LOC_CMP4_0295);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter_port: "
                                              "[conf] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0289);
+        safe_free(v, LOC_CMP4_0296);
         return (EC_TRUE);
     }
 
@@ -13477,19 +13477,19 @@ EC_BOOL cmp4_content_ims_header_in_filter_port(const UINT32 cmp4_md_id)
                     dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter_port: "
                                                          "[cngx] set port '%s' to http req failed\n",
                                                          segs[ 1 ]);
-                    safe_free(v, LOC_CMP4_0290);
+                    safe_free(v, LOC_CMP4_0297);
                     return (EC_FALSE);
                 }
 
                 dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req done\n",
                                                      segs[ 1 ]);
-                safe_free(v, LOC_CMP4_0291);
+                safe_free(v, LOC_CMP4_0298);
 
                 return (EC_TRUE);
             }
 
-            safe_free(v, LOC_CMP4_0292);
+            safe_free(v, LOC_CMP4_0299);
 
             /*continue*/
         }
@@ -13514,13 +13514,13 @@ EC_BOOL cmp4_content_ims_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0293);
+            safe_free(v, LOC_CMP4_0300);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0294);
+        safe_free(v, LOC_CMP4_0301);
 
         return (EC_TRUE);
     }
@@ -13591,8 +13591,8 @@ EC_BOOL cmp4_content_ims_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter_ipaddr: "
                                                  "[conf] set ipaddr '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0295);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0296);
+            safe_free(v, LOC_CMP4_0302);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0303);
             return (EC_FALSE);
         }
 
@@ -13600,7 +13600,7 @@ EC_BOOL cmp4_content_ims_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
                                              "[conf] set ipaddr  '%s' to http req done\n",
                                              v);
 
-        safe_free(v, LOC_CMP4_0297);
+        safe_free(v, LOC_CMP4_0304);
 
         return (EC_TRUE);
     }
@@ -13660,9 +13660,9 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
                                                      "[conf] set ca '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0301);
+                safe_free(v, LOC_CMP4_0305);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0302);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0306);
 
                 return (EC_FALSE);
             }
@@ -13671,7 +13671,7 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set ca '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0303);
+            safe_free(v, LOC_CMP4_0307);
 
             /*fall through*/
         }
@@ -13690,9 +13690,9 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
                                                      "[conf] set certificate '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0304);
+                safe_free(v, LOC_CMP4_0308);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0305);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0309);
 
                 return (EC_FALSE);
             }
@@ -13701,7 +13701,7 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set certificate '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0306);
+            safe_free(v, LOC_CMP4_0310);
 
             /*fall through*/
         }
@@ -13720,9 +13720,9 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
                                                      "[conf] set certificate key '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0307);
+                safe_free(v, LOC_CMP4_0311);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0308);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0312);
 
                 return (EC_FALSE);
             }
@@ -13731,7 +13731,7 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set certificate key '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0309);
+            safe_free(v, LOC_CMP4_0313);
 
             /*fall through*/
         }
@@ -13761,8 +13761,8 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
                                                      "[conf] set server '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0298);
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0299);
+                safe_free(v, LOC_CMP4_0314);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0315);
                 return (EC_FALSE);
             }
 
@@ -13770,7 +13770,7 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set server '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0300);
+            safe_free(v, LOC_CMP4_0316);
 
             /*set or overwrite ipaddr*/
             if(EC_FALSE == cmp4_content_ims_header_in_filter_ipaddr(cmp4_md_id))
@@ -13863,10 +13863,10 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
                                              "set method '%s' failed\n",
                                              v);
-        safe_free(v, LOC_CMP4_0310);
+        safe_free(v, LOC_CMP4_0317);
         return (EC_FALSE);
     }
-    safe_free(v, LOC_CMP4_0311);
+    safe_free(v, LOC_CMP4_0318);
 
     /*set http request uri*/
     do
@@ -13892,13 +13892,13 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
                                                      "[conf] set uri '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0312);
+                safe_free(v, LOC_CMP4_0319);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
                                                  "[conf] set uri '%s' to http req done\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0313);
+            safe_free(v, LOC_CMP4_0320);
 
             break; /*ok*/
         }
@@ -13916,13 +13916,13 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
                                                  "[cngx] set uri '%s' failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0314);
+            safe_free(v, LOC_CMP4_0321);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
                                              "[cngx] set uri '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0315);
+        safe_free(v, LOC_CMP4_0322);
 
         if(EC_TRUE == cngx_get_req_arg(r, &v) && NULL_PTR != v)
         {
@@ -13934,7 +13934,7 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
             {
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
                                                      "[cngx] set '?' failed\n");
-                safe_free(v, LOC_CMP4_0316);
+                safe_free(v, LOC_CMP4_0323);
                 return (EC_FALSE);
             }
 
@@ -13943,13 +13943,13 @@ EC_BOOL cmp4_content_ims_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_header_in_filter: "
                                                      "[cngx] set args '%s' failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0317);
+                safe_free(v, LOC_CMP4_0324);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter: "
                                                  "[cngx] set args '%s' to http req done\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0318);
+            safe_free(v, LOC_CMP4_0325);
         }
     }while(0);
 
@@ -14881,7 +14881,7 @@ EC_BOOL cmp4_content_ims_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_send_request: "
                                                  "new chttp_req failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0319);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0326);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_REQ(cmp4_md) = chttp_req;
@@ -14900,7 +14900,7 @@ EC_BOOL cmp4_content_ims_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_send_request: "
                                                  "new chttp_rsp failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0320);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0327);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_RSP(cmp4_md) = chttp_rsp;
@@ -14915,7 +14915,7 @@ EC_BOOL cmp4_content_ims_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_send_request: "
                                              "export headers_in to http req failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0321);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0328);
         return (EC_FALSE);
     }
 
@@ -14923,7 +14923,7 @@ EC_BOOL cmp4_content_ims_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_send_request: "
                                              "header_in filter failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0322);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0329);
         return (EC_FALSE);
     }
 
@@ -14937,7 +14937,7 @@ EC_BOOL cmp4_content_ims_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ims_send_request: "
                                              "http request failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CMP4_0323);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CMP4_0330);
         return (EC_FALSE);
     }
 
@@ -15171,7 +15171,7 @@ EC_BOOL cmp4_content_repair_header_in_filter_upstream(const UINT32 cmp4_md_id)
                                              "[conf] set ipaddr '%s' of upsteam '%.*s' to http req failed\n",
                                              c_word_to_ipv4(upstream_peer_ipaddr),
                                              upstream_name_len, upstream_name_str);
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0324);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0331);
         return (EC_FALSE);
     }
     dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter_upstream: "
@@ -15185,7 +15185,7 @@ EC_BOOL cmp4_content_repair_header_in_filter_upstream(const UINT32 cmp4_md_id)
                                              "[cngx] set port '%ld' of upsteam '%.*s' to http req failed\n",
                                              upstream_peer_port,
                                              upstream_name_len, upstream_name_str);
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0325);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0332);
         return (EC_FALSE);
     }
 
@@ -15261,14 +15261,14 @@ EC_BOOL cmp4_content_repair_header_in_filter_server(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
-                safe_free(v, LOC_CMP4_0326);
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0327);
+                safe_free(v, LOC_CMP4_0333);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0334);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CMP4_0328);
+            safe_free(v, LOC_CMP4_0335);
 
             return (EC_TRUE);
         }
@@ -15324,8 +15324,8 @@ EC_BOOL cmp4_content_repair_header_in_filter_host(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter_host: "
                                                  "[conf] set ipaddr of host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0329);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0330);
+            safe_free(v, LOC_CMP4_0336);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0337);
             return (EC_FALSE);
         }
 
@@ -15338,15 +15338,15 @@ EC_BOOL cmp4_content_repair_header_in_filter_host(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter_host: "
                                                  "[conf] set host '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0331);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0332);
+            safe_free(v, LOC_CMP4_0338);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0339);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter_host: "
                                              "[conf] set host '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0333);
+        safe_free(v, LOC_CMP4_0340);
 
         return (EC_TRUE);
     }
@@ -15408,13 +15408,13 @@ EC_BOOL cmp4_content_repair_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter_port: "
                                                  "[conf] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0334);
+            safe_free(v, LOC_CMP4_0341);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter_port: "
                                              "[conf] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0335);
+        safe_free(v, LOC_CMP4_0342);
         return (EC_TRUE);
     }
 
@@ -15467,19 +15467,19 @@ EC_BOOL cmp4_content_repair_header_in_filter_port(const UINT32 cmp4_md_id)
                     dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter_port: "
                                                          "[cngx] set port '%s' to http req failed\n",
                                                          segs[ 1 ]);
-                    safe_free(v, LOC_CMP4_0336);
+                    safe_free(v, LOC_CMP4_0343);
                     return (EC_FALSE);
                 }
 
                 dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter_port: "
                                                      "[cngx] set port '%s' to http req done\n",
                                                      segs[ 1 ]);
-                safe_free(v, LOC_CMP4_0337);
+                safe_free(v, LOC_CMP4_0344);
 
                 return (EC_TRUE);
             }
 
-            safe_free(v, LOC_CMP4_0338);
+            safe_free(v, LOC_CMP4_0345);
 
             /*continue*/
         }
@@ -15505,13 +15505,13 @@ EC_BOOL cmp4_content_repair_header_in_filter_port(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter_port: "
                                                  "[cngx] set port '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0339);
+            safe_free(v, LOC_CMP4_0346);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter_port: "
                                              "[cngx] set port '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0340);
+        safe_free(v, LOC_CMP4_0347);
 
         return (EC_TRUE);
     }
@@ -15582,8 +15582,8 @@ EC_BOOL cmp4_content_repair_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter_ipaddr: "
                                                  "[conf] set ipaddr '%s' to http req failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0341);
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0342);
+            safe_free(v, LOC_CMP4_0348);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0349);
             return (EC_FALSE);
         }
 
@@ -15591,7 +15591,7 @@ EC_BOOL cmp4_content_repair_header_in_filter_ipaddr(const UINT32 cmp4_md_id)
                                              "[conf] set ipaddr  '%s' to http req done\n",
                                              v);
 
-        safe_free(v, LOC_CMP4_0343);
+        safe_free(v, LOC_CMP4_0350);
 
         return (EC_TRUE);
     }
@@ -15654,9 +15654,9 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter: "
                                                      "[conf] set ca '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0347);
+                safe_free(v, LOC_CMP4_0351);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0348);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0352);
 
                 return (EC_FALSE);
             }
@@ -15665,7 +15665,7 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set ca '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0349);
+            safe_free(v, LOC_CMP4_0353);
 
             /*fall through*/
         }
@@ -15684,9 +15684,9 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter: "
                                                      "[conf] set certificate '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0350);
+                safe_free(v, LOC_CMP4_0354);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0351);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0355);
 
                 return (EC_FALSE);
             }
@@ -15695,7 +15695,7 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set certificate '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0352);
+            safe_free(v, LOC_CMP4_0356);
 
             /*fall through*/
         }
@@ -15714,9 +15714,9 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter: "
                                                      "[conf] set certificate key '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0353);
+                safe_free(v, LOC_CMP4_0357);
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0354);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0358);
 
                 return (EC_FALSE);
             }
@@ -15725,7 +15725,7 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set certificate key '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0355);
+            safe_free(v, LOC_CMP4_0359);
 
             /*fall through*/
         }
@@ -15755,8 +15755,8 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter: "
                                                      "[conf] set server '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0344);
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0345);
+                safe_free(v, LOC_CMP4_0360);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0361);
                 return (EC_FALSE);
             }
 
@@ -15764,7 +15764,7 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
                                                  "[conf] set server '%s' to http req done\n",
                                                  v);
 
-            safe_free(v, LOC_CMP4_0346);
+            safe_free(v, LOC_CMP4_0362);
 
             /*set or overwrite ipaddr*/
             if(EC_FALSE == cmp4_content_repair_header_in_filter_ipaddr(cmp4_md_id))
@@ -15857,10 +15857,10 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter: "
                                              "set method '%s' failed\n",
                                              v);
-        safe_free(v, LOC_CMP4_0356);
+        safe_free(v, LOC_CMP4_0363);
         return (EC_FALSE);
     }
-    safe_free(v, LOC_CMP4_0357);
+    safe_free(v, LOC_CMP4_0364);
 
     /*set http request uri*/
     do
@@ -15886,13 +15886,13 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter: "
                                                      "[conf] set uri '%s' to http req failed\n",
                                                      v);
-                safe_free(v, LOC_CMP4_0358);
+                safe_free(v, LOC_CMP4_0365);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
                                                  "[conf] set uri '%s' to http req done\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0359);
+            safe_free(v, LOC_CMP4_0366);
 
             break; /*ok*/
         }
@@ -15910,13 +15910,13 @@ EC_BOOL cmp4_content_repair_header_in_filter(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_header_in_filter: "
                                                  "[cngx] set uri '%s' failed\n",
                                                  v);
-            safe_free(v, LOC_CMP4_0360);
+            safe_free(v, LOC_CMP4_0367);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter: "
                                              "[cngx] set uri '%s' to http req done\n",
                                              v);
-        safe_free(v, LOC_CMP4_0361);
+        safe_free(v, LOC_CMP4_0368);
 
         /*FLV: not carray on args to repair*/
     }while(0);
@@ -16018,7 +16018,7 @@ EC_BOOL cmp4_content_repair_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_send_request: "
                                                  "new chttp_req failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0362);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0369);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_REQ(cmp4_md) = chttp_req;
@@ -16037,7 +16037,7 @@ EC_BOOL cmp4_content_repair_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_send_request: "
                                                  "new chttp_rsp failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0363);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0370);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_RSP(cmp4_md) = chttp_rsp;
@@ -16056,7 +16056,7 @@ EC_BOOL cmp4_content_repair_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_send_request: "
                                                  "new chttp_store failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0364);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0371);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_STORE(cmp4_md) = chttp_store;
@@ -16071,7 +16071,7 @@ EC_BOOL cmp4_content_repair_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_send_request: "
                                              "set chttp_store failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0365);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0372);
         return (EC_FALSE);
     }
 
@@ -16090,7 +16090,7 @@ EC_BOOL cmp4_content_repair_send_request(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_send_request: "
                                                  "new chttp_stat failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0366);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0373);
             return (EC_FALSE);
         }
         CMP4_MD_CHTTP_STAT(cmp4_md)  = chttp_stat;
@@ -16105,7 +16105,7 @@ EC_BOOL cmp4_content_repair_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_send_request: "
                                              "export headers_in to http req failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0367);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0374);
         return (EC_FALSE);
     }
 
@@ -16113,7 +16113,7 @@ EC_BOOL cmp4_content_repair_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_send_request: "
                                              "header_in filter failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0368);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0375);
         return (EC_FALSE);
     }
 
@@ -16127,7 +16127,7 @@ EC_BOOL cmp4_content_repair_send_request(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_send_request: "
                                              "http request failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CMP4_0369);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CMP4_0376);
         return (EC_FALSE);
     }
     if(do_log(SEC_0147_CMP4, 9))
@@ -16253,7 +16253,7 @@ EC_BOOL cmp4_content_repair_procedure(const UINT32 cmp4_md_id, const CRANGE_SEG 
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair_procedure: set store_path failed\n");
 
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0370);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0377);
         return (EC_FALSE);
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_procedure: set store_path '%s'\n",
@@ -16297,7 +16297,7 @@ EC_BOOL cmp4_content_repair_procedure(const UINT32 cmp4_md_id, const CRANGE_SEG 
     status = CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md));
     if(EC_TRUE == cngx_need_intercept_errors(r, status))
     {
-        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0011);
+        cmp4_set_ngx_rc(cmp4_md_id, status, LOC_CMP4_0378);
 
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "warn:cmp4_content_repair_procedure: "
                                              "intercept rsp status %u done\n",
@@ -16632,7 +16632,7 @@ EC_BOOL cmp4_content_expired_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SE
 
         if(BIT_TRUE == CNGX_OPTION_ONLY_IF_CACHED(CMP4_MD_CNGX_OPTION(cmp4_md)))
         {
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CMP4_0371);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CMP4_0379);
 
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_expired_send_seg_n: "
                                                  "only-if-cached is true => %u\n",
@@ -16815,7 +16815,7 @@ EC_BOOL cmp4_content_expired_send_response(const UINT32 cmp4_md_id)
             {
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_expired_send_response: "
                                                      "header_out filter failed\n");
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0372);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0380);
                 return (EC_FALSE);
             }
 
@@ -17036,7 +17036,7 @@ EC_BOOL cmp4_content_expired_procedure(const UINT32 cmp4_md_id)
                                              cmp4_md_id_t);
 
         cmp4_get_ngx_rc(cmp4_md_id_t, &rc, NULL_PTR);
-        cmp4_set_ngx_rc(cmp4_md_id, rc, LOC_CMP4_0373);
+        cmp4_set_ngx_rc(cmp4_md_id, rc, LOC_CMP4_0381);
 
         cmp4_end(cmp4_md_id_t);
         return (EC_FALSE);
@@ -17047,7 +17047,7 @@ EC_BOOL cmp4_content_expired_procedure(const UINT32 cmp4_md_id)
                                          cmp4_md_id_t);
 
     cmp4_get_ngx_rc(cmp4_md_id_t, &rc, NULL_PTR);
-    cmp4_set_ngx_rc(cmp4_md_id, rc, LOC_CMP4_0374);
+    cmp4_set_ngx_rc(cmp4_md_id, rc, LOC_CMP4_0382);
 
     cmp4_end(cmp4_md_id_t);
 
@@ -17086,7 +17086,7 @@ EC_BOOL cmp4_content_cache_parse_header(const UINT32 cmp4_md_id, const CBYTES *h
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_parse_header: "
                                              "new chttp_rsp failed\n");
 
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0375);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0383);
         return (EC_FALSE);
     }
 
@@ -17095,7 +17095,7 @@ EC_BOOL cmp4_content_cache_parse_header(const UINT32 cmp4_md_id, const CBYTES *h
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_parse_header: "
                                              "parse header failed\n");
 
-        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0376);
+        cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0384);
         return (EC_FALSE);
     }
 
@@ -17225,7 +17225,7 @@ EC_BOOL cmp4_content_cache_header_out_if_modified_since_filter(const UINT32 cmp4
 
     ims_1st = c_parse_http_time((uint8_t *)v, (size_t)strlen(v));
 
-    safe_free(v, LOC_CMP4_0377);
+    safe_free(v, LOC_CMP4_0385);
 
     k = (const char *)"Last-Modified";
     v = chttp_rsp_get_header(CMP4_MD_CHTTP_RSP(cmp4_md), k);
@@ -17327,7 +17327,7 @@ EC_BOOL cmp4_content_cache_header_out_if_none_match_filter(const UINT32 cmp4_md_
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_if_none_match_filter: "
                                              "[rsp] no '%s'\n",
                                              k);
-        safe_free(etag_des, LOC_CMP4_0378);
+        safe_free(etag_des, LOC_CMP4_0386);
         return (EC_TRUE);
     }
     etag_src = v;
@@ -17504,7 +17504,7 @@ EC_BOOL cmp4_content_cache_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
 
         if(CHTTP_NOT_FOUND == response_status)
         {
-            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0379);
+            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_NOT_FOUND, LOC_CMP4_0387);
 
             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_rsp_status_filter: "
@@ -17753,7 +17753,7 @@ EC_BOOL cmp4_content_cache_header_out_age_filter(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_age_filter: "
                                                  "[rsp] cannot fetch number from '%s':'%s'\n",
                                                  k, v);
-            safe_free(v, LOC_CMP4_0380);
+            safe_free(v, LOC_CMP4_0388);
             break;
         }
 
@@ -17763,7 +17763,7 @@ EC_BOOL cmp4_content_cache_header_out_age_filter(const UINT32 cmp4_md_id)
                                                  "[rsp] '%s':'%s' => aged\n",
                                                  k, v);
 
-            safe_free(v, LOC_CMP4_0381);
+            safe_free(v, LOC_CMP4_0389);
 
             CMP4_MD_CACHE_EXPIRED_FLAG(cmp4_md) = BIT_TRUE;
 
@@ -17792,7 +17792,7 @@ EC_BOOL cmp4_content_cache_header_out_age_filter(const UINT32 cmp4_md_id)
             return (EC_TRUE);
         }
 
-        safe_free(v, LOC_CMP4_0382);
+        safe_free(v, LOC_CMP4_0390);
 
         /*fall through*/
     }while(0);
@@ -17891,7 +17891,7 @@ EC_BOOL cmp4_content_cache_header_out_age_filter(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_age_filter: "
                                                  "[cngx] cannot fetch number from '%s':'%s'\n",
                                                  k, v);
-            safe_free(v, LOC_CMP4_0383);
+            safe_free(v, LOC_CMP4_0391);
             break;
         }
 
@@ -17905,7 +17905,7 @@ EC_BOOL cmp4_content_cache_header_out_age_filter(const UINT32 cmp4_md_id)
                                                  "[cngx] '%s':'%s' => aged, cache => force orig procedure\n",
                                                  k, v);
 
-            safe_free(v, LOC_CMP4_0384);
+            safe_free(v, LOC_CMP4_0392);
 
             CMP4_MD_CACHE_EXPIRED_FLAG(cmp4_md) = BIT_TRUE;
 
@@ -17938,7 +17938,7 @@ EC_BOOL cmp4_content_cache_header_out_age_filter(const UINT32 cmp4_md_id)
                                              "[cngx] '%s':'%s' => not aged\n",
                                              k, v);
 
-        safe_free(v, LOC_CMP4_0385);
+        safe_free(v, LOC_CMP4_0393);
         /*fall through*/
     }while(0);
 
@@ -17975,7 +17975,7 @@ EC_BOOL cmp4_content_cache_header_out_age_filter(const UINT32 cmp4_md_id)
                                                  "[cngx] '%s':'%s' => aged, cache => force orig procedure\n",
                                                  k, v);
 
-            safe_free(v, LOC_CMP4_0386);
+            safe_free(v, LOC_CMP4_0394);
 
             CMP4_MD_CACHE_EXPIRED_FLAG(cmp4_md) = BIT_TRUE;
 
@@ -18008,7 +18008,7 @@ EC_BOOL cmp4_content_cache_header_out_age_filter(const UINT32 cmp4_md_id)
                                              "[cngx] '%s':'%s' => not aged\n",
                                              k, v);
 
-        safe_free(v, LOC_CMP4_0387);
+        safe_free(v, LOC_CMP4_0395);
         /*fall through*/
     }while(0);
 
@@ -18331,7 +18331,7 @@ EC_BOOL cmp4_content_cache_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG 
 
         if(BIT_TRUE == CNGX_OPTION_ONLY_IF_CACHED(CMP4_MD_CNGX_OPTION(cmp4_md)))
         {
-            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CMP4_0388);
+            cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CMP4_0396);
 
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_seg_n: "
                                                 "only-if-cached is true => %u\n",
@@ -18547,7 +18547,7 @@ EC_BOOL cmp4_content_cache_send_mp4_meta(const UINT32 cmp4_md_id)
     if(rc == NGX_ERROR || rc > NGX_OK)
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_mp4_meta: send body failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, rc, LOC_CMP4_0389);
+        cmp4_set_ngx_rc(cmp4_md_id, rc, LOC_CMP4_0397);
         return (EC_FALSE);
     }
 
@@ -18754,7 +18754,7 @@ EC_BOOL cmp4_content_cache_send_response(const UINT32 cmp4_md_id)
             {
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_response: "
                                                      "header_out filter failed\n");
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0390);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0398);
                 return (EC_FALSE);
             }
 
@@ -18984,7 +18984,7 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
 
             if(BIT_TRUE == CNGX_OPTION_ONLY_IF_CACHED(CMP4_MD_CNGX_OPTION(cmp4_md)))
             {
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CMP4_0391);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_SERVICE_UNAVAILABLE, LOC_CMP4_0399);
 
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_procedure: "
                                                      "only-if-cached is true => %u\n",
@@ -19130,7 +19130,7 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_procedure: "
                                                      "get range segs from chttp rsp failed\n");
 
-                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_REQUEST, LOC_CMP4_0392);
+                cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_BAD_REQUEST, LOC_CMP4_0400);
                 return (EC_FALSE);
             }
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "
@@ -19141,7 +19141,7 @@ EC_BOOL cmp4_content_cache_procedure(const UINT32 cmp4_md_id)
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_procedure: "
                                                  "chttp rsp header_in range filter failed\n");
-            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_REQUESTEDR_RANGE_NOT_SATISFIABLE, LOC_CMP4_0393);
+            cmp4_set_ngx_rc(cmp4_md_id, CHTTP_REQUESTEDR_RANGE_NOT_SATISFIABLE, LOC_CMP4_0401);
             return (EC_FALSE);
         }
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_procedure: "

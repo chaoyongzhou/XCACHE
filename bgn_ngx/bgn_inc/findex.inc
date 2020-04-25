@@ -160,6 +160,12 @@
 #define                    FI_super_ngx_reload_so  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 141))
 #define                    FI_super_ngx_switch_so  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 142))
 #define                      FI_super_ngx_show_so  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 143))
+#define              FI_super_dns_cache_switch_on  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 144))
+#define             FI_super_dns_cache_switch_off  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 145))
+#define       FI_super_dns_cache_expired_nsec_set  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 146))
+#define                FI_super_dns_cache_resolve  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 147))
+#define                 FI_super_dns_cache_retire  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 148))
+#define                   FI_super_dns_cache_show  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 149))
 
 #define           FI_csession_print_module_status  ((UINT32) ((MD_CSESSION << (WORDSIZE/2)) +  0))
 #define        FI_csession_free_module_static_mem  ((UINT32) ((MD_CSESSION << (WORDSIZE/2)) +  1))

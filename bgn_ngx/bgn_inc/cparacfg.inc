@@ -62,6 +62,9 @@ typedef struct
     UINT32    timeout_max_num_per_loop      ;/*once cepoll loop shutdown the timeout connections to the max num*/
     UINT32    cdns_timeout_nsec             ;/*if no data tranfer in n seconds, shutdown the connection*/
 
+    UINT32    dns_cache_switch              ;/*dns resolver query dns cache if switch on*/
+    UINT32    dns_cache_expired_nsec        ;/*dns resolved result would be expired in nsec*/
+
     UINT32    high_precision_time_switch    ;/*ONLY FOR DEBUG! give high precision in micro-second, reduce the affect of on-wall clock*/
 
     UINT32    ngx_bgn_over_http_switch      ;/*only for NGX_BGN_SWITCH == SWITCH_ON*/
@@ -188,6 +191,9 @@ typedef struct
 #define CPARACFG_CDNS_TIMEOUT_NSEC(cparacfg)                        ((cparacfg)->cdns_timeout_nsec)
 #define CPARACFG_LOG_LEVEL_TAB(cparacfg)                            ((cparacfg)->log_level_tab)
 
+#define CPARACFG_DNS_CACHE_SWITCH(cparacfg)                         ((cparacfg)->dns_cache_switch)
+#define CPARACFG_DNS_CACHE_EXPIRED_NSEC(cparacfg)                   ((cparacfg)->dns_cache_expired_nsec)
+
 #define CPARACFG_HIGH_PRECISION_TIME_SWITCH(cparacfg)               ((cparacfg)->high_precision_time_switch)
 #define CPARACFG_NGX_BGN_OVER_HTTP_SWITCH(cparacfg)                 ((cparacfg)->ngx_bgn_over_http_switch)
 #define CPARACFG_NGX_BGN_OVER_RFS_SWITCH(cparacfg)                  ((cparacfg)->ngx_bgn_over_rfs_switch)
@@ -295,6 +301,8 @@ typedef struct
 #define CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH_STR(cparacfg)          (c_switch_to_str(CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH(cparacfg)))
 #define CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH_STR(cparacfg)         (c_switch_to_str(CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH(cparacfg)))
 
+#define CPARACFG_DNS_CACHE_SWITCH_STR(cparacfg)                     (c_switch_to_str(CPARACFG_DNS_CACHE_SWITCH(cparacfg)))
+
 #define MEM_BUFF_128B ( 128      )
 #define MEM_BUFF_512B ( 512      )
 #define MEM_BUFF_1K   ( 1024     )
@@ -391,6 +399,10 @@ typedef struct
 #define CPARACFG_CONN_TIMEOUT_NSEC_DEF                           20
 #define CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP_DEF                    1024
 #define CPARACFG_CDNS_TIMEOUT_NSEC_DEF                           3
+
+#define CPARACFG_DNS_CACHE_SWITCH_DEF                            SWITCH_ON
+#define CPARACFG_DNS_CACHE_EXPIRED_NSEC_DEF                      60
+
 #define CPARACFG_HIGH_PRECISION_TIME_SWITCH_DEF                  SWITCH_OFF
 #define CPARACFG_NGX_BGN_OVER_HTTP_SWITCH_DEF                    SWITCH_OFF
 #define CPARACFG_NGX_BGN_OVER_RFS_SWITCH_DEF                     SWITCH_OFF
@@ -520,6 +532,10 @@ typedef struct
 #define    CONN_TIMEOUT_NSEC                             CPARACFG_DEFAULT_MAP(CPARACFG_CONN_TIMEOUT_NSEC)
 #define    CONN_TIMEOUT_MAX_NUM_PER_LOOP                 CPARACFG_DEFAULT_MAP(CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP)
 #define    CDNS_TIMEOUT_NSEC                             CPARACFG_DEFAULT_MAP(CPARACFG_CDNS_TIMEOUT_NSEC)
+
+#define    DNS_CACHE_SWITCH                              CPARACFG_DEFAULT_MAP(CPARACFG_DNS_CACHE_SWITCH)
+#define    DNS_CACHE_EXPIRED_NSEC                        CPARACFG_DEFAULT_MAP(CPARACFG_DNS_CACHE_EXPIRED_NSEC)
+
 #define    HIGH_PRECISION_TIME_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_HIGH_PRECISION_TIME_SWITCH)
 
 #define    NGX_BGN_OVER_HTTP_SWITCH                      CPARACFG_DEFAULT_MAP(CPARACFG_NGX_BGN_OVER_HTTP_SWITCH)

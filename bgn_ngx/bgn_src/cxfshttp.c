@@ -377,6 +377,10 @@ EC_BOOL cxfshttp_commit_http_get(CHTTP_NODE *chttp_node)
     {
         ret = cxfshttp_commit_statusdn_get_request(chttp_node);
     }
+    else if (EC_TRUE == cxfshttp_is_http_get_stat(chttp_node))
+    {
+        ret = cxfshttp_commit_stat_get_request(chttp_node);
+    }
     else if (EC_TRUE == cxfshttp_is_http_get_file_wait(chttp_node))
     {
         ret = cxfshttp_commit_file_wait_get_request(chttp_node);
@@ -6776,7 +6780,7 @@ EC_BOOL cxfshttp_handle_statusdn_get_request(CHTTP_NODE *chttp_node)
         CSOCKET_CNODE * csocket_cnode;
 
         CXFSDN        * cxfsdn;
-        CXFSPGV          * cxfspgv;
+        CXFSPGV       * cxfspgv;
 
         json_object   * cxfspgv_obj;
         json_object   * cxfspgd_objs;
@@ -9118,6 +9122,245 @@ EC_BOOL cxfshttp_commit_locked_file_retire_get_response(CHTTP_NODE *chttp_node)
     return cxfshttp_commit_response(chttp_node);
 }
 #endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: stat ----------------------------------------*/
+STATIC_CAST static EC_BOOL __cxfshttp_uri_is_stat_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/stat") == uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/statistics")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttp_is_http_get_stat(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_stat: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __cxfshttp_uri_is_stat_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttp_commit_stat_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == cxfshttp_handle_stat_get_request(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_stat_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfshttp_make_stat_get_response(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_stat_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = cxfshttp_commit_stat_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_stat_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE *csocket_cnode;
+    CBYTES        *rsp_content_cbytes;
+    const char    *rsp_body_str;
+
+    CXFS_STAT     *cxfs_stat;
+    CXFSNP_MGR    *cxfsnp_mgr;
+    CXFSDN        *cxfsdn;
+    CXFSPGV       *cxfspgv;
+
+    json_object   *cxfs_obj;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+
+    cxfsnp_mgr = cxfs_get_npp(CSOCKET_CNODE_MODI(csocket_cnode));
+    cxfsdn     = cxfs_get_dn(CSOCKET_CNODE_MODI(csocket_cnode));
+    cxfspgv    = CXFSDN_CXFSPGV(cxfsdn);
+    cxfs_stat  = cxfs_get_stat(CSOCKET_CNODE_MODI(csocket_cnode));
+
+    rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    cbytes_clean(rsp_content_cbytes);
+
+    cxfs_obj = json_object_new_object();
+    if(NULL_PTR != cxfs_stat)
+    {
+        json_object   *cxfs_stat_obj;
+
+        cxfs_stat_obj = json_object_new_object();
+        json_object_add_obj(cxfs_obj, "stat", cxfs_stat_obj);
+
+        /*read*/
+        json_object_add_kv(cxfs_stat_obj, "read_times"  , c_uint64_t_to_str(CXFS_STAT_READ_TIMES_COUNTER(cxfs_stat)));
+        json_object_add_kv(cxfs_stat_obj, "read_nbytes" , c_uint64_t_to_str(CXFS_STAT_READ_NBYTES_COUNTER(cxfs_stat)));
+
+        /*write*/
+        json_object_add_kv(cxfs_stat_obj, "write_times" , c_uint64_t_to_str(CXFS_STAT_WRITE_TIMES_COUNTER(cxfs_stat)));
+        json_object_add_kv(cxfs_stat_obj, "write_nbytes", c_uint64_t_to_str(CXFS_STAT_WRITE_NBYTES_COUNTER(cxfs_stat)));
+
+        /*delete*/
+        json_object_add_kv(cxfs_stat_obj, "delete_times" , c_uint64_t_to_str(CXFS_STAT_DELETE_TIMES_COUNTER(cxfs_stat)));
+        if(NULL_PTR != cxfsnp_mgr)
+        {
+            uint64_t       total_size;
+
+            total_size = cxfsnp_mgr_count_delete_size(cxfsnp_mgr);
+            json_object_add_kv(cxfs_stat_obj, "delete_nbytes", c_uint64_t_to_str(total_size));
+        }
+
+        /*update*/
+        json_object_add_kv(cxfs_stat_obj, "update_times" , c_uint64_t_to_str(CXFS_STAT_UPDATE_TIMES_COUNTER(cxfs_stat)));
+        json_object_add_kv(cxfs_stat_obj, "update_nbytes", c_uint64_t_to_str(CXFS_STAT_UPDATE_NBYTES_COUNTER(cxfs_stat)));
+
+        /*retire*/
+        //json_object_add_kv(cxfs_stat_obj, "retire_times" , c_uint64_t_to_str(CXFS_STAT_RETIRE_TIMES_COUNTER(cxfs_stat)));
+
+        /*recycle*/
+        json_object_add_kv(cxfs_stat_obj, "recycle_times" , c_uint64_t_to_str(CXFS_STAT_RECYCLE_TIMES_COUNTER(cxfs_stat)));
+        if(NULL_PTR != cxfsnp_mgr)
+        {
+            uint64_t       total_size;
+
+            total_size = cxfsnp_mgr_count_recycle_size(cxfsnp_mgr);
+            json_object_add_kv(cxfs_stat_obj, "recycle_nbytes", c_uint64_t_to_str(total_size));
+        }
+    }
+
+    if(NULL_PTR != cxfsnp_mgr)
+    {
+        json_object   *cxfs_npp_obj;
+
+        cxfs_npp_obj = json_object_new_object();
+        json_object_add_obj(cxfs_obj, "namespace", cxfs_npp_obj);
+
+        json_object_add_kv(cxfs_npp_obj, "np_model"         , c_uint32_t_to_str(CXFSNP_MGR_NP_MODEL(cxfsnp_mgr)));
+        json_object_add_kv(cxfs_npp_obj, "np_hash_algo_id"  , c_uint32_t_to_str(CXFSNP_MGR_NP_2ND_CHASH_ALGO_ID(cxfsnp_mgr)));
+        json_object_add_kv(cxfs_npp_obj, "np_max_num"       , c_uint32_t_to_str(CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr)));
+        json_object_add_kv(cxfs_npp_obj, "np_size"          , c_uint64_t_to_str(CXFSNP_MGR_NP_SIZE(cxfsnp_mgr)));
+        json_object_add_kv(cxfs_npp_obj, "np_start_offset"  , c_uint64_t_to_str(CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr)));
+        json_object_add_kv(cxfs_npp_obj, "np_end_offset"    , c_uint64_t_to_str(CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr)));
+        json_object_add_kv(cxfs_npp_obj, "np_total_size"    , c_uint64_t_to_str(CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) - CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr)));
+    }
+
+    if(NULL_PTR != cxfsdn && NULL_PTR != cxfspgv)
+    {
+        json_object   *cxfs_dn_obj;
+
+        cxfs_dn_obj = json_object_new_object();
+        json_object_add_obj(cxfs_obj, "datanode", cxfs_dn_obj);
+
+        json_object_add_kv(cxfs_dn_obj, "dn_offset"         , c_uint64_t_to_str(CXFSPGV_OFFSET(cxfspgv)));
+        json_object_add_kv(cxfs_dn_obj, "dn_fsize"          , c_uint64_t_to_str(CXFSPGV_FSIZE(cxfspgv)));
+        json_object_add_kv(cxfs_dn_obj, "dn_disk_num"       , c_uint32_t_to_str(CXFSPGV_DISK_NUM(cxfspgv)));
+        json_object_add_kv(cxfs_dn_obj, "dn_disk_max_num"   , c_uint32_t_to_str(CXFSPGV_DISK_MAX_NUM(cxfspgv)));
+        json_object_add_kv(cxfs_dn_obj, "dn_page_max_num"   , c_uint64_t_to_str(CXFSPGV_PAGE_MAX_NUM(cxfspgv)));
+        json_object_add_kv(cxfs_dn_obj, "dn_page_used_num"  , c_uint64_t_to_str(CXFSPGV_PAGE_USED_NUM(cxfspgv)));
+        json_object_add_kv(cxfs_dn_obj, "dn_used_size"      , c_uint64_t_to_str(CXFSPGV_PAGE_ACTUAL_USED_SIZE(cxfspgv)));
+        json_object_add_kv(cxfs_dn_obj, "dn_assign_bitmap"  , c_uint16_t_to_bin_str(CXFSPGV_PAGE_MODEL_ASSIGN_BITMAP(cxfspgv)));
+    }
+
+    rsp_body_str = json_object_to_json_string_ext(cxfs_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
+    cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str) + 1));
+
+    json_object_put(cxfs_obj);
+
+    dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_stat_get_request: done\n");
+
+    CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(rsp_content_cbytes));
+    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_stat_get_request: done");
+
+    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_make_stat_get_response(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *content_cbytes;
+    uint64_t       content_len;
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    content_len    = CBYTES_LEN(content_cbytes);
+
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_stat_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_stat_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_stat_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    /*no data copying but data transfering*/
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
+                                              CBYTES_BUF(content_cbytes),
+                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_stat_get_response: make body with len %d failed\n",
+                           (uint32_t)CBYTES_LEN(content_cbytes));
+        return (EC_FALSE);
+    }
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_commit_stat_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_stat_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return cxfshttp_commit_response(chttp_node);
+}
+#endif
+
 
 #ifdef __cplusplus
 }

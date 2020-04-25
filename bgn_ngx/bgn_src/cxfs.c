@@ -272,6 +272,8 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
 
     cxfscfg_init(CXFS_MD_CFG(cxfs_md));
 
+    cxfs_stat_init(CXFS_MD_STAT(cxfs_md));
+
     /*initialize LOCK_REQ file RB TREE*/
     crb_tree_init(CXFS_MD_LOCKED_FILES(cxfs_md),
                     (CRB_DATA_CMP)cxfs_locked_file_cmp,
@@ -740,6 +742,8 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
 
     cxfscfg_init(CXFS_MD_CFG(cxfs_md));
 
+    cxfs_stat_init(CXFS_MD_STAT(cxfs_md));
+
     /*initialize LOCK_REQ file RB TREE*/
     crb_tree_init(CXFS_MD_LOCKED_FILES(cxfs_md),
                     (CRB_DATA_CMP)cxfs_locked_file_cmp,
@@ -1162,6 +1166,8 @@ void cxfs_end(const UINT32 cxfs_md_id)
         cxfsop_mgr_free(CXFS_MD_OP_MGR(cxfs_md));
         CXFS_MD_OP_MGR(cxfs_md) = NULL_PTR;
     }
+
+    cxfs_stat_clean(CXFS_MD_STAT(cxfs_md));
 
     clist_clean(CXFS_MD_OP_MGR_LIST(cxfs_md), (CLIST_DATA_DATA_CLEANER)cxfsop_mgr_free);
 
@@ -1919,6 +1925,46 @@ EC_BOOL cxfs_close_sata_bad_bitmap(CXFS_MD *cxfs_md)
     return (EC_TRUE);
 }
 
+EC_BOOL cxfs_stat_init(CXFS_STAT *cxfs_stat)
+{
+    CXFS_STAT_READ_TIMES_COUNTER(cxfs_stat)     = 0;
+    CXFS_STAT_READ_NBYTES_COUNTER(cxfs_stat)    = 0;
+
+    CXFS_STAT_WRITE_TIMES_COUNTER(cxfs_stat)    = 0;
+    CXFS_STAT_WRITE_NBYTES_COUNTER(cxfs_stat)   = 0;
+
+    CXFS_STAT_DELETE_TIMES_COUNTER(cxfs_stat)   = 0;
+
+    CXFS_STAT_UPDATE_TIMES_COUNTER(cxfs_stat)   = 0;
+    CXFS_STAT_UPDATE_NBYTES_COUNTER(cxfs_stat)  = 0;
+
+    CXFS_STAT_RETIRE_TIMES_COUNTER(cxfs_stat)   = 0;
+
+    CXFS_STAT_RECYCLE_TIMES_COUNTER(cxfs_stat)  = 0;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfs_stat_clean(CXFS_STAT *cxfs_stat)
+{
+    CXFS_STAT_READ_TIMES_COUNTER(cxfs_stat)     = 0;
+    CXFS_STAT_READ_NBYTES_COUNTER(cxfs_stat)    = 0;
+
+    CXFS_STAT_WRITE_TIMES_COUNTER(cxfs_stat)    = 0;
+    CXFS_STAT_WRITE_NBYTES_COUNTER(cxfs_stat)   = 0;
+
+    CXFS_STAT_DELETE_TIMES_COUNTER(cxfs_stat)   = 0;
+
+    CXFS_STAT_UPDATE_TIMES_COUNTER(cxfs_stat)   = 0;
+    CXFS_STAT_UPDATE_NBYTES_COUNTER(cxfs_stat)  = 0;
+
+    CXFS_STAT_RETIRE_TIMES_COUNTER(cxfs_stat)   = 0;
+
+    CXFS_STAT_RECYCLE_TIMES_COUNTER(cxfs_stat)  = 0;
+
+    return (EC_TRUE);
+}
+
 CXFSNP_FNODE *cxfs_fnode_new(const UINT32 cxfs_md_id)
 {
     return cxfsnp_fnode_new();
@@ -2153,6 +2199,29 @@ CXFSDN *cxfs_get_dn(const UINT32 cxfs_md_id)
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
     return CXFS_MD_DN(cxfs_md);
+}
+
+/**
+*
+*  get stat of the module
+*
+**/
+CXFS_STAT *cxfs_get_stat(const UINT32 cxfs_md_id)
+{
+    CXFS_MD   *cxfs_md;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_get_stat: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+    return CXFS_MD_STAT(cxfs_md);
 }
 
 /**
@@ -3474,6 +3543,8 @@ STATIC_CAST static EC_BOOL __cxfs_write(const UINT32 cxfs_md_id, const CSTRING *
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
+    CXFS_STAT_WRITE_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
     cxfsnp_fnode = __cxfs_reserve_npp(cxfs_md_id, file_path);
     if(NULL_PTR == cxfsnp_fnode)
     {
@@ -3530,6 +3601,8 @@ STATIC_CAST static EC_BOOL __cxfs_write(const UINT32 cxfs_md_id, const CSTRING *
         return (EC_FALSE);
     }
 
+    CXFS_STAT_WRITE_NBYTES_COUNTER(CXFS_MD_STAT(cxfs_md)) += CBYTES_LEN(cbytes);
+
     if(do_log(SEC_0192_CXFS, 9))
     {
         sys_log(LOGSTDOUT, "[DEBUG] __cxfs_write: write file %s to dn where fnode is \n", (char *)cstring_get_str(file_path));
@@ -3568,6 +3641,8 @@ STATIC_CAST static EC_BOOL __cxfs_write_no_lock(const UINT32 cxfs_md_id, const C
     uint32_t      path_hash;
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    CXFS_STAT_WRITE_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
 
     cxfsnp_fnode = __cxfs_reserve_npp(cxfs_md_id, file_path);
     if(NULL_PTR == cxfsnp_fnode)
@@ -3624,6 +3699,8 @@ STATIC_CAST static EC_BOOL __cxfs_write_no_lock(const UINT32 cxfs_md_id, const C
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_write_no_lock: export file %s content to dn failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
+
+    CXFS_STAT_WRITE_NBYTES_COUNTER(CXFS_MD_STAT(cxfs_md)) += CBYTES_LEN(cbytes);
 
     if(do_log(SEC_0192_CXFS, 9))
     {
@@ -3752,6 +3829,8 @@ EC_BOOL cxfs_read_safe(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES
         return (EC_FALSE);
     }
 
+    CXFS_STAT_READ_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
     cxfsnp_fnode_init(&cxfsnp_fnode);
 
     if(EC_FALSE == cxfs_read_npp(cxfs_md_id, file_path, &cxfsnp_fnode))
@@ -3783,6 +3862,8 @@ EC_BOOL cxfs_read_safe(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES
         cxfsnp_fnode_print(LOGSTDOUT, &cxfsnp_fnode);
         return (EC_FALSE);
     }
+
+    CXFS_STAT_READ_NBYTES_COUNTER(CXFS_MD_STAT(cxfs_md)) += CBYTES_LEN(cbytes);
 
     //dbg_log(SEC_0192_CXFS, 9)(LOGSTDNULL, "[DEBUG] cxfs_read_safe: read file %s is %.*s\n", (char *)cstring_get_str(file_path), (uint32_t)DMIN(16, cbytes_len(cbytes)), cbytes_buf(cbytes));
     return (EC_TRUE);
@@ -3818,6 +3899,8 @@ EC_BOOL cxfs_read(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES *cby
         return (EC_FALSE);
     }
 
+    CXFS_STAT_READ_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
     cxfsnp_fnode_init(&cxfsnp_fnode);
 
     dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_read: read file %s start\n", (char *)cstring_get_str(file_path));
@@ -3850,6 +3933,8 @@ EC_BOOL cxfs_read(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES *cby
         cxfsnp_fnode_print(LOGSTDOUT, &cxfsnp_fnode);
         return (EC_FALSE);
     }
+
+    CXFS_STAT_READ_NBYTES_COUNTER(CXFS_MD_STAT(cxfs_md)) += CBYTES_LEN(cbytes);
 
     return (EC_TRUE);
 }
@@ -3897,6 +3982,9 @@ EC_BOOL cxfs_write_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *
         return (EC_FALSE);
     }
 
+    CXFS_STAT_READ_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+    CXFS_STAT_WRITE_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
     cxfsnp_fnode_init(&cxfsnp_fnode);
 
     if(EC_FALSE == cxfs_read_npp(cxfs_md_id, file_path, &cxfsnp_fnode))
@@ -3913,13 +4001,17 @@ EC_BOOL cxfs_write_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *
         return (EC_FALSE);
     }
 
+    CXFS_STAT_WRITE_NBYTES_COUNTER(CXFS_MD_STAT(cxfs_md)) += CBYTES_LEN(cbytes);
+
     if(file_old_size != CXFSNP_FNODE_FILESZ(&cxfsnp_fnode))
     {
+        CXFS_STAT_UPDATE_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
         if(EC_FALSE == cxfs_update_npp(cxfs_md_id, file_path, &cxfsnp_fnode))
         {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_write_e: offset write file %s to npp failed\n", (char *)cstring_get_str(file_path));
             return (EC_FALSE);
         }
+        CXFS_STAT_UPDATE_NBYTES_COUNTER(CXFS_MD_STAT(cxfs_md)) += CXFSNP_FNODE_FILESZ(&cxfsnp_fnode);
     }
     else
     {
@@ -3981,6 +4073,8 @@ EC_BOOL cxfs_read_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *o
         return (EC_FALSE);
     }
 
+    CXFS_STAT_READ_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
     cxfsnp_fnode_init(&cxfsnp_fnode);
 
     if(EC_FALSE == cxfs_read_npp(cxfs_md_id, file_path, &cxfsnp_fnode))
@@ -4011,6 +4105,8 @@ EC_BOOL cxfs_read_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *o
         cxfsnp_fnode_print(LOGSTDOUT, &cxfsnp_fnode);
         return (EC_FALSE);
     }
+
+     CXFS_STAT_READ_NBYTES_COUNTER(CXFS_MD_STAT(cxfs_md)) += CBYTES_LEN(cbytes);
 
     return (EC_TRUE);
 }
@@ -5842,6 +5938,8 @@ EC_BOOL cxfs_delete_file(const UINT32 cxfs_md_id, const CSTRING *path)
     dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_delete_file: cxfs_md_id %ld, path %s ...\n",
                         cxfs_md_id, (char *)cstring_get_str(path));
 
+    CXFS_STAT_DELETE_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
     if(EC_FALSE == cxfsnp_mgr_umount_deep(CXFS_MD_NPP(cxfs_md), path, CXFSNP_ITEM_FILE_IS_REG))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_file: umount %.*s failed\n",
@@ -5902,6 +6000,8 @@ EC_BOOL cxfs_delete_file_no_lock(const UINT32 cxfs_md_id, const CSTRING *path)
 
     dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_delete_file_no_lock: cxfs_md_id %ld, path %s ...\n",
                         cxfs_md_id, (char *)cstring_get_str(path));
+
+    CXFS_STAT_DELETE_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
 
     if(EC_FALSE == cxfsnp_mgr_umount_deep(CXFS_MD_NPP(cxfs_md), path, CXFSNP_ITEM_FILE_IS_REG))
     {
@@ -5969,6 +6069,8 @@ EC_BOOL cxfs_delete_file_wildcard(const UINT32 cxfs_md_id, const CSTRING *path)
                                                    (uint32_t )cstring_get_len(path),
                                                    (uint8_t *)cstring_get_str(path));
     }
+
+    CXFS_STAT_DELETE_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
 
     if(EC_FALSE == cxfsnp_mgr_umount_wildcard(CXFS_MD_NPP(cxfs_md), path, CXFSNP_ITEM_FILE_IS_REG))
     {
@@ -6042,6 +6144,8 @@ EC_BOOL cxfs_delete_dir(const UINT32 cxfs_md_id, const CSTRING *path)
         return (EC_FALSE);
     }
 
+    CXFS_STAT_DELETE_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
     dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_delete_dir: cxfs_md_id %ld, path %s ...\n",
                         cxfs_md_id, (char *)cstring_get_str(path));
 
@@ -6102,6 +6206,8 @@ EC_BOOL cxfs_delete_dir_no_lock(const UINT32 cxfs_md_id, const CSTRING *path)
 
     dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_delete_dir_no_lock: cxfs_md_id %ld, path %s ...\n",
                         cxfs_md_id, (char *)cstring_get_str(path));
+
+    CXFS_STAT_DELETE_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
 
     if(EC_FALSE == cxfsnp_mgr_umount_deep(CXFS_MD_NPP(cxfs_md), path, CXFSNP_ITEM_FILE_IS_DIR))
     {
@@ -6169,6 +6275,8 @@ EC_BOOL cxfs_delete_dir_wildcard(const UINT32 cxfs_md_id, const CSTRING *path)
                                                  (uint32_t )cstring_get_len(path),
                                                  (uint8_t *)cstring_get_str(path));
     }
+
+    CXFS_STAT_DELETE_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
 
     if(EC_FALSE == cxfsnp_mgr_umount_wildcard_deep(CXFS_MD_NPP(cxfs_md), path, CXFSNP_ITEM_FILE_IS_DIR))
     {
@@ -6375,6 +6483,9 @@ EC_BOOL cxfs_update_no_lock(const UINT32 cxfs_md_id, const CSTRING *file_path, c
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_update_no_lock: cxfs is read-only\n");
         return (EC_FALSE);
     }
+
+    CXFS_STAT_UPDATE_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+    CXFS_STAT_READ_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
 
     if(EC_FALSE == cxfs_read_npp(cxfs_md_id, file_path, NULL_PTR))
     {
@@ -7324,6 +7435,8 @@ EC_BOOL cxfs_recycle(const UINT32 cxfs_md_id, const UINT32 max_num_per_np, UINT3
         return (EC_FALSE);
     }
 
+    CXFS_STAT_RECYCLE_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
     complete_recycle_num = 0;/*initialization*/
 
     for(cxfsnp_id = 0; cxfsnp_id < CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr); cxfsnp_id ++)
@@ -8009,6 +8122,8 @@ EC_BOOL cxfs_retire(const UINT32 cxfs_md_id, const UINT32 expect_retire_num, UIN
         dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_retire: npp was not open\n");
         return (EC_FALSE);
     }
+
+    CXFS_STAT_RETIRE_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
 
     for(cxfsnp_id = 0, total_num = 0; cxfsnp_id < CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr); cxfsnp_id ++)
     {

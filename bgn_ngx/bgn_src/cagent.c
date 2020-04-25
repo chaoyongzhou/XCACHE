@@ -25,9 +25,10 @@ extern "C"{
 #include "cparacfg.h"
 #include "csyscfg.h"
 
-
 #include "chttp.h"
 #include "chttps.h"
+
+#include "cdnscache.h"
 
 #include "cagent.h"
 
@@ -121,11 +122,27 @@ EC_BOOL cagent_reserve_tcid(CAGENT *cagent, const char *service, const char *ipa
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
 
-    if(EC_FALSE == c_dns_resolve((const char *)CAGENT_TDNS_HOST_STR(cagent), &tdns_ipaddr))
+    if(SWITCH_ON == DNS_CACHE_SWITCH)
     {
-        dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_reserve_tcid: dns resolve '%s' failed\n",
-                        (char *)CAGENT_TDNS_HOST_STR(cagent));
-        return (EC_FALSE);
+        if(EC_FALSE == cdnscache_dns_resolve((const char *)CAGENT_TDNS_HOST_STR(cagent), &tdns_ipaddr))
+        {
+            dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_reserve_tcid: [cache] dns resolve '%s' failed\n",
+                            (char *)CAGENT_TDNS_HOST_STR(cagent));
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0060_CAGENT, 9)(LOGSTDOUT, "[DEBUG] cagent_reserve_tcid: [cache] dns resolve '%s' => ip '%s'\n",
+                        (char *)CAGENT_TDNS_HOST_STR(cagent), c_word_to_ipv4(tdns_ipaddr));
+    }
+    else
+    {
+        if(EC_FALSE == c_dns_resolve((const char *)CAGENT_TDNS_HOST_STR(cagent), &tdns_ipaddr))
+        {
+            dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_reserve_tcid: [ncache] dns resolve '%s' failed\n",
+                            (char *)CAGENT_TDNS_HOST_STR(cagent));
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0060_CAGENT, 9)(LOGSTDOUT, "[DEBUG] cagent_reserve_tcid: [ncache] dns resolve '%s' => ip '%s'\n",
+                        (char *)CAGENT_TDNS_HOST_STR(cagent), c_word_to_ipv4(tdns_ipaddr));
     }
 
     chttp_req_set_ipaddr_word(&chttp_req, tdns_ipaddr);
@@ -211,11 +228,27 @@ EC_BOOL cagent_release_tcid(CAGENT *cagent, const char *service, const char *tci
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
 
-    if(EC_FALSE == c_dns_resolve((const char *)CAGENT_TDNS_HOST_STR(cagent), &tdns_ipaddr))
+    if(SWITCH_ON == DNS_CACHE_SWITCH)
     {
-        dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_release_tcid: dns resolve '%s' failed\n",
-                        (char *)CAGENT_TDNS_HOST_STR(cagent));
-        return (EC_FALSE);
+        if(EC_FALSE == cdnscache_dns_resolve((const char *)CAGENT_TDNS_HOST_STR(cagent), &tdns_ipaddr))
+        {
+            dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_release_tcid: [cache] dns resolve '%s' failed\n",
+                            (char *)CAGENT_TDNS_HOST_STR(cagent));
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0060_CAGENT, 9)(LOGSTDOUT, "[DEBUG] cagent_release_tcid: [cache] dns resolve '%s' => ip '%s'\n",
+                        (char *)CAGENT_TDNS_HOST_STR(cagent), c_word_to_ipv4(tdns_ipaddr));
+    }
+    else
+    {
+        if(EC_FALSE == c_dns_resolve((const char *)CAGENT_TDNS_HOST_STR(cagent), &tdns_ipaddr))
+        {
+            dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_release_tcid: [ncache] dns resolve '%s' failed\n",
+                            (char *)CAGENT_TDNS_HOST_STR(cagent));
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0060_CAGENT, 9)(LOGSTDOUT, "[DEBUG] cagent_release_tcid: [ncache] dns resolve '%s' => ip '%s'\n",
+                        (char *)CAGENT_TDNS_HOST_STR(cagent), c_word_to_ipv4(tdns_ipaddr));
     }
 
     chttp_req_set_ipaddr_word(&chttp_req, tdns_ipaddr);
@@ -369,11 +402,27 @@ EC_BOOL cagent_set_service(CAGENT *cagent, const char *network_level, const char
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
 
-    if(EC_FALSE == c_dns_resolve((const char *)CAGENT_TDNS_HOST_STR(cagent), &tdns_ipaddr))
+    if(SWITCH_ON == DNS_CACHE_SWITCH)
     {
-        dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_set_service: dns resolve '%s' failed\n",
-                        (char *)CAGENT_TDNS_HOST_STR(cagent));
-        return (EC_FALSE);
+        if(EC_FALSE == cdnscache_dns_resolve((const char *)CAGENT_TDNS_HOST_STR(cagent), &tdns_ipaddr))
+        {
+            dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_set_service: [cache] dns resolve '%s' failed\n",
+                            (char *)CAGENT_TDNS_HOST_STR(cagent));
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0060_CAGENT, 9)(LOGSTDOUT, "[DEBUG] cagent_set_service: [cache] dns resolve '%s' => ip '%s'\n",
+                        (char *)CAGENT_TDNS_HOST_STR(cagent), c_word_to_ipv4(tdns_ipaddr));
+    }
+    else
+    {
+        if(EC_FALSE == c_dns_resolve((const char *)CAGENT_TDNS_HOST_STR(cagent), &tdns_ipaddr))
+        {
+            dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_set_service: [ncache] dns resolve '%s' failed\n",
+                            (char *)CAGENT_TDNS_HOST_STR(cagent));
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0060_CAGENT, 9)(LOGSTDOUT, "[DEBUG] cagent_set_service: [ncache] dns resolve '%s' => ip '%s'\n",
+                        (char *)CAGENT_TDNS_HOST_STR(cagent), c_word_to_ipv4(tdns_ipaddr));
     }
 
     chttp_req_set_ipaddr_word(&chttp_req, tdns_ipaddr);
@@ -435,11 +484,27 @@ EC_BOOL cagent_set_tcid(CAGENT *cagent, const char *tcid, const char *ipaddr, co
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
 
-    if(EC_FALSE == c_dns_resolve((const char *)CAGENT_TDNS_HOST_STR(cagent), &tdns_ipaddr))
+    if(SWITCH_ON == DNS_CACHE_SWITCH)
     {
-        dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_set_tcid: dns resolve '%s' failed\n",
-                        (char *)CAGENT_TDNS_HOST_STR(cagent));
-        return (EC_FALSE);
+        if(EC_FALSE == cdnscache_dns_resolve((const char *)CAGENT_TDNS_HOST_STR(cagent), &tdns_ipaddr))
+        {
+            dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_set_tcid: [cache] dns resolve '%s' failed\n",
+                            (char *)CAGENT_TDNS_HOST_STR(cagent));
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0060_CAGENT, 9)(LOGSTDOUT, "[DEBUG] cagent_set_tcid: [cache] dns resolve '%s' => ip '%s'\n",
+                        (char *)CAGENT_TDNS_HOST_STR(cagent), c_word_to_ipv4(tdns_ipaddr));
+    }
+    else
+    {
+        if(EC_FALSE == c_dns_resolve((const char *)CAGENT_TDNS_HOST_STR(cagent), &tdns_ipaddr))
+        {
+            dbg_log(SEC_0060_CAGENT, 0)(LOGSTDOUT, "error:cagent_set_tcid: [ncache] dns resolve '%s' failed\n",
+                            (char *)CAGENT_TDNS_HOST_STR(cagent));
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0060_CAGENT, 9)(LOGSTDOUT, "[DEBUG] cagent_set_tcid: [ncache] dns resolve '%s' => ip '%s'\n",
+                        (char *)CAGENT_TDNS_HOST_STR(cagent), c_word_to_ipv4(tdns_ipaddr));
     }
 
     chttp_req_set_ipaddr_word(&chttp_req, tdns_ipaddr);

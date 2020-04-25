@@ -113,6 +113,12 @@ void cxfsnp_mgr_print_del_list(LOG *log, const CXFSNP_MGR *cxfsnp_mgr);
 
 void cxfsnp_mgr_print(LOG *log, const CXFSNP_MGR *cxfsnp_mgr);
 
+uint64_t cxfsnp_mgr_count_meta_size(const CXFSNP_MGR *cxfsnp_mgr);
+
+uint64_t cxfsnp_mgr_count_delete_size(const CXFSNP_MGR *cxfsnp_mgr);
+
+uint64_t cxfsnp_mgr_count_recycle_size(const CXFSNP_MGR *cxfsnp_mgr);
+
 EC_BOOL cxfsnp_mgr_flush(CXFSNP_MGR *cxfsnp_mgr);
 
 EC_BOOL cxfsnp_mgr_load(CXFSNP_MGR *cxfsnp_mgr, const int cxfsnp_dev_fd, const CXFSCFG *cxfscfg);

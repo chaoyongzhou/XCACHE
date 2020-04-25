@@ -843,15 +843,22 @@ typedef EC_BOOL (*CHTTP_NODE_SEND_BODY_CALLBACK)(const UINT32, const UINT32, con
 #define CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec)                      \
     ((0 == (e_nsec)) ? 0 : (((e_nsec) - (s_nsec)) * 1000 + (e_msec) - (s_msec)))
 
-
 typedef EC_BOOL (*CHTTP_NODE_COMMIT_REQUEST)(CHTTP_NODE *);
 typedef EC_BOOL (*CHTTP_REQ_CONN_FAIL_CALLBACK)(void *);
+
 typedef struct
 {
     /*http server*/
     UINT32              ipaddr;
     UINT32              port;
 
+#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
+    CSTRING             domain; /* domain optional. for dns cache only */
+                                /* if domain is set, and http(s) connect failed, */
+                                /* dns cache would kick off the ip. */
+                                /* actually we can ignore such handling */
+                                /* and ask orig detector takes responsibility of ip working*/
+#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
     EC_BOOL             ssl_flag;
 
     CSTRING             method;
@@ -873,6 +880,10 @@ typedef struct
 #define CHTTP_REQ_IPADDR(chttp_req)                 ((chttp_req)->ipaddr)
 #define CHTTP_REQ_IPADDR_STR(chttp_req)             (c_word_to_ipv4(CHTTP_REQ_IPADDR(chttp_req)))
 #define CHTTP_REQ_PORT(chttp_req)                   ((chttp_req)->port)
+#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
+#define CHTTP_REQ_DOMAIN(chttp_req)                 (&((chttp_req)->domain))
+#define CHTTP_REQ_DOMAIN_STR(chttp_req)             (cstring_get_str(CHTTP_REQ_DOMAIN(chttp_req)))
+#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
 #define CHTTP_REQ_SSL_FLAG(chttp_req)               ((chttp_req)->ssl_flag)
 #define CHTTP_REQ_METHOD(chttp_req)                 (&((chttp_req)->method))
 #define CHTTP_REQ_URI(chttp_req)                    (&((chttp_req)->uri))

@@ -72,7 +72,7 @@
 #define SEC_0062_CROUTINE                   ((UINT32)(     62)) /*croutine                        */
 #define SEC_0063_CPING                      ((UINT32)(     63)) /*cping                           */
 #define SEC_0064_CHASHALGO                  ((UINT32)(     64)) /*chashalgo                       */
-#define SEC_0065_XXXXXXXXX                  ((UINT32)(     65)) /*-- obsolete --                  */
+#define SEC_0065_CDNSCACHE                  ((UINT32)(     65)) /*cdnscache                       */
 #define SEC_0066_MM                         ((UINT32)(     66)) /*mm                              */
 #define SEC_0067_CSTACK                     ((UINT32)(     67)) /*cstack                          */
 #define SEC_0068_CP2PHTTP                   ((UINT32)(     68)) /*cp2phttp                        */

@@ -34,7 +34,7 @@ extern "C"{
 #include "ctdnshttp.h"
 #include "cp2p.h"
 //#include "cp2phttp.h"
-
+#include "cdnscache.h"
 #include "findex.inc"
 
 #define CP2P_MD_CAPACITY()                  (cbc_md_capacity(MD_CP2P))
@@ -2186,11 +2186,27 @@ EC_BOOL cp2p_online_report(const UINT32 cp2p_md_id, const CSTRING *service_name)
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
 
-    if(EC_FALSE == c_dns_resolve(tdns_srv_host, &tdns_srv_ipaddr))
+    if(SWITCH_ON == DNS_CACHE_SWITCH)
     {
-        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_online_report: dns resolve '%s' failed\n",
-                        tdns_srv_host);
-        return (EC_FALSE);
+        if(EC_FALSE == cdnscache_dns_resolve(tdns_srv_host, &tdns_srv_ipaddr))
+        {
+            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_online_report: [cache] dns resolve '%s' failed\n",
+                            tdns_srv_host);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_online_report: [cache] dns resolve '%s' => ip '%s'\n",
+                            tdns_srv_host, c_word_to_ipv4(tdns_srv_ipaddr));
+    }
+    else
+    {
+        if(EC_FALSE == c_dns_resolve(tdns_srv_host, &tdns_srv_ipaddr))
+        {
+            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_online_report: [ncache] dns resolve '%s' failed\n",
+                            tdns_srv_host);
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_online_report: [ncache] dns resolve '%s' => ip '%s'\n",
+                            tdns_srv_host, c_word_to_ipv4(tdns_srv_ipaddr));
     }
 
     chttp_req_set_ipaddr_word(&chttp_req, tdns_srv_ipaddr);

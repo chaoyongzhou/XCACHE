@@ -157,10 +157,10 @@ extern "C"{
 #define                   MM_CSDISC_NODE    ((UINT32) 90)
 #define                 MM_CSDISC_SENDER    ((UINT32) 91)
 #define                 MM_CSDISC_RECVER    ((UINT32) 92)
-#define                        MM_000093    ((UINT32) 93) /*-- obsolete --*/
+#define                MM_CDNSCACHE_NODE    ((UINT32) 93)
 #define                    MM_CLOAD_STAT    ((UINT32) 94)
 #define                    MM_CLOAD_NODE    ((UINT32) 95)
-#define                        MM_000096    ((UINT32) 96) /*-- obsolete --*/
+#define                     MM_CDNSCACHE    ((UINT32) 96)
 #define                        MM_000097    ((UINT32) 97) /*-- obsolete --*/
 #define                MM_TYPE_CONV_ITEM    ((UINT32) 98)
 #define                          MM_CSRV    ((UINT32) 99)

@@ -212,6 +212,12 @@ EC_BOOL cxfshttps_handle_locked_file_retire_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttps_make_locked_file_retire_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttps_commit_locked_file_retire_get_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL cxfshttps_is_http_get_stat(const CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttps_commit_stat_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttps_handle_stat_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttps_make_stat_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttps_commit_stat_get_response(CHTTP_NODE *chttp_node);
+
 #endif /*_CXFSHTTPS_H*/
 
 #ifdef __cplusplus

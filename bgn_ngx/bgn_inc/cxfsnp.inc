@@ -372,7 +372,7 @@ typedef struct
 
     CXFSOP_MGR             *cxfsop_mgr;
 
-    CXFSNP_HEADER          *header;       /* hashdb header */
+    CXFSNP_HEADER          *header;       /* np header */
 
     /*shortcut of lru list which point to root rb node */
     CXFSNPLRU_NODE         *lru_list; /*the lastest access node is at head covering fnode only*/

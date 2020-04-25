@@ -139,6 +139,11 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
 
     api_cmd_help_vec_create(cmd_help_vec, "dns resolve"   , "dns resolve <domain> from <server> on tcid <tcid> rank <rank> at <console|log>");
 
+    api_cmd_help_vec_create(cmd_help_vec, "dns cache"     , "dns cache {enable|disable} on tcid <tcid> rank <rank> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "dns cache"     , "dns cache set expired <nsec> seconds on tcid <tcid> rank <rank> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "dns cache"     , "dns cache {show|resolve} <domain> on tcid <tcid> rank <rank> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "dns cache"     , "dns cache retire <domain> ipv4 <ipv4> on tcid <tcid> rank <rank> at <console|log>");
+
     api_cmd_help_vec_create(cmd_help_vec, "act sysconfig" , "act sysconfig on {all | tcid <tcid> rank <rank>} at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "show sysconfig", "show sysconfig on {all | tcid <tcid> rank <rank>} at <console|log>");
 
@@ -371,6 +376,13 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_show_client                 , "show client tcid %t at %s"                       , tcid, where);
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_dns_resolve_demo            , "dns resolve %s from %s on tcid %t rank %n at %s" , where, where, tcid, rank, where);
+
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_dns_cache_enable            , "dns cache enable on tcid %t rank %n at %s" , tcid, rank, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_dns_cache_disable           , "dns cache disable on tcid %t rank %n at %s" , tcid, rank, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_dns_cache_set_expired_nsec  , "dns cache set expired %n seconds on tcid %t rank %n at %s" , rank, tcid, rank, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_dns_cache_show              , "dns cache show %s on tcid %t rank %n at %s" , where, tcid, rank, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_dns_cache_resolve           , "dns cache resolve %s on tcid %t rank %n at %s" , where, tcid, rank, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_dns_cache_retire            , "dns cache retire %s ipv4 %s on tcid %t rank %n at %s" , where, where, tcid, rank, where);
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_activate_sys_cfg_all        , "act sysconfig on all at %s"                 , where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_activate_sys_cfg            , "act sysconfig on tcid %t rank %n at %s"     , tcid, rank, where);
@@ -971,6 +983,7 @@ EC_BOOL api_cmd_ui_dns_resolve_demo(CMD_PARA_VEC * param)
     MOD_NODE    mod_node;
 
     EC_BOOL   ret;
+    LOG      *des_log;
 
     api_cmd_para_vec_get_cstring(param , 0, &domain);
     api_cmd_para_vec_get_cstring(param , 1, &dns_server);
@@ -997,13 +1010,316 @@ EC_BOOL api_cmd_ui_dns_resolve_demo(CMD_PARA_VEC * param)
              &ret,
              FI_super_dns_resolve_demo, CMPI_ERROR_MODI, dns_server, domain);
 
+    des_log = api_cmd_ui_get_log(where);
+
     if(EC_TRUE == ret)
     {
-        sys_log(LOGCONSOLE, "[SUCC]\n");
+        sys_log(des_log, "[SUCC]\n");
     }
     else
     {
-        sys_log(LOGCONSOLE, "[FAIL]\n");
+        sys_log(des_log, "[FAIL]\n");
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_dns_cache_enable(CMD_PARA_VEC * param)
+{
+    CSTRING *where;
+    UINT32   tcid;
+    UINT32   rank;
+
+    MOD_NODE    mod_node;
+
+    EC_BOOL   ret;
+    LOG      *des_log;
+
+    api_cmd_para_vec_get_tcid(param    , 0, &tcid);
+    api_cmd_para_vec_get_uint32(param  , 1, &rank);
+    api_cmd_para_vec_get_cstring(param , 2, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "dns cache enable on tcid %s rank %ld at %s\n",
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    ret = EC_FALSE;
+
+    MOD_NODE_TCID(&mod_node) = tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = rank;
+    MOD_NODE_MODI(&mod_node) = 0;/*super_md_id = 0*/
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_super_dns_cache_switch_on, CMPI_ERROR_MODI);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC]\n");
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL]\n");
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_dns_cache_disable(CMD_PARA_VEC * param)
+{
+    CSTRING *where;
+    UINT32   tcid;
+    UINT32   rank;
+
+    MOD_NODE    mod_node;
+
+    EC_BOOL   ret;
+    LOG      *des_log;
+
+    api_cmd_para_vec_get_tcid(param    , 0, &tcid);
+    api_cmd_para_vec_get_uint32(param  , 1, &rank);
+    api_cmd_para_vec_get_cstring(param , 2, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "dns cache disable on tcid %s rank %ld at %s\n",
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    ret = EC_FALSE;
+
+    MOD_NODE_TCID(&mod_node) = tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = rank;
+    MOD_NODE_MODI(&mod_node) = 0;/*super_md_id = 0*/
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_super_dns_cache_switch_off, CMPI_ERROR_MODI);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC]\n");
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL]\n");
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_dns_cache_set_expired_nsec(CMD_PARA_VEC * param)
+{
+    UINT32   expired_nsec;
+    CSTRING *where;
+    UINT32   tcid;
+    UINT32   rank;
+
+    MOD_NODE    mod_node;
+
+    EC_BOOL   ret;
+    LOG      *des_log;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &expired_nsec);
+    api_cmd_para_vec_get_tcid(param    , 1, &tcid);
+    api_cmd_para_vec_get_uint32(param  , 2, &rank);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "dns cache set expired %ld seconds on tcid %s rank %ld at %s\n",
+                        expired_nsec,
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    ret = EC_FALSE;
+
+    MOD_NODE_TCID(&mod_node) = tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = rank;
+    MOD_NODE_MODI(&mod_node) = 0;/*super_md_id = 0*/
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_super_dns_cache_expired_nsec_set, CMPI_ERROR_MODI, expired_nsec);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC]\n");
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL]\n");
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_dns_cache_show(CMD_PARA_VEC * param)
+{
+    CSTRING *domain;
+    CSTRING *where;
+    UINT32   tcid;
+    UINT32   rank;
+
+    MOD_NODE    mod_node;
+
+    EC_BOOL   ret;
+    LOG      *log;
+    LOG      *des_log;
+
+    api_cmd_para_vec_get_cstring(param , 0, &domain);
+    api_cmd_para_vec_get_tcid(param    , 1, &tcid);
+    api_cmd_para_vec_get_uint32(param  , 2, &rank);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "dns cache show %s on tcid %s rank %ld at %s\n",
+                        (char *)cstring_get_str(domain),
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    ret = EC_FALSE;
+
+    log = log_cstr_open();
+
+    MOD_NODE_TCID(&mod_node) = tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = rank;
+    MOD_NODE_MODI(&mod_node) = 0;/*super_md_id = 0*/
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_super_dns_cache_show, CMPI_ERROR_MODI, domain, log);
+
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC]\n%s\n", (char *)cstring_get_str(LOG_CSTR(log)));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL]\n");
+    }
+
+    log_cstr_close(log);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_dns_cache_resolve(CMD_PARA_VEC * param)
+{
+    CSTRING *domain;
+    CSTRING *where;
+    UINT32   tcid;
+    UINT32   rank;
+
+    MOD_NODE    mod_node;
+
+    UINT32    ipv4;
+    EC_BOOL   ret;
+    LOG      *des_log;
+
+    api_cmd_para_vec_get_cstring(param , 0, &domain);
+    api_cmd_para_vec_get_tcid(param    , 1, &tcid);
+    api_cmd_para_vec_get_uint32(param  , 2, &rank);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "dns cache resolve %s on tcid %s rank %ld at %s\n",
+                        (char *)cstring_get_str(domain),
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    ret = EC_FALSE;
+
+    MOD_NODE_TCID(&mod_node) = tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = rank;
+    MOD_NODE_MODI(&mod_node) = 0;/*super_md_id = 0*/
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_super_dns_cache_resolve, CMPI_ERROR_MODI, domain, &ipv4);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] ipv4: %s\n", c_word_to_ipv4(ipv4));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL]\n");
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_dns_cache_retire(CMD_PARA_VEC * param)
+{
+    CSTRING *domain;
+    CSTRING *ipaddr;
+    CSTRING *where;
+    UINT32   tcid;
+    UINT32   rank;
+
+    MOD_NODE    mod_node;
+
+    UINT32    ipv4;
+    EC_BOOL   ret;
+    LOG      *des_log;
+
+    api_cmd_para_vec_get_cstring(param , 0, &domain);
+    api_cmd_para_vec_get_cstring(param , 1, &ipaddr);
+    api_cmd_para_vec_get_tcid(param    , 2, &tcid);
+    api_cmd_para_vec_get_uint32(param  , 3, &rank);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "dns cache retire %s ipv4 %s on tcid %s rank %ld at %s\n",
+                        (char *)cstring_get_str(domain),
+                        (char *)cstring_get_str(ipaddr),
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    ret = EC_FALSE;
+
+    MOD_NODE_TCID(&mod_node) = tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = rank;
+    MOD_NODE_MODI(&mod_node) = 0;/*super_md_id = 0*/
+
+    ipv4 = c_ipv4_to_word((char *)cstring_get_str(ipaddr));
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_super_dns_cache_retire, CMPI_ERROR_MODI, domain, ipv4);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC]\n");
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL]\n");
     }
 
     return (EC_TRUE);

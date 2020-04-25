@@ -773,6 +773,48 @@ EC_BOOL super_set_billing(const UINT32 super_md_id, const UINT32 billing_srv_ipa
 
 /**
 *
+* enable dns cache
+*
+**/
+EC_BOOL super_dns_cache_switch_on(const UINT32 super_md_id);
+
+/**
+*
+* disable dns cache
+*
+**/
+EC_BOOL super_dns_cache_switch_off(const UINT32 super_md_id);
+
+/**
+*
+* set dns resolve result expired in nsec
+*
+**/
+EC_BOOL super_dns_cache_expired_nsec_set(const UINT32 super_md_id, const UINT32 nsec);
+
+/**
+*
+* dns cache show
+*
+**/
+EC_BOOL super_dns_cache_show(const UINT32 super_md_id, const CSTRING *domain, LOG *log);
+
+/**
+*
+* dns cache resolver
+*
+**/
+EC_BOOL super_dns_cache_resolve(const UINT32 super_md_id, const CSTRING *domain, UINT32 *ipv4);
+
+/**
+*
+* dns cache retire one ipv4
+*
+**/
+EC_BOOL super_dns_cache_retire(const UINT32 super_md_id, const CSTRING *domain, const UINT32 ipv4);
+
+/**
+*
 * ngx reload bgn module so libs
 *
 **/

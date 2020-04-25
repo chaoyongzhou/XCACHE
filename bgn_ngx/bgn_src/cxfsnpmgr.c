@@ -350,6 +350,72 @@ void cxfsnp_mgr_print(LOG *log, const CXFSNP_MGR *cxfsnp_mgr)
     return;
 }
 
+uint64_t cxfsnp_mgr_count_meta_size(const CXFSNP_MGR *cxfsnp_mgr)
+{
+    uint32_t cxfsnp_num;
+    uint32_t cxfsnp_id;
+
+    uint64_t total_size;
+
+    total_size = 0;
+    cxfsnp_num = (uint32_t)cvector_size(CXFSNP_MGR_NP_VEC(cxfsnp_mgr));
+    for(cxfsnp_id = 0; cxfsnp_id < cxfsnp_num; cxfsnp_id ++)
+    {
+        CXFSNP *cxfsnp;
+
+        cxfsnp = CXFSNP_MGR_NP(cxfsnp_mgr, cxfsnp_id);
+        if(NULL_PTR != cxfsnp)
+        {
+            total_size += CXFSNP_FSIZE(cxfsnp);
+        }
+    }
+    return (total_size);
+}
+
+uint64_t cxfsnp_mgr_count_delete_size(const CXFSNP_MGR *cxfsnp_mgr)
+{
+    uint32_t cxfsnp_num;
+    uint32_t cxfsnp_id;
+
+    uint64_t total_size;
+
+    total_size = 0;
+    cxfsnp_num = (uint32_t)cvector_size(CXFSNP_MGR_NP_VEC(cxfsnp_mgr));
+    for(cxfsnp_id = 0; cxfsnp_id < cxfsnp_num; cxfsnp_id ++)
+    {
+        CXFSNP *cxfsnp;
+
+        cxfsnp = CXFSNP_MGR_NP(cxfsnp_mgr, cxfsnp_id);
+        if(NULL_PTR != cxfsnp)
+        {
+            total_size += CXFSNP_DEL_SIZE(cxfsnp);
+        }
+    }
+    return (total_size);
+}
+
+uint64_t cxfsnp_mgr_count_recycle_size(const CXFSNP_MGR *cxfsnp_mgr)
+{
+    uint32_t cxfsnp_num;
+    uint32_t cxfsnp_id;
+
+    uint64_t total_size;
+
+    total_size = 0;
+    cxfsnp_num = (uint32_t)cvector_size(CXFSNP_MGR_NP_VEC(cxfsnp_mgr));
+    for(cxfsnp_id = 0; cxfsnp_id < cxfsnp_num; cxfsnp_id ++)
+    {
+        CXFSNP *cxfsnp;
+
+        cxfsnp = CXFSNP_MGR_NP(cxfsnp_mgr, cxfsnp_id);
+        if(NULL_PTR != cxfsnp)
+        {
+            total_size += CXFSNP_RECYCLE_SIZE(cxfsnp);
+        }
+    }
+    return (total_size);
+}
+
 EC_BOOL cxfsnp_mgr_flush(CXFSNP_MGR *cxfsnp_mgr)
 {
     if(SWITCH_OFF == CXFS_NP_MMAP_SWITCH
