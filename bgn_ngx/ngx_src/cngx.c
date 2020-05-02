@@ -2432,37 +2432,6 @@ EC_BOOL cngx_enable_send_header(ngx_http_request_t *r)
     return (EC_TRUE);
 }
 
-EC_BOOL cngx_inc_send_body_size(ngx_http_request_t *r, const UINT32 size)
-{
-    if(r->stream)
-    {
-        r->stream->sent_body_size += size;
-    }
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cngx_get_send_body_size(ngx_http_request_t *r, UINT32 *size)
-{
-    if(r->stream && size)
-    {
-        (*size) = r->stream->sent_body_size;
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cngx_need_send_body_again(ngx_http_request_t *r, const ngx_int_t rc)
-{
-    if(r->stream && NGX_AGAIN == rc)
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
 static EC_BOOL __cngx_set_buf_flags(ngx_buf_t *b, const uint32_t flags)
 {
     if(CNGX_SEND_BODY_IN_MEM_FLAG & flags)
@@ -2572,10 +2541,11 @@ EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_
 
     if(rc == NGX_AGAIN/* || b->last > b->pos + NGX_LUA_OUTPUT_BLOCKING_LOWAT*/)
     {
-        cngx_inc_send_body_size(r, len);
-
         if(r->stream)
         {
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "fatal error:cngx_send_body: "
+                                                 "http/2 should never reach here! "
+                                                 "you MUST check configuration !!\n");
             return (EC_TRUE);
         }
 
@@ -2585,8 +2555,6 @@ EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_
 
         return cngx_send_body_blocking(r, ngx_rc);
     }
-
-    cngx_inc_send_body_size(r, len);
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_body: send body done\n");
 

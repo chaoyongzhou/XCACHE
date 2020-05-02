@@ -291,12 +291,6 @@ EC_BOOL cngx_disable_send_header(ngx_http_request_t *r);
 
 EC_BOOL cngx_enable_send_header(ngx_http_request_t *r);
 
-EC_BOOL cngx_inc_send_body_size(ngx_http_request_t *r, const UINT32 size);
-
-EC_BOOL cngx_get_send_body_size(ngx_http_request_t *r, UINT32 *size);
-
-EC_BOOL cngx_need_send_body_again(ngx_http_request_t *r, const ngx_int_t rc);
-
 EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_t len, const uint32_t flag, ngx_int_t *ngx_rc);
 
 EC_BOOL cngx_set_store_cache_rsp_headers(ngx_http_request_t *r, CHTTP_STORE *chttp_store);

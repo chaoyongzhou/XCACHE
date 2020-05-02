@@ -436,39 +436,6 @@ EC_BOOL cvendor_override_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, 
     return (EC_TRUE);
 }
 
-EC_BOOL cvendor_skip_sent_body(const UINT32 cvendor_md_id)
-{
-    CVENDOR_MD                  *cvendor_md;
-
-    ngx_http_request_t          *r;
-    UINT32                       sent_body_size;
-
-#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
-    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:cvendor_set_store_cache_path: cvendor module #0x%lx not started.\n",
-                cvendor_md_id);
-        dbg_exit(MD_CVENDOR, cvendor_md_id);
-    }
-#endif/*CVENDOR_DEBUG_SWITCH*/
-
-    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
-
-    r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
-
-    if(EC_TRUE == cngx_get_send_body_size(r, &sent_body_size)
-    && 0 < sent_body_size)
-    {
-        crange_mgr_filter(CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md),
-                          sent_body_size,
-                          ((UINT32)~0),
-                          ((UINT32)~0));
-    }
-
-    return (EC_TRUE);
-}
-
 EC_BOOL cvendor_set_store_cache_path(const UINT32 cvendor_md_id)
 {
     CVENDOR_MD                  *cvendor_md;
@@ -5012,13 +4979,6 @@ EC_BOOL cvendor_content_direct_send_node(const UINT32 cvendor_md_id, CRANGE_NODE
             crange_node_first_seg_pop(crange_node);
             crange_seg_free(crange_seg);
         }
-
-        if(EC_TRUE == cngx_need_send_body_again(r, CVENDOR_MD_NGX_RC(cvendor_md)))
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_node: "
-                                                    "need send again\n");
-            return (EC_TRUE);
-        }
     }
 
     return (EC_TRUE);
@@ -5380,13 +5340,6 @@ EC_BOOL cvendor_content_direct_send_response(const UINT32 cvendor_md_id)
                                                         CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
                 crange_mgr_first_node_pop(crange_mgr);
                 crange_node_free(crange_node);
-            }
-
-            if(EC_TRUE == cngx_need_send_body_again(r, CVENDOR_MD_NGX_RC(cvendor_md)))
-            {
-                dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_send_response: "
-                                                        "need send again\n");
-                return (EC_TRUE);
             }
         }
 
@@ -6983,13 +6936,6 @@ EC_BOOL cvendor_content_repair_send_node(const UINT32 cvendor_md_id, CRANGE_NODE
 
         /*clean boundary which was sent out*/
         cstring_clean(CRANGE_NODE_BOUNDARY(crange_node));
-
-        if(EC_TRUE == cngx_need_send_body_again(r, CVENDOR_MD_NGX_RC(cvendor_md)))
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_send_node: "
-                                                    "need send again\n");
-            return (EC_TRUE);
-        }
     }
 
     while(NULL_PTR != (crange_seg = crange_node_first_seg(crange_node)))
@@ -7019,13 +6965,6 @@ EC_BOOL cvendor_content_repair_send_node(const UINT32 cvendor_md_id, CRANGE_NODE
                                                     CRANGE_SEG_NO(crange_seg));
             crange_node_first_seg_pop(crange_node);
             crange_seg_free(crange_seg);
-        }
-
-        if(EC_TRUE == cngx_need_send_body_again(r, CVENDOR_MD_NGX_RC(cvendor_md)))
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_send_node: "
-                                                    "need send again\n");
-            return (EC_TRUE);
         }
     }
 
@@ -7229,13 +7168,6 @@ EC_BOOL cvendor_content_repair_send_response(const UINT32 cvendor_md_id)
                                                         CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
                 crange_mgr_first_node_pop(crange_mgr);
                 crange_node_free(crange_node);
-            }
-
-            if(EC_TRUE == cngx_need_send_body_again(r, CVENDOR_MD_NGX_RC(cvendor_md)))
-            {
-                dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_send_response: "
-                                                        "need send again\n");
-                return (EC_TRUE);
             }
         }
 
@@ -15643,13 +15575,6 @@ EC_BOOL cvendor_content_expired_send_node(const UINT32 cvendor_md_id, CRANGE_NOD
             crange_node_first_seg_pop(crange_node);
             crange_seg_free(crange_seg);
         }
-
-        if(EC_TRUE == cngx_need_send_body_again(r, CVENDOR_MD_NGX_RC(cvendor_md)))
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_expired_send_node: "
-                                                    "need send again\n");
-            return (EC_TRUE);
-        }
     }
 
     return (EC_TRUE);
@@ -17382,13 +17307,6 @@ EC_BOOL cvendor_content_cache_send_node(const UINT32 cvendor_md_id, CRANGE_NODE 
 
         /*clean boundary which was sent out*/
         cstring_clean(CRANGE_NODE_BOUNDARY(crange_node));
-
-        if(EC_TRUE == cngx_need_send_body_again(r, CVENDOR_MD_NGX_RC(cvendor_md)))
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_node: "
-                                                    "need send again\n");
-            return (EC_TRUE);
-        }
     }
 
     while(NULL_PTR != (crange_seg = crange_node_first_seg(crange_node)))
@@ -17418,13 +17336,6 @@ EC_BOOL cvendor_content_cache_send_node(const UINT32 cvendor_md_id, CRANGE_NODE 
                                                     CRANGE_SEG_NO(crange_seg));
             crange_node_first_seg_pop(crange_node);
             crange_seg_free(crange_seg);
-        }
-
-        if(EC_TRUE == cngx_need_send_body_again(r, CVENDOR_MD_NGX_RC(cvendor_md)))
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_node: "
-                                                    "need send again\n");
-            return (EC_TRUE);
         }
     }
 
@@ -17642,13 +17553,6 @@ EC_BOOL cvendor_content_cache_send_response(const UINT32 cvendor_md_id)
             crange_mgr_first_node_pop(crange_mgr);
             crange_node_free(crange_node);
         }
-
-        if(EC_TRUE == cngx_need_send_body_again(r, CVENDOR_MD_NGX_RC(cvendor_md)))
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_response: "
-                                                    "need send again\n");
-            return (EC_TRUE);
-        }
     }
 
     /*send body: last boundary (for multi-ranges)*/
@@ -17681,13 +17585,6 @@ EC_BOOL cvendor_content_cache_send_response(const UINT32 cvendor_md_id)
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_response: "
                                                 "send body boundary: %ld bytes done\n",
                                                 CSTRING_LEN(boundary));
-
-        if(EC_TRUE == cngx_need_send_body_again(r, CVENDOR_MD_NGX_RC(cvendor_md)))
-        {
-            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_send_response: "
-                                                    "need send again\n");
-            return (EC_TRUE);
-        }
     }
 
     /*send body end*/
@@ -17989,9 +17886,6 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
 
         /*fall through*/
     }while(0);
-
-    /*skip sent body if necessary*/
-    cvendor_skip_sent_body(cvendor_md_id);
 
     /*send header and body*/
     if(EC_FALSE == cvendor_content_cache_send_response(cvendor_md_id))
