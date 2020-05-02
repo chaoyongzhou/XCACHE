@@ -2274,7 +2274,7 @@ EC_BOOL cflv_content_head_header_in_filter_upstream(const UINT32 cflv_md_id)
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0010);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_upstream: "
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
                                          c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
@@ -3498,7 +3498,7 @@ EC_BOOL cflv_content_direct_header_in_filter_upstream(const UINT32 cflv_md_id)
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0056);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_upstream: "
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
                                          c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
@@ -4936,15 +4936,18 @@ EC_BOOL cflv_content_direct_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG
     {
         uint8_t         *data;
         uint32_t         len;
+        uint32_t         flags;
 
         cflv_content_direct_body_out_filter(cflv_md_id);
 
         data = CBYTES_BUF(CHTTP_RSP_BODY(chttp_rsp)) + CRANGE_SEG_S_OFFSET(crange_seg);
         len  = (uint32_t)(CRANGE_SEG_E_OFFSET(crange_seg) + 1 - CRANGE_SEG_S_OFFSET(crange_seg));
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CFLV_MD_NGX_RC(cflv_md))))
+        flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_seg_n: "
                                                  "send body seg %ld failed\n",
@@ -5013,6 +5016,7 @@ EC_BOOL cflv_content_direct_send_node(const UINT32 cflv_md_id, CRANGE_NODE *cran
         CSTRING     *boundary;
         uint8_t     *data;
         uint32_t     len;
+        uint32_t     flags;
 
         boundary = CRANGE_NODE_BOUNDARY(crange_node);
 
@@ -5021,9 +5025,11 @@ EC_BOOL cflv_content_direct_send_node(const UINT32 cflv_md_id, CRANGE_NODE *cran
         data = (uint8_t *)CSTRING_STR(boundary);
         len  = (uint32_t)CSTRING_LEN(boundary);
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CFLV_MD_NGX_RC(cflv_md))))
+        flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_node: "
                                                  "send body boundary failed\n");
@@ -5176,6 +5182,7 @@ EC_BOOL cflv_content_direct_send_body(const UINT32 cflv_md_id, const UINT32 seg_
     CFLV_MD                     *cflv_md;
 
     ngx_http_request_t          *r;
+    uint32_t                     flags;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -5207,9 +5214,11 @@ EC_BOOL cflv_content_direct_send_body(const UINT32 cflv_md_id, const UINT32 seg_
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == cngx_send_body(r, data, (uint32_t)len,
-                     CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                     &(CFLV_MD_NGX_RC(cflv_md))))
+    flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+    if(EC_FALSE == cngx_send_body(r, data, (uint32_t)len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_body: "
                                              "send body %ld bytes failed\n",
@@ -5227,6 +5236,48 @@ EC_BOOL cflv_content_direct_send_body(const UINT32 cflv_md_id, const UINT32 seg_
                                          "send recved seg %ld done => sent body %ld bytes\n",
                                          seg_no,
                                          CFLV_MD_SENT_BODY_SIZE(cflv_md));
+    return (EC_TRUE);
+}
+
+EC_BOOL cflv_content_direct_send_end(const UINT32 cflv_md_id)
+{
+    CFLV_MD                     *cflv_md;
+
+    ngx_http_request_t          *r;
+    uint32_t                     flags;
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_direct_send_end: cflv module #0x%lx not started.\n",
+                cflv_md_id);
+        dbg_exit(MD_CFLV, cflv_md_id);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+    cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+
+    flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+            | CNGX_SEND_BODY_NO_MORE_FLAG
+            /*
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG
+            */;
+
+    if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0, flags, &(CFLV_MD_NGX_RC(cflv_md))))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_end: "
+                                             "send body end failed\n");
+
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_send_end: "
+                                         "send body end done\n");
+
     return (EC_TRUE);
 }
 
@@ -5304,15 +5355,18 @@ EC_BOOL cflv_content_direct_send_response(const UINT32 cflv_md_id)
     {
         uint8_t         *data;
         uint32_t         len;
+        uint32_t         flags;
 
         cflv_content_direct_body_out_filter(cflv_md_id);
 
         data = CBYTES_BUF(CHTTP_RSP_BODY(chttp_rsp));
         len  = (uint32_t)CBYTES_LEN(CHTTP_RSP_BODY(chttp_rsp));
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CFLV_MD_NGX_RC(cflv_md))))
+        flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_response: "
                                                  "send body failed\n");
@@ -5390,6 +5444,7 @@ EC_BOOL cflv_content_direct_send_response(const UINT32 cflv_md_id)
             CSTRING     *boundary;
             uint8_t     *data;
             uint32_t     len;
+            uint32_t     flags;
 
             boundary = CRANGE_MGR_BOUNDARY(crange_mgr);
 
@@ -5397,9 +5452,11 @@ EC_BOOL cflv_content_direct_send_response(const UINT32 cflv_md_id)
             data = (uint8_t *)CSTRING_STR(boundary);
             len  = (uint32_t)CSTRING_LEN(boundary);
 
-            if(EC_FALSE == cngx_send_body(r, data, len,
-                             CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                             &(CFLV_MD_NGX_RC(cflv_md))))
+            flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+                    | CNGX_SEND_BODY_FLUSH_FLAG
+                    | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+            if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_response: "
                                                      "send body boundary failed\n");
@@ -5413,6 +5470,17 @@ EC_BOOL cflv_content_direct_send_response(const UINT32 cflv_md_id)
                                                  "send body boundary: %ld bytes done\n",
                                                  CSTRING_LEN(boundary));
         }
+
+        /*send body end*/
+        if(EC_FALSE == cflv_content_direct_send_end(cflv_md_id))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_send_response: "
+                                                 "send body end failed\n");
+
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_send_response: "
+                                             "send body end done\n");
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_send_response: "
                                              "send body done => complete %ld bytes\n",
@@ -5553,7 +5621,7 @@ EC_BOOL cflv_content_repair_header_in_filter_upstream(const UINT32 cflv_md_id)
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0106);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter_upstream: "
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
                                          c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
@@ -6900,15 +6968,18 @@ EC_BOOL cflv_content_repair_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG
     {
         uint8_t         *data;
         uint32_t         len;
+        uint32_t         flags;
 
         cflv_content_repair_body_out_filter(cflv_md_id);
 
         data = CBYTES_BUF(CHTTP_RSP_BODY(chttp_rsp)) + CRANGE_SEG_S_OFFSET(crange_seg);
         len  = (uint32_t)(CRANGE_SEG_E_OFFSET(crange_seg) + 1 - CRANGE_SEG_S_OFFSET(crange_seg));
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CFLV_MD_NGX_RC(cflv_md))))
+        flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_send_seg_n: "
                                                  "send body seg %ld failed\n",
@@ -6977,6 +7048,7 @@ EC_BOOL cflv_content_repair_send_node(const UINT32 cflv_md_id, CRANGE_NODE *cran
         CSTRING     *boundary;
         uint8_t     *data;
         uint32_t     len;
+        uint32_t     flags;
 
         boundary = CRANGE_NODE_BOUNDARY(crange_node);
 
@@ -6985,9 +7057,11 @@ EC_BOOL cflv_content_repair_send_node(const UINT32 cflv_md_id, CRANGE_NODE *cran
         data = (uint8_t *)CSTRING_STR(boundary);
         len  = (uint32_t)CSTRING_LEN(boundary);
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CFLV_MD_NGX_RC(cflv_md))))
+        flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_send_node: "
                                                  "send body boundary failed\n");
@@ -7033,6 +7107,48 @@ EC_BOOL cflv_content_repair_send_node(const UINT32 cflv_md_id, CRANGE_NODE *cran
             crange_seg_free(crange_seg);
         }
     }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cflv_content_repair_send_end(const UINT32 cflv_md_id)
+{
+    CFLV_MD                     *cflv_md;
+
+    ngx_http_request_t          *r;
+    uint32_t                     flags;
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_repair_send_end: cflv module #0x%lx not started.\n",
+                cflv_md_id);
+        dbg_exit(MD_CFLV, cflv_md_id);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+    cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+
+    flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+            | CNGX_SEND_BODY_NO_MORE_FLAG
+            /*
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG
+            */;
+
+    if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0, flags, &(CFLV_MD_NGX_RC(cflv_md))))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_send_end: "
+                                             "send body end failed\n");
+
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_send_end: "
+                                         "send body end done\n");
 
     return (EC_TRUE);
 }
@@ -7111,15 +7227,18 @@ EC_BOOL cflv_content_repair_send_response(const UINT32 cflv_md_id)
     {
         uint8_t         *data;
         uint32_t         len;
+        uint32_t         flags;
 
         cflv_content_repair_body_out_filter(cflv_md_id);
 
         data = CBYTES_BUF(CHTTP_RSP_BODY(chttp_rsp));
         len  = (uint32_t)CBYTES_LEN(CHTTP_RSP_BODY(chttp_rsp));
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CFLV_MD_NGX_RC(cflv_md))))
+        flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_send_response: "
                                                  "send body failed\n");
@@ -7197,6 +7316,7 @@ EC_BOOL cflv_content_repair_send_response(const UINT32 cflv_md_id)
             CSTRING     *boundary;
             uint8_t     *data;
             uint32_t     len;
+            uint32_t     flags;
 
             boundary = CRANGE_MGR_BOUNDARY(crange_mgr);
 
@@ -7204,9 +7324,11 @@ EC_BOOL cflv_content_repair_send_response(const UINT32 cflv_md_id)
             data = (uint8_t *)CSTRING_STR(boundary);
             len  = (uint32_t)CSTRING_LEN(boundary);
 
-            if(EC_FALSE == cngx_send_body(r, data, len,
-                             CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                             &(CFLV_MD_NGX_RC(cflv_md))))
+            flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+                    | CNGX_SEND_BODY_FLUSH_FLAG
+                    | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+            if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
             {
                 dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_send_response: "
                                                      "send body boundary failed\n");
@@ -7220,6 +7342,17 @@ EC_BOOL cflv_content_repair_send_response(const UINT32 cflv_md_id)
                                                  "send body boundary: %ld bytes done\n",
                                                  CSTRING_LEN(boundary));
         }
+
+        /*send body end*/
+        if(EC_FALSE == cflv_content_repair_send_end(cflv_md_id))
+        {
+            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_send_response: "
+                                                 "send body end failed\n");
+
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_send_response: "
+                                             "send body end done\n");
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_send_response: "
                                              "send body done => complete %ld bytes\n",
@@ -7360,7 +7493,7 @@ EC_BOOL cflv_content_orig_header_in_filter_upstream(const UINT32 cflv_md_id)
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0156);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_upstream: "
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
                                          c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
@@ -9201,14 +9334,17 @@ EC_BOOL cflv_content_orig_send_ahead_body(const UINT32 cflv_md_id)
     {
         uint8_t                     *data;
         uint32_t                     len;
+        uint32_t                     flags;
 
         /*send flv header*/
         data = g_flv_header;
         len  = g_flv_header_len;
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_IN_MEM_FLAG,
-                         &(CFLV_MD_NGX_RC(cflv_md))))
+        flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_IN_MEM_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_send_ahead_body: "
                                                  "send flv header failed\n");
@@ -9233,6 +9369,7 @@ EC_BOOL cflv_content_orig_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG *
     CBYTES                       seg_cbytes;
     uint8_t                     *data;
     uint32_t                     len;
+    uint32_t                     flags;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -9268,9 +9405,11 @@ EC_BOOL cflv_content_orig_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG *
 
     cflv_content_orig_body_out_filter(cflv_md_id, CRANGE_SEG_NO(crange_seg), &data, &len);
 
-    if(EC_FALSE == cngx_send_body(r, data, len,
-                     CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                     &(CFLV_MD_NGX_RC(cflv_md))))
+    flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+    if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_send_seg_n: "
                                              "send body seg %ld failed\n",
@@ -9653,7 +9792,7 @@ EC_BOOL cflv_content_ms_header_in_filter_upstream(const UINT32 cflv_md_id)
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0216);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_upstream: "
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
                                          c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
@@ -11440,6 +11579,7 @@ EC_BOOL cflv_content_ms_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG *cr
     CBYTES                       seg_cbytes;
     uint8_t                     *data;
     uint32_t                     len;
+    uint32_t                     flags;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -11475,9 +11615,11 @@ EC_BOOL cflv_content_ms_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG *cr
 
     cflv_content_ms_body_out_filter(cflv_md_id, CRANGE_SEG_NO(crange_seg), &data, &len);
 
-    if(EC_FALSE == cngx_send_body(r, data, len,
-                     CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                     &(CFLV_MD_NGX_RC(cflv_md))))
+    flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+    if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_send_seg_n: "
                                              "send body seg %ld failed\n",
@@ -11718,6 +11860,7 @@ EC_BOOL cflv_content_ms_send_body(const UINT32 cflv_md_id, const UINT32 seg_no, 
     {
         CRANGE_NODE                *crange_node;
         CRANGE_SEG                 *crange_seg;
+        uint32_t                    flags;
 
         crange_node = crange_mgr_first_node(crange_mgr);
         crange_seg  = crange_node_first_seg(crange_node);
@@ -11733,9 +11876,11 @@ EC_BOOL cflv_content_ms_send_body(const UINT32 cflv_md_id, const UINT32 seg_no, 
 
         ASSERT(seg_no == CFLV_MD_ABSENT_SEG_NO(cflv_md));
 
-        if(EC_FALSE == cngx_send_body(r, data, (uint32_t)len,
-                         CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CFLV_MD_NGX_RC(cflv_md))))
+        flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, (uint32_t)len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_send_body: "
                                                  "send body seg %ld failed\n",
@@ -12876,7 +13021,7 @@ EC_BOOL cflv_content_ims_header_in_filter_upstream(const UINT32 cflv_md_id)
         cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CFLV_0288);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_upstream: "
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
                                          c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
@@ -14991,6 +15136,7 @@ EC_BOOL cflv_content_expired_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SE
     CBYTES                       seg_cbytes;
     uint8_t                     *data;
     uint32_t                     len;
+    uint32_t                     flags;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -15104,9 +15250,11 @@ EC_BOOL cflv_content_expired_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SE
     data = (uint8_t *)CBYTES_BUF(&seg_cbytes);
     len  = (uint32_t)CBYTES_LEN(&seg_cbytes);
 
-    if(EC_FALSE == cngx_send_body(r, data, len,
-                     CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                     &(CFLV_MD_NGX_RC(cflv_md))))
+    flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+    if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_expired_send_seg_n: "
                                              "send body seg %ld failed\n",
@@ -15153,6 +15301,7 @@ EC_BOOL cflv_content_expired_send_node(const UINT32 cflv_md_id, CRANGE_NODE *cra
         CSTRING     *boundary;
         uint8_t     *data;
         uint32_t     len;
+        uint32_t     flags;
 
         boundary = CRANGE_NODE_BOUNDARY(crange_node);
 
@@ -15161,9 +15310,11 @@ EC_BOOL cflv_content_expired_send_node(const UINT32 cflv_md_id, CRANGE_NODE *cra
         data = (uint8_t *)CSTRING_STR(boundary);
         len  = (uint32_t)CSTRING_LEN(boundary);
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CFLV_MD_NGX_RC(cflv_md))))
+        flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_expired_send_node: "
                                                  "send body boundary failed\n");
@@ -15209,6 +15360,48 @@ EC_BOOL cflv_content_expired_send_node(const UINT32 cflv_md_id, CRANGE_NODE *cra
             crange_seg_free(crange_seg);
         }
     }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cflv_content_expired_send_end(const UINT32 cflv_md_id)
+{
+    CFLV_MD                     *cflv_md;
+
+    ngx_http_request_t          *r;
+    uint32_t                     flags;
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_expired_send_end: cflv module #0x%lx not started.\n",
+                cflv_md_id);
+        dbg_exit(MD_CFLV, cflv_md_id);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+    cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+
+    flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+            | CNGX_SEND_BODY_NO_MORE_FLAG
+            /*
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG
+            */;
+
+    if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0, flags, &(CFLV_MD_NGX_RC(cflv_md))))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_expired_send_end: "
+                                             "send body end failed\n");
+
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_expired_send_end: "
+                                         "send body end done\n");
 
     return (EC_TRUE);
 }
@@ -15331,6 +15524,7 @@ EC_BOOL cflv_content_expired_send_response(const UINT32 cflv_md_id)
         CSTRING     *boundary;
         uint8_t     *data;
         uint32_t     len;
+        uint32_t     flags;
 
         boundary = CRANGE_MGR_BOUNDARY(crange_mgr);
 
@@ -15339,9 +15533,11 @@ EC_BOOL cflv_content_expired_send_response(const UINT32 cflv_md_id)
         data = (uint8_t *)CSTRING_STR(boundary);
         len  = (uint32_t)CSTRING_LEN(boundary);
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CFLV_MD_NGX_RC(cflv_md))))
+        flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_expired_send_response: "
                                                  "send body boundary failed\n");
@@ -15355,6 +15551,17 @@ EC_BOOL cflv_content_expired_send_response(const UINT32 cflv_md_id)
                                              "send body boundary: %ld bytes done\n",
                                              CSTRING_LEN(boundary));
     }
+
+    /*send body end*/
+    if(EC_FALSE == cflv_content_expired_send_end(cflv_md_id))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_expired_send_response: "
+                                             "send body end failed\n");
+
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_expired_send_response: "
+                                         "send body end done\n");
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_expired_send_response: "
                                          "send body done => complete %ld bytes\n",
@@ -16710,14 +16917,17 @@ EC_BOOL cflv_content_cache_send_ahead_body(const UINT32 cflv_md_id)
     {
         uint8_t                     *data;
         uint32_t                     len;
+        uint32_t                     flags;
 
         /*send flv header*/
         data = g_flv_header;
         len  = g_flv_header_len;
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_IN_MEM_FLAG,
-                         &(CFLV_MD_NGX_RC(cflv_md))))
+        flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_IN_MEM_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_send_ahead_body: "
                                                  "send flv header failed\n");
@@ -16741,6 +16951,7 @@ EC_BOOL cflv_content_cache_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG 
     CBYTES                       seg_cbytes;
     uint8_t                     *data;
     uint32_t                     len;
+    uint32_t                     flags;
 
 #if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
     if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
@@ -16854,9 +17065,11 @@ EC_BOOL cflv_content_cache_send_seg_n(const UINT32 cflv_md_id, const CRANGE_SEG 
 
     cflv_content_cache_body_out_filter(cflv_md_id, CRANGE_SEG_NO(crange_seg), &data, &len);
 
-    if(EC_FALSE == cngx_send_body(r, data, len,
-                     CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                     &(CFLV_MD_NGX_RC(cflv_md))))
+    flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+    if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
     {
         dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_send_seg_n: "
                                              "send body seg %ld failed\n",
@@ -16903,15 +17116,18 @@ EC_BOOL cflv_content_cache_send_node(const UINT32 cflv_md_id, CRANGE_NODE *crang
         CSTRING     *boundary;
         uint8_t     *data;
         uint32_t     len;
+        uint32_t     flags;
 
         boundary = CRANGE_NODE_BOUNDARY(crange_node);
 
         data = (uint8_t *)CSTRING_STR(boundary);
         len  = (uint32_t)CSTRING_LEN(boundary);
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CFLV_MD_NGX_RC(cflv_md))))
+        flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_send_node: "
                                                  "send body boundary failed\n");
@@ -16958,6 +17174,48 @@ EC_BOOL cflv_content_cache_send_node(const UINT32 cflv_md_id, CRANGE_NODE *crang
             crange_seg_free(crange_seg);
         }
     }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cflv_content_cache_send_end(const UINT32 cflv_md_id)
+{
+    CFLV_MD                     *cflv_md;
+
+    ngx_http_request_t          *r;
+    uint32_t                     flags;
+
+#if ( SWITCH_ON == CFLV_DEBUG_SWITCH )
+    if ( CFLV_MD_ID_CHECK_INVALID(cflv_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cflv_content_cache_send_end: cflv module #0x%lx not started.\n",
+                cflv_md_id);
+        dbg_exit(MD_CFLV, cflv_md_id);
+    }
+#endif/*CFLV_DEBUG_SWITCH*/
+
+    cflv_md = CFLV_MD_GET(cflv_md_id);
+
+    r = CFLV_MD_NGX_HTTP_REQ(cflv_md);
+
+    flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+            | CNGX_SEND_BODY_NO_MORE_FLAG
+            /*
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG
+            */;
+
+    if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0, flags, &(CFLV_MD_NGX_RC(cflv_md))))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_send_end: "
+                                             "send body end failed\n");
+
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_send_end: "
+                                         "send body end done\n");
 
     return (EC_TRUE);
 }
@@ -17131,15 +17389,18 @@ EC_BOOL cflv_content_cache_send_response(const UINT32 cflv_md_id)
         CSTRING     *boundary;
         uint8_t     *data;
         uint32_t     len;
+        uint32_t     flags;
 
         boundary = CRANGE_MGR_BOUNDARY(crange_mgr);
 
         data = (uint8_t *)CSTRING_STR(boundary);
         len  = (uint32_t)CSTRING_LEN(boundary);
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CFLV_MD_NGX_RC(cflv_md))))
+        flags = CFLV_MD_SEND_BODY_PRELOAD_FLAG(cflv_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CFLV_MD_NGX_RC(cflv_md))))
         {
             dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_send_response: "
                                                  "send body boundary failed\n");
@@ -17153,6 +17414,17 @@ EC_BOOL cflv_content_cache_send_response(const UINT32 cflv_md_id)
                                              "send body boundary: %ld bytes done\n",
                                              CSTRING_LEN(boundary));
     }
+
+    /*send body end*/
+    if(EC_FALSE == cflv_content_cache_send_end(cflv_md_id))
+    {
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_cache_send_response: "
+                                             "send body end failed\n");
+
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_send_response: "
+                                         "send body end done\n");
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_send_response: "
                                          "send body done => complete %ld bytes\n",

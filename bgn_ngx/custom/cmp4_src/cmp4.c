@@ -2610,7 +2610,7 @@ EC_BOOL cmp4_content_head_header_in_filter_upstream(const UINT32 cmp4_md_id)
         cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0015);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_upstream: "
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
                                          c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
@@ -3832,7 +3832,7 @@ EC_BOOL cmp4_content_direct_header_in_filter_upstream(const UINT32 cmp4_md_id)
         cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0061);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_upstream: "
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
                                          c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
@@ -5270,15 +5270,18 @@ EC_BOOL cmp4_content_direct_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG
     {
         uint8_t         *data;
         uint32_t         len;
+        uint32_t         flags;
 
         cmp4_content_direct_body_out_filter(cmp4_md_id);
 
         data = CBYTES_BUF(CHTTP_RSP_BODY(chttp_rsp)) + CRANGE_SEG_S_OFFSET(crange_seg);
         len  = (uint32_t)(CRANGE_SEG_E_OFFSET(crange_seg) + 1 - CRANGE_SEG_S_OFFSET(crange_seg));
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CMP4_MD_NGX_RC(cmp4_md))))
+        flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_seg_n: "
                                                  "send body seg %ld failed\n",
@@ -5347,6 +5350,7 @@ EC_BOOL cmp4_content_direct_send_node(const UINT32 cmp4_md_id, CRANGE_NODE *cran
         CSTRING     *boundary;
         uint8_t     *data;
         uint32_t     len;
+        uint32_t     flags;
 
         boundary = CRANGE_NODE_BOUNDARY(crange_node);
 
@@ -5355,9 +5359,11 @@ EC_BOOL cmp4_content_direct_send_node(const UINT32 cmp4_md_id, CRANGE_NODE *cran
         data = (uint8_t *)CSTRING_STR(boundary);
         len  = (uint32_t)CSTRING_LEN(boundary);
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CMP4_MD_NGX_RC(cmp4_md))))
+        flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_node: "
                                                  "send body boundary failed\n");
@@ -5509,6 +5515,7 @@ EC_BOOL cmp4_content_direct_send_body(const UINT32 cmp4_md_id, const UINT32 seg_
     CMP4_MD                     *cmp4_md;
 
     ngx_http_request_t          *r;
+    uint32_t                     flags;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -5540,9 +5547,11 @@ EC_BOOL cmp4_content_direct_send_body(const UINT32 cmp4_md_id, const UINT32 seg_
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == cngx_send_body(r, data, (uint32_t)len,
-                     CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                     &(CMP4_MD_NGX_RC(cmp4_md))))
+    flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+    if(EC_FALSE == cngx_send_body(r, data, (uint32_t)len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_body: "
                                              "send body %ld bytes failed\n",
@@ -5560,6 +5569,48 @@ EC_BOOL cmp4_content_direct_send_body(const UINT32 cmp4_md_id, const UINT32 seg_
                                          "send recved seg %ld done => sent body %ld bytes\n",
                                          seg_no,
                                          CMP4_MD_SENT_BODY_SIZE(cmp4_md));
+    return (EC_TRUE);
+}
+
+EC_BOOL cmp4_content_direct_send_end(const UINT32 cmp4_md_id)
+{
+    CMP4_MD                     *cmp4_md;
+
+    ngx_http_request_t          *r;
+    uint32_t                     flags;
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_direct_send_end: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+            | CNGX_SEND_BODY_NO_MORE_FLAG
+            /*
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG
+            */;
+
+    if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_end: "
+                                             "send body end failed\n");
+
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_send_end: "
+                                         "send body end done\n");
+
     return (EC_TRUE);
 }
 
@@ -5637,15 +5688,18 @@ EC_BOOL cmp4_content_direct_send_response(const UINT32 cmp4_md_id)
     {
         uint8_t         *data;
         uint32_t         len;
+        uint32_t         flags;
 
         cmp4_content_direct_body_out_filter(cmp4_md_id);
 
         data = CBYTES_BUF(CHTTP_RSP_BODY(chttp_rsp));
         len  = (uint32_t)CBYTES_LEN(CHTTP_RSP_BODY(chttp_rsp));
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CMP4_MD_NGX_RC(cmp4_md))))
+        flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_response: "
                                                  "send body failed\n");
@@ -5723,6 +5777,7 @@ EC_BOOL cmp4_content_direct_send_response(const UINT32 cmp4_md_id)
             CSTRING     *boundary;
             uint8_t     *data;
             uint32_t     len;
+            uint32_t     flags;
 
             boundary = CRANGE_MGR_BOUNDARY(crange_mgr);
 
@@ -5730,9 +5785,11 @@ EC_BOOL cmp4_content_direct_send_response(const UINT32 cmp4_md_id)
             data = (uint8_t *)CSTRING_STR(boundary);
             len  = (uint32_t)CSTRING_LEN(boundary);
 
-            if(EC_FALSE == cngx_send_body(r, data, len,
-                             CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                             &(CMP4_MD_NGX_RC(cmp4_md))))
+            flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+                    | CNGX_SEND_BODY_FLUSH_FLAG
+                    | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+            if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
             {
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_response: "
                                                      "send body boundary failed\n");
@@ -5746,6 +5803,17 @@ EC_BOOL cmp4_content_direct_send_response(const UINT32 cmp4_md_id)
                                                  "send body boundary: %ld bytes done\n",
                                                  CSTRING_LEN(boundary));
         }
+
+        /*send body end*/
+        if(EC_FALSE == cmp4_content_direct_send_end(cmp4_md_id))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_direct_send_response: "
+                                                 "send body end failed\n");
+
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_send_response: "
+                                             "send body end done\n");
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_send_response: "
                                              "send body done => complete %ld bytes\n",
@@ -5886,7 +5954,7 @@ EC_BOOL cmp4_content_repair2_header_in_filter_upstream(const UINT32 cmp4_md_id)
         cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0111);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter_upstream: "
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
                                          c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
@@ -7203,15 +7271,18 @@ EC_BOOL cmp4_content_repair2_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SE
     {
         uint8_t         *data;
         uint32_t         len;
+        uint32_t         flags;
 
         cmp4_content_repair2_body_out_filter(cmp4_md_id);
 
         data = CBYTES_BUF(CHTTP_RSP_BODY(chttp_rsp)) + CRANGE_SEG_S_OFFSET(crange_seg);
         len  = (uint32_t)(CRANGE_SEG_E_OFFSET(crange_seg) + 1 - CRANGE_SEG_S_OFFSET(crange_seg));
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CMP4_MD_NGX_RC(cmp4_md))))
+        flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_send_seg_n: "
                                                  "send body seg %ld failed\n",
@@ -7280,6 +7351,7 @@ EC_BOOL cmp4_content_repair2_send_node(const UINT32 cmp4_md_id, CRANGE_NODE *cra
         CSTRING     *boundary;
         uint8_t     *data;
         uint32_t     len;
+        uint32_t     flags;
 
         boundary = CRANGE_NODE_BOUNDARY(crange_node);
 
@@ -7288,9 +7360,11 @@ EC_BOOL cmp4_content_repair2_send_node(const UINT32 cmp4_md_id, CRANGE_NODE *cra
         data = (uint8_t *)CSTRING_STR(boundary);
         len  = (uint32_t)CSTRING_LEN(boundary);
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CMP4_MD_NGX_RC(cmp4_md))))
+        flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_send_node: "
                                                  "send body boundary failed\n");
@@ -7336,6 +7410,48 @@ EC_BOOL cmp4_content_repair2_send_node(const UINT32 cmp4_md_id, CRANGE_NODE *cra
             crange_seg_free(crange_seg);
         }
     }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmp4_content_repair2_send_end(const UINT32 cmp4_md_id)
+{
+    CMP4_MD                     *cmp4_md;
+
+    ngx_http_request_t          *r;
+    uint32_t                     flags;
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_repair2_send_end: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+            | CNGX_SEND_BODY_NO_MORE_FLAG
+            /*
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG
+            */;
+
+    if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_send_end: "
+                                             "send body end failed\n");
+
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_send_end: "
+                                         "send body end done\n");
 
     return (EC_TRUE);
 }
@@ -7415,15 +7531,18 @@ EC_BOOL cmp4_content_repair2_send_response(const UINT32 cmp4_md_id)
     {
         uint8_t         *data;
         uint32_t         len;
+        uint32_t         flags;
 
         cmp4_content_repair2_body_out_filter(cmp4_md_id);
 
         data = CBYTES_BUF(CHTTP_RSP_BODY(chttp_rsp));
         len  = (uint32_t)CBYTES_LEN(CHTTP_RSP_BODY(chttp_rsp));
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CMP4_MD_NGX_RC(cmp4_md))))
+        flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_send_response: "
                                                  "send body failed\n");
@@ -7501,6 +7620,7 @@ EC_BOOL cmp4_content_repair2_send_response(const UINT32 cmp4_md_id)
             CSTRING     *boundary;
             uint8_t     *data;
             uint32_t     len;
+            uint32_t     flags;
 
             boundary = CRANGE_MGR_BOUNDARY(crange_mgr);
 
@@ -7508,9 +7628,11 @@ EC_BOOL cmp4_content_repair2_send_response(const UINT32 cmp4_md_id)
             data = (uint8_t *)CSTRING_STR(boundary);
             len  = (uint32_t)CSTRING_LEN(boundary);
 
-            if(EC_FALSE == cngx_send_body(r, data, len,
-                             CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                             &(CMP4_MD_NGX_RC(cmp4_md))))
+            flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+                    | CNGX_SEND_BODY_FLUSH_FLAG
+                    | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+            if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
             {
                 dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_send_response: "
                                                      "send body boundary failed\n");
@@ -7524,6 +7646,17 @@ EC_BOOL cmp4_content_repair2_send_response(const UINT32 cmp4_md_id)
                                                  "send body boundary: %ld bytes done\n",
                                                  CSTRING_LEN(boundary));
         }
+
+        /*send body end*/
+        if(EC_FALSE == cmp4_content_repair2_send_end(cmp4_md_id))
+        {
+            dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_repair2_send_response: "
+                                                 "send body end failed\n");
+
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_send_response: "
+                                             "send body end done\n");
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_send_response: "
                                              "send body done => complete %ld bytes\n",
@@ -7664,7 +7797,7 @@ EC_BOOL cmp4_content_orig_header_in_filter_upstream(const UINT32 cmp4_md_id)
         cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0158);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_upstream: "
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
                                          c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
@@ -9447,7 +9580,7 @@ EC_BOOL cmp4_content_orig_send_mp4_meta(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_send_mp4_meta: need send body again\n");
 
-        return cngx_send_blocking(r);
+        return cngx_send_body_blocking(r, &(CMP4_MD_NGX_RC(cmp4_md)));
     }
 
     CMP4_MD_SENT_BODY_SIZE(cmp4_md) += len;
@@ -9578,6 +9711,7 @@ EC_BOOL cmp4_content_orig_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG *
     CBYTES                       seg_cbytes;
     uint8_t                     *data;
     uint32_t                     len;
+    uint32_t                     flags;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -9613,9 +9747,11 @@ EC_BOOL cmp4_content_orig_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG *
 
     cmp4_content_orig_body_out_filter(cmp4_md_id, CRANGE_SEG_NO(crange_seg), &data, &len);
 
-    if(EC_FALSE == cngx_send_body(r, data, len,
-                     CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                     &(CMP4_MD_NGX_RC(cmp4_md))))
+    flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+    if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_send_seg_n: "
                                              "send body seg %ld failed\n",
@@ -10025,7 +10161,7 @@ EC_BOOL cmp4_content_ms_header_in_filter_upstream(const UINT32 cmp4_md_id)
         cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0214);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter_upstream: "
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
                                          c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
@@ -11812,6 +11948,7 @@ EC_BOOL cmp4_content_ms_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG *cr
     CBYTES                       seg_cbytes;
     uint8_t                     *data;
     uint32_t                     len;
+    uint32_t                     flags;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -11847,9 +11984,11 @@ EC_BOOL cmp4_content_ms_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG *cr
 
     cmp4_content_ms_body_out_filter(cmp4_md_id, CRANGE_SEG_NO(crange_seg), &data, &len);
 
-    if(EC_FALSE == cngx_send_body(r, data, len,
-                     CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                     &(CMP4_MD_NGX_RC(cmp4_md))))
+    flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+    if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_send_seg_n: "
                                              "send body seg %ld failed\n",
@@ -12091,6 +12230,7 @@ EC_BOOL cmp4_content_ms_send_body(const UINT32 cmp4_md_id, const UINT32 seg_no, 
     {
         CRANGE_NODE                *crange_node;
         CRANGE_SEG                 *crange_seg;
+        uint32_t                    flags;
 
         crange_node = crange_mgr_first_node(crange_mgr);
         crange_seg  = crange_node_first_seg(crange_node);
@@ -12106,9 +12246,11 @@ EC_BOOL cmp4_content_ms_send_body(const UINT32 cmp4_md_id, const UINT32 seg_no, 
 
         ASSERT(seg_no == CMP4_MD_ABSENT_SEG_NO(cmp4_md));
 
-        if(EC_FALSE == cngx_send_body(r, data, (uint32_t)len,
-                         CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CMP4_MD_NGX_RC(cmp4_md))))
+        flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, (uint32_t)len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_ms_send_body: "
                                                  "send body seg %ld failed\n",
@@ -13184,7 +13326,7 @@ EC_BOOL cmp4_content_ims_header_in_filter_upstream(const UINT32 cmp4_md_id)
         cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0285);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter_upstream: "
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
                                          c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
@@ -15174,7 +15316,7 @@ EC_BOOL cmp4_content_repair_header_in_filter_upstream(const UINT32 cmp4_md_id)
         cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CMP4_0331);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter_upstream: "
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter_upstream: "
                                          "[conf] set ipaddr '%s' of upsteam '%.*s' to http req done\n",
                                          c_word_to_ipv4(upstream_peer_ipaddr),
                                          upstream_name_len, upstream_name_str);
@@ -16551,6 +16693,7 @@ EC_BOOL cmp4_content_expired_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SE
     CBYTES                       seg_cbytes;
     uint8_t                     *data;
     uint32_t                     len;
+    uint32_t                     flags;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -16664,9 +16807,11 @@ EC_BOOL cmp4_content_expired_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SE
     data = (uint8_t *)CBYTES_BUF(&seg_cbytes);
     len  = (uint32_t)CBYTES_LEN(&seg_cbytes);
 
-    if(EC_FALSE == cngx_send_body(r, data, len,
-                     CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                     &(CMP4_MD_NGX_RC(cmp4_md))))
+    flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+    if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_expired_send_seg_n: "
                                              "send body seg %ld failed\n",
@@ -16713,6 +16858,7 @@ EC_BOOL cmp4_content_expired_send_node(const UINT32 cmp4_md_id, CRANGE_NODE *cra
         CSTRING     *boundary;
         uint8_t     *data;
         uint32_t     len;
+        uint32_t     flags;
 
         boundary = CRANGE_NODE_BOUNDARY(crange_node);
 
@@ -16721,9 +16867,11 @@ EC_BOOL cmp4_content_expired_send_node(const UINT32 cmp4_md_id, CRANGE_NODE *cra
         data = (uint8_t *)CSTRING_STR(boundary);
         len  = (uint32_t)CSTRING_LEN(boundary);
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CMP4_MD_NGX_RC(cmp4_md))))
+        flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_expired_send_node: "
                                                  "send body boundary failed\n");
@@ -16769,6 +16917,48 @@ EC_BOOL cmp4_content_expired_send_node(const UINT32 cmp4_md_id, CRANGE_NODE *cra
             crange_seg_free(crange_seg);
         }
     }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmp4_content_expired_send_end(const UINT32 cmp4_md_id)
+{
+    CMP4_MD                     *cmp4_md;
+
+    ngx_http_request_t          *r;
+    uint32_t                     flags;
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_expired_send_end: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+            | CNGX_SEND_BODY_NO_MORE_FLAG
+            /*
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG
+            */;
+
+    if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_expired_send_end: "
+                                             "send body end failed\n");
+
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_expired_send_end: "
+                                         "send body end done\n");
 
     return (EC_TRUE);
 }
@@ -16891,6 +17081,7 @@ EC_BOOL cmp4_content_expired_send_response(const UINT32 cmp4_md_id)
         CSTRING     *boundary;
         uint8_t     *data;
         uint32_t     len;
+        uint32_t     flags;
 
         boundary = CRANGE_MGR_BOUNDARY(crange_mgr);
 
@@ -16899,9 +17090,11 @@ EC_BOOL cmp4_content_expired_send_response(const UINT32 cmp4_md_id)
         data = (uint8_t *)CSTRING_STR(boundary);
         len  = (uint32_t)CSTRING_LEN(boundary);
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CMP4_MD_NGX_RC(cmp4_md))))
+        flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_expired_send_response: "
                                                  "send body boundary failed\n");
@@ -16915,6 +17108,17 @@ EC_BOOL cmp4_content_expired_send_response(const UINT32 cmp4_md_id)
                                              "send body boundary: %ld bytes done\n",
                                              CSTRING_LEN(boundary));
     }
+
+    /*send body end*/
+    if(EC_FALSE == cmp4_content_expired_send_end(cmp4_md_id))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_expired_send_response: "
+                                             "send body end failed\n");
+
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_expired_send_response: "
+                                         "send body end done\n");
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_expired_send_response: "
                                          "send body done => complete %ld bytes\n",
@@ -18250,6 +18454,7 @@ EC_BOOL cmp4_content_cache_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG 
     CBYTES                       seg_cbytes;
     uint8_t                     *data;
     uint32_t                     len;
+    uint32_t                     flags;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -18363,9 +18568,11 @@ EC_BOOL cmp4_content_cache_send_seg_n(const UINT32 cmp4_md_id, const CRANGE_SEG 
 
     cmp4_content_cache_body_out_filter(cmp4_md_id, CRANGE_SEG_NO(crange_seg), &data, &len);
 
-    if(EC_FALSE == cngx_send_body(r, data, len,
-                     CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                     &(CMP4_MD_NGX_RC(cmp4_md))))
+    flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+    if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_seg_n: "
                                              "send body seg %ld failed\n",
@@ -18412,15 +18619,18 @@ EC_BOOL cmp4_content_cache_send_node(const UINT32 cmp4_md_id, CRANGE_NODE *crang
         CSTRING     *boundary;
         uint8_t     *data;
         uint32_t     len;
+        uint32_t     flags;
 
         boundary = CRANGE_NODE_BOUNDARY(crange_node);
 
         data = (uint8_t *)CSTRING_STR(boundary);
         len  = (uint32_t)CSTRING_LEN(boundary);
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CMP4_MD_NGX_RC(cmp4_md))))
+        flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_node: "
                                                  "send body boundary failed\n");
@@ -18555,7 +18765,7 @@ EC_BOOL cmp4_content_cache_send_mp4_meta(const UINT32 cmp4_md_id)
     {
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_send_mp4_meta: need send body again\n");
 
-        return cngx_send_blocking(r);
+        return cngx_send_body_blocking(r, &(CMP4_MD_NGX_RC(cmp4_md)));
     }
 
     CMP4_MD_SENT_BODY_SIZE(cmp4_md) += len;
@@ -18640,6 +18850,7 @@ EC_BOOL cmp4_content_cache_send_mp4_meta_end(const UINT32 cmp4_md_id)
     CMP4_MD                     *cmp4_md;
 
     ngx_http_request_t          *r;
+    uint32_t                     flags;
 
 #if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
     if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
@@ -18654,9 +18865,15 @@ EC_BOOL cmp4_content_cache_send_mp4_meta_end(const UINT32 cmp4_md_id)
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
 
     r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
-    if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0,
-                     CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_NO_MORE_FLAG/* | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG*/,
-                     &(CMP4_MD_NGX_RC(cmp4_md))))
+
+    flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+            | CNGX_SEND_BODY_NO_MORE_FLAG
+            /*
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG
+            */;
+
+    if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_mp4_meta_end: "
                                              "send body chain-end failed\n");
@@ -18708,6 +18925,48 @@ EC_BOOL cmp4_content_cache_send_ahead_body(const UINT32 cmp4_md_id)
     }
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_send_ahead_body: "
                                          "add range => OK\n");
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmp4_content_cache_send_end(const UINT32 cmp4_md_id)
+{
+    CMP4_MD                     *cmp4_md;
+
+    ngx_http_request_t          *r;
+    uint32_t                     flags;
+
+#if ( SWITCH_ON == CMP4_DEBUG_SWITCH )
+    if ( CMP4_MD_ID_CHECK_INVALID(cmp4_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmp4_content_cache_send_end: cmp4 module #0x%lx not started.\n",
+                cmp4_md_id);
+        dbg_exit(MD_CMP4, cmp4_md_id);
+    }
+#endif/*CMP4_DEBUG_SWITCH*/
+
+    cmp4_md = CMP4_MD_GET(cmp4_md_id);
+
+    r = CMP4_MD_NGX_HTTP_REQ(cmp4_md);
+
+    flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+            | CNGX_SEND_BODY_NO_MORE_FLAG
+            /*
+            | CNGX_SEND_BODY_FLUSH_FLAG
+            | CNGX_SEND_BODY_RECYCLED_FLAG
+            */;
+
+    if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_end: "
+                                             "send body end failed\n");
+
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_send_end: "
+                                         "send body end done\n");
 
     return (EC_TRUE);
 }
@@ -18880,15 +19139,18 @@ EC_BOOL cmp4_content_cache_send_response(const UINT32 cmp4_md_id)
         CSTRING     *boundary;
         uint8_t     *data;
         uint32_t     len;
+        uint32_t     flags;
 
         boundary = CRANGE_MGR_BOUNDARY(crange_mgr);
 
         data = (uint8_t *)CSTRING_STR(boundary);
         len  = (uint32_t)CSTRING_LEN(boundary);
 
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                         CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md) | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                         &(CMP4_MD_NGX_RC(cmp4_md))))
+        flags = CMP4_MD_SEND_BODY_PRELOAD_FLAG(cmp4_md)
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CMP4_MD_NGX_RC(cmp4_md))))
         {
             dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_response: "
                                                  "send body boundary failed\n");
@@ -18902,6 +19164,17 @@ EC_BOOL cmp4_content_cache_send_response(const UINT32 cmp4_md_id)
                                              "send body boundary: %ld bytes done\n",
                                              CSTRING_LEN(boundary));
     }
+
+    /*send body end*/
+    if(EC_FALSE == cmp4_content_cache_send_end(cmp4_md_id))
+    {
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_response: "
+                                             "send body end failed\n");
+
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_send_response: "
+                                         "send body end done\n");
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_send_response: "
                                          "send body done => complete %ld bytes\n",

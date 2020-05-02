@@ -412,7 +412,7 @@ CDNSCACHE_NODE *cdnscache_get_node(CDNSCACHE *cdnscache, const CSTRING *domain)
         return (NULL_PTR);
     }
 
-    dbg_log(SEC_0065_CDNSCACHE, 0)(LOGSTDOUT, "[DEBUG] cdnscache_get_node: "
+    dbg_log(SEC_0065_CDNSCACHE, 9)(LOGSTDOUT, "[DEBUG] cdnscache_get_node: "
                         "search domain %s done\n",
                         CDNSCACHE_NODE_DOMAIN_STR(cdnscache_node));
 

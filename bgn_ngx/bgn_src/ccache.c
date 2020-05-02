@@ -1454,7 +1454,7 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
 
         if(EC_FALSE == ret)
         {
-            dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_read_over_bgn: read_e '%s' from cache failed\n",
+            dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "error:ccache_file_read_over_bgn: read_e '%s' from cache failed\n",
                         (char *)cstring_get_str(file_path));
 
             return (EC_FALSE);

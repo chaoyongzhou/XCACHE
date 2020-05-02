@@ -254,6 +254,28 @@ void cngx_range_print(LOG *log, const CNGX_RANGE *cngx_range)
     return;
 }
 
+EC_BOOL cngx_set_ngx_str(ngx_http_request_t *r, const char *str, const uint32_t len, ngx_str_t *des)
+{
+    if(r != NULL && r->pool != NULL
+    && str != NULL && len > 0
+    && des != NULL)
+    {
+        des->data = ngx_pcalloc(r->pool, len);
+        if(des->data == NULL)
+        {
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_ngx_str: alloc %u bytes failed\n",
+                                                 len);
+            return (EC_FALSE);
+        }
+        ngx_memcpy(des->data, (u_char *)str, len);
+        des->len  = len;
+
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
 EC_BOOL cngx_set_header_out_status(ngx_http_request_t *r, const ngx_uint_t status)
 {
     r->headers_out.status = status;
@@ -272,11 +294,21 @@ EC_BOOL cngx_set_header_out_kv(ngx_http_request_t *r, const char *key, const cha
     ngx_str_t                    ngx_val;
     ngx_int_t                    rc;
 
-    ngx_key.data = (u_char *)key;
-    ngx_key.len  = CONST_STR_LEN(key);
+    /*clone key*/
+    if(EC_FALSE == cngx_set_ngx_str(r, key, CONST_STR_LEN(key), &ngx_key))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_header_out_kv: clone key of '%s:%s' failed\n",
+                                             key, val);
+        return (EC_FALSE);
+    }
 
-    ngx_val.data = (u_char *)val;
-    ngx_val.len  = CONST_STR_LEN(val);
+    /*clone val*/
+    if(EC_FALSE == cngx_set_ngx_str(r, val, CONST_STR_LEN(val), &ngx_val))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_set_header_out_kv: clone val of '%s:%s' failed\n",
+                                             key, val);
+        return (EC_FALSE);
+    }
 
     rc = ngx_http_bgn_set_header_out(r, ngx_key, ngx_val, 0 /* not override */);
     if(NGX_ERROR == rc)
@@ -309,11 +341,21 @@ EC_BOOL cngx_add_header_out_kv(ngx_http_request_t *r, const char *key, const cha
     ngx_str_t                    ngx_val;
     ngx_int_t                    rc;
 
-    ngx_key.data = (u_char *)key;
-    ngx_key.len  = CONST_STR_LEN(key);
+    /*clone key*/
+    if(EC_FALSE == cngx_set_ngx_str(r, key, CONST_STR_LEN(key), &ngx_key))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_add_header_out_kv: clone key of '%s:%s' failed\n",
+                                             key, val);
+        return (EC_FALSE);
+    }
 
-    ngx_val.data = (u_char *)val;
-    ngx_val.len  = CONST_STR_LEN(val);
+    /*clone val*/
+    if(EC_FALSE == cngx_set_ngx_str(r, val, CONST_STR_LEN(val), &ngx_val))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_add_header_out_kv: clone val of '%s:%s' failed\n",
+                                             key, val);
+        return (EC_FALSE);
+    }
 
     rc = ngx_http_bgn_set_header_out(r, ngx_key, ngx_val, 0 /* not override */);
     if(NGX_ERROR == rc)
@@ -344,8 +386,13 @@ EC_BOOL cngx_del_header_out_key(ngx_http_request_t *r, const char *key)
     ngx_str_t                    ngx_val;
     ngx_int_t                    rc;
 
-    ngx_key.data = (u_char *)key;
-    ngx_key.len  = CONST_STR_LEN(key);
+    /*clone key*/
+    if(EC_FALSE == cngx_set_ngx_str(r, key, CONST_STR_LEN(key), &ngx_key))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_add_header_out_kv: clone key '%s' failed\n",
+                                             key);
+        return (EC_FALSE);
+    }
 
     ngx_val.data = NULL_PTR;
     ngx_val.len  = 0;
@@ -2002,6 +2049,115 @@ EC_BOOL cngx_finalize(ngx_http_request_t *r, ngx_int_t status)
     return (EC_TRUE);
 }
 
+EC_BOOL cngx_get_send_lowat(ngx_http_request_t *r, size_t *send_lowat)
+{
+    if(NULL_PTR != send_lowat)
+    {
+        ngx_http_core_loc_conf_t  *clcf;
+
+        clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
+
+        (*send_lowat) = clcf->send_lowat;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_get_send_timeout_msec(ngx_http_request_t *r, ngx_msec_t *timeout_msec)
+{
+    ngx_http_core_loc_conf_t  *clcf;
+    ngx_msec_t                 send_timeout;
+
+    clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
+
+    if(0 < clcf->send_timeout)
+    {
+        send_timeout = clcf->send_timeout; /*default is 60s*/
+
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_send_timeout_msec: "
+                                             "set send_timeout to clcf->send_timeout %ld ms\n",
+                                             clcf->send_timeout);
+    }
+    else
+    {
+        /*should never reach here due to ngx would set clcf->send_timeout to default 60s*/
+        send_timeout = 60 * 1000; /*set to default 60s */
+
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_send_timeout_msec: "
+                                             "set send_timeout to default %ld ms\n",
+                                             clcf->send_timeout);
+    }
+
+    if(NULL_PTR != timeout_msec)
+    {
+        (*timeout_msec) = send_timeout;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_get_client_body_timeout_msec(ngx_http_request_t *r, ngx_msec_t *timeout_msec)
+{
+    ngx_http_core_loc_conf_t  *clcf;
+    ngx_msec_t                 client_body_timeout;
+
+    clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
+
+    if(0 < clcf->client_body_timeout)
+    {
+        client_body_timeout = clcf->client_body_timeout; /*default is 60s*/
+
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_client_body_timeout_msec: "
+                                             "set client_body_timeout to clcf->client_body_timeout %ld ms\n",
+                                             clcf->client_body_timeout);
+    }
+    else
+    {
+        /*should never reach here due to ngx would set clcf->client_body_timeout to default 60s*/
+        client_body_timeout = 60 * 1000; /*set to default 60s */
+
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_client_body_timeout_msec: "
+                                             "set client_body_timeout to default %ld ms\n",
+                                             clcf->client_body_timeout);
+    }
+
+    if(NULL_PTR != timeout_msec)
+    {
+        (*timeout_msec) = client_body_timeout;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_get_send_timeout_event_msec(ngx_http_request_t *r, ngx_msec_t *timeout_msec)
+{
+    const char      *k;
+    uint32_t         n;
+
+    k = (const char *)CNGX_VAR_SEND_TIMEOUT_EVENT_MSEC;
+    if(EC_FALSE == cngx_get_var_uint32_t(r, k, &n, (uint32_t)1000))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_send_timeout_event_msec: "
+                                             "cngx get var '%s' failed\n",
+                                             k);
+        /*set by force*/
+        n = 1000;/*one second*/
+    }
+    else
+    {
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_send_timeout_event_msec: "
+                                             "cngx var '%s':'%u' done\n",
+                                             k, n);
+    }
+
+    if(NULL_PTR != timeout_msec)
+    {
+        (*timeout_msec) = n;
+    }
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cngx_send_wait(ngx_http_request_t *r, ngx_msec_t send_timeout)
 {
     ngx_connection_t          *c;
@@ -2052,8 +2208,9 @@ EC_BOOL cngx_send_wait(ngx_http_request_t *r, ngx_msec_t send_timeout)
     if(EC_TRUE != ret) /*ret maybe EC_TRUE, EC_FALSE, EC_TIMEOUT, EC_TERMINATE, etc.*/
     {
         dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_wait: "
-                                             "coroutine_cond %p on r:%p, c:%p, wev:%p => back but ret = %ld\n",
-                                             coroutine_cond, r, c, wev, ret);
+                                             "coroutine_cond %p on r:%p, c:%p, wev:%p "
+                                             "=> back but ret = %ld (send_timeout %ld)\n",
+                                             coroutine_cond, r, c, wev, ret, send_timeout);
         return (EC_FALSE);
     }
 
@@ -2068,109 +2225,144 @@ void cngx_send_again(ngx_http_request_t *r)
     ngx_connection_t          *c;
     ngx_event_t               *wev;
 
-    ngx_int_t                  rc;
-
     c = r->connection;
     wev = c->write;
 
-    rc = ngx_http_output_filter(r, NULL_PTR);
+    if(wev->timer_set)
+    {
+        ngx_del_timer(wev);
+    }
 
-    NGX_W_RC(wev) = rc;
+    wev->delayed  = 0;
+    wev->timedout = 0;
+
+    if(!c->error)
+    {
+        ngx_int_t                  rc;
+
+        rc = ngx_http_output_filter(r, NULL_PTR);
+        NGX_W_RC(wev) = rc;
+
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_again: "
+                                             "r %p, rc = %ld, timer_set = %d, timeout = %d, "
+                                             "delayed = %d, c:fd %d, destroyed %d, sent bytes %ld\n",
+                                             r, rc, wev->timer_set, wev->timedout,
+                                             wev->delayed,
+                                             c->fd, c->destroyed, c->sent);
+    }
 
     if(NULL_PTR != NGX_W_COROUTINE_COND(wev))
     {
         coroutine_cond_release_all(NGX_W_COROUTINE_COND(wev), LOC_CNGX_0050);
     }
 
-    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_again: "
-                                         "r %p, rc = %ld, timer_set = %d, delayed = %d, sent bytes = %ld\n",
-                                         r, rc, wev->timer_set, wev->delayed, r->connection->sent);
     return;
 }
 
-EC_BOOL cngx_send_blocking(ngx_http_request_t *r)
+/*send body blocking*/
+EC_BOOL cngx_send_body_blocking(ngx_http_request_t *r, ngx_int_t *ngx_rc)
 {
     ngx_connection_t          *c;
     ngx_event_t               *wev;
 
-    ngx_http_core_loc_conf_t  *clcf;
     ngx_msec_t                 send_timeout;
+    ngx_msec_t                 s_time_msec; /*start time in msec*/
+    ngx_msec_t                 e_time_msec; /*end time in msec*/
+
+    ngx_msec_t                 ev_timeout_msec; /*event timeout in msec*/
+    size_t                     send_lowat;
 
     c = r->connection;
     wev = c->write;
 
-    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_body_blocking: "
                                          "r:%p, c:%p, wev:%p\n",
                                          r, r->connection, r->connection->write);
 
-    clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
+    cngx_get_send_timeout_msec(r, &send_timeout);
 
-    if(0 < clcf->send_timeout)
-    {
-        send_timeout = clcf->send_timeout; /*default is 60s*/
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
-                                             "set send_timeout to clcf->send_timeout %ld ms\n",
-                                             clcf->send_timeout);
-    }
-    else
-    {
-        /*should never reach here due to ngx would set clcf->send_timeout to default 60s*/
-        send_timeout = 60 * 1000; /*set to default 60s */
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
-                                             "set send_timeout to default %ld ms\n",
-                                             clcf->send_timeout);
-    }
+    s_time_msec = ngx_current_msec;
+    e_time_msec = s_time_msec + send_timeout;
+
+    cngx_get_send_timeout_event_msec(r, &ev_timeout_msec);
+
+    cngx_get_send_lowat(r, &send_lowat);
 
     r->write_event_handler = cngx_send_again;
 
     NGX_W_RC(wev) = NGX_AGAIN;
     while(NGX_AGAIN == NGX_W_RC(wev))
     {
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
+        ngx_msec_t                 c_time_msec;     /*cur time in msec*/
+        ngx_msec_t                 co_timeout_msec; /*coroutine timeout in msec*/
+        EC_BOOL                    ret;
+
+        c_time_msec = ngx_current_msec;
+
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_body_blocking: "
                                              "[delayed: %d, timer_set: %d, active %d, ready: %d]\n",
                                              wev->delayed, wev->timer_set, wev->active, wev->ready);
 
-        wev->delayed = 0; /*clear*/
-
-        if(0 == wev->timer_set)/*if no timer, set WR event*/
+        /*timeout*/
+        if(c_time_msec >= e_time_msec)
         {
-            /*clear active flag and ready flag. otherwise, WR event would not be set to epoll*/
-
-            wev->active = 0;
-            wev->ready  = 0;
-
-            if(ngx_handle_write_event(wev, clcf->send_lowat) != NGX_OK)
-            {
-                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_blocking: "
-                                                     "add write event failed\n");
-
-                if(wev->timer_set)
-                {
-                    wev->delayed = 0;
-                    ngx_del_timer(wev);
-                }
-
-                return (EC_FALSE);
-            }
-            wev->ready  = 1;
-
-            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
-                                                 "add write event done\n");
-        }
-
-        /*--- blocking ---*/
-        if(EC_FALSE == cngx_send_wait(r, send_timeout) || c->error)
-        {
+            (*ngx_rc) = NGX_HTTP_CLIENT_CLOSED_REQUEST;
             NGX_W_RC(wev) = NGX_ERROR;
 
-            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_blocking: "
-                                                 "wait back, connection error: %d, reset rc to %ld\n",
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_body_blocking: "
+                                                 "[timeout] r %p, send_timeout %ld, elapsed %ld, "
+                                                 "connection error: %d, reset rc to %ld\n",
+                                                 r, send_timeout, c_time_msec - s_time_msec,
                                                  c->error, NGX_W_RC(wev));
             break;
         }
 
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
-                                             "wait back, connection error: %d, rc: %ld\n",
+        co_timeout_msec = e_time_msec - c_time_msec;
+
+        //if(!wev->active)
+        {
+            ngx_handle_write_event(wev, send_lowat);
+        }
+
+        if(!wev->timer_set)
+        {
+            /*add timer to check connection error*/
+            ngx_event_add_timer(wev, ev_timeout_msec);
+        }
+
+        /*--- blocking ---*/
+        ret = cngx_send_wait(r, co_timeout_msec);
+
+        if(c->error)
+        {
+            (*ngx_rc) = NGX_HTTP_CLIENT_CLOSED_REQUEST;
+            NGX_W_RC(wev) = NGX_ERROR;
+
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_body_blocking: "
+                                                 "[broken] r %p, send_timeout %ld, elapsed %ld, "
+                                                 "connection error: %d, reset rc to %ld\n",
+                                                 r, send_timeout, c_time_msec - s_time_msec,
+                                                 c->error, NGX_W_RC(wev));
+            break;
+        }
+
+        if(EC_FALSE == ret)
+        {
+            NGX_W_RC(wev) = NGX_ERROR;
+
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_body_blocking: "
+                                                 "[fail] r %p, wait back, send_timeout %ld, "
+                                                 "elapsed %ld, co timeout %ld, "
+                                                 "connection error: %d, reset rc to %ld\n",
+                                                 r, send_timeout, c_time_msec - s_time_msec, co_timeout_msec,
+                                                 c->error, NGX_W_RC(wev));
+            break;
+        }
+
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_body_blocking: "
+                                             "[next] r %p, wait back, send_timeout %ld, elapsed %ld, "
+                                             "connection error: %d, rc: %ld\n",
+                                             r, send_timeout, c_time_msec - s_time_msec,
                                              c->error, NGX_W_RC(wev));
     }
 
@@ -2182,12 +2374,13 @@ EC_BOOL cngx_send_blocking(ngx_http_request_t *r)
 
     if(NGX_ERROR == NGX_W_RC(wev))
     {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_blocking: "
-                                             "send failed\n");
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_body_blocking: "
+                                             "r %p, send failed\n",
+                                             r);
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_blocking: "
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_body_blocking: "
                                          "send done\n");
     return (EC_TRUE);
 }
@@ -2200,9 +2393,16 @@ EC_BOOL cngx_send_header(ngx_http_request_t *r, ngx_int_t *ngx_rc)
 
     rc = ngx_http_send_header(r);
     (*ngx_rc) = rc;
+
     if (rc == NGX_ERROR || rc > NGX_OK || r->post_action)
     {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_header: send header failed\n");
+        if(r->connection->error)
+        {
+            (*ngx_rc) = NGX_HTTP_CLIENT_CLOSED_REQUEST; /*reset*/
+        }
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_header: "
+                                             "send header failed (rc %ld => %ld)\n",
+                                             rc, (*ngx_rc));
         return (EC_FALSE);
     }
 
@@ -2232,7 +2432,38 @@ EC_BOOL cngx_enable_send_header(ngx_http_request_t *r)
     return (EC_TRUE);
 }
 
-static EC_BOOL __cngx_set_buf_flags(ngx_buf_t *b, const unsigned flags)
+EC_BOOL cngx_inc_send_body_size(ngx_http_request_t *r, const UINT32 size)
+{
+    if(r->stream)
+    {
+        r->stream->sent_body_size += size;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_get_send_body_size(ngx_http_request_t *r, UINT32 *size)
+{
+    if(r->stream && size)
+    {
+        (*size) = r->stream->sent_body_size;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cngx_need_send_body_again(ngx_http_request_t *r, const ngx_int_t rc)
+{
+    if(r->stream && NGX_AGAIN == rc)
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+static EC_BOOL __cngx_set_buf_flags(ngx_buf_t *b, const uint32_t flags)
 {
     if(CNGX_SEND_BODY_IN_MEM_FLAG & flags)
     {
@@ -2258,9 +2489,9 @@ static EC_BOOL __cngx_set_buf_flags(ngx_buf_t *b, const unsigned flags)
     return (EC_TRUE);
 }
 
-EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_t len, const unsigned flags, ngx_int_t *ngx_rc)
+EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_t len, const uint32_t flags, ngx_int_t *ngx_rc)
 {
-    ngx_chain_t                  cl;
+    ngx_chain_t                 *cl;
     ngx_buf_t                   *b;
     ngx_int_t                    rc;
 
@@ -2283,10 +2514,17 @@ EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_
         /*set flags*/
         __cngx_set_buf_flags(b, flags);
 
-        cl.buf  = b;
-        cl.next = NULL_PTR;
+        cl = ngx_palloc(r->pool, sizeof(ngx_chain_t));
+        if(NULL_PTR == cl)
+        {
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_body: alloc chain failed\n");
+            return (EC_FALSE);
+        }
 
-        rc = ngx_http_output_filter(r, &cl);
+        cl->buf  = b;
+        cl->next = NULL_PTR;
+
+        rc = ngx_http_output_filter(r, cl);
         (*ngx_rc) = rc;
 
         if (rc == NGX_ERROR || rc > NGX_OK)
@@ -2313,10 +2551,17 @@ EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_
     /*set flags*/
     __cngx_set_buf_flags(b, flags);
 
-    cl.buf  = b;
-    cl.next = NULL_PTR;
+    cl = ngx_palloc(r->pool, sizeof(ngx_chain_t));
+    if(NULL_PTR == cl)
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_body: alloc chain failed\n");
+        return (EC_FALSE);
+    }
 
-    rc = ngx_http_output_filter(r, &cl);
+    cl->buf  = b;
+    cl->next = NULL_PTR;
+
+    rc = ngx_http_output_filter(r, cl);
     (*ngx_rc) = rc;
 
     if (rc == NGX_ERROR || rc > NGX_OK)
@@ -2327,11 +2572,21 @@ EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_
 
     if(rc == NGX_AGAIN/* || b->last > b->pos + NGX_LUA_OUTPUT_BLOCKING_LOWAT*/)
     {
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_body: sent bytes = %ld, need send body again\n",
-                    r->connection->sent);
+        cngx_inc_send_body_size(r, len);
 
-        return cngx_send_blocking(r);
+        if(r->stream)
+        {
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_body: "
+                                             "sent bytes = %ld, need send body again\n",
+                                             r->connection->sent);
+
+        return cngx_send_body_blocking(r, ngx_rc);
     }
+
+    cngx_inc_send_body_size(r, len);
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_body: send body done\n");
 

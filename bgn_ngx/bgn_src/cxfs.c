@@ -4079,7 +4079,7 @@ EC_BOOL cxfs_read_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *o
 
     if(EC_FALSE == cxfs_read_npp(cxfs_md_id, file_path, &cxfsnp_fnode))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_e: read file %s from npp failed\n", (char *)cstring_get_str(file_path));
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "error:cxfs_read_e: read file %s from npp failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
 

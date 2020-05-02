@@ -955,14 +955,18 @@ EC_BOOL crfsgw_content_send_response(const UINT32 crfsgw_md_id)
         CBYTES          *body;
         uint8_t         *data;
         uint32_t         len;
+        uint32_t         flags;
 
         body = CHTTP_RSP_BODY(CRFSGW_MD_CHTTP_RSP(crfsgw_md));
 
         data = CBYTES_BUF(body);
         len  = (uint32_t)CBYTES_LEN(body);
-        if(EC_FALSE == cngx_send_body(r, data, len,
-                                       CNGX_SEND_BODY_NO_MORE_FLAG | CNGX_SEND_BODY_FLUSH_FLAG | CNGX_SEND_BODY_RECYCLED_FLAG,
-                                       &(CRFSGW_MD_NGX_RC(crfsgw_md))))
+
+        flags = CNGX_SEND_BODY_NO_MORE_FLAG
+                | CNGX_SEND_BODY_FLUSH_FLAG
+                | CNGX_SEND_BODY_RECYCLED_FLAG;
+
+        if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CRFSGW_MD_NGX_RC(crfsgw_md))))
         {
             dbg_log(SEC_0034_CRFSGW, 0)(LOGSTDOUT, "error:crfsgw_content_send_response: "
                                                     "send body failed\n");

@@ -29,11 +29,11 @@ extern "C"{
 
 #define  CNGX_BGN_MOD_SO_PATH_DEFAULT             ("/usr/local/xcache/lib")
 
-#define  CNGX_SEND_BODY_NO_MORE_FLAG              ((unsigned)0x0001)
-#define  CNGX_SEND_BODY_FLUSH_FLAG                ((unsigned)0x0002)
-#define  CNGX_SEND_BODY_IN_MEM_FLAG               ((unsigned)0x0004)
-#define  CNGX_SEND_BODY_RECYCLED_FLAG             ((unsigned)0x0008)
-#define  CNGX_SEND_BODY_PRELOAD_FLAG              ((unsigned)0x1000)
+#define  CNGX_SEND_BODY_NO_MORE_FLAG              ((uint32_t)0x0001)
+#define  CNGX_SEND_BODY_FLUSH_FLAG                ((uint32_t)0x0002)
+#define  CNGX_SEND_BODY_IN_MEM_FLAG               ((uint32_t)0x0004)
+#define  CNGX_SEND_BODY_RECYCLED_FLAG             ((uint32_t)0x0008)
+#define  CNGX_SEND_BODY_PRELOAD_FLAG              ((uint32_t)0x1000)
 
 #define  CNGX_CACHE_SEG_SIZE_DEFAULT              (256 * 1024)    /*default seg size is 256KB*/
 #define  CNGX_CACHE_SEG_MAX_NUM_DEFAULT           (1024 * 4 * 64) /*default seg max num*/
@@ -100,6 +100,8 @@ extern "C"{
 
 #define  CNGX_VAR_HEADER_MERGE_SWITCH             ("c_header_merge_switch")
 
+#define  CNGX_VAR_SEND_TIMEOUT_EVENT_MSEC         ("c_send_body_timeout_event_msec")
+
 #define  CNGX_VAR_MP4_BUFFER_SIZE                 ("c_mp4_buffer_size")
 #define  CNGX_VAR_MP4_MAX_BUFFER_SIZE             ("c_mp4_max_buffer_size")
 
@@ -144,6 +146,8 @@ EC_BOOL cngx_range_free(CNGX_RANGE *cngx_range);
 EC_BOOL cngx_range_parse(ngx_http_request_t *r, const off_t content_length, CLIST *cngx_ranges);
 
 void    cngx_range_print(LOG *log, const CNGX_RANGE *cngx_range);
+
+EC_BOOL cngx_set_ngx_str(ngx_http_request_t *r, const char *str, const uint32_t len, ngx_str_t *des);
 
 EC_BOOL cngx_set_header_out_status(ngx_http_request_t *r, const ngx_uint_t status);
 
@@ -265,11 +269,19 @@ EC_BOOL cngx_need_intercept_errors(ngx_http_request_t *r, const uint32_t status)
 
 EC_BOOL cngx_finalize(ngx_http_request_t *r, ngx_int_t status);
 
+EC_BOOL cngx_get_send_lowat(ngx_http_request_t *r, size_t *send_lowat);
+
+EC_BOOL cngx_get_send_timeout_msec(ngx_http_request_t *r, ngx_msec_t *timeout_msec);
+
+EC_BOOL cngx_get_client_body_timeout_msec(ngx_http_request_t *r, ngx_msec_t *timeout_msec);
+
+EC_BOOL cngx_get_send_timeout_event_msec(ngx_http_request_t *r, ngx_msec_t *timeout_msec);
+
 void    cngx_send_again(ngx_http_request_t *r);
 
 EC_BOOL cngx_send_wait(ngx_http_request_t *r, ngx_msec_t send_timeout);
 
-EC_BOOL cngx_send_blocking(ngx_http_request_t *r);
+EC_BOOL cngx_send_body_blocking(ngx_http_request_t *r, ngx_int_t *ngx_rc);
 
 EC_BOOL cngx_send_header(ngx_http_request_t *r, ngx_int_t *ngx_rc);
 
@@ -279,7 +291,13 @@ EC_BOOL cngx_disable_send_header(ngx_http_request_t *r);
 
 EC_BOOL cngx_enable_send_header(ngx_http_request_t *r);
 
-EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_t len, const unsigned flag, ngx_int_t *ngx_rc);
+EC_BOOL cngx_inc_send_body_size(ngx_http_request_t *r, const UINT32 size);
+
+EC_BOOL cngx_get_send_body_size(ngx_http_request_t *r, UINT32 *size);
+
+EC_BOOL cngx_need_send_body_again(ngx_http_request_t *r, const ngx_int_t rc);
+
+EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_t len, const uint32_t flag, ngx_int_t *ngx_rc);
 
 EC_BOOL cngx_set_store_cache_rsp_headers(ngx_http_request_t *r, CHTTP_STORE *chttp_store);
 
