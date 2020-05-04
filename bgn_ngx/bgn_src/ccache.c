@@ -609,6 +609,9 @@ EC_BOOL ccache_file_write_over_bgn(const UINT32 store_srv_tcid, const UINT32 sto
     MOD_NODE       recv_mod_node;
     EC_BOOL        ret;
 
+    uint64_t                     s_time_msec;
+    uint64_t                     e_time_msec;
+
     /*make receiver*/
     //task_brd = task_brd_default_get();
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
@@ -623,19 +626,33 @@ EC_BOOL ccache_file_write_over_bgn(const UINT32 store_srv_tcid, const UINT32 sto
 
     ret = EC_FALSE;
 
+    s_time_msec = c_get_cur_time_msec();
+
     if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
     {
-        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                 &recv_mod_node,
                 &ret, FI_crfs_update_with_token, CMPI_ERROR_MODI, file_path, cbytes, auth_token);
     }
 
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
     {
-        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                 &recv_mod_node,
                 &ret, FI_cxfs_update_with_token, CMPI_ERROR_MODI, file_path, cbytes, auth_token);
     }
+
+    e_time_msec = c_get_cur_time_msec();
+
+    if(EC_FALSE == ret)
+    {
+        sys_log(LOGUSER09, "[FAIL] UPDATE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+    }
+    else
+    {
+        sys_log(LOGUSER09, "[SUCC] UPDATE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+    }
+
     return (ret);
 }
 
@@ -739,6 +756,9 @@ EC_BOOL ccache_renew_headers_over_bgn(const UINT32 store_srv_tcid, const UINT32 
     MOD_NODE       recv_mod_node;
     EC_BOOL        ret;
 
+    uint64_t                     s_time_msec;
+    uint64_t                     e_time_msec;
+
     /*make receiver*/
     //task_brd = task_brd_default_get();
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
@@ -752,17 +772,19 @@ EC_BOOL ccache_renew_headers_over_bgn(const UINT32 store_srv_tcid, const UINT32 
 
     ret = EC_FALSE;
 
+    s_time_msec = c_get_cur_time_msec();
+
     if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
     {
         if(NULL_PTR != auth_token)
         {
-            task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+            task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                     &recv_mod_node,
                     &ret, FI_crfs_renew_http_headers_with_token, CMPI_ERROR_MODI, file_path, cstrkv_mgr, auth_token);
         }
         else
         {
-            task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+            task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                     &recv_mod_node,
                     &ret, FI_crfs_renew_http_headers, CMPI_ERROR_MODI, file_path, cstrkv_mgr);
         }
@@ -772,17 +794,29 @@ EC_BOOL ccache_renew_headers_over_bgn(const UINT32 store_srv_tcid, const UINT32 
     {
         if(NULL_PTR != auth_token)
         {
-            task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+            task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                     &recv_mod_node,
                     &ret, FI_cxfs_renew_http_headers_with_token, CMPI_ERROR_MODI, file_path, cstrkv_mgr, auth_token);
         }
         else
         {
-            task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+            task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                     &recv_mod_node,
                     &ret, FI_cxfs_renew_http_headers, CMPI_ERROR_MODI, file_path, cstrkv_mgr);
         }
     }
+
+    e_time_msec = c_get_cur_time_msec();
+
+    if(EC_FALSE == ret)
+    {
+        sys_log(LOGUSER09, "[FAIL] RENEWH %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+    }
+    else
+    {
+        sys_log(LOGUSER09, "[SUCC] RENEWH %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+    }
+
     return (EC_TRUE);
 }
 
@@ -947,6 +981,9 @@ EC_BOOL ccache_file_terminate_over_bgn(const UINT32 store_srv_tcid, const UINT32
     MOD_NODE       recv_mod_node;
     EC_BOOL        ret;
 
+    uint64_t                     s_time_msec;
+    uint64_t                     e_time_msec;
+
     /*make receiver*/
     //task_brd = task_brd_default_get();
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
@@ -960,19 +997,33 @@ EC_BOOL ccache_file_terminate_over_bgn(const UINT32 store_srv_tcid, const UINT32
 
     ret = EC_FALSE;
 
+    s_time_msec = c_get_cur_time_msec();
+
     if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
     {
-        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                 &recv_mod_node,
                 &ret, FI_crfs_file_terminate, CMPI_ERROR_MODI, file_path);
     }
 
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
     {
-        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                 &recv_mod_node,
                 &ret, FI_cxfs_file_terminate, CMPI_ERROR_MODI, file_path);
     }
+
+    e_time_msec = c_get_cur_time_msec();
+
+    if(EC_FALSE == ret)
+    {
+        sys_log(LOGUSER09, "[FAIL] TERMINATE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+    }
+    else
+    {
+        sys_log(LOGUSER09, "[SUCC] TERMINATE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+    }
+
     return (EC_TRUE);
 }
 
@@ -1154,12 +1205,17 @@ EC_BOOL ccache_file_lock_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
     MOD_NODE     recv_mod_node;
     EC_BOOL      ret;
 
+    uint64_t                     s_time_msec;
+    uint64_t                     e_time_msec;
+
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
 
     ret = EC_FALSE;
+
+    s_time_msec = c_get_cur_time_msec();
 
     if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
     {
@@ -1177,26 +1233,27 @@ EC_BOOL ccache_file_lock_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
                  FI_cxfs_file_lock, CMPI_ERROR_MODI, file_path, expire_nsec, auth_token, locked_already);
     }
 
+    e_time_msec = c_get_cur_time_msec();
+
     if(EC_FALSE == ret)
     {
         if(EC_TRUE == (*locked_already))
         {
+            sys_log(LOGUSER09, "[SUCC] LOCK %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+
             dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_lock_over_bgn: lock_req '%.*s' on %s => locked by other\n",
                             (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                             c_word_to_ipv4(store_srv_tcid));
             return (EC_TRUE);
         }
+
+        sys_log(LOGUSER09, "[FAIL] LOCK %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+
         return (EC_FALSE);
     }
-#if 0
-    if(EC_TRUE == (*locked_already))
-    {
-        dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] __chttp_request_merge_file_lock: lock_req '%.*s' on %s => locked by other\n",
-                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
-                        c_word_to_ipv4(tcid));
-        return (EC_TRUE);
-    }
-#endif
+
+    sys_log(LOGUSER09, "[SUCC] LOCK %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_lock_over_bgn: lock_req '%.*s' on %s => OK\n",
                     (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_tcid));
@@ -1273,12 +1330,17 @@ EC_BOOL ccache_file_unlock_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
     MOD_NODE     recv_mod_node;
     EC_BOOL      ret;
 
+    uint64_t                     s_time_msec;
+    uint64_t                     e_time_msec;
+
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
 
     ret = EC_FALSE;
+
+    s_time_msec = c_get_cur_time_msec();
 
     if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
     {
@@ -1296,14 +1358,20 @@ EC_BOOL ccache_file_unlock_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
                  FI_cxfs_file_unlock, CMPI_ERROR_MODI, file_path, auth_token);
     }
 
+    e_time_msec = c_get_cur_time_msec();
+
     if(EC_FALSE == ret)
     {
+        sys_log(LOGUSER09, "[FAIL] UNLOCK %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_unlock_over_bgn: unlock_req '%.*s' on %s => failed\n",
                     (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_tcid));
 
         return (EC_FALSE);
     }
+
+    sys_log(LOGUSER09, "[SUCC] UNLOCK %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_unlock_over_bgn: unlock_req '%.*s' on %s => OK\n",
                     (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
@@ -1421,6 +1489,9 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
 
     EC_BOOL                      ret;
 
+    uint64_t                     s_time_msec;
+    uint64_t                     e_time_msec;
+
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
@@ -1438,6 +1509,8 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         store_offset = store_start_offset;
         store_size   = store_end_offset + 1 - store_start_offset;
 
+        s_time_msec = c_get_cur_time_msec();
+
         if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
         {
             task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
@@ -1452,19 +1525,27 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
                 &ret, FI_cxfs_read_e, CMPI_ERROR_MODI, file_path, &store_offset, store_size, content_cbytes);
         }
 
+        e_time_msec = c_get_cur_time_msec();
+
         if(EC_FALSE == ret)
         {
+            sys_log(LOGUSER09, "[FAIL] READE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+
             dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "error:ccache_file_read_over_bgn: read_e '%s' from cache failed\n",
                         (char *)cstring_get_str(file_path));
 
             return (EC_FALSE);
         }
 
+        sys_log(LOGUSER09, "[SUCC] READE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_read_over_bgn: read_e '%s' from cache done\n",
                     (char *)cstring_get_str(file_path));
 
         return (EC_TRUE);
     }
+
+    s_time_msec = c_get_cur_time_msec();
 
     if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
     {
@@ -1480,13 +1561,19 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
             &ret, FI_cxfs_read, CMPI_ERROR_MODI, file_path, content_cbytes);
     }
 
+    e_time_msec = c_get_cur_time_msec();
+
     if(EC_FALSE == ret)
     {
+        sys_log(LOGUSER09, "[FAIL] READ %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_read_over_bgn: read '%s' from cache failed\n",
                     (char *)cstring_get_str(file_path));
 
         return (EC_FALSE);
     }
+
+    sys_log(LOGUSER09, "[SUCC] READ %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_read_over_bgn: read '%s' from cache done\n",
                 (char *)cstring_get_str(file_path));
@@ -1570,12 +1657,17 @@ EC_BOOL ccache_file_retire_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
     MOD_NODE                     recv_mod_node;
     EC_BOOL                      ret;
 
+    uint64_t                     s_time_msec;
+    uint64_t                     e_time_msec;
+
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
     MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
 
     ret = EC_FALSE;
+
+    s_time_msec = c_get_cur_time_msec();
 
     if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
     {
@@ -1591,14 +1683,20 @@ EC_BOOL ccache_file_retire_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
             &ret, FI_cxfs_delete, CMPI_ERROR_MODI, file_path, (UINT32)CRFSNP_ITEM_FILE_IS_REG);
     }
 
+    e_time_msec = c_get_cur_time_msec();
+
     if(EC_FALSE == ret)
     {
+        sys_log(LOGUSER09, "[FAIL] DELETE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_retire_over_bgn: file_retire '%s' on %s failed\n",
                     (char *)cstring_get_str(file_path),
                     c_word_to_ipv4(store_srv_tcid));
 
         return (EC_FALSE);
     }
+
+    sys_log(LOGUSER09, "[SUCC] DELETE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_retire_over_bgn: file_retire '%s' on %s done\n",
                 (char *)cstring_get_str(file_path),
@@ -1739,6 +1837,9 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         UINT32                       store_offset;
         UINT32                       store_size;
 
+        uint64_t                     s_time_msec;
+        uint64_t                     e_time_msec;
+
         store_offset = store_start_offset;
         store_size   = store_end_offset - store_start_offset + 1;
 
@@ -1753,6 +1854,8 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
 
         ret = EC_FALSE;
+
+        s_time_msec = c_get_cur_time_msec();
 
         if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
         {
@@ -1770,14 +1873,20 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
                 file_path, &store_offset, store_size, content_cbytes, data_ready);
         }
 
+        e_time_msec = c_get_cur_time_msec();
+
         if(EC_FALSE == ret)
         {
+            sys_log(LOGUSER09, "[FAIL] WAITE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+
             dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_over_bgn: file_wait '%s' on %s failed\n",
                         (char *)cstring_get_str(file_path),
                         c_word_to_ipv4(store_srv_tcid));
 
             return (EC_FALSE);
         }
+
+        sys_log(LOGUSER09, "[SUCC] WAITE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
 
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_over_bgn: file_wait '%s' on %s done\n",
                     (char *)cstring_get_str(file_path),
@@ -1790,6 +1899,9 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         MOD_NODE                     recv_mod_node;
         EC_BOOL                      ret;
 
+        uint64_t                     s_time_msec;
+        uint64_t                     e_time_msec;
+
         MOD_NODE_TCID(&send_mod_node) = CMPI_LOCAL_TCID;
         MOD_NODE_COMM(&send_mod_node) = CMPI_LOCAL_COMM;
         MOD_NODE_RANK(&send_mod_node) = CMPI_LOCAL_RANK;
@@ -1801,6 +1913,8 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
 
         ret = EC_FALSE;
+
+        s_time_msec = c_get_cur_time_msec();
 
         if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
         {
@@ -1816,14 +1930,20 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
                 &ret, FI_cxfs_file_wait, CMPI_ERROR_MODI, &send_mod_node, file_path, content_cbytes, data_ready);
         }
 
+        e_time_msec = c_get_cur_time_msec();
+
         if(EC_FALSE == ret)
         {
+            sys_log(LOGUSER09, "[FAIL] WAIT %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+
             dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_over_bgn: file_wait '%s' on %s failed\n",
                         (char *)cstring_get_str(file_path),
                         c_word_to_ipv4(store_srv_tcid));
 
             return (EC_FALSE);
         }
+
+        sys_log(LOGUSER09, "[SUCC] WAIT %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
 
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_over_bgn: file_wait '%s' on %s done\n",
                     (char *)cstring_get_str(file_path),
@@ -1933,6 +2053,9 @@ EC_BOOL ccache_file_wait_ready_over_bgn(const UINT32 store_srv_tcid, const UINT3
     EC_BOOL                      ret;
     UINT32                       data_ready_t;
 
+    uint64_t                     s_time_msec;
+    uint64_t                     e_time_msec;
+
     MOD_NODE_TCID(&send_mod_node) = CMPI_LOCAL_TCID;
     MOD_NODE_COMM(&send_mod_node) = CMPI_LOCAL_COMM;
     MOD_NODE_RANK(&send_mod_node) = CMPI_LOCAL_RANK;
@@ -1944,6 +2067,8 @@ EC_BOOL ccache_file_wait_ready_over_bgn(const UINT32 store_srv_tcid, const UINT3
     MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
 
     ret = EC_FALSE;
+
+    s_time_msec = c_get_cur_time_msec();
 
     if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
     {
@@ -1959,8 +2084,12 @@ EC_BOOL ccache_file_wait_ready_over_bgn(const UINT32 store_srv_tcid, const UINT3
             &ret, FI_cxfs_file_wait_ready, CMPI_ERROR_MODI, &send_mod_node, file_path, &data_ready_t);
     }
 
+    e_time_msec = c_get_cur_time_msec();
+
     if(EC_FALSE == ret)
     {
+        sys_log(LOGUSER09, "[FAIL] WAITR %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_ready_over_bgn: file_retire '%s' on %s failed\n",
                     (char *)cstring_get_str(file_path),
                     c_word_to_ipv4(store_srv_tcid));
@@ -1972,6 +2101,8 @@ EC_BOOL ccache_file_wait_ready_over_bgn(const UINT32 store_srv_tcid, const UINT3
     {
         (*data_ready) = data_ready_t;
     }
+
+    sys_log(LOGUSER09, "[SUCC] WAITR %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_ready_over_bgn: file_retire '%s' on %s done\n",
                 (char *)cstring_get_str(file_path),
@@ -2100,6 +2231,9 @@ EC_BOOL ccache_wait_http_headers_over_bgn(const UINT32 store_srv_tcid, const UIN
     MOD_NODE     recv_mod_node;
     EC_BOOL      ret;
 
+    uint64_t                     s_time_msec;
+    uint64_t                     e_time_msec;
+
     MOD_NODE_TCID(&send_mod_node) = CMPI_LOCAL_TCID;
     MOD_NODE_COMM(&send_mod_node) = CMPI_LOCAL_COMM;
     MOD_NODE_RANK(&send_mod_node) = CMPI_LOCAL_RANK;
@@ -2111,6 +2245,8 @@ EC_BOOL ccache_wait_http_headers_over_bgn(const UINT32 store_srv_tcid, const UIN
     MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
 
     ret = EC_FALSE;
+
+    s_time_msec = c_get_cur_time_msec();
 
     if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
     {
@@ -2130,14 +2266,20 @@ EC_BOOL ccache_wait_http_headers_over_bgn(const UINT32 store_srv_tcid, const UIN
                  file_path, cstrkv_mgr, header_ready);
     }
 
+    e_time_msec = c_get_cur_time_msec();
+
     if(EC_FALSE == ret)
     {
+        sys_log(LOGUSER09, "[FAIL] WAITH %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_wait_http_headers_over_bgn: wait headers of '%.*s' on %s done => failed\n",
                     (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                     c_word_to_ipv4(store_srv_tcid));
 
         return (EC_FALSE);
     }
+
+    sys_log(LOGUSER09, "[SUCC] WAITH %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_wait_http_headers_over_bgn: wait headers of '%.*s' on %s done => OK\n",
                     (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
@@ -2230,6 +2372,9 @@ EC_BOOL ccache_dir_delete_over_bgn(const CSTRING *file_path)
         UINT32       num;
         EC_BOOL      ret;
 
+        uint64_t                     s_time_msec;
+        uint64_t                     e_time_msec;
+
         task_brd = task_brd_default_get();
 
         cmon_md_id = TASK_BRD_CMON_ID(task_brd);
@@ -2245,6 +2390,8 @@ EC_BOOL ccache_dir_delete_over_bgn(const CSTRING *file_path)
             dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_dir_delete_over_bgn: store is empty\n");
             return (EC_FALSE);
         }
+
+        s_time_msec = c_get_cur_time_msec();
 
         task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
 
@@ -2283,6 +2430,10 @@ EC_BOOL ccache_dir_delete_over_bgn(const CSTRING *file_path)
 
         task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
+        e_time_msec = c_get_cur_time_msec();
+
+        sys_log(LOGUSER09, "[SUCC] DELETED %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_dir_delete_over_bgn: rfs delete '%.*s' done\n",
                         (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path));
 
@@ -2300,6 +2451,9 @@ EC_BOOL ccache_dir_delete_over_bgn(const CSTRING *file_path)
         UINT32       num;
         EC_BOOL      ret;
 
+        uint64_t                     s_time_msec;
+        uint64_t                     e_time_msec;
+
         task_brd = task_brd_default_get();
 
         cmon_md_id = TASK_BRD_CMON_ID(task_brd);
@@ -2315,6 +2469,8 @@ EC_BOOL ccache_dir_delete_over_bgn(const CSTRING *file_path)
             dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_dir_delete_over_bgn: store is empty\n");
             return (EC_FALSE);
         }
+
+        s_time_msec = c_get_cur_time_msec();
 
         task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
 
@@ -2352,6 +2508,10 @@ EC_BOOL ccache_dir_delete_over_bgn(const CSTRING *file_path)
         }
 
         task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+        e_time_msec = c_get_cur_time_msec();
+
+        sys_log(LOGUSER09, "[SUCC] DELETED %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
 
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_dir_delete_over_bgn: xfs delete '%.*s' done\n",
                         (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path));

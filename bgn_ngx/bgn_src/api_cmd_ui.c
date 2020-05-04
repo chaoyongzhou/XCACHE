@@ -158,7 +158,8 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     //api_cmd_help_vec_create(cmd_help_vec, "show client"  , "show client {all | tcid <tcid>} at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "show mem"     , "show mem {all | type <type>} on {all | tcid <tcid> rank <rank>} at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "show queue"   , "show queue on {all | tcid <tcid> rank <rank>} at <console|log>");
-    //api_cmd_help_vec_create(cmd_help_vec, "check slowndown"   , "check slow down on {all | tcid <tcid> rank <rank>} at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "slow down"   , "slow down {check | enable | disable | set msec <msec> | set max times <n>} on {all | tcid <tcid> rank <rank>} at <console|log>");
+
     api_cmd_help_vec_create(cmd_help_vec, "show thread"  , "show thread {all | tcid <tcid> rank <rank>} at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "show route"   , "show route {all | tcid <tcid>} at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "show taskcomm", "show taskcomm {all | tcid <tcid>} at <console|log>");
@@ -399,8 +400,20 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_show_queue_all              , "show queue on all at %s"                            , where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_show_queue                  , "show queue on tcid %t rank %n at %s"                , tcid, rank, where);
 
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_check_slowdown_all          , "check slow down on all at %s"                    , where);
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_check_slowdown              , "check slow down on tcid %t rank %n at %s"        , tcid, rank, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_check_slow_down_all         , "slow down check on all at %s"                    , where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_check_slow_down             , "slow down check on tcid %t rank %n at %s"        , tcid, rank, where);
+
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_enable_slow_down_all        , "slow down enable on all at %s"                    , where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_enable_slow_down            , "slow down enable on tcid %t rank %n at %s"        , tcid, rank, where);
+
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_disable_slow_down_all       , "slow down disable on all at %s"                    , where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_disable_slow_down           , "slow down disable on tcid %t rank %n at %s"        , tcid, rank, where);
+
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_set_slow_down_msec_all      , "slow down set msec %n on all at %s"                    , rank, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_set_slow_down_msec          , "slow down set msec %n on tcid %t rank %n at %s"        , rank, tcid, rank, where);
+
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_set_slow_down_max_times_all , "slow down set max times %n on all at %s"                    , rank, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_set_slow_down_max_times     , "slow down set max times %n on tcid %t rank %n at %s"        , rank, tcid, rank, where);
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_show_thread_all             , "show thread all at %s"                           , where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_show_thread                 , "show thread tcid %t rank %n at %s"               , tcid, rank, where);
@@ -3761,7 +3774,7 @@ EC_BOOL api_cmd_ui_show_queue_all(CMD_PARA_VEC * param)
     return (EC_TRUE);
 }
 
-EC_BOOL api_cmd_ui_check_slowdown(CMD_PARA_VEC * param)
+EC_BOOL api_cmd_ui_check_slow_down(CMD_PARA_VEC * param)
 {
     UINT32 tcid;
     UINT32 rank;
@@ -3781,7 +3794,7 @@ EC_BOOL api_cmd_ui_check_slowdown(CMD_PARA_VEC * param)
     api_cmd_para_vec_get_uint32(param, 1, &rank);
     api_cmd_para_vec_get_cstring(param, 2, &where);
 
-    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "check slow down on tcid %s, rank %ld at %s\n",
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "slow down check on tcid %s, rank %ld at %s\n",
                         c_word_to_ipv4(tcid),
                         rank,
                         (char *)cstring_get_str(where));
@@ -3790,9 +3803,9 @@ EC_BOOL api_cmd_ui_check_slowdown(CMD_PARA_VEC * param)
 #if 1
     if(do_log(SEC_0010_API, 5))
     {
-        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_check_slowdown beg ----------------------------------\n");
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_check_slow_down beg ----------------------------------\n");
         mod_mgr_print(LOGSTDOUT, mod_mgr);
-        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_check_slowdown end ----------------------------------\n");
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_check_slow_down end ----------------------------------\n");
     }
 #endif
 
@@ -3807,7 +3820,7 @@ EC_BOOL api_cmd_ui_check_slowdown(CMD_PARA_VEC * param)
         log = log_cstr_open();
 
         cvector_push(report_vec, (void *)log);
-        task_pos_inc(task_mgr, remote_mod_node_idx, NULL_PTR, FI_super_check_slowdown, CMPI_ERROR_MODI, log);
+        task_pos_inc(task_mgr, remote_mod_node_idx, NULL_PTR, FI_super_check_slow_down, CMPI_ERROR_MODI, log);
     }
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
@@ -3833,7 +3846,7 @@ EC_BOOL api_cmd_ui_check_slowdown(CMD_PARA_VEC * param)
     return (EC_TRUE);
 }
 
-EC_BOOL api_cmd_ui_check_slowdown_all(CMD_PARA_VEC * param)
+EC_BOOL api_cmd_ui_check_slow_down_all(CMD_PARA_VEC * param)
 {
     MOD_MGR  *mod_mgr;
     TASK_MGR *task_mgr;
@@ -3848,15 +3861,15 @@ EC_BOOL api_cmd_ui_check_slowdown_all(CMD_PARA_VEC * param)
 
     api_cmd_para_vec_get_cstring(param, 0, &where);
 
-    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "check slow down on all at %s\n", (char *)cstring_get_str(where));
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "slow down check on all at %s\n", (char *)cstring_get_str(where));
 
     mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
 #if 1
     if(do_log(SEC_0010_API, 5))
     {
-        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_check_slowdown_all beg ----------------------------------\n");
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_check_slow_down_all beg ----------------------------------\n");
         mod_mgr_print(LOGSTDOUT, mod_mgr);
-        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_check_slowdown_all end ----------------------------------\n");
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_check_slow_down_all end ----------------------------------\n");
     }
 #endif
 
@@ -3871,7 +3884,7 @@ EC_BOOL api_cmd_ui_check_slowdown_all(CMD_PARA_VEC * param)
         log = log_cstr_open();
 
         cvector_push(report_vec, (void *)log);
-        task_pos_inc(task_mgr, remote_mod_node_idx, NULL_PTR, FI_super_check_slowdown, CMPI_ERROR_MODI, log);
+        task_pos_inc(task_mgr, remote_mod_node_idx, NULL_PTR, FI_super_check_slow_down, CMPI_ERROR_MODI, log);
     }
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
@@ -3889,6 +3902,632 @@ EC_BOOL api_cmd_ui_check_slowdown_all(CMD_PARA_VEC * param)
 
         cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
         log_cstr_close(log);
+    }
+
+    cvector_free(report_vec, LOC_API_0113);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_enable_slow_down(CMD_PARA_VEC * param)
+{
+    UINT32 tcid;
+    UINT32 rank;
+
+    CSTRING *where;
+
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_tcid(param, 0, &tcid);
+    api_cmd_para_vec_get_uint32(param, 1, &rank);
+    api_cmd_para_vec_get_cstring(param, 2, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "slow down enable on tcid %s, rank %ld at %s\n",
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(tcid, rank, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_enable_slow_down beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_enable_slow_down end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0110);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        UINT32 *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0103);
+        cvector_push(report_vec, (void *)ret);
+
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_super_enable_slow_down, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        UINT32 *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (UINT32 *)cvector_get(report_vec, remote_mod_node_idx);
+
+        if(EC_TRUE == (*ret))
+        {
+            sys_log(des_log, "[rank_%s_%ld] SUCC\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
+        }
+        else
+        {
+            sys_log(des_log, "[rank_%s_%ld] FAIL\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
+        }
+
+        cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0104);
+    }
+
+    cvector_free(report_vec, LOC_API_0111);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_enable_slow_down_all(CMD_PARA_VEC * param)
+{
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    CSTRING *where;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_cstring(param, 0, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "slow down enable on all at %s\n", (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_enable_slow_down_all beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_enable_slow_down_all end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0112);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        UINT32 *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0103);
+        cvector_push(report_vec, (void *)ret);
+
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_super_enable_slow_down, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        UINT32 *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (UINT32 *)cvector_get(report_vec, remote_mod_node_idx);
+
+        if(EC_TRUE == (*ret))
+        {
+            sys_log(des_log, "[rank_%s_%ld] SUCC\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
+        }
+        else
+        {
+            sys_log(des_log, "[rank_%s_%ld] FAIL\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
+        }
+
+        cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0104);
+    }
+
+    cvector_free(report_vec, LOC_API_0113);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_disable_slow_down(CMD_PARA_VEC * param)
+{
+    UINT32 tcid;
+    UINT32 rank;
+
+    CSTRING *where;
+
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_tcid(param, 0, &tcid);
+    api_cmd_para_vec_get_uint32(param, 1, &rank);
+    api_cmd_para_vec_get_cstring(param, 2, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "slow down disable on tcid %s, rank %ld at %s\n",
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(tcid, rank, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_disable_slow_down beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_disable_slow_down end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0110);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        UINT32 *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0103);
+        cvector_push(report_vec, (void *)ret);
+
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_super_disable_slow_down, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        UINT32 *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (UINT32 *)cvector_get(report_vec, remote_mod_node_idx);
+
+        if(EC_TRUE == (*ret))
+        {
+            sys_log(des_log, "[rank_%s_%ld] SUCC\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
+        }
+        else
+        {
+            sys_log(des_log, "[rank_%s_%ld] FAIL\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
+        }
+
+        cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0104);
+    }
+
+    cvector_free(report_vec, LOC_API_0111);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_disable_slow_down_all(CMD_PARA_VEC * param)
+{
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    CSTRING *where;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_cstring(param, 0, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "slow down disable on all at %s\n", (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_disable_slow_down_all beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_disable_slow_down_all end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0112);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        UINT32 *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0103);
+        cvector_push(report_vec, (void *)ret);
+
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_super_disable_slow_down, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        UINT32 *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (UINT32 *)cvector_get(report_vec, remote_mod_node_idx);
+
+        if(EC_TRUE == (*ret))
+        {
+            sys_log(des_log, "[rank_%s_%ld] SUCC\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
+        }
+        else
+        {
+            sys_log(des_log, "[rank_%s_%ld] FAIL\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
+        }
+
+        cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0104);
+    }
+
+    cvector_free(report_vec, LOC_API_0113);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_set_slow_down_msec(CMD_PARA_VEC * param)
+{
+    UINT32 slow_down_msec;
+    UINT32 tcid;
+    UINT32 rank;
+
+    CSTRING *where;
+
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_uint32(param, 0, &slow_down_msec);
+    api_cmd_para_vec_get_tcid(param, 1, &tcid);
+    api_cmd_para_vec_get_uint32(param, 2, &rank);
+    api_cmd_para_vec_get_cstring(param, 3, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "slow down set msec %ld on tcid %s, rank %ld at %s\n",
+                        slow_down_msec,
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(tcid, rank, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_set_slow_down_msec beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_set_slow_down_msec end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0110);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        UINT32 *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0103);
+        cvector_push(report_vec, (void *)ret);
+
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_super_set_slow_down_msec, CMPI_ERROR_MODI, slow_down_msec);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        UINT32 *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (UINT32 *)cvector_get(report_vec, remote_mod_node_idx);
+
+        if(EC_TRUE == (*ret))
+        {
+            sys_log(des_log, "[rank_%s_%ld] SUCC\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
+        }
+        else
+        {
+            sys_log(des_log, "[rank_%s_%ld] FAIL\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
+        }
+
+        cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0104);
+    }
+
+    cvector_free(report_vec, LOC_API_0111);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_set_slow_down_msec_all(CMD_PARA_VEC * param)
+{
+    UINT32 slow_down_msec;
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    CSTRING *where;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_uint32(param, 0, &slow_down_msec);
+    api_cmd_para_vec_get_cstring(param, 1, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "slow down set msec %ld on all at %s\n", slow_down_msec, (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_set_slow_down_msec_all beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_set_slow_down_msec_all end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0112);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        UINT32 *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0103);
+        cvector_push(report_vec, (void *)ret);
+
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_super_set_slow_down_msec, CMPI_ERROR_MODI, slow_down_msec);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        UINT32 *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (UINT32 *)cvector_get(report_vec, remote_mod_node_idx);
+
+        if(EC_TRUE == (*ret))
+        {
+            sys_log(des_log, "[rank_%s_%ld] SUCC\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
+        }
+        else
+        {
+            sys_log(des_log, "[rank_%s_%ld] FAIL\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
+        }
+
+        cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0104);
+    }
+
+    cvector_free(report_vec, LOC_API_0113);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_set_slow_down_max_times(CMD_PARA_VEC * param)
+{
+    UINT32 slow_down_max_times;
+    UINT32 tcid;
+    UINT32 rank;
+
+    CSTRING *where;
+
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_uint32(param, 0, &slow_down_max_times);
+    api_cmd_para_vec_get_tcid(param, 1, &tcid);
+    api_cmd_para_vec_get_uint32(param, 2, &rank);
+    api_cmd_para_vec_get_cstring(param, 3, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "slow down set max times %ld on tcid %s, rank %ld at %s\n",
+                        slow_down_max_times,
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(tcid, rank, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_set_slow_down_max_times beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_set_slow_down_max_times end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0110);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        UINT32 *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0103);
+        cvector_push(report_vec, (void *)ret);
+
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_super_set_slow_down_max_times, CMPI_ERROR_MODI, slow_down_max_times);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        UINT32 *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (UINT32 *)cvector_get(report_vec, remote_mod_node_idx);
+
+        if(EC_TRUE == (*ret))
+        {
+            sys_log(des_log, "[rank_%s_%ld] SUCC\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
+        }
+        else
+        {
+            sys_log(des_log, "[rank_%s_%ld] FAIL\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
+        }
+
+        cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0104);
+    }
+
+    cvector_free(report_vec, LOC_API_0111);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_set_slow_down_max_times_all(CMD_PARA_VEC * param)
+{
+    UINT32 slow_down_max_times;
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    CSTRING *where;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_uint32(param, 0, &slow_down_max_times);
+    api_cmd_para_vec_get_cstring(param, 1, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "slow down set msec %ld on all at %s\n", slow_down_max_times, (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_set_slow_down_max_times_all beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_set_slow_down_max_times_all end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0112);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        UINT32 *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0103);
+        cvector_push(report_vec, (void *)ret);
+
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_super_set_slow_down_max_times, CMPI_ERROR_MODI, slow_down_max_times);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        UINT32 *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (UINT32 *)cvector_get(report_vec, remote_mod_node_idx);
+
+        if(EC_TRUE == (*ret))
+        {
+            sys_log(des_log, "[rank_%s_%ld] SUCC\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
+        }
+        else
+        {
+            sys_log(des_log, "[rank_%s_%ld] FAIL\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node));
+        }
+
+        cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0104);
     }
 
     cvector_free(report_vec, LOC_API_0113);

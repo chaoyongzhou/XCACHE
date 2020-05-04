@@ -122,8 +122,20 @@ EC_BOOL api_cmd_ui_disable_all_to_rank_node(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_show_queue(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_show_queue_all(CMD_PARA_VEC * param);
 
-EC_BOOL api_cmd_ui_check_slowdown(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_check_slowdown_all(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_check_slow_down(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_check_slow_down_all(CMD_PARA_VEC * param);
+
+EC_BOOL api_cmd_ui_enable_slow_down(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_enable_slow_down_all(CMD_PARA_VEC * param);
+
+EC_BOOL api_cmd_ui_disable_slow_down(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_disable_slow_down_all(CMD_PARA_VEC * param);
+
+EC_BOOL api_cmd_ui_set_slow_down_msec(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_set_slow_down_msec_all(CMD_PARA_VEC * param);
+
+EC_BOOL api_cmd_ui_set_slow_down_max_times(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_set_slow_down_max_times_all(CMD_PARA_VEC * param);
 
 EC_BOOL api_cmd_ui_show_client(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_show_client_all(CMD_PARA_VEC * param);

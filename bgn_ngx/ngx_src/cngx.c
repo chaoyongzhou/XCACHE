@@ -2228,8 +2228,11 @@ void cngx_send_again(ngx_http_request_t *r)
     c = r->connection;
     wev = c->write;
 
-    if(wev->timer_set)
-    {
+    if(wev->timer_set && !wev->timedout) {
+        if(wev->delayed) {/*limit rate*/
+            return;
+        }
+
         ngx_del_timer(wev);
     }
 

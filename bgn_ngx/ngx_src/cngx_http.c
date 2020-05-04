@@ -145,6 +145,39 @@ EC_BOOL cngx_http_log_start()
             cstring_free(log_file_name);
         }
     }
+
+    if(EC_TRUE == task_brd_check_is_work_tcid(TASK_BRD_TCID(task_brd)))
+    {
+        CSTRING *log_file_name;
+        LOG     *log;
+
+        /*open log and redirect LOGUSER08 to it*/
+        log_file_name = cstring_new(NULL_PTR, LOC_CNGX_0064);
+        cstring_format(log_file_name, "%s/storage_%s_%ld",
+                        (char *)TASK_BRD_LOG_PATH_STR(task_brd),
+                        c_word_to_ipv4(TASK_BRD_TCID(task_brd)),
+                        TASK_BRD_RANK(task_brd));
+        log = log_file_open((char *)cstring_get_str(log_file_name), "a+",
+                            TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd),
+                            LOGD_FILE_RECORD_LIMIT_ENABLED, SWITCH_OFF,
+                            LOGD_SWITCH_OFF_ENABLE, LOGD_PID_INFO_ENABLE);
+        if(NULL_PTR == log)
+        {
+            dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_log_start: log_file_open '%s' -> LOGUSER08 failed\n",
+                               (char *)cstring_get_str(log_file_name));
+            cstring_free(log_file_name);
+            /*task_brd_default_abort();*/
+        }
+        else
+        {
+            sys_log_redirect_setup(LOGUSER09, log);
+
+            dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "[DEBUG] cngx_http_log_start: log_file_open '%s' -> LOGUSER08 done\n",
+                               (char *)cstring_get_str(log_file_name));
+
+            cstring_free(log_file_name);
+        }
+    }
     return (EC_TRUE);
 }
 
