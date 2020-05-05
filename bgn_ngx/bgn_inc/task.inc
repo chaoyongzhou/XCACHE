@@ -43,6 +43,7 @@ extern "C"{
 #include "cepoll.inc"
 #include "cconnp.inc"
 #include "csdisc.h"
+#include "ceventfd.h"
 
 #define ERR_TASK_SEQNO ((UINT32)(~((UINT32)0)))
 #define ERR_FUNC_ID    ((UINT32)(~((UINT32)0)))
@@ -485,9 +486,8 @@ typedef struct _TASK_BRD
     CVECTOR      func_addr_vec;
 
     pid_t        do_slave_pid;
-    uint32_t     enable_slow_down:1;/*set by outside of BGN. if other enable it, BGN could be slow down or not depend on BGN*/
     uint32_t     tasks_is_running:1;
-    uint32_t     rsvd2:30;
+    uint32_t     rsvd2:31;
 
     CTHREAD_ID   do_slave_cthread_id;            /* do_slave thread  */
     CTHREAD_ID   do_routine_cthread_id;          /* do_routine thread  */
@@ -547,6 +547,8 @@ typedef struct _TASK_BRD
     EC_BOOL      enable_flag;      /*when enabled (== EC_TRUE), obtain actual load, when disabled (== EC_FALSE), obtain faked load(-1, the max int value)*/
     EC_BOOL      reset_flag;       /*when enabled (== EC_TRUE), reset do_slave thread if down, otherwise, not reset do_slave thread if down*/
     EC_BOOL      ngx_exiting_flag;
+
+    CEVENTFD_NODE ceventfd_node;
 
     //EC_BOOL      dbg_flag;
     //UINT32       dbg_counter;
@@ -927,7 +929,6 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 #define TASK_BRD_SUPER_MD_ID(task_brd)                     ((task_brd)->super_md_id)
 
 #define TASK_BRD_DO_SLAVE_PID(task_brd)                    ((task_brd)->do_slave_pid)
-#define TASK_BRD_ENABLE_SLOW_DOWN(task_brd)                ((task_brd)->enable_slow_down)
 #define TASK_BRD_TASKS_IS_RUNNING(task_brd)                ((task_brd)->tasks_is_running)
 
 #define TASK_BRD_DO_SLAVE_CTHREAD_ID(task_brd)             ((task_brd)->do_slave_cthread_id)
@@ -983,6 +984,8 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 #define TASK_BRD_REPORT_LIST(task_brd)                       (&((task_brd)->task_report_list))
 #define TASK_BRD_CBTIMER_LIST(task_brd)                      (&((task_brd)->task_cbtimer_list))
 #define TASK_BRD_PROCESS_LIST(task_brd)                      (&((task_brd)->task_process_list))
+
+#define TASK_BRD_CEVENTFD_NODE(task_brd)                     (&((task_brd)->ceventfd_node))
 
 #define TASK_BRD_RECV_TASK_MGR_LIST_INIT(task_brd, location)           (clist_init(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), MM_IGNORE, location))
 #define TASK_BRD_ARGING_TASK_MGR_LIST_INIT(task_brd, location)         (clist_init(TASK_BRD_AGING_TASK_MGR_LIST(task_brd), MM_IGNORE, location))

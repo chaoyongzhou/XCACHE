@@ -2062,71 +2062,53 @@ void super_show_queues(const UINT32 super_md_id, LOG *log)
 
 /**
 *
-* list slow down checking conditions
+* obtain slow down settting
 *
 **/
-void super_check_slow_down(const UINT32 super_md_id, LOG *log)
+EC_BOOL super_get_bgn_slow_down(const UINT32 super_md_id, UINT32 *slow_down_msec)
 {
-    TASK_BRD *task_brd;
-
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:super_check_slow_down: super module #0x%lx not started.\n",
+                "error:super_get_bgn_slow_down: super module #0x%lx not started.\n",
                 super_md_id);
         dbg_exit(MD_SUPER, super_md_id);
     }
 #endif/*SUPER_DEBUG_SWITCH*/
 
-    task_brd = task_brd_default_get();
-
-    sys_log(log, "===============================[rank_%s_%ld] slow down checking conditions: ===============================\n",
-                TASK_BRD_TCID_STR(task_brd), TASK_BRD_RANK(task_brd));
-
-    task_brd_need_slow_down(task_brd, log, LOG_LEVEL_ALWAYS_HAPPEN);
-    return;
+    if(NULL_PTR != slow_down_msec)
+    {
+        (*slow_down_msec) = TASK_SLOW_DOWN_MSEC;
+    }
+    return (EC_TRUE);
 }
 
-EC_BOOL super_enable_slow_down(const UINT32 super_md_id)
+EC_BOOL super_get_ngx_slow_down(const UINT32 super_md_id, UINT32 *slow_down_msec)
 {
-    TASK_BRD *task_brd;
-
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:super_enable_slow_down: super module #0x%lx not started.\n",
+                "error:super_get_ngx_slow_down: super module #0x%lx not started.\n",
                 super_md_id);
         dbg_exit(MD_SUPER, super_md_id);
     }
 #endif/*SUPER_DEBUG_SWITCH*/
 
-    task_brd = task_brd_default_get();
-
-    return task_brd_enable_slow_down(task_brd);
-}
-
-EC_BOOL super_disable_slow_down(const UINT32 super_md_id)
-{
-    TASK_BRD *task_brd;
-
-#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
-    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    if(NULL_PTR != slow_down_msec)
     {
-        sys_log(LOGSTDOUT,
-                "error:super_disable_slow_down: super module #0x%lx not started.\n",
-                super_md_id);
-        dbg_exit(MD_SUPER, super_md_id);
+        (*slow_down_msec) = NGX_EPOLL_TIMEOUT_MSEC;
     }
-#endif/*SUPER_DEBUG_SWITCH*/
-
-    task_brd = task_brd_default_get();
-
-    return task_brd_disable_slow_down(task_brd);
+    return (EC_TRUE);
 }
 
-EC_BOOL super_set_slow_down_msec(const UINT32 super_md_id, const UINT32 slow_down_msec)
+/**
+*
+* modify slow down settting
+*
+**/
+EC_BOOL super_set_bgn_slow_down(const UINT32 super_md_id, const UINT32 slow_down_msec)
 {
     CPARACFG        *cparacfg;
 
@@ -2134,7 +2116,7 @@ EC_BOOL super_set_slow_down_msec(const UINT32 super_md_id, const UINT32 slow_dow
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:super_set_slow_down_msec: super module #0x%lx not started.\n",
+                "error:super_set_bgn_slow_down: super module #0x%lx not started.\n",
                 super_md_id);
         dbg_exit(MD_SUPER, super_md_id);
     }
@@ -2142,12 +2124,16 @@ EC_BOOL super_set_slow_down_msec(const UINT32 super_md_id, const UINT32 slow_dow
 
     cparacfg = CPARACFG_DEFAULT_GET();
 
-    CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg) = slow_down_msec;
+    if(NULL_PTR != cparacfg)
+    {
+        CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg) = slow_down_msec;
+        return (EC_TRUE);
+    }
 
-    return (EC_TRUE);
+    return (EC_FALSE);
 }
 
-EC_BOOL super_set_slow_down_max_times(const UINT32 super_md_id, const UINT32 slow_down_max_times)
+EC_BOOL super_set_ngx_slow_down(const UINT32 super_md_id, const UINT32 slow_down_msec)
 {
     CPARACFG        *cparacfg;
 
@@ -2155,7 +2141,7 @@ EC_BOOL super_set_slow_down_max_times(const UINT32 super_md_id, const UINT32 slo
     if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:super_set_slow_down_max_times: super module #0x%lx not started.\n",
+                "error:super_set_ngx_slow_down: super module #0x%lx not started.\n",
                 super_md_id);
         dbg_exit(MD_SUPER, super_md_id);
     }
@@ -2163,9 +2149,13 @@ EC_BOOL super_set_slow_down_max_times(const UINT32 super_md_id, const UINT32 slo
 
     cparacfg = CPARACFG_DEFAULT_GET();
 
-    CPARACFG_TASK_NOT_SLOW_DOWN_MAX_TIMES(cparacfg) = slow_down_max_times;
+    if(NULL_PTR != cparacfg)
+    {
+        CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg) = slow_down_msec;
+        return (EC_TRUE);
+    }
 
-    return (EC_TRUE);
+    return (EC_FALSE);
 }
 
 void super_handle_broken_tcid_comm(const UINT32 super_md_id, const UINT32 broken_tcid, const UINT32 broken_comm)

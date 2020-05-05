@@ -2269,11 +2269,15 @@ EC_BOOL cngx_send_body_blocking(ngx_http_request_t *r, ngx_int_t *ngx_rc)
     ngx_event_t               *wev;
 
     ngx_msec_t                 send_timeout;
+    ngx_msec_t                 b_time_msec; /*beg time in msec*/
     ngx_msec_t                 s_time_msec; /*start time in msec*/
     ngx_msec_t                 e_time_msec; /*end time in msec*/
+    ngx_msec_t                 c_time_msec;     /*cur time in msec*/
 
     ngx_msec_t                 ev_timeout_msec; /*event timeout in msec*/
     size_t                     send_lowat;
+    off_t                      s_sent_nbytes;
+    off_t                      e_sent_nbytes;
 
     c = r->connection;
     wev = c->write;
@@ -2284,8 +2288,10 @@ EC_BOOL cngx_send_body_blocking(ngx_http_request_t *r, ngx_int_t *ngx_rc)
 
     cngx_get_send_timeout_msec(r, &send_timeout);
 
-    s_time_msec = ngx_current_msec;
+    b_time_msec = c_get_cur_time_msec();
+    s_time_msec = b_time_msec;
     e_time_msec = s_time_msec + send_timeout;
+    c_time_msec = s_time_msec;
 
     cngx_get_send_timeout_event_msec(r, &ev_timeout_msec);
 
@@ -2296,11 +2302,10 @@ EC_BOOL cngx_send_body_blocking(ngx_http_request_t *r, ngx_int_t *ngx_rc)
     NGX_W_RC(wev) = NGX_AGAIN;
     while(NGX_AGAIN == NGX_W_RC(wev))
     {
-        ngx_msec_t                 c_time_msec;     /*cur time in msec*/
         ngx_msec_t                 co_timeout_msec; /*coroutine timeout in msec*/
         EC_BOOL                    ret;
 
-        c_time_msec = ngx_current_msec;
+        s_sent_nbytes = r->connection->sent;
 
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_body_blocking: "
                                              "[delayed: %d, timer_set: %d, active %d, ready: %d]\n",
@@ -2312,10 +2317,15 @@ EC_BOOL cngx_send_body_blocking(ngx_http_request_t *r, ngx_int_t *ngx_rc)
             (*ngx_rc) = NGX_HTTP_CLIENT_CLOSED_REQUEST;
             NGX_W_RC(wev) = NGX_ERROR;
 
+            c->timedout = 1;
+
             dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_body_blocking: "
-                                                 "[timeout] r %p, send_timeout %ld, elapsed %ld, "
+                                                 "[timeout] r %p, send_timeout %ld, "
+                                                 "elapsed %ld, cost %ld, "
                                                  "connection error: %d, reset rc to %ld\n",
-                                                 r, send_timeout, c_time_msec - s_time_msec,
+                                                 r, send_timeout,
+                                                 c_time_msec - s_time_msec,
+                                                 c_time_msec - b_time_msec,
                                                  c->error, NGX_W_RC(wev));
             break;
         }
@@ -2336,15 +2346,21 @@ EC_BOOL cngx_send_body_blocking(ngx_http_request_t *r, ngx_int_t *ngx_rc)
         /*--- blocking ---*/
         ret = cngx_send_wait(r, co_timeout_msec);
 
+        /*update*/
+        c_time_msec = c_get_cur_time_msec();
+
         if(c->error)
         {
             (*ngx_rc) = NGX_HTTP_CLIENT_CLOSED_REQUEST;
             NGX_W_RC(wev) = NGX_ERROR;
 
             dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_body_blocking: "
-                                                 "[broken] r %p, send_timeout %ld, elapsed %ld, "
+                                                 "[broken] r %p, send_timeout %ld, "
+                                                 "elapsed %ld, total cost %ld, "
                                                  "connection error: %d, reset rc to %ld\n",
-                                                 r, send_timeout, c_time_msec - s_time_msec,
+                                                 r, send_timeout,
+                                                 c_time_msec - s_time_msec,
+                                                 c_time_msec - b_time_msec,
                                                  c->error, NGX_W_RC(wev));
             break;
         }
@@ -2355,18 +2371,33 @@ EC_BOOL cngx_send_body_blocking(ngx_http_request_t *r, ngx_int_t *ngx_rc)
 
             dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_body_blocking: "
                                                  "[fail] r %p, wait back, send_timeout %ld, "
-                                                 "elapsed %ld, co timeout %ld, "
+                                                 "elapsed %ld, total cost %ld, co timeout %ld, "
                                                  "connection error: %d, reset rc to %ld\n",
-                                                 r, send_timeout, c_time_msec - s_time_msec, co_timeout_msec,
+                                                 r, send_timeout,
+                                                 c_time_msec - s_time_msec,
+                                                 c_time_msec - b_time_msec,
+                                                 co_timeout_msec,
                                                  c->error, NGX_W_RC(wev));
             break;
         }
 
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_body_blocking: "
-                                             "[next] r %p, wait back, send_timeout %ld, elapsed %ld, "
+                                             "[next] r %p, wait back, send_timeout %ld, "
+                                             "elapsed %ld, total cost %ld, "
                                              "connection error: %d, rc: %ld\n",
-                                             r, send_timeout, c_time_msec - s_time_msec,
+                                             r, send_timeout,
+                                             c_time_msec - s_time_msec,
+                                             c_time_msec - b_time_msec,
                                              c->error, NGX_W_RC(wev));
+
+        e_sent_nbytes = r->connection->sent;
+
+        /*re-arm timer if send any data out*/
+        if(e_sent_nbytes > s_sent_nbytes)
+        {
+            s_time_msec = c_time_msec;
+            e_time_msec = s_time_msec + send_timeout;
+        }
     }
 
     if(wev->timer_set)

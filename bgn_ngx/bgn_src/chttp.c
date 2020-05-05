@@ -4845,7 +4845,7 @@ EC_BOOL chttp_defer_request_queue_clean()
 * WARNING:
 *
 *   chttp_defer_request_queue_init is called in RFS module,
-*   but chttp_defer_request_queue_is_empty is checked in task_brd_need_slow_down
+*   but chttp_defer_request_queue_is_empty is checked in task_brd_check_and_notify
 *   where maybe chttp_defer_request_queue_init is not called or never be called!
 *
 *   Thus, one cannot call cqueue_is_empty is check whether g_chttp_defer_request_queue

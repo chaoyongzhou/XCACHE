@@ -1533,7 +1533,6 @@ EC_BOOL cxml_parse_cparacfg_thread_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     __cxml_parse_tag_uint32(node, (const char *)"maxStackSize"             , &(CPARACFG_CTHREAD_STACK_MAX_SIZE(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"stackGuardSize"           , &(CPARACFG_CTHREAD_STACK_GUARD_SIZE(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"taskSlowDownMsec"         , &(CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"taskNotSlowDownMaxTimes"  , &(CPARACFG_TASK_NOT_SLOW_DOWN_MAX_TIMES(cparacfg)));
 
     __cxml_parse_tag_switch(node, (const char *)"ngxBgnOverHttpSwitch"     , &(CPARACFG_NGX_BGN_OVER_HTTP_SWITCH(cparacfg)));
     __cxml_parse_tag_switch(node, (const char *)"ngxBgnOverRfsSwitch"      , &(CPARACFG_NGX_BGN_OVER_RFS_SWITCH(cparacfg)));

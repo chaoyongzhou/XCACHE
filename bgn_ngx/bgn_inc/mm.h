@@ -161,7 +161,7 @@ extern "C"{
 #define                    MM_CLOAD_STAT    ((UINT32) 94)
 #define                    MM_CLOAD_NODE    ((UINT32) 95)
 #define                     MM_CDNSCACHE    ((UINT32) 96)
-#define                        MM_000097    ((UINT32) 97) /*-- obsolete --*/
+#define                 MM_CEVENTFD_NODE    ((UINT32) 97)
 #define                MM_TYPE_CONV_ITEM    ((UINT32) 98)
 #define                          MM_CSRV    ((UINT32) 99)
 #define                        MM_000100    ((UINT32)100) /*-- obsolete --*/

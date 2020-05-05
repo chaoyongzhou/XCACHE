@@ -87,6 +87,7 @@ extern "C"{
 #include "ctdns.h"
 
 #include "csdisc.h"
+#include "ceventfd.h"
 
 #include "findex.inc"
 
@@ -5583,7 +5584,6 @@ EC_BOOL task_brd_init(TASK_BRD          *task_brd,
     creg_func_addr_vec_add_default(TASK_BRD_FUNC_ADDR_VEC(task_brd));
 
     TASK_BRD_DO_SLAVE_PID(task_brd)          = ERR_PID;
-    TASK_BRD_ENABLE_SLOW_DOWN(task_brd)      = BIT_TRUE;
     TASK_BRD_TASKS_IS_RUNNING(task_brd)      = BIT_FALSE;
 
     TASK_BRD_DO_SLAVE_CTHREAD_ID(task_brd)   = ERR_CTHREAD_ID;
@@ -5654,6 +5654,8 @@ EC_BOOL task_brd_init(TASK_BRD          *task_brd,
 
     /*initialize task processor list*/
     task_brd_process_init(task_brd);
+
+    ceventfd_node_init(TASK_BRD_CEVENTFD_NODE(task_brd));
 
     TASK_BRD_ENABLE_FLAG(task_brd) = EC_TRUE;
     TASK_BRD_RESET_FLAG(task_brd)  = EC_TRUE;/*default is to reset the down do_slave thread*/
@@ -12355,29 +12357,7 @@ EC_BOOL task_brd_default_discovery()
     return (EC_TRUE);
 }
 
-EC_BOOL task_brd_enable_slow_down(TASK_BRD *task_brd)
-{
-    TASK_BRD_ENABLE_SLOW_DOWN(task_brd) = BIT_TRUE;
-    return (EC_TRUE);
-}
-
-EC_BOOL task_brd_disable_slow_down(TASK_BRD *task_brd)
-{
-    TASK_BRD_ENABLE_SLOW_DOWN(task_brd) = BIT_FALSE;
-    return (EC_TRUE);
-}
-
-EC_BOOL task_brd_default_enable_slow_down()
-{
-    return task_brd_enable_slow_down(task_brd_default_get());
-}
-
-EC_BOOL task_brd_default_disable_slow_down()
-{
-    return task_brd_disable_slow_down(task_brd_default_get());
-}
-
-EC_BOOL task_brd_need_slow_down(TASK_BRD *task_brd, LOG *log, UINT32 level)
+EC_BOOL task_brd_check_and_notify(TASK_BRD *task_brd)
 {
     UINT32 recving_num;
     UINT32 is_recv_num;
@@ -12415,46 +12395,85 @@ EC_BOOL task_brd_need_slow_down(TASK_BRD *task_brd, LOG *log, UINT32 level)
     ||  EC_FALSE == (chttp_defer_request_empty_flag = chttp_defer_request_queue_is_empty())
     )
     {
-        dbg_log(SEC_0015_TASK, level)(log, "[DEBUG] task_brd_need_slow_down: [N] recving %ld, is_recv %ld, to_send %ld, sending %ld, "
-                           //"rcv_task_mgr %ld, "
-                           "aging_task_mgr %ld, req routine %ld, rsp routine %ld, http empty flag %s\n",
-                            recving_num, is_recv_num, to_send_num, sending_num,
-                            //recv_task_mgr_num,
-                            aging_task_mgr_num,
-                            req_croutine_num, rsp_croutine_num,
-                            c_bool_str(chttp_defer_request_empty_flag));
-        return (EC_FALSE);/*not need to slow down*/
+        task_brd_notify(task_brd);
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL task_brd_notify(TASK_BRD *task_brd)
+{
+    return ceventfd_node_notify(TASK_BRD_CEVENTFD_NODE(task_brd));
+}
+
+EC_BOOL task_brd_default_notify()
+{
+    return task_brd_notify(task_brd_default_get());
+}
+
+EC_BOOL task_brd_epoll_do(TASK_BRD *task_brd)
+{
+    if(NULL_PTR != TASK_BRD_CEPOLL(task_brd))
+    {
+        cepoll_wait(TASK_BRD_CEPOLL(task_brd), TASK_SLOW_DOWN_MSEC);
+        task_brd_update_time(task_brd);
+
+        cepoll_timeout(TASK_BRD_CEPOLL(task_brd));
+        cepoll_loop(TASK_BRD_CEPOLL(task_brd));
+        task_brd_update_time(task_brd);
     }
     else
-    {   /*log level is 11 higher than if-branch log level 10 :-)*/
-        dbg_log(SEC_0015_TASK, level)(log, "[DEBUG] task_brd_need_slow_down: [Y] recving %ld, is_recv %ld, to_send %ld, sending %ld, "
-                           //"rcv_task_mgr %ld, "
-                           "aging_task_mgr %ld, req routine %ld, rsp routine %ld, http empty flag %s\n",
-                            recving_num, is_recv_num, to_send_num, sending_num,
-                            //recv_task_mgr_num,
-                            aging_task_mgr_num,
-                            req_croutine_num, rsp_croutine_num,
-                            c_bool_str(chttp_defer_request_empty_flag));
-    }
-    return (EC_TRUE);/*could slow down, not MUST-TO, depend on process*/
-}
-
-EC_BOOL task_brd_default_need_slow_down()
-{
-    return task_brd_need_slow_down(task_brd_default_get(), LOGSTDOUT, LOG_LEVEL_NEVER_HAPPEN);
-}
-
-uint32_t task_brd_default_ngx_need_slow_down()/*only for ngx!*/
-{
-    EC_BOOL flag;
-
-    flag = task_brd_need_slow_down(task_brd_default_get(), LOGSTDOUT, LOG_LEVEL_NEVER_HAPPEN);
-    if(EC_TRUE == flag)
     {
-        return ((uint32_t)1);
+        c_usleep(TASK_SLOW_DOWN_MSEC, LOC_TASK_0234);
+
+        task_brd_update_time(task_brd);
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL task_brd_timer_do(TASK_BRD *task_brd, const uint64_t interval_time_msec)
+{
+    static uint64_t    last_handled_time_msec   = 0;
+
+    /*handle timeout event or expired event, check each second*/
+    if(last_handled_time_msec + interval_time_msec <= TASK_BRD_TIME_MSEC(task_brd))
+    {
+        /*handle timeout event or expired event*/
+        cbtimer_handle(TASK_BRD_CBTIMER_LIST(task_brd));
+
+        last_handled_time_msec = TASK_BRD_TIME_MSEC(task_brd);/*update*/
     }
 
-    return ((uint32_t)0);
+    return (EC_TRUE);
+}
+
+/*Finite State Machine*/
+EC_BOOL task_brd_fsm_do(TASK_BRD *task_brd)
+{
+    UINT32  loops;
+    UINT32  count;
+
+    /*ensure to complete task state transition!*/
+    for(loops= 4, count = 0; count < loops; count ++)
+    {
+        /*commit if task req or task rsp is recved completely*/
+        task_brd_recving_queue_handle(task_brd);
+
+        task_brd_to_send_queue_handle(task_brd);
+
+        task_brd_sending_queue_handle(task_brd);
+
+        task_brd_send_task_mgr_list(task_brd);
+
+        task_brd_is_recv_queue_handle(task_brd);
+
+        task_brd_recv_task_mgr_list(task_brd);
+
+        task_brd_aging_task_mgr_list(task_brd);
+    }
+
+    return (EC_TRUE);
 }
 
 EC_BOOL do_once(TASK_BRD *task_brd)
@@ -12503,8 +12522,6 @@ EC_BOOL do_slave(TASK_BRD *task_brd)
 
     for(;;)
     {
-        EC_BOOL slow_down_flag;
-
         /* check if we caught some signals and process them */
         csig_process_queue();
 
@@ -12544,52 +12561,14 @@ EC_BOOL do_slave(TASK_BRD *task_brd)
 
         if(EC_TRUE == tasks_monitor_empty_flag)
         {
-            //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] do_slave: [4]\n");
-            /*when task req or task rsp in board is recved completely, commit it to some manager*/
-            task_brd_recving_queue_handle(task_brd);
-
-            task_brd_to_send_queue_handle(task_brd);
-
-            task_brd_sending_queue_handle(task_brd);
-
-            task_brd_send_task_mgr_list(task_brd);
-
-            task_brd_is_recv_queue_handle(task_brd);
-
-            task_brd_recv_task_mgr_list(task_brd);
-
-            task_brd_aging_task_mgr_list(task_brd);
+            task_brd_fsm_do(task_brd);
         }
+
+        task_brd_check_and_notify(task_brd);;
+
+        task_brd_epoll_do(task_brd);
 
         dbg_log(SEC_0015_TASK, 9)(LOGSTDNULL, "[DEBUG] do_slave: [5]\n");
-
-        slow_down_flag = EC_TRUE;/*default is to slow down*/
-
-        if(0)/*debug*/
-        {
-            slow_down_flag = task_brd_need_slow_down(task_brd, LOGSTDOUT, LOG_LEVEL_NEVER_HAPPEN);
-        }
-
-        if(NULL_PTR != TASK_BRD_CEPOLL(task_brd))
-        {
-            if(EC_TRUE == slow_down_flag)
-            {
-                cepoll_wait(TASK_BRD_CEPOLL(task_brd), TASK_SLOW_DOWN_MSEC);
-            }
-            else
-            {
-                cepoll_wait(TASK_BRD_CEPOLL(task_brd), 0);
-            }
-            cepoll_timeout(TASK_BRD_CEPOLL(task_brd));
-            cepoll_loop(TASK_BRD_CEPOLL(task_brd));
-        }
-        else
-        {
-            if(EC_TRUE == slow_down_flag)
-            {
-                c_usleep(TASK_SLOW_DOWN_MSEC, LOC_TASK_0233);
-            }
-        }
     }
 
     return (EC_TRUE);
@@ -12601,12 +12580,6 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
 
     COROUTINE_POOL *coroutine_pool;
 
-#if (SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)
-    CTIMET cbtimer_handled_time;
-#endif/*(SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)*/
-
-    static UINT32 not_slow_down_max_times = 0; /*shit!*/
-
 #if (SWITCH_OFF == NGX_BGN_SWITCH)
     dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] do_slave_enhanced is running on tid %d\n", CTHREAD_GET_TID());
 #endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
@@ -12616,22 +12589,14 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
         TASK_BRD_DO_SLAVE_PID(task_brd) = CTHREAD_GET_TID();
     }
 
-    tasks_cfg   = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
+    tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
 
     coroutine_pool = TASK_BRD_CROUTINE_POOL(task_brd);
-
-#if (SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)
-    cbtimer_handled_time = TASK_BRD_CTIME(task_brd);/*initialize*/
-#endif/*(SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)*/
 
 #if (SWITCH_OFF == NGX_BGN_SWITCH)
     for(;;)
 #endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
     {
-        EC_BOOL slow_down_flag;
-        UINT32  loops;
-        UINT32  count;
-
 #if (SWITCH_OFF == NGX_BGN_SWITCH)
         /* check if we caught some signals and process them */
         csig_process_queue();
@@ -12651,13 +12616,8 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
         task_brd_default_discovery();
 
 #if (SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)
-        /*handle timeout event or expired event, check each second*/
-        if(1.0 <= CTIMET_DIFF(cbtimer_handled_time, TASK_BRD_CTIME(task_brd)))
-        {
-            /*handle timeout event or expired event*/
-            cbtimer_handle(TASK_BRD_CBTIMER_LIST(task_brd));
-            cbtimer_handled_time = TASK_BRD_CTIME(task_brd);/*update*/
-        }
+        /*handle and check timeout event or expired event per second*/
+        task_brd_timer_do(task_brd, (uint64_t)(1 * 1000));
 #endif/*(SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)*/
 
         if(CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
@@ -12668,65 +12628,16 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
         cproc_recving_handle(TASK_BRD_CPROC(task_brd), TASK_BRD_QUEUE(task_brd, TASK_RECVING_QUEUE));
         cproc_sending_handle(TASK_BRD_CPROC(task_brd));
 
-        for(loops= 4, count = 0; count < loops; count ++)/*ensure to complete task state transition!*/
-        {
-            /*when task req or task rsp in board is recved completely, commit it to some manager*/
-            task_brd_recving_queue_handle(task_brd);
+        /*handle finite state machine*/
+        task_brd_fsm_do(task_brd);
 
-            task_brd_to_send_queue_handle(task_brd);
-
-            task_brd_sending_queue_handle(task_brd);
-
-            task_brd_send_task_mgr_list(task_brd);
-
-            task_brd_is_recv_queue_handle(task_brd);
-
-            task_brd_recv_task_mgr_list(task_brd);
-
-            task_brd_aging_task_mgr_list(task_brd);
-        }
-
+        /*update task_brd time*/
         task_brd_update_time(task_brd);
 
-        if(BIT_TRUE == TASK_BRD_ENABLE_SLOW_DOWN(task_brd))/*set slow down flag*/
-        {
-            slow_down_flag = task_brd_need_slow_down(task_brd, LOGSTDOUT, LOG_LEVEL_NEVER_HAPPEN);
-        }
-        else
-        {
-            slow_down_flag = EC_FALSE;
-        }
+        task_brd_check_and_notify(task_brd);
 
-        if(NULL_PTR != TASK_BRD_CEPOLL(task_brd))
-        {
-            if(EC_TRUE == slow_down_flag || TASK_NOT_SLOW_DOWN_MAX_TIMES <= not_slow_down_max_times)
-            {
-                not_slow_down_max_times = 0; /*reset*/
-
-                cepoll_wait(TASK_BRD_CEPOLL(task_brd), TASK_SLOW_DOWN_MSEC);
-
-                /*if slow_down happen, update task_brd time*/
-                task_brd_update_time(task_brd);
-            }
-            else
-            {
-                not_slow_down_max_times ++;/*increase*/
-                cepoll_wait(TASK_BRD_CEPOLL(task_brd), 0);
-            }
-
-            cepoll_timeout(TASK_BRD_CEPOLL(task_brd));
-            cepoll_loop(TASK_BRD_CEPOLL(task_brd));
-            task_brd_update_time(task_brd);
-        }
-        else
-        {
-            if(EC_TRUE == slow_down_flag)
-            {
-                c_usleep(TASK_SLOW_DOWN_MSEC, LOC_TASK_0234);
-                /*if slow_down happen, update task_brd time*/
-                task_brd_update_time(task_brd);
-            }
-        }
+        /*handle epoll*/
+        task_brd_epoll_do(task_brd);
 
         /*------------------------------------------------------------------------*/
 #if (SWITCH_ON == NGX_BGN_SWITCH)
@@ -13021,7 +12932,7 @@ UINT32 task_bcast(const MOD_MGR *mod_mgr, const UINT32 time_to_live, const UINT3
     {
         task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0235);
+        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0236);
 
         recv_mod_node = (MOD_NODE  *)cvector_get(remote_mode_node_list, pos);
 
@@ -13117,7 +13028,7 @@ UINT32 task_act(const MOD_MGR *src_mod_mgr, MOD_MGR **des_mod_mgr, const UINT32 
     {
         task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_ACT_TYPE, task_mgr, LOC_TASK_0236);
+        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_ACT_TYPE, task_mgr, LOC_TASK_0237);
 
         /*recv_mod_node will be updated during load balancing before send*/
         mod_node_alloc(&recv_mod_node);
@@ -13235,7 +13146,7 @@ UINT32 task_dea(MOD_MGR *mod_mgr, const UINT32 time_to_live, const UINT32 task_p
     {
         task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_DEA_TYPE, task_mgr, LOC_TASK_0237);
+        task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_DEA_TYPE, task_mgr, LOC_TASK_0238);
 
         recv_mod_node = (MOD_NODE  *)cvector_get(remote_mode_node_list, pos);
         mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
@@ -13330,11 +13241,11 @@ EC_BOOL task_wait(TASK_MGR *task_mgr, const UINT32 time_to_live, const UINT32 ta
 #endif/*(SWITCH_ON == CROUTINE_SUPPORT_CTHREAD_SWITCH)*/
 
     task_mgr_encode(task_brd, task_mgr);
-    TASK_MGR_CCOND_RESERVE(task_mgr, 1, LOC_TASK_0238);
+    TASK_MGR_CCOND_RESERVE(task_mgr, 1, LOC_TASK_0239);
 
     task_brd_task_mgr_add(task_brd, task_mgr);
 
-    TASK_MGR_CCOND_WAIT(task_mgr, LOC_TASK_0239);
+    TASK_MGR_CCOND_WAIT(task_mgr, LOC_TASK_0240);
 
     /*when reach here, task is done*/
 
@@ -13412,7 +13323,7 @@ TASK_MGR * task_new(const MOD_MGR *mod_mgr, const UINT32 task_prio, const UINT32
     task_brd = task_brd_default_get();
     task_brd_seqno_gen(task_brd, &task_seqno);
 
-    alloc_static_mem(MM_TASK_MGR, &task_mgr, LOC_TASK_0240);
+    alloc_static_mem(MM_TASK_MGR, &task_mgr, LOC_TASK_0241);
     task_mgr_init(task_seqno, task_prio, task_need_rsp_flag, task_need_rsp_num, mod_mgr, task_mgr);
 
     /*task_brd_task_mgr_add(task_brd, task_mgr);*/
@@ -13450,7 +13361,7 @@ UINT32 task_super_inc(TASK_MGR *task_mgr, const MOD_NODE  *send_mod_node, const 
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0241);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0242);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13523,7 +13434,7 @@ UINT32 task_super_mono(const MOD_MGR *mod_mgr, const UINT32 time_to_live, const 
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0242);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0243);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13597,7 +13508,7 @@ UINT32 task_super_mono_no_wait(const MOD_MGR *mod_mgr, const UINT32 time_to_live
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0243);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0244);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13674,7 +13585,7 @@ UINT32 task_p2p_inc(TASK_MGR *task_mgr, const UINT32 modi, const MOD_NODE *recv_
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0244);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0245);
 
     mod_node_clone(&send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13795,7 +13706,7 @@ UINT32 task_p2p(const UINT32 modi, const UINT32 time_to_live, const UINT32 task_
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0245);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0246);
 
     mod_node_clone(&send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13873,7 +13784,7 @@ UINT32 task_p2p_no_wait(const UINT32 modi, const UINT32 time_to_live, const UINT
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0246);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0247);
 
     mod_node_clone(&send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -13947,7 +13858,7 @@ UINT32 task_inc(TASK_MGR *task_mgr,const void * func_retval_addr, const UINT32 f
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0247);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0248);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     TASK_REQ_RECV_MOD_FLAG(task_req) = EC_TRUE; /*need to update*/
@@ -14016,7 +13927,7 @@ UINT32 task_mono(const MOD_MGR *mod_mgr, const UINT32 time_to_live, const UINT32
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0248);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0249);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     TASK_REQ_RECV_MOD_FLAG(task_req) = EC_TRUE; /*need to update*/
@@ -14088,7 +13999,7 @@ UINT32 task_mono_no_wait(const MOD_MGR *mod_mgr, const UINT32 time_to_live, cons
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0249);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0250);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     TASK_REQ_RECV_MOD_FLAG(task_req) = EC_TRUE; /*need to update*/
@@ -14177,7 +14088,7 @@ UINT32 task_pos_inc(TASK_MGR *task_mgr, const UINT32 recv_mod_node_pos, const vo
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, task_seqno, sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0250);
+    task_req = task_req_new(0, task_seqno, sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0251);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -14264,7 +14175,7 @@ UINT32 task_pos_mono(const MOD_MGR *mod_mgr, const UINT32 time_to_live, const UI
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0251);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0252);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -14353,7 +14264,7 @@ UINT32 task_pos_mono_no_wait(const MOD_MGR *mod_mgr, const UINT32 time_to_live, 
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0252);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0253);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -14444,7 +14355,7 @@ UINT32 task_tcid_inc(TASK_MGR *task_mgr, const UINT32 recv_tcid, const void * fu
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, task_seqno, sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0253);
+    task_req = task_req_new(0, task_seqno, sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0254);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -14525,7 +14436,7 @@ UINT32 task_tcid_mono(const MOD_MGR *mod_mgr, const UINT32 time_to_live, const U
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0254);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0255);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));
@@ -14607,7 +14518,7 @@ UINT32 task_tcid_mono_no_wait(const MOD_MGR *mod_mgr, const UINT32 time_to_live,
 
     task_mgr_sub_seqno_gen(task_mgr, &sub_seqno);
 
-    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0255);
+    task_req = task_req_new(0, TASK_MGR_SEQNO(task_mgr), sub_seqno, TASK_NORMAL_TYPE, task_mgr, LOC_TASK_0256);
 
     mod_node_clone(send_mod_node, TASK_REQ_SEND_MOD(task_req));
     mod_node_clone(recv_mod_node, TASK_REQ_RECV_MOD(task_req));

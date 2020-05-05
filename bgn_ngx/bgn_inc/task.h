@@ -401,19 +401,11 @@ EC_BOOL task_brd_default_breathing();
 
 EC_BOOL task_brd_default_discovery();
 
-EC_BOOL task_brd_enable_slow_down(TASK_BRD *task_brd);
+EC_BOOL task_brd_check_and_notify(TASK_BRD *task_brd);
 
-EC_BOOL task_brd_disable_slow_down(TASK_BRD *task_brd);
+EC_BOOL task_brd_notify(TASK_BRD *task_brd);
 
-EC_BOOL task_brd_default_enable_slow_down();
-
-EC_BOOL task_brd_default_disable_slow_down();
-
-EC_BOOL task_brd_need_slow_down(TASK_BRD *task_brd, LOG *log, UINT32 level);
-
-EC_BOOL task_brd_default_need_slow_down();
-
-uint32_t task_brd_default_ngx_need_slow_down();
+EC_BOOL task_brd_default_notify();
 
 EC_BOOL task_brd_clean(TASK_BRD *task_brd);
 

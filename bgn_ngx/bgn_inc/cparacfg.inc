@@ -33,7 +33,6 @@ typedef struct
 
     UINT32    task_encoding_rule            ;
     UINT32    task_slow_down_msec           ;
-    UINT32    task_not_slow_down_max_times  ;
        int    csocket_so_sndbuff_size       ;/*for fwd rank only*/
        int    csocket_so_rcvbuff_size       ;/*for fwd rank only*/
        int    csocket_so_sndlowat_size      ;
@@ -160,8 +159,6 @@ typedef struct
 #define CPARACFG_TASK_ENCODING_RULE(cparacfg)                       ((cparacfg)->task_encoding_rule            )
 
 #define CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg)                      ((cparacfg)->task_slow_down_msec           )
-#define CPARACFG_TASK_NOT_SLOW_DOWN_MAX_TIMES(cparacfg)             ((cparacfg)->task_not_slow_down_max_times  )
-
 #define CPARACFG_CSOCKET_SO_SNDBUFF_SIZE(cparacfg)                  ((cparacfg)->csocket_so_sndbuff_size       )
 #define CPARACFG_CSOCKET_SO_RCVBUFF_SIZE(cparacfg)                  ((cparacfg)->csocket_so_rcvbuff_size       )
 
@@ -368,9 +365,7 @@ typedef struct
 #define CPARACFG_CTHREAD_STACK_MAX_SIZE_DEF                      CTHREAD_STACK_MAX_SIZE_064K
 #define CPARACFG_CTHREAD_STACK_GUARD_SIZE_DEF                    CTHREAD_STACK_GUARD_SIZE_004K
 
-#define CPARACFG_TASK_SLOW_DOWN_MSEC_DEF                         3
-#define CPARACFG_TASK_NOT_SLOW_DOWN_MAX_TIMES_DEF                512
-
+#define CPARACFG_TASK_SLOW_DOWN_MSEC_DEF                         1
 /*-- read only configuration -- */
 //#define CPARACFG_TASK_ENCODING_RULE_DEF                          BYTE_ENCODING_RULE
 #define CPARACFG_TASK_ENCODING_RULE_DEF                          TASK_ENCODING_RULE
@@ -438,7 +433,7 @@ typedef struct
 #define CPARACFG_CMON_HOT_PATH_SWITCH_DEF                        SWITCH_ON
 
 #define CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT_DEF               MEM_BUFF_32K
-#define CPARACFG_NGX_EPOLL_TIMEOUT_MSEC_DEF                      1
+#define CPARACFG_NGX_EPOLL_TIMEOUT_MSEC_DEF                      0
 
 #define CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP_DEF                   0 /*0 means handle all*/
 #define CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP_DEF                   0 /*0 means handle all*/
@@ -505,8 +500,6 @@ typedef struct
 #define    TASK_RSP_THREAD_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_TASK_RSP_THREAD_MAX_NUM)
 
 #define    TASK_SLOW_DOWN_MSEC                           CPARACFG_DEFAULT_MAP(CPARACFG_TASK_SLOW_DOWN_MSEC)
-#define    TASK_NOT_SLOW_DOWN_MAX_TIMES                  CPARACFG_DEFAULT_MAP(CPARACFG_TASK_NOT_SLOW_DOWN_MAX_TIMES)
-
 #define    CSOCKET_HEARTBEAT_INTVL_NSEC                  CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_HEARTBEAT_INTVL_NSEC)
 
 #define    CSOCKET_SO_SNDBUFF_SIZE                       CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_SO_SNDBUFF_SIZE)

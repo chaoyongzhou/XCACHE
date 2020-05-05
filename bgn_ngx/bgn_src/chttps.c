@@ -2209,7 +2209,7 @@ EC_BOOL chttps_defer_request_queue_clean()
 * WARNING:
 *
 *   chttps_defer_request_queue_init is called in RFS module,
-*   but chttps_defer_request_queue_is_empty is checked in task_brd_need_slow_down
+*   but chttps_defer_request_queue_is_empty is checked in task_brd_check_and_notify
 *   where maybe chttps_defer_request_queue_init is not called or never be called!
 *
 *   Thus, one cannot call cqueue_is_empty is check whether g_chttps_defer_request_queue

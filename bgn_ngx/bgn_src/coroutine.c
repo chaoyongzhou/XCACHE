@@ -316,7 +316,7 @@ COROUTINE_COND *coroutine_cond_new(const UINT32 timeout_msec, const UINT32 locat
 
     if(EC_FALSE == coroutine_cond_init(coroutine_cond, timeout_msec, location))
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_cond_init: failed to init coroutine_cond %p, called at %s:%ld\n", coroutine_cond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_cond_new: failed to init coroutine_cond %p, called at %s:%ld\n", coroutine_cond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
         free_static_mem(MM_COROUTINE_COND, coroutine_cond, location);
         return (NULL_PTR);
     }
@@ -409,6 +409,8 @@ EC_BOOL coroutine_cond_release(COROUTINE_COND *coroutine_cond, const UINT32 loca
     {
         -- COROUTINE_COND_COUNTER(coroutine_cond);
 
+        task_brd_default_notify();
+
         dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_release: [Y] status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
                                     __COROUTINE_STATUS(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
                                     MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
@@ -425,6 +427,8 @@ EC_BOOL coroutine_cond_release_all(COROUTINE_COND *coroutine_cond, const UINT32 
 {
     COROUTINE_COND_SET_LOCATION(coroutine_cond, COROUTINE_COND_OP_RELEASE, location);
     COROUTINE_COND_COUNTER(coroutine_cond) = 0;
+
+    task_brd_default_notify();
 
     dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_release_all: status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
                                 __COROUTINE_STATUS(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
@@ -530,6 +534,8 @@ EC_BOOL coroutine_cond_wait(COROUTINE_COND *coroutine_cond, const UINT32 locatio
 
         if(EC_TRUE == coroutine_cond_is_terminate(coroutine_cond))
         {
+            task_brd_default_notify();
+
             dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_wait: __COROUTINE_NO_WAIT, status: 0x%lx, cond %p, counter %ld [terminate]\n",
                                 __COROUTINE_STATUS(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond));
             COROUTINE_NODE_USER_COND(coroutine_node_cur) = NULL_PTR;/*reset forcibly*/
@@ -539,6 +545,8 @@ EC_BOOL coroutine_cond_wait(COROUTINE_COND *coroutine_cond, const UINT32 locatio
 
         if(EC_TRUE == coroutine_cond_is_timeout(coroutine_cond))
         {
+            task_brd_default_notify();
+
             dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_wait: __COROUTINE_NO_WAIT, status: 0x%lx, cond %p, counter %ld [timeout]\n",
                                 __COROUTINE_STATUS(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond));
             COROUTINE_NODE_USER_COND(coroutine_node_cur) = NULL_PTR;/*reset forcibly*/
@@ -1538,7 +1546,7 @@ COROUTINE_CLEANER *coroutine_node_post_cleaner_pop(COROUTINE_NODE *coroutine_nod
 
 EC_BOOL coroutine_node_post_cleaner_del(COROUTINE_NODE *coroutine_node, EC_BOOL (*func)(void *, void *), void *arg1, void *arg2)
 {
-    COROUTINE_CLEANER coroutine_cleaner_t;
+    COROUTINE_CLEANER  coroutine_cleaner_t;
     COROUTINE_CLEANER *coroutine_cleaner;
 
     coroutine_cleaner_init(&coroutine_cleaner_t, func, arg1, arg2);
@@ -1983,6 +1991,8 @@ COROUTINE_NODE * coroutine_pool_load_no_lock(COROUTINE_POOL *coroutine_pool, con
 
     COROUTINE_ASSERT(EC_FALSE == coroutine_pool_check_node_is_idle(coroutine_pool, (void *)coroutine_node));
     COROUTINE_ASSERT(EC_TRUE  == coroutine_pool_check_node_is_busy(coroutine_pool, (void *)coroutine_node));
+
+    task_brd_default_notify();
 
     dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_pool_load_no_lock: load %p (stack %p, size %ld, resume %p)\n",
                             coroutine_node, COROUTINE_NODE_STACK_SPACE(coroutine_node), COROUTINE_NODE_STACK_SIZE(coroutine_node), COROUTINE_NODE_RESUME_POINT(coroutine_node));

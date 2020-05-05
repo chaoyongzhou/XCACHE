@@ -353,20 +353,13 @@ EC_BOOL super_ping_ipaddr_cstr(const UINT32 super_md_id, const CSTRING *ipaddr_c
 **/
 void super_show_queues(const UINT32 super_md_id, LOG *log);
 
-/**
-*
-* list slow down checking conditions
-*
-**/
-void super_check_slow_down(const UINT32 super_md_id, LOG *log);
+EC_BOOL super_get_bgn_slow_down(const UINT32 super_md_id, UINT32 *slow_down_msec);
 
-EC_BOOL super_enable_slow_down(const UINT32 super_md_id);
+EC_BOOL super_get_ngx_slow_down(const UINT32 super_md_id, UINT32 *slow_down_msec);
 
-EC_BOOL super_disable_slow_down(const UINT32 super_md_id);
+EC_BOOL super_set_bgn_slow_down(const UINT32 super_md_id, const UINT32 slow_down_msec);
 
-EC_BOOL super_set_slow_down_msec(const UINT32 super_md_id, const UINT32 slow_down_msec);
-
-EC_BOOL super_set_slow_down_max_times(const UINT32 super_md_id, const UINT32 slow_down_max_times);
+EC_BOOL super_set_ngx_slow_down(const UINT32 super_md_id, const UINT32 slow_down_msec);
 
 /**
 *

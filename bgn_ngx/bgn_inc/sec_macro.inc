@@ -80,7 +80,7 @@
 #define SEC_0070_CDETECTN                   ((UINT32)(     70)) /*cdetectn                        */
 #define SEC_0071_CRFSNPLRU                  ((UINT32)(     71)) /*crfsnplru                       */
 #define SEC_0072_CEPOLL                     ((UINT32)(     72)) /*cepoll                          */
-#define SEC_0073_XXXXXXXX                   ((UINT32)(     73)) /*-- obsolete --                  */
+#define SEC_0073_CEVENTFD                   ((UINT32)(     73)) /*ceventfd                        */
 #define SEC_0074_CPGV                       ((UINT32)(     74)) /*cpgv                            */
 #define SEC_0075_CTIMER                     ((UINT32)(     75)) /*ctimer                          */
 #define SEC_0076_CRFSNPDEL                  ((UINT32)(     76)) /*crfsnpdel                       */
