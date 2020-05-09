@@ -12455,7 +12455,7 @@ EC_BOOL task_brd_fsm_do(TASK_BRD *task_brd)
     UINT32  count;
 
     /*ensure to complete task state transition!*/
-    for(loops= 4, count = 0; count < loops; count ++)
+    for(loops = 4, count = 0; count < loops; count ++)
     {
         /*commit if task req or task rsp is recved completely*/
         task_brd_recving_queue_handle(task_brd);
@@ -12634,7 +12634,8 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
         /*update task_brd time*/
         task_brd_update_time(task_brd);
 
-        task_brd_check_and_notify(task_brd);
+        /*note: check and notify would push cpu util higher*/
+        /*task_brd_check_and_notify(task_brd);*/
 
         /*handle epoll*/
         task_brd_epoll_do(task_brd);
