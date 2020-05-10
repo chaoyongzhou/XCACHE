@@ -6214,7 +6214,6 @@ EC_BOOL task_brd_start_bcast_dhcp_udp_server(TASK_BRD *task_brd)
 {
     MCAST_CFG *mcast_cfg;
     BCAST_DHCP_CFG *bcast_dhcp_cfg;
-    UINT32 core_max_num;
 
     mcast_cfg = SYS_CFG_MCAST_CFG(TASK_BRD_SYS_CFG(task_brd));
     bcast_dhcp_cfg = SYS_CFG_BCAST_DHCP_CFG(TASK_BRD_SYS_CFG(task_brd));
@@ -6231,11 +6230,10 @@ EC_BOOL task_brd_start_bcast_dhcp_udp_server(TASK_BRD *task_brd)
         return (EC_FALSE);
     }
 
-    core_max_num = sysconf(_SC_NPROCESSORS_ONLN);
     TASK_BRD_BCAST_CTHREAD_ID(task_brd) = cthread_new(CTHREAD_JOINABLE | CTHREAD_SYSTEM_LEVEL,
                                                 (const char *)"dhcp_server_do",
                                                 (UINT32)dhcp_server_do,
-                                                (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num), /*core #*/
+                                                (UINT32)(TASK_BRD_RANK(task_brd) + PROC_CORE_ID), /*core #*/
                                                 (UINT32)3,/*para num*/
                                                 (UINT32)BCAST_DHCP_NETCARD_STR(bcast_dhcp_cfg),
                                                 (UINT32)MCAST_CFG_IPADDR(mcast_cfg),
@@ -6337,8 +6335,6 @@ EC_BOOL task_brd_status_mcast_udp_server(TASK_BRD *task_brd)
 EC_BOOL task_brd_load(TASK_BRD *task_brd)
 {
     SYS_CFG   *sys_cfg;
-
-    //TASK_BRD_SUPER_MD_ID(task_brd)  = super_start();/*each rank own one super module*/
 
     if(0 != access((char *)TASK_BRD_SYS_CFG_FNAME_STR(task_brd), F_OK | R_OK))/*NOT exist or readable*/
     {
@@ -7831,6 +7827,30 @@ EC_BOOL task_brd_exit(TASK_BRD *task_brd)
     return (EC_TRUE);
 }
 
+EC_BOOL task_brd_fetch_ipv4_by_tcid(TASK_BRD *task_brd, const UINT32 tcid, UINT32 *ipv4)
+{
+    TASKS_CFG               *tasks_cfg;
+
+    tasks_cfg = sys_cfg_search_tasks_cfg(TASK_BRD_SYS_CFG(task_brd), tcid,
+                                         CMPI_ANY_MASK, CMPI_ANY_MASK);
+    if(NULL_PTR == tasks_cfg)
+    {
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != ipv4)
+    {
+        (*ipv4) = TASKS_CFG_SRVIPADDR(tasks_cfg);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL task_brd_default_fetch_ipv4_by_tcid(const UINT32 tcid, UINT32 *ipv4)
+{
+    return task_brd_fetch_ipv4_by_tcid(task_brd_default_get(), tcid, ipv4);
+}
+
 /**
 *
 * task brd init procedure
@@ -7849,10 +7869,6 @@ LOG * task_brd_default_init(int argc, char **argv)
     UINT32 this_port;
     UINT32 reg_type;
 
-#if (SWITCH_OFF == NGX_BGN_SWITCH)
-    UINT32 core_max_num;
-#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
-
     LOG     *log;
     CSTRING *log_file_name;
 
@@ -7870,13 +7886,7 @@ LOG * task_brd_default_init(int argc, char **argv)
 
     const char *loglevel;
 
-    init_host_endian();
-    cmisc_init(LOC_TASK_0132);
-
-    init_static_mem();
-
-    /*prepare stdout,stderr, stdin devices*/
-    log_start();
+    c_env_init();
 
     loglevel = task_brd_parse_arg(argc, (const char **)argv, (const char *)"-loglevel");
     if(NULL_PTR != loglevel)
@@ -8013,7 +8023,38 @@ LOG * task_brd_default_init(int argc, char **argv)
             task_brd_default_abort();
         }
 #endif
+
+#if (SWITCH_ON == NGX_BGN_SWITCH)
         /*if tcid not appear in cmd line ...*/
+        if(CMPI_ERROR_TCID == this_tcid)
+        {
+            do
+            {
+                NGX_GET_TCID_FUNC   ngx_get_tcid_func;
+                void               *ngx_get_tcid_arg;
+
+                ngx_get_tcid_func = (NGX_GET_TCID_FUNC)task_brd_parse_arg(argc, (const char **)argv,
+                                                                    (const char *)"-ngx_callback");
+                if(NULL_PTR == ngx_get_tcid_func)
+                {
+                    break;
+                }
+
+                ngx_get_tcid_arg = (void *)task_brd_parse_arg(argc, (const char **)argv,
+                                                            (const char *)"-ngx_arg");
+
+                if(EC_FALSE == ngx_get_tcid_func(ngx_get_tcid_arg, &this_tcid))
+                {
+                    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: no ngx tcid\n");
+                    task_brd_default_abort();
+                }
+
+                dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_init: ngx tcid '%s'\n",
+                                                     c_word_to_ipv4(this_tcid));
+            }while(0);
+        }
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+
         if(CMPI_ERROR_TCID == this_tcid)
         {
             SYS_CFG    *sys_cfg;
@@ -8106,18 +8147,6 @@ LOG * task_brd_default_init(int argc, char **argv)
     cbc_new(MD_END); /*set the max number of supported modules*/
     cbc_md_reg(MD_SUPER,  1);
 
-#if 0
-    if(CMPI_FWD_RANK == this_rank)
-    {
-        int idx;
-        dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "rank %d: pid = %d, path_name = %s\n", this_rank, getpid(), (const char *)argv[0]);
-        for(idx = 0; NULL_PTR != argv[ idx ]; idx ++)
-        {
-            dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "rank %d: pid = %d, para %ld = %s\n", this_rank, getpid(), idx, (const char *)argv[ idx ]);
-        }
-    }
-#endif
-
     TASK_BRD_REG_TYPE(task_brd) = reg_type;
     TASK_BRD_CPROC(task_brd)    = cproc;
     TASK_BRD_COMM(task_brd)     = this_comm;
@@ -8149,12 +8178,6 @@ LOG * task_brd_default_init(int argc, char **argv)
 #endif/*(SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH)*/
     /*-------------------------------------------------------------------------------------------------------------------------*/
 
-    //sys_log(LOGSTDOUT, "loaded sysconfig:\n");
-    //sys_cfg_print_xml(LOGSTDOUT, TASK_BRD_SYS_CFG(task_brd), 0);
-
-    //sys_log(LOGSTDOUT, "current paraconfig:\n");
-    //cparacfg_print_xml(log, TASK_BRD_CPARACFG(task_brd), 0);
-
     TASK_BRD_FWD_CCOND_RESERVE(task_brd, 1, LOC_TASK_0135);
 
     /*set shortcut of task_brd ip and port*/
@@ -8172,7 +8195,7 @@ LOG * task_brd_default_init(int argc, char **argv)
         }
 
         tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
-#if 1
+
         if(CMPI_ERROR_IPADDR != this_ipaddr && TASKS_CFG_SRVIPADDR(tasks_cfg) != this_ipaddr)
         {
             dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_init: reset srvipaddr %s => %s\n",
@@ -8181,7 +8204,7 @@ LOG * task_brd_default_init(int argc, char **argv)
 
             TASKS_CFG_SRVIPADDR(tasks_cfg) = this_ipaddr;
         }
-#endif
+
         if(CMPI_ERROR_CLNTPORT != this_port && TASKS_CFG_SRVPORT(tasks_cfg) != this_port)
         {
             dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_default_init: reset srvport %ld => %ld\n",
@@ -8295,16 +8318,12 @@ LOG * task_brd_default_init(int argc, char **argv)
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
 
 #if (SWITCH_OFF == NGX_BGN_SWITCH)
-    core_max_num = sysconf(_SC_NPROCESSORS_ONLN);
-#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
-
-#if (SWITCH_OFF == NGX_BGN_SWITCH)
 #if 0
 #if (SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH && SWITCH_OFF == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)
     TASK_BRD_DO_ROUTINE_CTHREAD_ID(task_brd) = cthread_new(CTHREAD_JOINABLE | CTHREAD_SYSTEM_LEVEL,
                                                         (const char *)"do_slave_enhanced",
                                                         (UINT32)do_slave_enhanced,
-                                                        (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num), /*core #*/
+                                                        (UINT32)(TASK_BRD_RANK(task_brd) + PROC_CORE_ID), /*core #*/
                                                         (UINT32)1,/*para num*/
                                                         (UINT32)task_brd
                                                         );
@@ -8316,7 +8335,7 @@ LOG * task_brd_default_init(int argc, char **argv)
     TASK_BRD_DO_SLAVE_CTHREAD_ID(task_brd) = cthread_new(CTHREAD_JOINABLE | CTHREAD_SYSTEM_LEVEL,
                                                         (const char *)"do_slave",
                                                         (UINT32)do_slave,
-                                                        (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num), /*core #*/
+                                                        (UINT32)(TASK_BRD_RANK(task_brd) + PROC_CORE_ID), /*core #*/
                                                         (UINT32)1,/*para num*/
                                                         (UINT32)task_brd
                                                         );
@@ -8361,7 +8380,7 @@ LOG * task_brd_default_init(int argc, char **argv)
     TASK_BRD_DO_CBTIMER_CTHREAD_ID(task_brd) = cthread_new(CTHREAD_DETACHABLE | CTHREAD_SYSTEM_LEVEL,
                                                     (const char *)"task_brd_cbtimer_do",
                                                     (UINT32)task_brd_cbtimer_do,
-                                                    (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num),/*core #*/
+                                                    (UINT32)(TASK_BRD_RANK(task_brd) + PROC_CORE_ID),/*core #*/
                                                     (UINT32)1,/*para num*/
                                                     (UINT32)task_brd
                                                     );
@@ -8409,7 +8428,7 @@ LOG * task_brd_default_init(int argc, char **argv)
         cthread_new(CTHREAD_DETACHABLE | CTHREAD_SYSTEM_LEVEL,
                     (const char *)"api_cmd_ui_task",
                     (UINT32)api_cmd_ui_task,
-                    (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num),/*core #*/
+                    (UINT32)(TASK_BRD_RANK(task_brd) + PROC_CORE_ID),/*core #*/
                     (UINT32)0/*para num*/
                     );
 
@@ -12660,16 +12679,13 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
 EC_BOOL do_slave_thread_default()
 {
     TASK_BRD *task_brd;
-    UINT32 core_max_num;
 
     task_brd = task_brd_default_get();
-
-    core_max_num = sysconf(_SC_NPROCESSORS_ONLN);
 
     TASK_BRD_DO_SLAVE_CTHREAD_ID(task_brd) = cthread_new(CTHREAD_JOINABLE | CTHREAD_SYSTEM_LEVEL,
                                                         (const char *)"do_slave",
                                                         (UINT32)do_slave,
-                                                        (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num), /*core #*/
+                                                        (UINT32)(TASK_BRD_RANK(task_brd) + PROC_CORE_ID), /*core #*/
                                                         (UINT32)1,/*para num*/
                                                         (UINT32)task_brd
                                                         );
@@ -12681,8 +12697,6 @@ EC_BOOL do_slave_wait_default(TASK_BRD *task_brd)
 #if (SWITCH_ON == CROUTINE_SUPPORT_CTHREAD_SWITCH)
     while(ERR_CTHREAD_ID != TASK_BRD_DO_SLAVE_CTHREAD_ID(task_brd))/*reset automatically*/
     {
-        UINT32 core_max_num;
-
         cthread_wait(TASK_BRD_DO_SLAVE_CTHREAD_ID(task_brd));
 
         /*when reach here, do_slave was quit for some reason*/
@@ -12697,11 +12711,10 @@ EC_BOOL do_slave_wait_default(TASK_BRD *task_brd)
         dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "do_slave_wait_default: try to restart do_slave thread ....\n");
 
         /*boot do_slave thread automatically*/
-        core_max_num = sysconf(_SC_NPROCESSORS_ONLN);/*get available core num at present. only useful when CTHREAD_CORE_SWITCH is ON*/
         TASK_BRD_DO_SLAVE_CTHREAD_ID(task_brd) = cthread_new(CTHREAD_JOINABLE | CTHREAD_SYSTEM_LEVEL,
                                                             (const char *)"do_slave",
                                                             (UINT32)do_slave,
-                                                            (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num), /*core #*/
+                                                            (UINT32)(TASK_BRD_RANK(task_brd) + PROC_CORE_ID), /*core #*/
                                                             (UINT32)1,/*para num*/
                                                             (UINT32)task_brd
                                                             );
@@ -12714,8 +12727,6 @@ EC_BOOL do_slave_wait_default(TASK_BRD *task_brd)
 #if (SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH)
     while(ERR_CTHREAD_ID != TASK_BRD_DO_ROUTINE_CTHREAD_ID(task_brd))/*reset automatically*/
     {
-        UINT32 core_max_num;
-
         cthread_wait(TASK_BRD_DO_ROUTINE_CTHREAD_ID(task_brd));
 
         /*when reach here, do_slave was quit for some reason*/
@@ -12730,11 +12741,10 @@ EC_BOOL do_slave_wait_default(TASK_BRD *task_brd)
         dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "do_slave_wait_default: try to restart do_slave thread ....\n");
 
         /*boot do_slave thread automatically*/
-        core_max_num = sysconf(_SC_NPROCESSORS_ONLN);/*get available core num at present. only useful when CTHREAD_CORE_SWITCH is ON*/
         TASK_BRD_DO_ROUTINE_CTHREAD_ID(task_brd) = cthread_new(CTHREAD_JOINABLE | CTHREAD_SYSTEM_LEVEL,
                                                             (const char *)"do_slave_enhanced",
                                                             (UINT32)do_slave_enhanced,
-                                                            (UINT32)(TASK_BRD_RANK(task_brd) % core_max_num), /*core #*/
+                                                            (UINT32)(TASK_BRD_RANK(task_brd) + PROC_CORE_ID), /*core #*/
                                                             (UINT32)1,/*para num*/
                                                             (UINT32)task_brd
                                                             );

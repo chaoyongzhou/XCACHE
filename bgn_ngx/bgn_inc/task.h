@@ -54,6 +54,9 @@ extern "C"{
 #define TASK_DBG_ENTER(__func_name__)  do{}while(0)
 #define TASK_DBG_LEAVE(__func_name__)  do{}while(0)
 
+#if (SWITCH_ON == NGX_BGN_SWITCH)
+typedef EC_BOOL (*NGX_GET_TCID_FUNC)(void *, UINT32 *);
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
 
 EC_BOOL task_node_buff_type(const UINT32 buff_size, UINT32 *buff_type);
 EC_BOOL task_node_buff_alloc(TASK_NODE *task_node, const UINT32 buff_size);
@@ -186,6 +189,10 @@ UINT32  task_brd_rank_load_tbl_get_net(TASK_BRD *task_brd, const UINT32 tcid, co
 LOG * task_brd_default_init(int argc, char **argv);
 
 EC_BOOL task_brd_exit(TASK_BRD *task_brd);
+
+EC_BOOL task_brd_fetch_ipv4_by_tcid(TASK_BRD *task_brd, const UINT32 tcid, UINT32 *ipv4);
+
+EC_BOOL task_brd_default_fetch_ipv4_by_tcid(const UINT32 tcid, UINT32 *ipv4);
 
 TASKS_CFG *task_brd_register_node_fetch(TASK_BRD *task_brd, const UINT32 tcid);
 

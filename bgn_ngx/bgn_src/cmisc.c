@@ -198,6 +198,8 @@ static CSET  *g_local_netcard_set = NULL_PTR;
 static char            g_strerror_tab[ CMISC_MAX_ERRNO ][ CMISC_STRERR_MAX_SIZE ];
 static EC_BOOL         g_strerror_init_flag = EC_FALSE;
 
+static EC_BOOL         g_env_init_flag = EC_FALSE;
+
 void c_log_init()
 {
     /*prepare stdout,stderr, stdin devices*/
@@ -243,8 +245,17 @@ const char *c_strerror_get(int err)
 
 void c_env_init()
 {
-    c_log_init();
-    c_static_mem_init();
+    if(EC_FALSE == g_env_init_flag)
+    {
+        init_host_endian();
+
+        c_log_init();
+        c_static_mem_init();
+
+        cmisc_init(LOC_CMISC_0001);
+
+        g_env_init_flag = EC_TRUE;
+    }
     return;
 }
 EC_BOOL cmisc_init(UINT32 location)

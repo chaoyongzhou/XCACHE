@@ -2510,8 +2510,6 @@ EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_
 
         b = &empty_buf;
 
-        /*refer HPCC-40 in cs_chimney3.txt*/
-
         memset(b, 0, sizeof(ngx_buf_t));
         /*all flags are cleared*/
 

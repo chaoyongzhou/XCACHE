@@ -8772,7 +8772,7 @@ EC_BOOL chttp_node_store_done_blocking(CHTTP_NODE *chttp_node, CHTTP_STORE *chtt
                             (uint32_t)CSTRING_LEN(&path), CSTRING_STR(&path), c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
 
-        /*case HPCC-343: the 1st orig procedure failed with range header, then trigger 2nd orig procedure without range header*/
+        /*the 1st orig procedure failed with range header, then trigger 2nd orig procedure without range header*/
         /*but found the unlock operation emitted in the 1st orig procedure was not sent out yet which cause the lock operation */
         /*in the 2nd orig procedure, and then abnormal result happen. thus have to unlock in blocking mode*/
         if(EC_FALSE == cstring_is_empty(auth_token))
@@ -9806,26 +9806,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         return (EC_FALSE);
     }
     dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_request_basic: handover rsp done\n");
-#if 0
-    /*handover cache_ctrl*/
-    if(NULL_PTR != CHTTP_NODE_STORE(chttp_node))
-    {
-        if(do_log(SEC_0149_CHTTP, 9))
-        {
-            sys_log(LOGSTDOUT, "[DEBUG] chttp_request_basic: chttp_store %p:\n", CHTTP_NODE_STORE(chttp_node));
-            chttp_store_print(LOGSTDOUT, CHTTP_NODE_STORE(chttp_node));
-        }
 
-        if(NULL_PTR != chttp_store)
-        {
-            dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_request_basic: cache_ctrl: %#x -> %#x\n",
-                                                  CHTTP_STORE_CACHE_CTRL(chttp_store),
-                                                  CHTTP_STORE_CACHE_CTRL(CHTTP_NODE_STORE(chttp_node)));
-
-            CHTTP_STORE_CACHE_CTRL(chttp_store) = CHTTP_STORE_CACHE_CTRL(CHTTP_NODE_STORE(chttp_node));
-        }
-    }
-#endif
     chttp_node_free(chttp_node);
 
     return (EC_TRUE);
