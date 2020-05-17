@@ -955,6 +955,67 @@ int sys_log_rotate_by_index(const UINT32 log_index)
     return sys_log_rotate(&g_default_log_tbl[ log_index ]);
 }
 
+int sys_log_reopen(LOG *log)
+{
+    LOG *des_log;
+
+    if( SWITCH_OFF == g_log_switch && NULL_PTR != log && LOGD_SWITCH_OFF_ENABLE == LOG_SWITCH_OFF_ENABLE(log) )
+    {
+        return (0);
+    }
+
+    des_log = log;
+    while(NULL_PTR != des_log && NULL_PTR != des_log->redirect_log)
+    {
+        des_log = des_log->redirect_log;
+    }
+
+    if(LOGSTDNULL == des_log)
+    {
+        return (0);
+    }
+
+    if(LOG_FILE_DEVICE == LOG_DEVICE_TYPE(des_log) && NULL_PTR != LOG_FILE_FP(des_log))
+    {
+        int ret;
+
+        LOG_FILE_LOCK(des_log, LOC_LOG_0008);
+        if(EC_TRUE == log_file_freopen(des_log))
+        {
+            ret = 0;
+        }
+        else
+        {
+            ret = -1;
+        }
+        if(LOGD_FILE_RECORD_LIMIT_ENABLED == LOG_FILE_LIMIT_ENABLED(des_log))
+        {
+            LOG_FILE_CUR_RECORDS(des_log) = 0;
+        }
+        LOG_FILE_UNLOCK(des_log, LOC_LOG_0009);
+
+        return (ret);
+    }
+
+    if(LOG_CSTR_DEVICE == LOG_DEVICE_TYPE(des_log) && NULL_PTR != LOG_CSTR(des_log))
+    {
+        sys_log(des_log, "warn:sys_log_reopen: cannot reopen LOG_CSTR device\n");
+        return (0);
+    }
+
+    return (-1);
+}
+
+int sys_log_reopen_by_index(const UINT32 log_index)
+{
+    if(DEFAULT_END_LOG_INDEX <= log_index)
+    {
+        return (-1);
+    }
+
+    return sys_log_reopen(&g_default_log_tbl[ log_index ]);
+}
+
 int sys_print_no_lock(LOG *log, const char * format, ...)
 {
     LOG *des_log;
@@ -1176,6 +1237,7 @@ EC_BOOL log_file_init(LOG *log, const char *fname, const char *mode, const UINT3
         return (EC_FALSE);
     }
 #endif/*(SWITCH_OFF == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)*/
+
     if(EC_FALSE == log_file_fopen(log))
     {
         fprintf(stderr,"error:log_file_init: failed to open %s to write\n", (char *)LOG_FILE_NAME_STR(log));
@@ -1207,6 +1269,20 @@ EC_BOOL log_file_init(LOG *log, const char *fname, const char *mode, const UINT3
     {
         LOG_FILE_RECORDS_LIMIT(log) = LOGD_FILE_MAX_RECORDS_LIMIT;
         LOG_FILE_CUR_RECORDS(log)   = 0;
+    }
+
+    if(LOGD_PID_INFO_ENABLE == LOG_PID_INFO_ENABLE(log)
+    && NULL_PTR != LOG_FILE_FP(log))
+    {
+        char time_str[TASK_BRD_TIME_STR_SIZE];
+
+        __log_time_str(time_str, TASK_BRD_TIME_STR_SIZE);
+
+
+        fprintf(LOG_FILE_FP(log), "%s", time_str);
+        fprintf(LOG_FILE_FP(log), "my pid = %u, tcid = %s, rank = %ld\n",
+                                  getpid(), c_word_to_ipv4(LOG_FILE_TCID(log)), LOG_FILE_RANK(log));
+        fflush(LOG_FILE_FP(log));
     }
 
     return (EC_TRUE);
@@ -1294,20 +1370,6 @@ EC_BOOL log_file_fopen(LOG *log)
         }
     }
 
-#if 1
-    if(LOGD_PID_INFO_ENABLE == LOG_PID_INFO_ENABLE(log))
-    {
-        char time_str[TASK_BRD_TIME_STR_SIZE];
-
-        __log_time_str(time_str, TASK_BRD_TIME_STR_SIZE);
-
-
-        fprintf(LOG_FILE_FP(log), "%s", time_str);
-        fprintf(LOG_FILE_FP(log), "my pid = %u, tcid = %s, rank = %ld\n",
-                                  getpid(), c_word_to_ipv4(LOG_FILE_TCID(log)), LOG_FILE_RANK(log));
-        fflush(LOG_FILE_FP(log));
-    }
-#endif
     return (EC_TRUE);
 }
 
@@ -1325,9 +1387,6 @@ EC_BOOL log_file_fclose(LOG *log)
 
     if(stdout != LOG_FILE_FP(log) && stderr != LOG_FILE_FP(log) && stdin != LOG_FILE_FP(log))
     {
-        //fprintf(LOG_FILE_FP(log), "log_file_fclose: ------- close log %p (fp %p) ------------\n", log, LOG_FILE_FP(log));
-        //fflush(LOG_FILE_FP(log));
-
         fclose(LOG_FILE_FP(log));
         LOG_FILE_FP(log) = NULL_PTR;
     }
@@ -1346,6 +1405,26 @@ EC_BOOL log_file_freopen(LOG *log)
                            (char *)LOG_FILE_MODE_STR(log));
         return (EC_FALSE);
     }
+
+    if(NULL_PTR != LOG_FILE_FP(log))
+    {
+        rewind(LOG_FILE_FP(log));
+    }
+
+    if(LOGD_PID_INFO_ENABLE == LOG_PID_INFO_ENABLE(log)
+    && NULL_PTR != LOG_FILE_FP(log))
+    {
+        char time_str[TASK_BRD_TIME_STR_SIZE];
+
+        __log_time_str(time_str, TASK_BRD_TIME_STR_SIZE);
+
+
+        fprintf(LOG_FILE_FP(log), "%s", time_str);
+        fprintf(LOG_FILE_FP(log), "my pid = %u, tcid = %s, rank = %ld\n",
+                                  getpid(), c_word_to_ipv4(LOG_FILE_TCID(log)), LOG_FILE_RANK(log));
+        fflush(LOG_FILE_FP(log));
+    }
+
     return (EC_TRUE);
 }
 

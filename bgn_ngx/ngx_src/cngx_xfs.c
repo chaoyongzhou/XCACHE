@@ -88,8 +88,28 @@ EC_BOOL cngx_reg_xfs_2(const UINT32 xfs_tcid)
     CMON_NODE_IPADDR(&cmon_node) = TASKS_CFG_SRVIPADDR(tasks_cfg);
     CMON_NODE_PORT(&cmon_node)   = TASKS_CFG_SRVPORT(tasks_cfg);
     CMON_NODE_MODI(&cmon_node)   = 0;/*only one xfs*/
-    CMON_NODE_STATE(&cmon_node)  = CMON_NODE_IS_UP;
-    cmon_add_node(task_brd_default_get_cmon_id(), &cmon_node);
+    CMON_NODE_STATE(&cmon_node)  = CMON_NODE_IS_UP; /*ngx connect xfs, and regard xfs is up*/
+
+    if(EC_FALSE == cmon_add_node(task_brd_default_get_cmon_id(), &cmon_node))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cngx_reg_xfs: "
+                        "add cmon_node (tcid %s, srv %s:%ld, modi %ld, state %s) failed\n",
+                        c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)),
+                        c_word_to_ipv4(CMON_NODE_IPADDR(&cmon_node)), CMON_NODE_PORT(&cmon_node),
+                        CMON_NODE_MODI(&cmon_node),
+                        cmon_node_state(&cmon_node)
+                        );
+    }
+    else
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cngx_reg_xfs: "
+                        "add cmon_node (tcid %s, srv %s:%ld, modi %ld, state %s) succ\n",
+                        c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)),
+                        c_word_to_ipv4(CMON_NODE_IPADDR(&cmon_node)), CMON_NODE_PORT(&cmon_node),
+                        CMON_NODE_MODI(&cmon_node),
+                        cmon_node_state(&cmon_node)
+                        );
+    }
 
     MOD_NODE_TCID(&recv_mod_node) = CMPI_LOCAL_TCID;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_LOCAL_COMM;

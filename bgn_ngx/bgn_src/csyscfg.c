@@ -1474,7 +1474,8 @@ CPARACFG *sys_cfg_search_cparacfg(const SYS_CFG *sys_cfg, const UINT32 tcid, con
             continue;
         }
 
-        if(tcid == CPARACFG_TCID(cparacfg) && rank == CPARACFG_RANK(cparacfg))
+        if((tcid == CPARACFG_TCID(cparacfg) || CMPI_ANY_TCID == tcid)
+        && (rank == CPARACFG_RANK(cparacfg) || CMPI_ANY_RANK == rank))
         {
             CVECTOR_UNLOCK(paras_cfg, LOC_CSYSCFG_0042);
             return (cparacfg);

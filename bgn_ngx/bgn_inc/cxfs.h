@@ -1084,7 +1084,28 @@ EC_BOOL cxfs_replay_op(const UINT32 cxfs_md_id);
 
 EC_BOOL cxfs_pop_op(const UINT32 cxfs_md_id, const UINT32 op_size);
 
+/**
+*
+*  register xfs to ngx consistent hash table
+*
+**/
 EC_BOOL cxfs_reg_ngx(const UINT32 cxfs_md_id);
+
+/**
+*
+*  activate xfs on all ngx
+*  i.e., notify all ngx that I am up
+*
+**/
+EC_BOOL cxfs_activate_ngx(const UINT32 cxfs_md_id);
+
+/**
+*
+*  deactivate xfs on all ngx
+*  i.e., notify all ngx that I am down
+*
+**/
+EC_BOOL cxfs_deactivate_ngx(const UINT32 cxfs_md_id);
 
 #endif /*_CXFS_H*/
 

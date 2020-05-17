@@ -472,6 +472,8 @@ int c_vformat_len(const char *format, va_list ap);
 
 int c_format_len(const char *format, ...);
 
+char *c_format_str(const char *format, ...);
+
 EC_BOOL c_import_resolve_conf(CVECTOR *name_servers);
 
 void *c_memalign_new(const UINT32 size, const UINT32 align);

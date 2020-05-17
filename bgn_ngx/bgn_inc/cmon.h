@@ -32,6 +32,8 @@ extern "C"{
 #define CMON_CONHASH_DEFAULT_HASH_ALGO       CHASH_MURMUR_ALGO_ID
 #define CMON_HOT_PATH_HASH_ALGO              CHASH_RS_ALGO_ID
 
+#define CMON_CHECK_MAX_TIMES                 (64)
+
 typedef struct
 {
     /* used counter >= 0 */
@@ -108,6 +110,20 @@ UINT32 cmon_start();
 *
 **/
 void cmon_end(const UINT32 cmon_md_id);
+
+/**
+*
+* set all nodes up
+*
+**/
+EC_BOOL cmon_set_up(const UINT32 cmon_md_id);
+
+/**
+*
+* set all nodes down
+*
+**/
+EC_BOOL cmon_set_down(const UINT32 cmon_md_id);
 
 CMON_NODE *cmon_node_new();
 

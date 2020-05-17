@@ -209,6 +209,8 @@ EC_BOOL cngx_upstream_fetch(ngx_http_request_t *r, UINT32 *ipaddr, UINT32 *port)
     ngx_http_bgn_loc_conf_t                 *blcf;
     ngx_str_t                               *name; /*upstream name*/
 
+    ngx_url_t                                url;
+
     blcf = ngx_http_get_module_loc_conf(r, ngx_http_bgn_module);
 
     if(0 == blcf->bgn_upstream.active) {
@@ -231,22 +233,42 @@ EC_BOOL cngx_upstream_fetch(ngx_http_request_t *r, UINT32 *ipaddr, UINT32 *port)
     }
 
     if(NULL_PTR == blcf->bgn_upstream.proxy_lengths) {
-        uint32_t    ipv4_t;
-        uint16_t    port_t;
+        ngx_memzero(&url, sizeof(ngx_url_t));
 
-        if (ngx_http_bgn_url_eval(r, blcf, &ipv4_t, &port_t) != NGX_OK) {
-                return (EC_FALSE);
+        /*if url has domain or ip:port*/
+        if (ngx_http_bgn_url_eval(r, blcf, &url) == NGX_OK) {
+            if(ipaddr) {
+                struct sockaddr_in   *sin;
+                u_char               *p;
+
+                sin = (struct sockaddr_in *) &url.sockaddr;
+                p   = (u_char *) &sin->sin_addr;
+                *ipaddr = (((uint32_t)p[0]) << 24)
+                        | (((uint32_t)p[1]) << 16)
+                        | (((uint32_t)p[2]) <<  8)
+                        | (((uint32_t)p[3]) <<  0);
+            }
+
+            if(port) {
+                in_port_t   in_port;
+
+                in_port = ngx_inet_get_port((struct sockaddr *)&url.sockaddr);
+                if(0 != in_port) {
+                    (*port) = (uint16_t)in_port;
+                }
+            }
+
+            return (EC_TRUE);
         }
 
-        if(NULL_PTR != ipaddr) {
-            (*ipaddr) = ipv4_t;
+        /*else*/
+
+        if (url.host.len == 0 || url.host.data == NULL) {
+            return (EC_FALSE);
         }
 
-        if(NULL_PTR != port) {
-            (*port) = port_t;
-        }
-
-        return (EC_TRUE);
+        /*if url is upstream name*/
+        name = &url.host;
     }
     else {
         if(NULL_PTR == u->resolved) {

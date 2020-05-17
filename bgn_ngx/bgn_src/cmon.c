@@ -160,10 +160,12 @@ UINT32 cmon_start()
 
     cmon_md->usedcounter = 1;
 
+#if 0
     tasks_cfg_push_add_worker_callback(TASK_BRD_LOCAL_TASKS_CFG(task_brd),
                                        (const char *)"cmon_callback_when_add",
                                        cmon_md_id,
                                        (UINT32)cmon_callback_when_add);
+#endif
 
     tasks_cfg_push_del_worker_callback(TASK_BRD_LOCAL_TASKS_CFG(task_brd),
                                        (const char *)"cmon_callback_when_del",
@@ -192,6 +194,7 @@ UINT32 cmon_start()
         }
     }
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+
     csig_atexit_register((CSIG_ATEXIT_HANDLER)cmon_end, cmon_md_id);
 
     dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "[DEBUG] cmon_start: start CMON module #%ld\n", cmon_md_id);
@@ -262,6 +265,124 @@ void cmon_end(const UINT32 cmon_md_id)
     cbc_md_free(MD_CMON, cmon_md_id);
 
     return ;
+}
+
+/**
+*
+* set all nodes up
+*
+**/
+EC_BOOL cmon_set_up(const UINT32 cmon_md_id)
+{
+    CMON_MD    *cmon_md;
+
+    UINT32      num;
+    UINT32      pos;
+
+#if ( SWITCH_ON == CMON_DEBUG_SWITCH )
+    if ( CMON_MD_ID_CHECK_INVALID(cmon_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmon_set_up: cmon module #0x%lx not started.\n",
+                cmon_md_id);
+        dbg_exit(MD_CMON, cmon_md_id);
+    }
+#endif/*CMON_DEBUG_SWITCH*/
+    cmon_md = CMON_MD_GET(cmon_md_id);
+
+    num = cvector_size(CMON_MD_CMON_NODE_VEC(cmon_md));
+    for(pos = 0; pos < num; pos ++)
+    {
+        CMON_NODE *cmon_node;
+
+        cmon_node = cvector_get(CMON_MD_CMON_NODE_VEC(cmon_md), pos);
+        if(NULL_PTR == cmon_node)
+        {
+            continue;
+        }
+
+        if(EC_FALSE == cmon_set_node_up(cmon_md_id, cmon_node))
+        {
+            dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_set_up: "
+                        "set cmon_node (tcid %s, srv %s:%ld, modi %ld, state %s) UP failed\n",
+                        c_word_to_ipv4(CMON_NODE_TCID(cmon_node)),
+                        c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node)), CMON_NODE_PORT(cmon_node),
+                        CMON_NODE_MODI(cmon_node),
+                        cmon_node_state(cmon_node)
+                        );
+        }
+        else
+        {
+            dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_set_up: "
+                        "set cmon_node (tcid %s, srv %s:%ld, modi %ld, state %s) UP done\n",
+                        c_word_to_ipv4(CMON_NODE_TCID(cmon_node)),
+                        c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node)), CMON_NODE_PORT(cmon_node),
+                        CMON_NODE_MODI(cmon_node),
+                        cmon_node_state(cmon_node)
+                        );
+        }
+    }
+
+    return (EC_TRUE);
+}
+
+/**
+*
+* set all nodes down
+*
+**/
+EC_BOOL cmon_set_down(const UINT32 cmon_md_id)
+{
+    CMON_MD    *cmon_md;
+
+    UINT32      num;
+    UINT32      pos;
+
+#if ( SWITCH_ON == CMON_DEBUG_SWITCH )
+    if ( CMON_MD_ID_CHECK_INVALID(cmon_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cmon_set_down: cmon module #0x%lx not started.\n",
+                cmon_md_id);
+        dbg_exit(MD_CMON, cmon_md_id);
+    }
+#endif/*CMON_DEBUG_SWITCH*/
+    cmon_md = CMON_MD_GET(cmon_md_id);
+
+    num = cvector_size(CMON_MD_CMON_NODE_VEC(cmon_md));
+    for(pos = 0; pos < num; pos ++)
+    {
+        CMON_NODE *cmon_node;
+
+        cmon_node = cvector_get(CMON_MD_CMON_NODE_VEC(cmon_md), pos);
+        if(NULL_PTR == cmon_node)
+        {
+            continue;
+        }
+
+        if(EC_FALSE == cmon_set_node_down(cmon_md_id, cmon_node))
+        {
+            dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_set_down: "
+                        "set cmon_node (tcid %s, srv %s:%ld, modi %ld, state %s) DOWN failed\n",
+                        c_word_to_ipv4(CMON_NODE_TCID(cmon_node)),
+                        c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node)), CMON_NODE_PORT(cmon_node),
+                        CMON_NODE_MODI(cmon_node),
+                        cmon_node_state(cmon_node)
+                        );
+        }
+        else
+        {
+            dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_set_down: "
+                        "set cmon_node (tcid %s, srv %s:%ld, modi %ld, state %s) DOWN done\n",
+                        c_word_to_ipv4(CMON_NODE_TCID(cmon_node)),
+                        c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node)), CMON_NODE_PORT(cmon_node),
+                        CMON_NODE_MODI(cmon_node),
+                        cmon_node_state(cmon_node)
+                        );
+        }
+    }
+
+    return (EC_TRUE);
 }
 
 CMON_NODE *cmon_node_new()
@@ -436,7 +557,7 @@ void cmon_print_nodes(const UINT32 cmon_md_id, LOG *log)
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -459,7 +580,7 @@ void cmon_list_nodes(const UINT32 cmon_md_id, CSTRING *cstr)
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -509,7 +630,7 @@ EC_BOOL cmon_count_nodes(const UINT32 cmon_md_id, UINT32 *num)
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -534,7 +655,7 @@ EC_BOOL cmon_add_node(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -576,6 +697,12 @@ EC_BOOL cmon_add_node(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
             cmon_set_node_up(cmon_md_id, cmon_node_t);
         }
 
+        if(CMON_NODE_IS_UP == CMON_NODE_STATE(cmon_node_t)
+        && CMON_NODE_IS_DOWN == CMON_NODE_STATE(cmon_node))
+        {
+            cmon_set_node_down(cmon_md_id, cmon_node_t);
+        }
+
         return (EC_TRUE);
     }
 
@@ -612,9 +739,8 @@ EC_BOOL cmon_add_node(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
     cmon_node_clone(cmon_node, cmon_node_t);
 
     CMON_NODE_IPADDR(cmon_node_t) = TASKS_CFG_SRVIPADDR(tasks_cfg);
-    CMON_NODE_PORT(cmon_node_t)   = TASKS_CFG_CSRVPORT(tasks_cfg); /*http port*/
-
-    CMON_NODE_STATE(cmon_node_t)  = CMON_NODE_IS_UP;/*when initialization*/
+    CMON_NODE_PORT(cmon_node_t)   = TASKS_CFG_SRVPORT(tasks_cfg); /*bgn port*/
+    CMON_NODE_STATE(cmon_node_t)  = CMON_NODE_STATE(cmon_node);
 
     cvector_push(CMON_MD_CMON_NODE_VEC(cmon_md), (const void *)cmon_node_t);
 
@@ -676,7 +802,7 @@ EC_BOOL cmon_del_node(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -759,7 +885,7 @@ EC_BOOL cmon_set_node_up(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -850,7 +976,7 @@ EC_BOOL cmon_set_node_down(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -890,7 +1016,7 @@ EC_BOOL cmon_set_node_down(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
                                             (uint32_t)CMON_NODE_TCID(cmon_node_t)))
         {
             dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_set_node_down: "
-                            "set down cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) "
+                            "set down cmon_node_t %p (tcid %s, srv %s:%ld, modi %ld, state %s) "
                             "in connhash failed\n",
                             cmon_node_t,
                             c_word_to_ipv4(CMON_NODE_TCID(cmon_node_t)),
@@ -903,7 +1029,7 @@ EC_BOOL cmon_set_node_down(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
         else
         {
             dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_set_node_down: "
-                            "set down cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) "
+                            "set down cmon_node_t %p (tcid %s, srv %s:%ld, modi %ld, state %s) "
                             "in connhash done\n",
                             cmon_node_t,
                             c_word_to_ipv4(CMON_NODE_TCID(cmon_node_t)),
@@ -917,7 +1043,7 @@ EC_BOOL cmon_set_node_down(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
     CMON_NODE_STATE(cmon_node_t) = CMON_NODE_IS_DOWN; /*set down*/
 
     dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_set_node_down: "
-                    "set down cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) done\n",
+                    "set down cmon_node_t %p (tcid %s, srv %s:%ld, modi %ld, state %s) done\n",
                     cmon_node_t,
                     c_word_to_ipv4(CMON_NODE_TCID(cmon_node_t)),
                     c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node_t)), CMON_NODE_PORT(cmon_node_t),
@@ -941,7 +1067,7 @@ EC_BOOL cmon_check_node_up(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -1005,7 +1131,7 @@ EC_BOOL cmon_get_node_by_pos(const UINT32 cmon_md_id, const UINT32 pos, CMON_NOD
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -1053,7 +1179,7 @@ EC_BOOL cmon_get_node_by_tcid(const UINT32 cmon_md_id, const UINT32 tcid, const 
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -1112,7 +1238,7 @@ EC_BOOL cmon_get_node_by_hash(const UINT32 cmon_md_id, const UINT32 hash, CMON_N
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -1149,6 +1275,13 @@ EC_BOOL cmon_get_node_by_hash(const UINT32 cmon_md_id, const UINT32 hash, CMON_N
         UINT32      pos;
 
         num  = cvector_size(CMON_MD_CMON_NODE_VEC(cmon_md));
+
+        if(0 == num)
+        {
+            dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_get_node_by_hash: "
+                                                 "no cmon_node exist\n");
+            return (EC_FALSE);
+        }
 
         pos  = (hash % num);
 
@@ -1247,7 +1380,7 @@ EC_BOOL cmon_get_store_http_srv_of_hot(const UINT32 cmon_md_id, const CSTRING *p
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     //cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -1324,6 +1457,8 @@ EC_BOOL cmon_get_store_http_srv(const UINT32 cmon_md_id, const CSTRING *path, UI
     TASK_BRD   *task_brd;
     TASKS_CFG  *tasks_cfg;
 
+    UINT32      check_times;
+
 #if ( SWITCH_ON == CMON_DEBUG_SWITCH )
     if ( CMON_MD_ID_CHECK_INVALID(cmon_md_id) )
     {
@@ -1332,7 +1467,7 @@ EC_BOOL cmon_get_store_http_srv(const UINT32 cmon_md_id, const CSTRING *path, UI
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     //cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -1348,8 +1483,20 @@ EC_BOOL cmon_get_store_http_srv(const UINT32 cmon_md_id, const CSTRING *path, UI
 
     cmon_node_init(&cmon_node);
 
+    check_times = 0;
     for(;;)
     {
+        check_times ++;
+        if(CMON_CHECK_MAX_TIMES < check_times)
+        {
+            dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_get_store_http_srv: "
+                        "check times overflow for path '%.*s'\n",
+                        (uint32_t)CSTRING_LEN(path), (char *)CSTRING_STR(path));
+
+            cmon_node_clean(&cmon_node);
+            return (EC_FALSE);
+        }
+
         if(EC_FALSE == cmon_get_node_by_hash(cmon_md_id, hash, &cmon_node))
         {
             dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_get_store_http_srv: "
@@ -1432,7 +1579,7 @@ EC_BOOL cmon_callback_when_add(const UINT32 cmon_md_id, TASKS_NODE *tasks_node)
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -1447,12 +1594,24 @@ EC_BOOL cmon_callback_when_add(const UINT32 cmon_md_id, TASKS_NODE *tasks_node)
 
         cmon_node = cvector_get(CMON_MD_CMON_NODE_VEC(cmon_md), pos);
 
+        dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_callback_when_add: "
+                        "cmon_node (tcid %s, srv %s:%ld, modi %ld, state %s) "
+                        "v.s tasks_node (tcid %s, srv %s:%ld)\n",
+                        c_word_to_ipv4(CMON_NODE_TCID(cmon_node)),
+                        c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node)), CMON_NODE_PORT(cmon_node),
+                        CMON_NODE_MODI(cmon_node),
+                        cmon_node_state(cmon_node),
+                        c_word_to_ipv4(TASKS_NODE_TCID(tasks_node)),
+                        c_word_to_ipv4(TASKS_NODE_SRVIPADDR(tasks_node)), TASKS_NODE_SRVPORT(tasks_node)
+                        );
+
         if(TASKS_NODE_TCID(tasks_node)      == CMON_NODE_TCID(cmon_node)
         && TASKS_NODE_SRVIPADDR(tasks_node) == CMON_NODE_IPADDR(cmon_node)
         && TASKS_NODE_SRVPORT(tasks_node)   == CMON_NODE_PORT(cmon_node))
         {
+#if 0
             dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_callback_when_add: "
-                            "set up cmon_node_t %p (tcid %s, srv %s:%ld, modi %ld, state %s)\n",
+                            "set up cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s)\n",
                             cmon_node,
                             c_word_to_ipv4(CMON_NODE_TCID(cmon_node)),
                             c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node)), CMON_NODE_PORT(cmon_node),
@@ -1460,6 +1619,17 @@ EC_BOOL cmon_callback_when_add(const UINT32 cmon_md_id, TASKS_NODE *tasks_node)
                             cmon_node_state(cmon_node)
                             );
             return cmon_set_node_up(cmon_md_id, cmon_node);
+#endif
+            dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_callback_when_add: "
+                            "set down cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s)\n",
+                            cmon_node,
+                            c_word_to_ipv4(CMON_NODE_TCID(cmon_node)),
+                            c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node)), CMON_NODE_PORT(cmon_node),
+                            CMON_NODE_MODI(cmon_node),
+                            cmon_node_state(cmon_node)
+                            );
+            /*note: when xfs connect ngx, mark xfs is down but not up*/
+            return cmon_set_node_down(cmon_md_id, cmon_node);
         }
     }
 
@@ -1481,7 +1651,7 @@ EC_BOOL cmon_callback_when_del(const UINT32 cmon_md_id, TASKS_NODE *tasks_node)
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_callback_when_del: "
                         "tasks_node (tcid %s, srv %s:%ld)\n",
@@ -1621,7 +1791,7 @@ EC_BOOL cmon_add_hot_path(const UINT32 cmon_md_id, const CSTRING *path)
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -1704,7 +1874,7 @@ EC_BOOL cmon_del_hot_path(const UINT32 cmon_md_id, const CSTRING *path)
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -1747,7 +1917,7 @@ EC_BOOL cmon_exist_hot_path(const UINT32 cmon_md_id, const CSTRING *path)
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -1789,7 +1959,7 @@ void cmon_print_hot_paths(const UINT32 cmon_md_id, LOG *log)
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -1928,7 +2098,7 @@ EC_BOOL cmon_load_hot_paths(const UINT32 cmon_md_id, const CSTRING *path)
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     //cmon_md = CMON_MD_GET(cmon_md_id);
 
@@ -2047,7 +2217,7 @@ EC_BOOL cmon_unload_hot_paths(const UINT32 cmon_md_id)
                 cmon_md_id);
         dbg_exit(MD_CMON, cmon_md_id);
     }
-#endif/*C_DEBUG_SWITCH*/
+#endif/*CMON_DEBUG_SWITCH*/
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 

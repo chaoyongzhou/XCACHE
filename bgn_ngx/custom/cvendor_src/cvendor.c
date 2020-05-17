@@ -2041,6 +2041,7 @@ EC_BOOL cvendor_content_handler(const UINT32 cvendor_md_id)
         return (EC_FALSE);
     }
 
+    /*note: clear pragma header in conf if not support it*/
     k = (const char *)"Pragma";
     v = (const char *)"no-cache";
     if(EC_TRUE == cngx_has_header_in(r, k, v))
@@ -2052,6 +2053,7 @@ EC_BOOL cvendor_content_handler(const UINT32 cvendor_md_id)
         return cvendor_content_direct_procedure(cvendor_md_id);
     }
 
+    /*note: clear cache control header in conf if not support it*/
     k = (const char *)"Cache-Control";
     v = (const char *)"no-cache";
     if(EC_TRUE == cngx_has_header_in(r, k, v))

@@ -432,6 +432,14 @@ EC_BOOL cxfshttps_commit_http_get(CHTTP_NODE *chttp_node)
     {
         ret = cxfshttps_commit_locked_file_retire_get_request(chttp_node);
     }
+    else if (EC_TRUE == cxfshttps_is_http_get_activate_ngx(chttp_node))
+    {
+        ret = cxfshttps_commit_activate_ngx_get_request(chttp_node);
+    }
+    else if (EC_TRUE == cxfshttps_is_http_get_deactivate_ngx(chttp_node))
+    {
+        ret = cxfshttps_commit_deactivate_ngx_get_request(chttp_node);
+    }
     else
     {
         CBUFFER *uri_cbuffer;
@@ -7502,6 +7510,12 @@ EC_BOOL cxfshttps_handle_stat_get_request(CHTTP_NODE *chttp_node)
     CXFSDN        *cxfsdn;
     CXFSPGV       *cxfspgv;
 
+    CAMD_MD       *camd_md;
+    CDC_MD        *cdc_md;
+    CDC_STAT      *cdc_stat;
+    CMC_MD        *cmc_md;
+    CMC_STAT      *cmc_stat;
+
     json_object   *cxfs_obj;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
@@ -7510,6 +7524,29 @@ EC_BOOL cxfshttps_handle_stat_get_request(CHTTP_NODE *chttp_node)
     cxfsdn     = cxfs_get_dn(CSOCKET_CNODE_MODI(csocket_cnode));
     cxfspgv    = CXFSDN_CXFSPGV(cxfsdn);
     cxfs_stat  = cxfs_get_stat(CSOCKET_CNODE_MODI(csocket_cnode));
+
+    camd_md    = NULL_PTR;
+    cdc_md     = NULL_PTR;
+    cdc_stat   = NULL_PTR;
+    cmc_md     = NULL_PTR;
+    cmc_stat   = NULL_PTR;
+
+    camd_md    = CXFSDN_CAMD_MD(cxfsdn);
+    if(NULL_PTR != camd_md)
+    {
+        cdc_md = CAMD_MD_CDC_MD(camd_md);
+        cmc_md = CAMD_MD_CMC_MD(camd_md);
+    }
+
+    if(NULL_PTR != cdc_md)
+    {
+        cdc_stat = CDC_MD_STAT(cdc_md);
+    }
+
+    if(NULL_PTR != cmc_md)
+    {
+        cmc_stat = CMC_MD_STAT(cmc_md);
+    }
 
     rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(rsp_content_cbytes);
@@ -7591,6 +7628,38 @@ EC_BOOL cxfshttps_handle_stat_get_request(CHTTP_NODE *chttp_node)
         json_object_add_kv(cxfs_dn_obj, "dn_assign_bitmap"  , c_uint16_t_to_bin_str(CXFSPGV_PAGE_MODEL_ASSIGN_BITMAP(cxfspgv)));
     }
 
+    if(NULL_PTR != cdc_stat)
+    {
+        json_object   *cdc_stat_obj;
+
+        cdc_stat_obj = json_object_new_object();
+        json_object_add_obj(cxfs_obj, "cdc_stat", cdc_stat_obj);
+
+        json_object_add_kv(cdc_stat_obj, "ssd_used_ratio"    , c_format_str("%.2f", CDC_STAT_SSD_USED_RATIO(cdc_stat)));
+        json_object_add_kv(cdc_stat_obj, "ssd_hit_ratio"     , c_format_str("%.2f", CDC_STAT_SSD_HIT_RATIO(cdc_stat)));
+        json_object_add_kv(cdc_stat_obj, "amd_read_speed"    , c_uint64_t_to_str(CDC_STAT_AMD_READ_SPEED(cdc_stat)));
+        json_object_add_kv(cdc_stat_obj, "amd_write_speed"   , c_uint64_t_to_str(CDC_STAT_AMD_WRITE_SPEED(cdc_stat)));
+        json_object_add_kv(cdc_stat_obj, "ssd_degrade_ratio" , c_format_str("%.2f", CDC_STAT_SSD_DEGRADE_RATIO(cdc_stat)));
+        json_object_add_kv(cdc_stat_obj, "ssd_degrade_num"   , c_uint64_t_to_str(CDC_STAT_SSD_DEGRADE_NUM(cdc_stat)));
+        json_object_add_kv(cdc_stat_obj, "ssd_degrade_speed" , c_uint64_t_to_str(CDC_STAT_SSD_DEGRADE_SPEED(cdc_stat)));
+    }
+
+    if(NULL_PTR != cmc_stat)
+    {
+        json_object   *cmc_stat_obj;
+
+        cmc_stat_obj = json_object_new_object();
+        json_object_add_obj(cxfs_obj, "cmc_stat", cmc_stat_obj);
+
+        json_object_add_kv(cmc_stat_obj, "mem_used_ratio"    , c_format_str("%.2f", CMC_STAT_MEM_USED_RATIO(cmc_stat)));
+        json_object_add_kv(cmc_stat_obj, "mem_hit_ratio"     , c_format_str("%.2f", CMC_STAT_MEM_HIT_RATIO(cmc_stat)));
+        json_object_add_kv(cmc_stat_obj, "amd_read_speed"    , c_uint64_t_to_str(CMC_STAT_AMD_READ_SPEED(cmc_stat)));
+        json_object_add_kv(cmc_stat_obj, "amd_write_speed"   , c_uint64_t_to_str(CMC_STAT_AMD_WRITE_SPEED(cmc_stat)));
+        json_object_add_kv(cmc_stat_obj, "mem_degrade_ratio" , c_format_str("%.2f", CMC_STAT_MEM_DEGRADE_RATIO(cmc_stat)));
+        json_object_add_kv(cmc_stat_obj, "mem_degrade_num"   , c_uint64_t_to_str(CMC_STAT_MEM_DEGRADE_NUM(cmc_stat)));
+        json_object_add_kv(cmc_stat_obj, "mem_degrade_speed" , c_uint64_t_to_str(CMC_STAT_MEM_DEGRADE_SPEED(cmc_stat)));
+    }
+
     rsp_body_str = json_object_to_json_string_ext(cxfs_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
     cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str) + 1));
 
@@ -7658,6 +7727,348 @@ EC_BOOL cxfshttps_commit_stat_get_response(CHTTP_NODE *chttp_node)
     if(NULL_PTR == csocket_cnode)
     {
         dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttps_commit_stat_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return cxfshttps_commit_response(chttp_node);
+}
+#endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: activate_ngx ----------------------------------------*/
+STATIC_CAST static EC_BOOL __cxfshttps_uri_is_activate_ngx_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/activate") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/activate")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttps_is_http_get_activate_ngx(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0200_CXFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] cxfshttps_is_http_get_activate_ngx: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __cxfshttps_uri_is_activate_ngx_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttps_commit_activate_ngx_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == cxfshttps_handle_activate_ngx_get_request(chttp_node))
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_commit_activate_ngx_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfshttps_make_activate_ngx_get_response(chttp_node))
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_commit_activate_ngx_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = cxfshttps_commit_activate_ngx_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_commit_activate_ngx_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL cxfshttps_handle_activate_ngx_get_request(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *content_cbytes;
+    CBUFFER       *uri_cbuffer;
+
+    UINT32         req_body_chunk_num;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
+    /*CXFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
+    if(!(0 == req_body_chunk_num))
+    {
+        CHUNK_MGR *req_body_chunks;
+
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
+
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error: cxfshttps_handle_activate_ngx_get_request: chunk num %ld\n", req_body_chunk_num);
+
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error: cxfshttps_handle_activate_ngx_get_request: chunk mgr %p info\n", req_body_chunks);
+        chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
+
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error: cxfshttps_handle_activate_ngx_get_request: chunk mgr %p chars\n", req_body_chunks);
+        chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttps_handle_activate_ngx_get_request: bad request");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+        return (EC_TRUE);
+    }
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    cbytes_clean(content_cbytes);
+
+    if(EC_TRUE == __cxfshttps_uri_is_activate_ngx_get_op(uri_cbuffer))
+    {
+        CSOCKET_CNODE * csocket_cnode;
+
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+        if(EC_FALSE == cxfs_activate_ngx(CSOCKET_CNODE_MODI(csocket_cnode)))
+        {
+            dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_handle_activate_ngx_get_request: cxfs activate_ngx failed\n");
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttps_handle_activate_ngx_get_request: cxfs activate_ngx failed");
+
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0200_CXFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_activate_ngx_get_request: cxfs activate_ngx done\n");
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttps_handle_activate_ngx_get_request: cxfs activate_ngx done");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttps_make_activate_ngx_get_response(CHTTP_NODE *chttp_node)
+{
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_make_activate_ngx_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_make_activate_ngx_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_make_activate_ngx_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttps_commit_activate_ngx_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_commit_activate_ngx_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return cxfshttps_commit_response(chttp_node);
+}
+#endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: deactivate_ngx ----------------------------------------*/
+STATIC_CAST static EC_BOOL __cxfshttps_uri_is_deactivate_ngx_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/deactivate") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/deactivate")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttps_is_http_get_deactivate_ngx(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0200_CXFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] cxfshttps_is_http_get_deactivate_ngx: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __cxfshttps_uri_is_deactivate_ngx_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttps_commit_deactivate_ngx_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == cxfshttps_handle_deactivate_ngx_get_request(chttp_node))
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_commit_deactivate_ngx_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfshttps_make_deactivate_ngx_get_response(chttp_node))
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_commit_deactivate_ngx_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = cxfshttps_commit_deactivate_ngx_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_commit_deactivate_ngx_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL cxfshttps_handle_deactivate_ngx_get_request(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *content_cbytes;
+    CBUFFER       *uri_cbuffer;
+
+    UINT32         req_body_chunk_num;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
+    /*CXFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
+    if(!(0 == req_body_chunk_num))
+    {
+        CHUNK_MGR *req_body_chunks;
+
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
+
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error: cxfshttps_handle_deactivate_ngx_get_request: chunk num %ld\n", req_body_chunk_num);
+
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error: cxfshttps_handle_deactivate_ngx_get_request: chunk mgr %p info\n", req_body_chunks);
+        chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
+
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error: cxfshttps_handle_deactivate_ngx_get_request: chunk mgr %p chars\n", req_body_chunks);
+        chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttps_handle_deactivate_ngx_get_request: bad request");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+        return (EC_TRUE);
+    }
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    cbytes_clean(content_cbytes);
+
+    if(EC_TRUE == __cxfshttps_uri_is_deactivate_ngx_get_op(uri_cbuffer))
+    {
+        CSOCKET_CNODE * csocket_cnode;
+
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+        if(EC_FALSE == cxfs_deactivate_ngx(CSOCKET_CNODE_MODI(csocket_cnode)))
+        {
+            dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_handle_deactivate_ngx_get_request: cxfs deactivate_ngx failed\n");
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttps_handle_deactivate_ngx_get_request: cxfs deactivate_ngx failed");
+
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0200_CXFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_deactivate_ngx_get_request: cxfs deactivate_ngx done\n");
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttps_handle_deactivate_ngx_get_request: cxfs deactivate_ngx done");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttps_make_deactivate_ngx_get_response(CHTTP_NODE *chttp_node)
+{
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_make_deactivate_ngx_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_make_deactivate_ngx_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_make_deactivate_ngx_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttps_commit_deactivate_ngx_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_commit_deactivate_ngx_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 

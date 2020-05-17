@@ -221,6 +221,11 @@ EC_BOOL api_cmd_ui_stop_mcast_udp_server(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_status_mcast_udp_server(CMD_PARA_VEC * param);
 
 #if 1
+EC_BOOL api_cmd_ui_cmon_show_nodes(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cmon_show_nodes_all(CMD_PARA_VEC * param);
+#endif
+
+#if 1
 EC_BOOL api_cmd_ui_crfs_create_npp(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_crfs_create_dn(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_crfs_add_disk(CMD_PARA_VEC * param);

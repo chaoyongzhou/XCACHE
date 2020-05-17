@@ -211,6 +211,10 @@ int sys_log_rotate(LOG *log);
 
 int sys_log_rotate_by_index(const UINT32 log_index);
 
+int sys_log_reopen(LOG *log);
+
+int sys_log_reopen_by_index(const UINT32 log_index);
+
 int sys_print_no_lock(LOG *log, const char * format, ...);
 
 int sys_print(LOG *log, const char * format, ...);

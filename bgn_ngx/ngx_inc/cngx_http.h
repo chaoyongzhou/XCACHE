@@ -61,6 +61,12 @@ EC_BOOL cngx_http_handle_logrotate_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cngx_http_make_logrotate_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL cngx_http_commit_logrotate_get_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL cngx_http_is_http_get_logreopen(const CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_commit_logreopen_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_handle_logreopen_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_make_logreopen_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_commit_logreopen_get_response(CHTTP_NODE *chttp_node);
+
 EC_BOOL cngx_http_is_http_get_actsyscfg(const CHTTP_NODE *chttp_node);
 EC_BOOL cngx_http_commit_actsyscfg_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cngx_http_handle_actsyscfg_get_request(CHTTP_NODE *chttp_node);
@@ -144,6 +150,24 @@ EC_BOOL cngx_http_commit_ngx_show_so_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cngx_http_handle_ngx_show_so_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cngx_http_make_ngx_show_so_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL cngx_http_commit_ngx_show_so_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL cngx_http_is_http_get_ngx_activate(const CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_commit_ngx_activate_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_handle_ngx_activate_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_make_ngx_activate_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_commit_ngx_activate_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL cngx_http_is_http_get_ngx_deactivate(const CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_commit_ngx_deactivate_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_handle_ngx_deactivate_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_make_ngx_deactivate_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_commit_ngx_deactivate_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL cngx_http_is_http_get_ngx_show_cmon_nodes(const CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_commit_ngx_show_cmon_nodes_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_handle_ngx_show_cmon_nodes_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_make_ngx_show_cmon_nodes_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_commit_ngx_show_cmon_nodes_get_response(CHTTP_NODE *chttp_node);
 
 #endif /*_CNGX_HTTP_H*/
 

@@ -60,6 +60,7 @@ extern "C"{
 #include "cconsole.h"
 #include "ctdns.h"
 #include "cp2p.h"
+#include "cmon.h"
 
 #include "api_cmd.inc"
 #include "api_cmd.h"
@@ -143,6 +144,8 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "dns cache"     , "dns cache set expired <nsec> seconds on tcid <tcid> rank <rank> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "dns cache"     , "dns cache {show|resolve} <domain> on tcid <tcid> rank <rank> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "dns cache"     , "dns cache retire <domain> ipv4 <ipv4> on tcid <tcid> rank <rank> at <console|log>");
+
+    api_cmd_help_vec_create(cmd_help_vec, "cmon node"     , "cmon show nodes on {all | tcid <tcid>} at <console|log>");
 
     api_cmd_help_vec_create(cmd_help_vec, "act sysconfig" , "act sysconfig on {all | tcid <tcid> rank <rank>} at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "show sysconfig", "show sysconfig on {all | tcid <tcid> rank <rank>} at <console|log>");
@@ -418,6 +421,9 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_show_taskcomm_all           , "show taskcomm all at %s"                         , where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_show_taskcomm               , "show taskcomm tcid %t at %s"                     , tcid, where);
+
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cmon_show_nodes_all         , "cmon show nodes on all at %s"                    , where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cmon_show_nodes             , "cmon show nodes on tcid %t at %s"                , tcid, where);
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_show_version                , "show version on tcid %t at %s", tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_show_version_all            , "show version on all at %s", where);
@@ -8514,6 +8520,141 @@ EC_BOOL api_cmd_ui_status_mcast_udp_server(CMD_PARA_VEC * param)
 
     return (EC_TRUE);
 }
+
+#if 1
+EC_BOOL api_cmd_ui_cmon_show_nodes(CMD_PARA_VEC * param)
+{
+    UINT32  tcid; /*ngx tcid*/
+
+    CSTRING *where;
+
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_tcid(param, 0, &tcid);
+    api_cmd_para_vec_get_cstring(param, 1, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cmon show nodes on tcid %s where %s\n",
+                                        c_word_to_ipv4(tcid),
+                                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(tcid, CMPI_FWD_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*cmon_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cmon_show_nodes beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cmon_show_nodes end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0146);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        LOG *log;
+
+        log = log_cstr_open();
+
+        cvector_push(report_vec, (void *)log);
+        task_pos_inc(task_mgr, remote_mod_node_idx, NULL_PTR, FI_cmon_print_nodes, CMPI_ERROR_MODI, log);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        LOG *log;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        log = (LOG *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld]\n%s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node), (char *)cstring_get_str(LOG_CSTR(log)));
+
+        cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
+        log_cstr_close(log);
+    }
+
+    cvector_free(report_vec, LOC_API_0147);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cmon_show_nodes_all(CMD_PARA_VEC * param)
+{
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+    CSTRING *where;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_cstring(param, 0, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cmon show nodes on all where %s\n", (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_FWD_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*cmon_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cmon_show_nodes_all beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cmon_show_nodes_all end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_LOG, LOC_API_0273);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        LOG *log;
+
+        log = log_cstr_open();
+        cvector_push(report_vec, (void *)log);
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, NULL_PTR, FI_cmon_print_nodes, CMPI_ERROR_MODI, log);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        LOG *log;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        log = (LOG *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld]\n%s", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node), (char *)cstring_get_str(LOG_CSTR(log)));
+
+        cvector_set(report_vec, remote_mod_node_idx, NULL_PTR);
+        log_cstr_close(log);
+    }
+
+    cvector_free(report_vec, LOC_API_0274);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+#endif
 
 #if 1
 EC_BOOL api_cmd_ui_crfs_create_npp(CMD_PARA_VEC * param)

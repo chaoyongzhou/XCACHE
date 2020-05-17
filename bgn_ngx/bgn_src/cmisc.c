@@ -6754,6 +6754,26 @@ int c_format_len(const char *format, ...)
     return (len);
 }
 
+char *c_format_str(const char *format, ...)
+{
+    char *str_cache;
+
+    va_list ap;
+
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0021);
+    str_cache = (char *)(g_str_buff[g_str_idx]);
+    g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0022);
+
+    va_start(ap, format);
+
+    vsnprintf(str_cache, CMISC_BUFF_LEN, format, ap);
+
+    va_end(ap);
+
+    return (str_cache);
+}
+
 /*note: only for simple resolve configuration: nameserver <ip>*/
 EC_BOOL c_import_resolve_conf(CVECTOR *name_servers)
 {

@@ -314,6 +314,18 @@ EC_BOOL cngx_http_commit_http_get(CHTTP_NODE *chttp_node)
     {
         ret = cngx_http_commit_logrotate_get_request(chttp_node);
     }
+    else if (EC_TRUE == cngx_http_is_http_get_logreopen(chttp_node))
+    {
+        ret = cngx_http_commit_logreopen_get_request(chttp_node);
+    }
+    else if (EC_TRUE == cngx_http_is_http_get_ngx_activate(chttp_node))
+    {
+        ret = cngx_http_commit_ngx_activate_get_request(chttp_node);
+    }
+    else if (EC_TRUE == cngx_http_is_http_get_ngx_deactivate(chttp_node))
+    {
+        ret = cngx_http_commit_ngx_deactivate_get_request(chttp_node);
+    }
     else if (EC_TRUE == cngx_http_is_http_get_actsyscfg(chttp_node))
     {
         ret = cngx_http_commit_actsyscfg_get_request(chttp_node);
@@ -379,6 +391,10 @@ EC_BOOL cngx_http_commit_http_get(CHTTP_NODE *chttp_node)
     else if (EC_TRUE == cngx_http_is_http_get_ngx_show_so(chttp_node))
     {
         ret = cngx_http_commit_ngx_show_so_get_request(chttp_node);
+    }
+    else if (EC_TRUE == cngx_http_is_http_get_ngx_show_cmon_nodes(chttp_node))
+    {
+        ret = cngx_http_commit_ngx_show_cmon_nodes_get_request(chttp_node);
     }
     else
     {
@@ -862,6 +878,196 @@ EC_BOOL cngx_http_commit_logrotate_get_response(CHTTP_NODE *chttp_node)
     return cngx_http_commit_response(chttp_node);
 }
 #endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: logreopen ----------------------------------------*/
+STATIC_CAST static EC_BOOL __cngx_http_uri_is_logreopen_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/logreopen") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/logreopen")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cngx_http_is_http_get_logreopen(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0054_CNGX_HTTP, 9)(LOGSTDOUT, "[DEBUG] cngx_http_is_http_get_logreopen: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __cngx_http_uri_is_logreopen_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cngx_http_commit_logreopen_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == cngx_http_handle_logreopen_get_request(chttp_node))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_logreopen_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cngx_http_make_logreopen_get_response(chttp_node))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_logreopen_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = cngx_http_commit_logreopen_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_logreopen_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL cngx_http_handle_logreopen_get_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER       *uri_cbuffer;
+
+    //uint8_t       *cache_key;
+    //uint32_t       cache_len;
+
+    UINT32         req_body_chunk_num;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/logreopen");
+    //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/logreopen");
+
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
+    /*CNGX_HTTP_ASSERT(0 == req_body_chunk_num);*/
+    if(!(0 == req_body_chunk_num))
+    {
+        CHUNK_MGR *req_body_chunks;
+
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
+
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error: cngx_http_handle_logreopen_get_request: chunk num %ld\n", req_body_chunk_num);
+
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error: cngx_http_handle_logreopen_get_request: chunk mgr %p info\n", req_body_chunks);
+        chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
+
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error: cngx_http_handle_logreopen_get_request: chunk mgr %p chars\n", req_body_chunks);
+        chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_logreopen_get_request: bad request");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+        return (EC_TRUE);
+    }
+
+    if(EC_TRUE == __cngx_http_uri_is_logreopen_get_op(uri_cbuffer))
+    {
+        //CSOCKET_CNODE * csocket_cnode;
+        UINT32 super_md_id;
+
+        char  *log_index_str;
+        UINT32 log_index;
+
+        super_md_id = 0;
+        //csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+
+        log_index_str = chttp_node_get_header(chttp_node, (const char *)"log-index");
+        if(NULL_PTR != log_index_str)
+        {
+            log_index = c_str_to_word(log_index_str);
+        }
+        else
+        {
+            log_index = DEFAULT_USRER08_LOG_INDEX; /*default LOGUSER08*/
+        }
+
+        if(EC_FALSE == super_reopen_log(super_md_id, log_index))
+        {
+            dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_handle_logreopen_get_request: log reopen %ld failed\n", log_index);
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_http_handle_logreopen_get_request: log reopen %ld failed", log_index);
+
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0054_CNGX_HTTP, 5)(LOGSTDOUT, "[DEBUG] cngx_http_handle_logreopen_get_request: log reopen %ld done\n", log_index);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_logreopen_get_request: log reopen %ld done", log_index);
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_http_make_logreopen_get_response(CHTTP_NODE *chttp_node)
+{
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_logreopen_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_logreopen_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_logreopen_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_http_commit_logreopen_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_logreopen_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return cngx_http_commit_response(chttp_node);
+}
+#endif
+
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: actsyscfg ----------------------------------------*/
@@ -3518,7 +3724,7 @@ EC_BOOL cngx_http_handle_ngx_reload_so_get_request(CHTTP_NODE *chttp_node)
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_ngx_reload_so_get_request: send ngx %s to breath mem done",
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_ngx_reload_so_get_request: send ngx %s done",
                                 c_word_to_ipv4(ngx_tcid));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -3716,7 +3922,7 @@ EC_BOOL cngx_http_handle_ngx_switch_so_get_request(CHTTP_NODE *chttp_node)
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_ngx_switch_so_get_request: send ngx %s to breath mem done",
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_ngx_switch_so_get_request: send ngx %s done",
                                 c_word_to_ipv4(ngx_tcid));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -3910,7 +4116,7 @@ EC_BOOL cngx_http_handle_ngx_show_so_get_request(CHTTP_NODE *chttp_node)
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_http_handle_ngx_show_so_get_request: invalid ngx-tcid '%s'", v);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_http_handle_ngx_show_so_get_request: no memory");
 
             return (EC_TRUE);
         }
@@ -3927,7 +4133,7 @@ EC_BOOL cngx_http_handle_ngx_show_so_get_request(CHTTP_NODE *chttp_node)
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_ngx_show_so_get_request: send ngx %s to breath mem done",
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_ngx_show_so_get_request: send ngx %s done",
                                 c_word_to_ipv4(ngx_tcid));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -3994,6 +4200,538 @@ EC_BOOL cngx_http_commit_ngx_show_so_get_response(CHTTP_NODE *chttp_node)
     if(NULL_PTR == csocket_cnode)
     {
         dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_ngx_show_so_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return cngx_http_commit_response(chttp_node);
+}
+#endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: ngx_activate ----------------------------------------*/
+STATIC_CAST static EC_BOOL __cngx_http_uri_is_ngx_activate_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/activate") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/activate")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cngx_http_is_http_get_ngx_activate(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0054_CNGX_HTTP, 9)(LOGSTDOUT, "[DEBUG] cngx_http_is_http_get_ngx_activate: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __cngx_http_uri_is_ngx_activate_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cngx_http_commit_ngx_activate_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == cngx_http_handle_ngx_activate_get_request(chttp_node))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_ngx_activate_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cngx_http_make_ngx_activate_get_response(chttp_node))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_ngx_activate_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = cngx_http_commit_ngx_activate_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_ngx_activate_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL cngx_http_handle_ngx_activate_get_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER       *uri_cbuffer;
+
+    UINT32         req_body_chunk_num;
+
+    CBYTES        *content_cbytes;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
+    /*CNGX_HTTP_ASSERT(0 == req_body_chunk_num);*/
+    if(!(0 == req_body_chunk_num))
+    {
+        CHUNK_MGR *req_body_chunks;
+
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
+
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error: cngx_http_handle_ngx_activate_get_request: chunk num %ld\n", req_body_chunk_num);
+
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error: cngx_http_handle_ngx_activate_get_request: chunk mgr %p info\n", req_body_chunks);
+        chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
+
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error: cngx_http_handle_ngx_activate_get_request: chunk mgr %p chars\n", req_body_chunks);
+        chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_ngx_activate_get_request");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+        return (EC_TRUE);
+    }
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    cbytes_clean(content_cbytes);
+
+    if(EC_TRUE == __cngx_http_uri_is_ngx_activate_get_op(uri_cbuffer))
+    {
+        TASK_BRD        *task_brd;
+
+        task_brd = task_brd_default_get();
+
+        if(EC_FALSE == cmon_set_up(TASK_BRD_CMON_ID(task_brd)))
+        {
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_http_handle_ngx_activate_get_request: set all nodes up failed");
+
+            return (EC_TRUE);
+        }
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_ngx_activate_get_request: set all nodes up succ");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_http_make_ngx_activate_get_response(CHTTP_NODE *chttp_node)
+{
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_ngx_activate_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_ngx_activate_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_ngx_activate_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_http_commit_ngx_activate_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_ngx_activate_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return cngx_http_commit_response(chttp_node);
+}
+#endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: ngx_deactivate ----------------------------------------*/
+STATIC_CAST static EC_BOOL __cngx_http_uri_is_ngx_deactivate_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/deactivate") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/deactivate")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cngx_http_is_http_get_ngx_deactivate(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0054_CNGX_HTTP, 9)(LOGSTDOUT, "[DEBUG] cngx_http_is_http_get_ngx_deactivate: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __cngx_http_uri_is_ngx_deactivate_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cngx_http_commit_ngx_deactivate_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == cngx_http_handle_ngx_deactivate_get_request(chttp_node))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_ngx_deactivate_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cngx_http_make_ngx_deactivate_get_response(chttp_node))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_ngx_deactivate_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = cngx_http_commit_ngx_deactivate_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_ngx_deactivate_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL cngx_http_handle_ngx_deactivate_get_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER       *uri_cbuffer;
+
+    UINT32         req_body_chunk_num;
+
+    CBYTES        *content_cbytes;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
+    /*CNGX_HTTP_ASSERT(0 == req_body_chunk_num);*/
+    if(!(0 == req_body_chunk_num))
+    {
+        CHUNK_MGR *req_body_chunks;
+
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
+
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error: cngx_http_handle_ngx_deactivate_get_request: chunk num %ld\n", req_body_chunk_num);
+
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error: cngx_http_handle_ngx_deactivate_get_request: chunk mgr %p info\n", req_body_chunks);
+        chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
+
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error: cngx_http_handle_ngx_deactivate_get_request: chunk mgr %p chars\n", req_body_chunks);
+        chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_ngx_deactivate_get_request");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+        return (EC_TRUE);
+    }
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    cbytes_clean(content_cbytes);
+
+    if(EC_TRUE == __cngx_http_uri_is_ngx_deactivate_get_op(uri_cbuffer))
+    {
+        TASK_BRD        *task_brd;
+
+        task_brd = task_brd_default_get();
+
+        if(EC_FALSE == cmon_set_down(TASK_BRD_CMON_ID(task_brd)))
+        {
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_http_handle_ngx_deactivate_get_request: set all nodes down failed");
+
+            return (EC_TRUE);
+        }
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_ngx_deactivate_get_request: set all nodes down succ");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_http_make_ngx_deactivate_get_response(CHTTP_NODE *chttp_node)
+{
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_ngx_deactivate_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_ngx_deactivate_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_ngx_deactivate_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_http_commit_ngx_deactivate_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_ngx_deactivate_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return cngx_http_commit_response(chttp_node);
+}
+#endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: ngx_show_cmon_nodes ----------------------------------------*/
+STATIC_CAST static EC_BOOL __cngx_http_uri_is_ngx_show_cmon_nodes_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/show_cmon_nodes") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/show_cmon_nodes")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cngx_http_is_http_get_ngx_show_cmon_nodes(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0054_CNGX_HTTP, 9)(LOGSTDOUT, "[DEBUG] cngx_http_is_http_get_ngx_show_cmon_nodes: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __cngx_http_uri_is_ngx_show_cmon_nodes_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cngx_http_commit_ngx_show_cmon_nodes_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == cngx_http_handle_ngx_show_cmon_nodes_get_request(chttp_node))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_ngx_show_cmon_nodes_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cngx_http_make_ngx_show_cmon_nodes_get_response(chttp_node))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_ngx_show_cmon_nodes_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = cngx_http_commit_ngx_show_cmon_nodes_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_ngx_show_cmon_nodes_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL cngx_http_handle_ngx_show_cmon_nodes_get_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER       *uri_cbuffer;
+
+    UINT32         req_body_chunk_num;
+
+    CBYTES        *content_cbytes;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
+    /*CNGX_HTTP_ASSERT(0 == req_body_chunk_num);*/
+    if(!(0 == req_body_chunk_num))
+    {
+        CHUNK_MGR *req_body_chunks;
+
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
+
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error: cngx_http_handle_ngx_show_cmon_nodes_get_request: chunk num %ld\n", req_body_chunk_num);
+
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error: cngx_http_handle_ngx_show_cmon_nodes_get_request: chunk mgr %p info\n", req_body_chunks);
+        chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
+
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error: cngx_http_handle_ngx_show_cmon_nodes_get_request: chunk mgr %p chars\n", req_body_chunks);
+        chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_ngx_show_cmon_nodes_get_request");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+        return (EC_TRUE);
+    }
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    cbytes_clean(content_cbytes);
+
+    if(EC_TRUE == __cngx_http_uri_is_ngx_show_cmon_nodes_get_op(uri_cbuffer))
+    {
+        LOG         *log;
+
+        log = log_cstr_open();
+        if(NULL_PTR == log)
+        {
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_http_handle_ngx_show_cmon_nodes_get_request: no memory");
+
+            return (EC_TRUE);
+        }
+
+        cmon_print_nodes(task_brd_default_get_cmon_id(), log);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_ngx_show_cmon_nodes_get_request: done");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+
+        cbytes_mount(content_cbytes,
+                     cstring_get_len(LOG_CSTR(log)),
+                     cstring_get_str(LOG_CSTR(log)));
+        cstring_unset(LOG_CSTR(log));
+
+        log_cstr_close(log);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_http_make_ngx_show_cmon_nodes_get_response(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *content_cbytes;
+    uint64_t       content_len;
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    content_len    = CBYTES_LEN(content_cbytes);
+
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_ngx_show_cmon_nodes_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_ngx_show_cmon_nodes_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_ngx_show_cmon_nodes_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    /*no data copying but data transfering*/
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
+                                              CBYTES_BUF(content_cbytes),
+                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_ngx_show_cmon_nodes_get_response: make body with len %d failed\n",
+                           (uint32_t)CBYTES_LEN(content_cbytes));
+        return (EC_FALSE);
+    }
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_http_commit_ngx_show_cmon_nodes_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_ngx_show_cmon_nodes_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 

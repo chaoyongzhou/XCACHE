@@ -855,7 +855,7 @@ UINT32 super_sync_cload_mgr(const UINT32 super_md_id, const CVECTOR *tcid_vec, C
     tasks_cfg    = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
     tasks_worker = TASKS_CFG_WORKER(tasks_cfg);
 
-    task_mgr = task_new(NULL, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
 
     CVECTOR_LOCK(TASKS_WORKER_NODES(tasks_worker), LOC_SUPER_0025);
     for(tasks_node_pos = 0; tasks_node_pos < cvector_size(TASKS_WORKER_NODES(tasks_worker)); tasks_node_pos ++)
@@ -1485,7 +1485,7 @@ void super_sync_cload_node(const UINT32 super_md_id, CLOAD_NODE *cload_node)
     MOD_NODE_RANK(&send_mod_node) = CMPI_LOCAL_RANK;
     MOD_NODE_MODI(&send_mod_node) = super_md_id;
 
-    task_mgr = task_new(NULL, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     for(rank = 0; rank < TASK_BRD_SIZE(task_brd); rank ++)
     {
         CLOAD_STAT *cload_stat;
@@ -2835,6 +2835,40 @@ EC_BOOL super_rotate_log(const UINT32 super_md_id, const UINT32 log_index)
 
 /**
 *
+* reopen log
+*
+**/
+EC_BOOL super_reopen_log(const UINT32 super_md_id, const UINT32 log_index)
+{
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_reopen_log: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    if(DEFAULT_END_LOG_INDEX <= log_index)
+    {
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_reopen_log: log index %ld overflow\n", log_index);
+        return (EC_FALSE);
+    }
+
+    if(0 != sys_log_reopen_by_index(log_index))
+    {
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_reopen_log: log index %ld reopen failed\n", log_index);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_reopen_log: log index %ld reopen done\n", log_index);
+
+    return (EC_TRUE);
+}
+
+/**
+*
 * send http request and recv http response
 *
 **/
@@ -3615,7 +3649,7 @@ EC_BOOL super_exec_shell_vec(const UINT32 super_md_id, const CVECTOR *tcid_vec, 
         return (EC_FALSE);
     }
 
-    task_mgr = task_new(NULL, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     for(pos = 0; pos < tcid_num; pos ++)
     {
         UINT32   tcid;
@@ -3672,7 +3706,7 @@ EC_BOOL super_exec_shell_vec_tcid_cstr(const UINT32 super_md_id, const CVECTOR *
     }
 #endif/*SUPER_DEBUG_SWITCH*/
 
-    task_mgr = task_new(NULL, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     for(tcid_pos = 0; tcid_pos < cvector_size(tcid_cstr_vec); tcid_pos ++)
     {
         CSTRING *tcid_cstr;
@@ -3806,7 +3840,7 @@ EC_BOOL super_exec_shell_vec_ipaddr_cstr(const UINT32 super_md_id, const CVECTOR
 
     task_brd = task_brd_default_get();
 
-    task_mgr = task_new(NULL, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     for(ipaddr_pos = 0; ipaddr_pos < cvector_size(ipaddr_cstr_vec); ipaddr_pos ++)
     {
         CSTRING *ipaddr_cstr;
@@ -4655,7 +4689,7 @@ EC_BOOL super_download_vec_tcid_cstr(const UINT32 super_md_id, const CVECTOR *tc
     }
 #endif/*SUPER_DEBUG_SWITCH*/
 
-    task_mgr = task_new(NULL, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     for(tcid_pos = 0; tcid_pos < cvector_size(tcid_cstr_vec); tcid_pos ++)
     {
         CSTRING *tcid_cstr;
@@ -4792,7 +4826,7 @@ EC_BOOL super_download_vec_ipaddr_cstr(const UINT32 super_md_id, const CVECTOR *
 
     task_brd = task_brd_default_get();
 
-    task_mgr = task_new(NULL, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     for(ipaddr_pos = 0; ipaddr_pos < cvector_size(ipaddr_cstr_vec); ipaddr_pos ++)
     {
         CSTRING *ipaddr_cstr;
@@ -5042,7 +5076,7 @@ EC_BOOL super_upload_vec_tcid_cstr(const UINT32 super_md_id, const CVECTOR *tcid
         cvector_push_no_lock(ret_vec, (void *)EC_FALSE);
     }
 
-    task_mgr = task_new(NULL, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     for(tcid_pos = 0; tcid_pos < cvector_size(tcid_cstr_vec); tcid_pos ++)
     {
         CSTRING *tcid_cstr;
@@ -5175,7 +5209,7 @@ EC_BOOL super_upload_vec_ipaddr_cstr(const UINT32 super_md_id, const CVECTOR *ip
 
     task_brd = task_brd_default_get();
 
-    task_mgr = task_new(NULL, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     for(ipaddr_pos = 0; ipaddr_pos < cvector_size(ipaddr_cstr_vec); ipaddr_pos ++)
     {
         CSTRING *ipaddr_cstr;
@@ -5865,7 +5899,7 @@ EC_BOOL super_transfer_vec_start(const UINT32 super_md_id, const CSTRING *src_fn
         return (EC_FALSE);
     }
 
-    task_mgr = task_new(NULL, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     for(des_tcid_pos = 0; des_tcid_pos < cvector_size(des_tcid_vec); des_tcid_pos ++)
     {
         UINT32 des_tcid;
@@ -5922,7 +5956,7 @@ EC_BOOL super_transfer_vec_stop(const UINT32 super_md_id, const CSTRING *src_fna
         return (EC_FALSE);
     }
 
-    task_mgr = task_new(NULL, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
     for(des_tcid_pos = 0; des_tcid_pos < cvector_size(des_tcid_vec); des_tcid_pos ++)
     {
         UINT32 des_tcid;
@@ -6092,7 +6126,7 @@ EC_BOOL super_transfer_vec(const UINT32 super_md_id, const CSTRING *src_fname, c
             return (EC_FALSE);
         }
 
-        task_mgr = task_new(NULL, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+        task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
         for(des_tcid_pos = 0; des_tcid_pos < cvector_size(des_tcid_vec); des_tcid_pos ++)
         {
             MOD_NODE recv_mod_node;

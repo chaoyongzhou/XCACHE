@@ -242,7 +242,7 @@ EC_BOOL tasks_node_init(TASKS_NODE *tasks_node, const UINT32 srvipaddr, const UI
     TASKS_NODE_SIZE(tasks_node)      = size;
     TASKS_NODE_LOAD(tasks_node)      = 0;
 
-    TASKS_NODE_CLOSING(tasks_node)   = BIT_FALSE;
+    TASKS_NODE_USED(tasks_node)      = BIT_TRUE;
 
     CTIMET_GET(TASKS_NODE_LAST_UPDATE_TIME(tasks_node));
     CTIMET_GET(TASKS_NODE_LAST_SEND_TIME(tasks_node));
@@ -266,7 +266,7 @@ EC_BOOL tasks_node_clean(TASKS_NODE *tasks_node)
     TASKS_NODE_SIZE(tasks_node)      = 0;
     TASKS_NODE_LOAD(tasks_node)      = 0;
 
-    TASKS_NODE_CLOSING(tasks_node)   = BIT_FALSE;
+    TASKS_NODE_USED(tasks_node)      = BIT_FALSE;
 
     //CTIMET_GET(TASKS_NODE_LAST_UPDATE_TIME(tasks_node));
     //CTIMET_GET(TASKS_NODE_LAST_SEND_TIME(tasks_node));
@@ -278,10 +278,8 @@ EC_BOOL tasks_node_free(TASKS_NODE *tasks_node)
 {
     if(NULL_PTR != tasks_node)
     {
-        if(BIT_FALSE == TASKS_NODE_CLOSING(tasks_node))
+        if(BIT_TRUE == TASKS_NODE_USED(tasks_node))
         {
-            TASKS_NODE_CLOSING(tasks_node) = BIT_TRUE;
-
             tasks_node_clean(tasks_node);
             free_static_mem(MM_TASKS_NODE, tasks_node, LOC_TASKS_0006);
         }
@@ -307,7 +305,7 @@ EC_BOOL tasks_node_clone_0(const TASKS_NODE *tasks_node_src, TASKS_NODE *tasks_n
     TASKS_NODE_COMM(tasks_node_des)      = TASKS_NODE_COMM(tasks_node_src);
     TASKS_NODE_SIZE(tasks_node_des)      = TASKS_NODE_SIZE(tasks_node_src);
 
-    TASKS_NODE_CLOSING(tasks_node_des)   = TASKS_NODE_CLOSING(tasks_node_src);
+    TASKS_NODE_USED(tasks_node_des)      = TASKS_NODE_USED(tasks_node_src);
 
     /*left was ignored ...*/
     return (EC_TRUE);

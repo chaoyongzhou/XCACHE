@@ -169,6 +169,8 @@
 #define                FI_super_get_ngx_slow_down  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 150))
 #define                FI_super_set_bgn_slow_down  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 151))
 #define                FI_super_set_ngx_slow_down  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 152))
+#define                       FI_super_reopen_log  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 153))
+
 
 #define           FI_csession_print_module_status  ((UINT32) ((MD_CSESSION << (WORDSIZE/2)) +  0))
 #define        FI_csession_free_module_static_mem  ((UINT32) ((MD_CSESSION << (WORDSIZE/2)) +  1))
@@ -416,6 +418,8 @@
 #define                           FI_cxfs_sync_do  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 112))
 #define                           FI_cxfs_reg_ngx  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 113))
 #define                  FI_cxfs_wait_files_print  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 114))
+#define                      FI_cxfs_activate_ngx  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 115))
+#define                    FI_cxfs_deactivate_ngx  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 116))
 
 #define               FI_cmon_print_module_status  ((UINT32) ((MD_CMON << (WORDSIZE/2)) +  0))
 #define            FI_cmon_free_module_static_mem  ((UINT32) ((MD_CMON << (WORDSIZE/2)) +  1))
@@ -438,6 +442,9 @@
 #define                   FI_cmon_print_hot_paths  ((UINT32) ((MD_CMON << (WORDSIZE/2)) + 18))
 #define                    FI_cmon_load_hot_paths  ((UINT32) ((MD_CMON << (WORDSIZE/2)) + 19))
 #define                  FI_cmon_unload_hot_paths  ((UINT32) ((MD_CMON << (WORDSIZE/2)) + 20))
+#define                            FI_cmon_set_up  ((UINT32) ((MD_CMON << (WORDSIZE/2)) + 21))
+#define                          FI_cmon_set_down  ((UINT32) ((MD_CMON << (WORDSIZE/2)) + 22))
+#define                       FI_cmon_print_nodes  ((UINT32) ((MD_CMON << (WORDSIZE/2)) + 23))
 
 #define                FI_ctdns_print_module_status  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 0))
 #define             FI_ctdns_free_module_static_mem  ((UINT32) ((MD_CTDNS << (WORDSIZE/2)) + 1))

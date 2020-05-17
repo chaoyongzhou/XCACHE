@@ -70,7 +70,7 @@ typedef struct
 
     UINT32      load;        /*load of sending direction*/
 
-    uint32_t    closing:1;
+    uint32_t    used:1;
     uint32_t    rsvd01 :31;
     uint32_t    rsvd02;
 
@@ -90,7 +90,7 @@ typedef struct
 #define TASKS_NODE_COMM(tasks_node)                         ((tasks_node)->comm)
 #define TASKS_NODE_SIZE(tasks_node)                         ((tasks_node)->size)
 #define TASKS_NODE_LOAD(tasks_node)                         ((tasks_node)->load)
-#define TASKS_NODE_CLOSING(tasks_node)                      ((tasks_node)->closing)
+#define TASKS_NODE_USED(tasks_node)                         ((tasks_node)->used)
 #define TASKS_NODE_LAST_UPDATE_TIME(tasks_node)             (((tasks_node)->last_update_time))
 #define TASKS_NODE_LAST_SEND_TIME(tasks_node)               (((tasks_node)->last_send_time))
 #define TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)            (&((tasks_node)->csocket_cnode_vec))

@@ -326,6 +326,51 @@ FUNC_ADDR_NODE g_cmon_func_addr_list[ ] = {
 /*func para type  */     {e_dbg_UINT32,},
 /*func para val   */     0, 0, {0},
 },
+{
+/* -- EC_BOOL cmon_set_up(const UINT32 cmon_md_id); -- */
+/*func module     */     MD_CMON,
+/*func logic addr */     (UINT32)cmon_set_up,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cmon_set_up",
+/*func index      */     FI_cmon_set_up,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     1,
+/*func para direct*/     {E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL cmon_set_down(const UINT32 cmon_md_id); -- */
+/*func module     */     MD_CMON,
+/*func logic addr */     (UINT32)cmon_set_down,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cmon_set_down",
+/*func index      */     FI_cmon_set_down,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     1,
+/*func para direct*/     {E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- void cmon_print_nodes(const UINT32 cmon_md_id, LOG *log); -- */
+/*func module     */     MD_CMON,
+/*func logic addr */     (UINT32)cmon_print_nodes,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cmon_print_nodes",
+/*func index      */     FI_cmon_print_nodes,
+/*func ret type   */     e_dbg_void,
+/*func para num   */     2,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IO,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_LOG_ptr,},
+/*func para val   */     0, 0, {0},
+},
 };
 
 UINT32 g_cmon_func_addr_list_len = sizeof(g_cmon_func_addr_list)/sizeof(g_cmon_func_addr_list[0]);

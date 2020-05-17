@@ -272,6 +272,18 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_make_stat_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_commit_stat_get_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL cxfshttp_is_http_get_activate_ngx(const CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_activate_ngx_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_handle_activate_ngx_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_make_activate_ngx_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_activate_ngx_get_response(CHTTP_NODE *chttp_node);
+
+EC_BOOL cxfshttp_is_http_get_deactivate_ngx(const CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_deactivate_ngx_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_handle_deactivate_ngx_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_make_deactivate_ngx_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_deactivate_ngx_get_response(CHTTP_NODE *chttp_node);
+
 #endif /*_CXFSHTTP_H*/
 
 #ifdef __cplusplus

@@ -463,6 +463,13 @@ EC_BOOL super_rotate_log(const UINT32 super_md_id, const UINT32 log_index);
 
 /**
 *
+* reopen log
+*
+**/
+EC_BOOL super_reopen_log(const UINT32 super_md_id, const UINT32 log_index);
+
+/**
+*
 * send http request and recv http response
 *
 **/
