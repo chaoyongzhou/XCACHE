@@ -100,7 +100,6 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_DNS_CACHE_EXPIRED_NSEC);
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_HIGH_PRECISION_TIME_SWITCH);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_NGX_BGN_OVER_HTTP_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_NGX_BGN_OVER_RFS_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_NGX_BGN_OVER_XFS_SWITCH);
 
@@ -259,7 +258,6 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CPARACFG_DNS_CACHE_EXPIRED_NSEC            = %ld\n",  CPARACFG_DNS_CACHE_EXPIRED_NSEC(cparacfg));
 
     sys_log(log, "CPARACFG_HIGH_PRECISION_TIME_SWITCH        = %s\n" ,  CPARACFG_HIGH_PRECISION_TIME_SWITCH_STR(cparacfg));
-    sys_log(log, "CPARACFG_NGX_BGN_OVER_HTTP_SWITCH          = %s\n" ,  CPARACFG_NGX_BGN_OVER_HTTP_SWITCH_STR(cparacfg));
     sys_log(log, "CPARACFG_NGX_BGN_OVER_RFS_SWITCH           = %s\n" ,  CPARACFG_NGX_BGN_OVER_RFS_SWITCH_STR(cparacfg));
     sys_log(log, "CPARACFG_NGX_BGN_OVER_XFS_SWITCH           = %s\n" ,  CPARACFG_NGX_BGN_OVER_XFS_SWITCH_STR(cparacfg));
 

@@ -67,7 +67,7 @@ EC_BOOL ccache_file_retire(const UINT32 store_srv_tcid, const UINT32 store_srv_i
 
 EC_BOOL ccache_file_wait(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                             const CSTRING *file_path, const UINT32 store_start_offset, const UINT32 store_end_offset,
-                            CBYTES *content_cbytes, UINT32 *data_ready);
+                            UINT32 *content_length, UINT32 *data_ready);
 
 EC_BOOL ccache_file_wait_and_read(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                         const CSTRING *file_path, const UINT32 store_start_offset, const UINT32 store_end_offset,
@@ -89,90 +89,45 @@ EC_BOOL ccache_billing_set(const UINT32 billing_srv_ipaddr, const UINT32 billing
                               const UINT32 send_len, const UINT32 recv_len);
 
 /*-------------------------- interact with http and bgn --------------------------*/
-EC_BOOL ccache_lock_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
-                                   const CSTRING *file_path, const UINT32 expire_nsec,
-                                   CSTRING *auth_token, UINT32 *locked_already);
-
 EC_BOOL ccache_lock_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                    const CSTRING *file_path, const UINT32 expire_nsec,
                                    CSTRING *auth_token, UINT32 *locked_already);
 
-EC_BOOL ccache_unlock_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path, const CSTRING *auth_token);
-
 EC_BOOL ccache_unlock_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path, const CSTRING *auth_token);
-
-EC_BOOL ccache_file_write_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path, const CBYTES *cbytes, const CSTRING *auth_token);
 
 EC_BOOL ccache_file_write_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path, const CBYTES *cbytes, const CSTRING *auth_token);
 
-EC_BOOL ccache_renew_headers_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path, const CSTRKV_MGR *cstrkv_mgr, const CSTRING *auth_token);
-
 EC_BOOL ccache_renew_headers_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path, const CSTRKV_MGR *cstrkv_mgr, const CSTRING *auth_token);
-
-EC_BOOL ccache_file_notify_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path);
 
 EC_BOOL ccache_file_notify_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path);
 
-EC_BOOL ccache_file_terminate_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path);
-
 EC_BOOL ccache_file_terminate_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *file_path);
-
-EC_BOOL ccache_billing_set_over_http(const UINT32 billing_srv_ipaddr, const UINT32 billing_srv_port,
-                                           const CSTRING *billing_flags,
-                                           const CSTRING *billing_domain, const CSTRING *billing_client_type,
-                                           const UINT32 send_len, const UINT32 recv_len);
-
-EC_BOOL ccache_file_lock_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
-                                        const CSTRING *file_path, const UINT32 expire_nsec, CSTRING *auth_token, UINT32 *locked_already);
 
 EC_BOOL ccache_file_lock_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                         const CSTRING *file_path, const UINT32 expire_nsec, CSTRING *auth_token, UINT32 *locked_already);
 
-EC_BOOL ccache_file_unlock_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
-                                           const CSTRING *file_path, const CSTRING *auth_token);
-
 EC_BOOL ccache_file_unlock_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                            const CSTRING *file_path, const CSTRING *auth_token);
-
-EC_BOOL ccache_file_read_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
-                                        const CSTRING *file_path, const UINT32 store_start_offset, const UINT32 store_end_offset,
-                                        CBYTES  *content_cbytes);
 
 EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                         const CSTRING *file_path, const UINT32 store_start_offset, const UINT32 store_end_offset,
                                         CBYTES  *content_cbytes);
 
-EC_BOOL ccache_file_retire_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
-                                         const CSTRING *file_path);
-
 EC_BOOL ccache_file_retire_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                          const CSTRING *file_path);
 
-EC_BOOL ccache_file_wait_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
-                                        const CSTRING *file_path, const UINT32 store_start_offset, const UINT32 store_end_offset,
-                                        CBYTES *content_cbytes, UINT32 *data_ready);
 
 EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                         const CSTRING *file_path, const UINT32 store_start_offset, const UINT32 store_end_offset,
-                                        CBYTES *content_cbytes, UINT32 *data_ready);
-
-EC_BOOL ccache_file_wait_ready_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
-                                                const CSTRING *file_path,
-                                                UINT32 *data_ready);
+                                        UINT32 *content_length, UINT32 *data_ready);
 
 EC_BOOL ccache_file_wait_ready_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                                 const CSTRING *file_path,
                                                 UINT32 *data_ready);
 
-EC_BOOL ccache_wait_http_headers_over_http(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
-                                                    const CSTRING *file_path,
-                                                    const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready);
-
 EC_BOOL ccache_wait_http_headers_over_bgn(const UINT32 store_srv_tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port,
                                                     const CSTRING *file_path,
                                                     const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready);
-
-EC_BOOL ccache_dir_delete_over_http(const CSTRING *file_path);
 
 EC_BOOL ccache_dir_delete_over_bgn(const CSTRING *file_path);
 

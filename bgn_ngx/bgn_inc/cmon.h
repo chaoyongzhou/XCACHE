@@ -145,6 +145,8 @@ const char *cmon_node_state(const CMON_NODE *cmon_node);
 
 void cmon_node_print(const CMON_NODE *cmon_node, LOG *log);
 
+void cmon_node_print_0(LOG *log, const CMON_NODE *cmon_node);
+
 void cmon_print_nodes(const UINT32 cmon_md_id, LOG *log);
 
 void cmon_list_nodes(const UINT32 cmon_md_id, CSTRING *cstr);

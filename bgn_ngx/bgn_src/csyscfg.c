@@ -938,7 +938,6 @@ void cparacfg_thread_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UIN
     sys_print(log, " stackGuardSize=\"%ld\""           , CPARACFG_CTHREAD_STACK_GUARD_SIZE(cparacfg));
     sys_print(log, " taskSlowDownMsec=\"%ld\""         , CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg));
 
-    sys_print(log, " ngxBgnOverHttpSwitch=\"%s\""      , CPARACFG_NGX_BGN_OVER_HTTP_SWITCH_STR(cparacfg));
     sys_print(log, " ngxBgnOverRfsSwitch=\"%s\""       , CPARACFG_NGX_BGN_OVER_RFS_SWITCH_STR(cparacfg));
     sys_print(log, " ngxBgnOverXfsSwitch=\"%s\""       , CPARACFG_NGX_BGN_OVER_XFS_SWITCH_STR(cparacfg));
     sys_print(log, "/>\n");

@@ -2874,11 +2874,9 @@ EC_BOOL super_reopen_log(const UINT32 super_md_id, const UINT32 log_index)
 **/
 EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTTP_RSP *chttp_rsp, CHTTP_STAT *chttp_stat)
 {
-    uint32_t s_nsec; /*start time in second*/
-    uint32_t s_msec; /*start time in micro-second*/
+    uint64_t s_msec; /*start time in micro-second*/
 
-    uint32_t e_nsec; /*end time in second*/
-    uint32_t e_msec; /*end time in micro-second*/
+    uint64_t e_msec; /*end time in micro-second*/
 
     uint32_t s2e_elapsed_msec;
     uint32_t need_log_flag;
@@ -2913,10 +2911,8 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         need_log_flag = BIT_FALSE;
     }
 
-    s_nsec = 0;
     s_msec = 0;
 
-    e_nsec = 0;
     e_msec = 0;
 
     if(BIT_TRUE == need_log_flag)
@@ -2924,7 +2920,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         /*trick: unset need log flag*/
         CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_FALSE;
 
-        CHTTP_STAT_LOG_ORIG_TIME_WHEN_START(s_nsec, s_msec);
+        CHTTP_STAT_LOG_ORIG_TIME_WHEN_START(s_msec);
     }
 
     if(EC_FALSE == chttp_request(chttp_req, (CHTTP_STORE *)chttp_store, chttp_rsp, chttp_stat))
@@ -2937,8 +2933,8 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
             /*trick: restore need log flag*/
             CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
 
-            CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
-            s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
+            CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+            s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
             sys_log(LOGUSER07, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
                                (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                CHTTP_REQ_PORT(chttp_req),
@@ -2960,8 +2956,8 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
             /*trick: restore need log flag*/
             CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
 
-            CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
-            s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
+            CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+            s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
             sys_log(LOGUSER07, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
                                (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                CHTTP_REQ_PORT(chttp_req),
@@ -3053,8 +3049,8 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
                 /*trick: restore need log flag*/
                 CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
 
-                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
-                s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
+                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+                s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
                 sys_log(LOGUSER07, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
                                    (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                    CHTTP_REQ_PORT(chttp_req),
@@ -3075,8 +3071,8 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
                 /*trick: restore need log flag*/
                 CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
 
-                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
-                s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
+                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+                s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
                 sys_log(LOGUSER07, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
                                    (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                    CHTTP_REQ_PORT(chttp_req),
@@ -3119,8 +3115,8 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
                 /*trick: restore need log flag*/
                 CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
 
-                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
-                s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
+                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+                s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
                 sys_log(LOGUSER07, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
                                    (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                    CHTTP_REQ_PORT(chttp_req),
@@ -3142,8 +3138,8 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
                 /*trick: restore need log flag*/
                 CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
 
-                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
-                s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
+                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+                s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
                 sys_log(LOGUSER07, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
                                    (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                    CHTTP_REQ_PORT(chttp_req),
@@ -3181,8 +3177,8 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         /*trick: restore need log flag*/
         CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
 
-        CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
-        s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
+        CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+        s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
         sys_log(LOGUSER07, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
                            (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                            CHTTP_REQ_PORT(chttp_req),
@@ -3203,8 +3199,8 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         /*trick: restore need log flag*/
         CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
 
-        CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
-        s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
+        CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+        s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
         sys_log(LOGUSER07, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
                            (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                            CHTTP_REQ_PORT(chttp_req),
@@ -7219,7 +7215,8 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
     super_ccond = super_ccond_new(super_md_id, tag, key, timeout_msec);
     if(NULL_PTR == super_ccond)
     {
-        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_cond_wait: new super_ccond [tag %ld, key '%.*s', timeout %ld ms] failed\n",
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_cond_wait: "
+                    "new super_ccond [tag %ld, key '%.*s', timeout %ld ms] failed\n",
                     tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec);
         return (EC_FALSE);
     }
@@ -7227,7 +7224,8 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
     crb_node = crb_tree_insert_data(SUPER_MD_COND_LOCKS(super_md), (void *)super_ccond);
     if(NULL_PTR == crb_node)
     {
-        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_cond_wait: insert super_ccond [tag %ld, key '%.*s', timeout %ld ms] to tree failed\n",
+        dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_cond_wait: "
+                    "insert super_ccond [tag %ld, key '%.*s', timeout %ld ms] to tree failed\n",
                     tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec);
         super_ccond_free(super_md_id, super_ccond);
         return (EC_FALSE);
@@ -7235,30 +7233,37 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
 
     if(CRB_NODE_DATA(crb_node) != super_ccond)
     {
-        dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_cond_wait: insert super_ccond [tag %ld, key '%.*s', timeout %ld ms] to tree but found duplicate\n",
+        dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_cond_wait: "
+                    "insert super_ccond [tag %ld, key '%.*s', timeout %ld ms] to tree but found duplicate\n",
                     tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec);
         super_ccond_free(super_md_id, super_ccond);
     }
 
     super_ccond_inserted = CRB_NODE_DATA(crb_node);
 
-    dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_cond_wait: insert super_ccond [tag %ld, key '%.*s', timeout %ld ms] to tree done => cond %p\n",
-                tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted));
+    dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_cond_wait: "
+                "insert super_ccond [tag %ld, key '%.*s', timeout %ld ms] to tree done => cond %p\n",
+                tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec,
+                SUPER_CCOND_COND(super_ccond_inserted));
 
     croutine_cond_reserve(SUPER_CCOND_COND(super_ccond_inserted), 1, LOC_SUPER_0104);
     if(do_log(SEC_0117_SUPER, 9))
     {
-        sys_log(LOGSTDOUT, "[DEBUG] super_cond_wait: wait super_ccond [tag %ld, key '%.*s', timeout %ld ms] => cond %p\n",
-                    tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted));
+        sys_log(LOGSTDOUT, "[DEBUG] super_cond_wait: "
+                    "wait super_ccond [tag %ld, key '%.*s', timeout %ld ms] => cond %p\n",
+                    tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec,
+                    SUPER_CCOND_COND(super_ccond_inserted));
     }
 
     ret = croutine_cond_wait(SUPER_CCOND_COND(super_ccond_inserted), LOC_SUPER_0105);
     if(EC_TIMEOUT == ret)
     {
-        if(do_log(SEC_0117_SUPER, 9))
+        if(do_log(SEC_0117_SUPER, 0))
         {
-            sys_log(LOGSTDOUT, "[DEBUG] super_cond_wait: wait super_ccond [tag %ld, key '%.*s', timeout %ld ms] return due to timeout <= cond %p\n",
-                      tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted));
+            sys_log(LOGSTDOUT, "[DEBUG] super_cond_wait: "
+                      "wait super_ccond [tag %ld, key '%.*s', timeout %ld ms] return due to timeout <= cond %p\n",
+                      tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec,
+                      SUPER_CCOND_COND(super_ccond_inserted));
             /*here cannot print super_ccond due to it may be already free after wait*/
         }
 
@@ -7273,10 +7278,12 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
 
     if(EC_TERMINATE == ret)
     {
-        if(do_log(SEC_0117_SUPER, 9))
+        if(do_log(SEC_0117_SUPER, 0))
         {
-            sys_log(LOGSTDOUT, "[DEBUG] super_cond_wait: wait super_ccond [tag %ld, key '%.*s', timeout %ld ms] return due to terminate <= cond %p\n",
-                      tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted));
+            sys_log(LOGSTDOUT, "[DEBUG] super_cond_wait: "
+                      "wait super_ccond [tag %ld, key '%.*s', timeout %ld ms] return due to terminate <= cond %p\n",
+                      tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec,
+                      SUPER_CCOND_COND(super_ccond_inserted));
             /*here cannot print super_ccond due to it may be already free after wait*/
         }
 
@@ -7291,8 +7298,10 @@ EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRIN
 
     if(do_log(SEC_0117_SUPER, 9))
     {
-        sys_log(LOGSTDOUT, "[DEBUG] super_cond_wait: wait super_ccond [tag %ld, key '%.*s', timeout %ld ms] return due to released <= cond %p\n",
-                          tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec, SUPER_CCOND_COND(super_ccond_inserted));
+        sys_log(LOGSTDOUT, "[DEBUG] super_cond_wait: "
+                  "wait super_ccond [tag %ld, key '%.*s', timeout %ld ms] return due to released <= cond %p\n",
+                  tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key), timeout_msec,
+                  SUPER_CCOND_COND(super_ccond_inserted));
         /*here cannot print super_ccond due to it may be already free after wait*/
     }
 
@@ -7424,6 +7433,8 @@ EC_BOOL super_cond_delete(const UINT32 super_md_id, const UINT32 tag, const CSTR
     {
         dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_cond_delete: not found super_ccond [tag %ld, key '%.*s']\n",
                     tag, (uint32_t)CSTRING_LEN(key), CSTRING_STR(key));
+
+        super_ccond_clean(super_md_id, &super_ccond_t);
         return (EC_TRUE);
     }
 
@@ -7993,11 +8004,6 @@ STATIC_CAST static EC_BOOL __super_unlock_over_bgn(const UINT32 super_md_id, con
 
 EC_BOOL super_unlock(const UINT32 super_md_id, const UINT32 tcid, const UINT32 store_srv_ipaddr, const UINT32 store_srv_port, const CSTRING *path, const CSTRING *auth_token)
 {
-    if(SWITCH_ON == NGX_BGN_OVER_HTTP_SWITCH)
-    {
-        return __super_unlock_over_http(super_md_id, tcid, store_srv_ipaddr, store_srv_port, path, auth_token);
-    }
-
     return __super_unlock_over_bgn(super_md_id, tcid, store_srv_ipaddr, store_srv_port, path, auth_token);
 }
 

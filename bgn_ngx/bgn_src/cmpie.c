@@ -4051,23 +4051,17 @@ UINT32 cmpi_encode_chttp_stat(const UINT32 comm, const CHTTP_STAT *chttp_stat, U
     cmpi_encode_uint32_t(comm, CHTTP_STAT_S_SEND_LEN(chttp_stat), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STAT_S_RECV_LEN(chttp_stat), out_buff, out_buff_max_len, position);
 
-    cmpi_encode_uint32_t(comm, CHTTP_STAT_BASIC_S_NSEC(chttp_stat), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint32_t(comm, CHTTP_STAT_BASIC_S_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64(comm, CHTTP_STAT_BASIC_S_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
 
-    cmpi_encode_uint32_t(comm, CHTTP_STAT_BASIC_R_NSEC(chttp_stat), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint32_t(comm, CHTTP_STAT_BASIC_R_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64(comm, CHTTP_STAT_BASIC_R_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
 
-    cmpi_encode_uint32_t(comm, CHTTP_STAT_BASIC_L_NSEC(chttp_stat), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint32_t(comm, CHTTP_STAT_BASIC_L_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64(comm, CHTTP_STAT_BASIC_L_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
 
-    cmpi_encode_uint32_t(comm, CHTTP_STAT_BASIC_H_NSEC(chttp_stat), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint32_t(comm, CHTTP_STAT_BASIC_H_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64(comm, CHTTP_STAT_BASIC_H_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
 
-    cmpi_encode_uint32_t(comm, CHTTP_STAT_BASIC_D_NSEC(chttp_stat), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint32_t(comm, CHTTP_STAT_BASIC_D_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64(comm, CHTTP_STAT_BASIC_D_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
 
-    cmpi_encode_uint32_t(comm, CHTTP_STAT_BASIC_E_NSEC(chttp_stat), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint32_t(comm, CHTTP_STAT_BASIC_E_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64(comm, CHTTP_STAT_BASIC_E_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
 
     return ((UINT32)0);
 }
@@ -4079,23 +4073,17 @@ UINT32 cmpi_encode_chttp_stat_size(const UINT32 comm, const CHTTP_STAT *chttp_st
     cmpi_encode_uint32_t_size(comm, CHTTP_STAT_S_SEND_LEN(chttp_stat), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STAT_S_RECV_LEN(chttp_stat), size);
 
-    cmpi_encode_uint32_t_size(comm, CHTTP_STAT_BASIC_S_NSEC(chttp_stat), size);
-    cmpi_encode_uint32_t_size(comm, CHTTP_STAT_BASIC_S_MSEC(chttp_stat), size);
+    cmpi_encode_uint64_size(comm, CHTTP_STAT_BASIC_S_MSEC(chttp_stat), size);
 
-    cmpi_encode_uint32_t_size(comm, CHTTP_STAT_BASIC_R_NSEC(chttp_stat), size);
-    cmpi_encode_uint32_t_size(comm, CHTTP_STAT_BASIC_R_MSEC(chttp_stat), size);
+    cmpi_encode_uint64_size(comm, CHTTP_STAT_BASIC_R_MSEC(chttp_stat), size);
 
-    cmpi_encode_uint32_t_size(comm, CHTTP_STAT_BASIC_L_NSEC(chttp_stat), size);
-    cmpi_encode_uint32_t_size(comm, CHTTP_STAT_BASIC_L_MSEC(chttp_stat), size);
+    cmpi_encode_uint64_size(comm, CHTTP_STAT_BASIC_L_MSEC(chttp_stat), size);
 
-    cmpi_encode_uint32_t_size(comm, CHTTP_STAT_BASIC_H_NSEC(chttp_stat), size);
-    cmpi_encode_uint32_t_size(comm, CHTTP_STAT_BASIC_H_MSEC(chttp_stat), size);
+    cmpi_encode_uint64_size(comm, CHTTP_STAT_BASIC_H_MSEC(chttp_stat), size);
 
-    cmpi_encode_uint32_t_size(comm, CHTTP_STAT_BASIC_D_NSEC(chttp_stat), size);
-    cmpi_encode_uint32_t_size(comm, CHTTP_STAT_BASIC_D_MSEC(chttp_stat), size);
+    cmpi_encode_uint64_size(comm, CHTTP_STAT_BASIC_D_MSEC(chttp_stat), size);
 
-    cmpi_encode_uint32_t_size(comm, CHTTP_STAT_BASIC_E_NSEC(chttp_stat), size);
-    cmpi_encode_uint32_t_size(comm, CHTTP_STAT_BASIC_E_MSEC(chttp_stat), size);
+    cmpi_encode_uint64_size(comm, CHTTP_STAT_BASIC_E_MSEC(chttp_stat), size);
 
     return ((UINT32)0);
 }
@@ -4125,23 +4113,17 @@ UINT32 cmpi_decode_chttp_stat(const UINT32 comm, const UINT8 *in_buff, const UIN
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_S_SEND_LEN(chttp_stat));
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_S_RECV_LEN(chttp_stat));
 
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_S_NSEC(chttp_stat));
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_S_MSEC(chttp_stat));
+    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_S_MSEC(chttp_stat));
 
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_R_NSEC(chttp_stat));
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_R_MSEC(chttp_stat));
+    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_R_MSEC(chttp_stat));
 
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_L_NSEC(chttp_stat));
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_L_MSEC(chttp_stat));
+    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_L_MSEC(chttp_stat));
 
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_H_NSEC(chttp_stat));
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_H_MSEC(chttp_stat));
+    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_H_MSEC(chttp_stat));
 
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_D_NSEC(chttp_stat));
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_D_MSEC(chttp_stat));
+    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_D_MSEC(chttp_stat));
 
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_E_NSEC(chttp_stat));
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_E_MSEC(chttp_stat));
+    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_E_MSEC(chttp_stat));
 
     return ((UINT32)0);
 }
@@ -4180,6 +4162,7 @@ UINT32 cmpi_encode_chttp_store(const UINT32 comm, const CHTTP_STORE *chttp_store
     cmpi_encode_cstring(comm, CHTTP_STORE_BILLING_DOMAIN(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_cstring(comm, CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_CACHE_CTRL(chttp_store), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CHTTP_STORE_CACHE_DONE(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_MERGE_FLAG(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store), out_buff, out_buff_max_len, position);
@@ -4234,6 +4217,7 @@ UINT32 cmpi_encode_chttp_store_size(const UINT32 comm, const CHTTP_STORE *chttp_
     cmpi_encode_cstring_size(comm, CHTTP_STORE_BILLING_DOMAIN(chttp_store), size);
     cmpi_encode_cstring_size(comm, CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_CACHE_CTRL(chttp_store), size);
+    cmpi_encode_uint32_t_size(comm, CHTTP_STORE_CACHE_DONE(chttp_store), size);
 
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_MERGE_FLAG(chttp_store), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store), size);
@@ -4311,6 +4295,9 @@ UINT32 cmpi_decode_chttp_store(const UINT32 comm, const UINT8 *in_buff, const UI
 
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(flag));
     CHTTP_STORE_CACHE_CTRL(chttp_store) = flag;
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(flag));
+    CHTTP_STORE_CACHE_DONE(chttp_store) = flag;
 
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(flag));
     CHTTP_STORE_MERGE_FLAG(chttp_store) = flag;

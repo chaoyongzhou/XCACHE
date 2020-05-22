@@ -2409,7 +2409,7 @@ EC_BOOL cngx_send_body_blocking(ngx_http_request_t *r, ngx_int_t *ngx_rc)
 
     if(NGX_ERROR == NGX_W_RC(wev))
     {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_body_blocking: "
+        dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "error:cngx_send_body_blocking: "
                                              "r %p, send failed\n",
                                              r);
         return (EC_FALSE);
@@ -2568,7 +2568,7 @@ EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_
 
     if (rc == NGX_ERROR || rc > NGX_OK)
     {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_send_body: send body failed\n");
+        dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "error:cngx_send_body: send body failed\n");
         return (EC_FALSE);
     }
 
@@ -3104,6 +3104,17 @@ EC_BOOL cngx_set_store_cache_path(ngx_http_request_t *r, CSTRING *store_path)
 
     safe_free(host_str, LOC_CNGX_0062);
     safe_free(uri_str, LOC_CNGX_0063);
+
+    /*set cache path variable*/
+    k = (const char *)CNGX_VAR_CACHE_PATH;
+    v = (char *)cstring_get_str(store_path);
+    if(EC_FALSE == cngx_set_var_str(r, k, v))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "warn:cngx_set_store_cache_path: "
+                                             "set var %s to '%s' failed\n",
+                                             k, v);
+        /*ignore error and fall through*/
+    }
 
     dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_set_store_cache_path: "
                                          "set store_path '%s' done\n",

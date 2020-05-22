@@ -2167,7 +2167,6 @@ EC_BOOL cxfsnp_mgr_list_seg(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, CVECTOR
 EC_BOOL cxfsnp_mgr_file_num_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cstr, const uint32_t cxfsnp_id, UINT32 *file_num)
 {
     CXFSNP *cxfsnp;
-    uint32_t  node_pos;
     uint32_t  cur_file_num;
 
     cxfsnp = cxfsnp_mgr_open_np(cxfsnp_mgr, cxfsnp_id);
@@ -2178,8 +2177,7 @@ EC_BOOL cxfsnp_mgr_file_num_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cs
     }
 
     cur_file_num = 0;
-    node_pos = cxfsnp_file_num(cxfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cur_file_num);
-    if(CXFSNPRB_ERR_POS == node_pos)
+    if(EC_FALSE == cxfsnp_file_num(cxfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cur_file_num))
     {
         return (EC_TRUE);
     }
@@ -2280,7 +2278,6 @@ EC_BOOL cxfsnp_mgr_dir_size(CXFSNP_MGR *cxfsnp_mgr, uint32_t cxfsnp_id, const CX
 EC_BOOL cxfsnp_mgr_file_size_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cstr, const uint32_t cxfsnp_id, uint64_t *file_size)
 {
     CXFSNP *cxfsnp;
-    uint32_t  node_pos;
     uint64_t  cur_file_size;
 
     cxfsnp = cxfsnp_mgr_open_np(cxfsnp_mgr, cxfsnp_id);
@@ -2291,8 +2288,7 @@ EC_BOOL cxfsnp_mgr_file_size_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_c
     }
 
     cur_file_size = 0;
-    node_pos = cxfsnp_file_size(cxfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cur_file_size);
-    if(CXFSNPRB_ERR_POS == node_pos)
+    if(EC_FALSE == cxfsnp_file_size(cxfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cur_file_size))
     {
         return (EC_TRUE);
     }
@@ -2304,9 +2300,8 @@ EC_BOOL cxfsnp_mgr_file_size_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_c
 EC_BOOL cxfsnp_mgr_file_size(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cstr, uint64_t *file_size)
 {
     CXFSNP  *cxfsnp;
-    uint32_t cxfsnp_id;
-    uint32_t node_pos;
     uint64_t cur_file_size;
+    uint32_t cxfsnp_id;
 
     cxfsnp = __cxfsnp_mgr_get_np(cxfsnp_mgr, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cxfsnp_id);
     if(NULL_PTR == cxfsnp)
@@ -2315,14 +2310,16 @@ EC_BOOL cxfsnp_mgr_file_size(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cstr, u
         return (EC_FALSE);
     }
 
-    node_pos = cxfsnp_file_size(cxfsnp, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cur_file_size);
-    if(CXFSNPRB_ERR_POS == node_pos)
+    if(EC_FALSE == cxfsnp_file_size(cxfsnp, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cur_file_size))
     {
-        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_file_size: get size of file %s failed\n", (char *)cstring_get_str(path_cstr));
+        dbg_log(SEC_0190_CXFSNPMGR, 1)(LOGSTDOUT, "error:cxfsnp_mgr_file_size: get size of file %s failed\n", (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);
     }
 
-    (*file_size) = cur_file_size;
+    if(NULL_PTR != file_size)
+    {
+        (*file_size) = cur_file_size;
+    }
 
     return (EC_TRUE);
 }
@@ -2331,7 +2328,6 @@ EC_BOOL cxfsnp_mgr_file_expire(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cstr)
 {
     CXFSNP  *cxfsnp;
     uint32_t cxfsnp_id;
-    uint32_t node_pos;
 
     if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
     {
@@ -2346,8 +2342,7 @@ EC_BOOL cxfsnp_mgr_file_expire(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cstr)
         return (EC_FALSE);
     }
 
-    node_pos = cxfsnp_expire(cxfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), CXFSNP_ITEM_FILE_IS_REG);
-    if(CXFSNPRB_ERR_POS == node_pos)
+    if(EC_FALSE == cxfsnp_expire(cxfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), CXFSNP_ITEM_FILE_IS_REG))
     {
         dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_file_expire: expire file %s failed\n", (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);
@@ -2424,7 +2419,6 @@ EC_BOOL cxfsnp_mgr_file_walk(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cstr, C
 {
     CXFSNP  *cxfsnp;
     uint32_t cxfsnp_id;
-    uint32_t node_pos;
 
     cxfsnp = __cxfsnp_mgr_get_np(cxfsnp_mgr, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cxfsnp_id);
     if(NULL_PTR == cxfsnp)
@@ -2433,8 +2427,7 @@ EC_BOOL cxfsnp_mgr_file_walk(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cstr, C
         return (EC_FALSE);
     }
 
-    node_pos = cxfsnp_walk(cxfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), CXFSNP_ITEM_FILE_IS_REG, cxfsnp_dit_node);
-    if(CXFSNPRB_ERR_POS == node_pos)
+    if(EC_FALSE == cxfsnp_walk(cxfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), CXFSNP_ITEM_FILE_IS_REG, cxfsnp_dit_node))
     {
         dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_file_walk: walk file %s failed\n", (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);

@@ -5633,11 +5633,6 @@ EC_BOOL crfs_wait_file_owner_notify_over_bgn (CRFS_WAIT_FILE *crfs_wait_file, co
 
 EC_BOOL crfs_wait_file_owner_notify(CRFS_WAIT_FILE *crfs_wait_file, const UINT32 tag)
 {
-    if(SWITCH_ON == NGX_BGN_OVER_HTTP_SWITCH)
-    {
-        return crfs_wait_file_owner_notify_over_http(crfs_wait_file, tag);
-    }
-
     return crfs_wait_file_owner_notify_over_bgn(crfs_wait_file, tag);
 }
 
@@ -5816,11 +5811,6 @@ EC_BOOL crfs_wait_file_owner_terminate_over_bgn (CRFS_WAIT_FILE *crfs_wait_file,
 
 EC_BOOL crfs_wait_file_owner_terminate(CRFS_WAIT_FILE *crfs_wait_file, const UINT32 tag)
 {
-    if(SWITCH_ON == NGX_BGN_OVER_HTTP_SWITCH)
-    {
-        return crfs_wait_file_owner_terminate_over_http(crfs_wait_file, tag);
-    }
-
     return crfs_wait_file_owner_terminate_over_bgn(crfs_wait_file, tag);
 }
 
@@ -5875,7 +5865,7 @@ STATIC_CAST static EC_BOOL __crfs_file_wait(const UINT32 crfs_md_id, const MOD_N
     return (EC_TRUE);
 }
 
-EC_BOOL crfs_file_wait(const UINT32 crfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, CBYTES *cbytes, UINT32 *data_ready)
+EC_BOOL crfs_file_wait(const UINT32 crfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *file_size, UINT32 *data_ready)
 {
 #if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
@@ -5887,20 +5877,31 @@ EC_BOOL crfs_file_wait(const UINT32 crfs_md_id, const MOD_NODE *mod_node, const 
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    if(NULL_PTR != data_ready)
+    while(NULL_PTR != data_ready)
     {
-        /*trick! when input data_ready = EC_OBSCURE, wait file notification only but not read data*/
-        if(EC_OBSCURE != (*data_ready))
+        uint64_t        file_size_t;
+        if(EC_OBSCURE == (*data_ready))
         {
-            /*if data is already ready, return now*/
-            if(EC_TRUE == crfs_read(crfs_md_id, file_path, cbytes))
+            (*data_ready) = EC_FALSE;
+            break; /*fall through*/
+        }
+
+        /*trick! when input data_ready = EC_OBSCURE, wait file notification only but not read data*/
+
+        /*if data is already ready, return now*/
+        if(EC_TRUE == crfs_file_size(crfs_md_id, file_path, &file_size_t))
+        {
+            if(NULL_PTR != file_size)
             {
-                (*data_ready) = EC_TRUE;
-                return (EC_TRUE);
+                (*file_size) = (UINT32)file_size_t;
             }
+
+            (*data_ready) = EC_TRUE;
+            return (EC_TRUE);
         }
 
         (*data_ready) = EC_FALSE;
+        break; /*fall through*/
     }
 
     if(EC_FALSE == __crfs_file_wait(crfs_md_id, mod_node, file_path))
@@ -5926,7 +5927,7 @@ EC_BOOL crfs_file_wait_ready(const UINT32 crfs_md_id, const MOD_NODE *mod_node, 
     return crfs_file_wait(crfs_md_id, mod_node, file_path, NULL_PTR, data_ready);
 }
 
-EC_BOOL crfs_file_wait_e(const UINT32 crfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *data_ready)
+EC_BOOL crfs_file_wait_e(const UINT32 crfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, UINT32 *len, UINT32 *data_ready)
 {
 #if ( SWITCH_ON == CRFS_DEBUG_SWITCH )
     if ( CRFS_MD_ID_CHECK_INVALID(crfs_md_id) )
@@ -5938,20 +5939,52 @@ EC_BOOL crfs_file_wait_e(const UINT32 crfs_md_id, const MOD_NODE *mod_node, cons
     }
 #endif/*CRFS_DEBUG_SWITCH*/
 
-    if(NULL_PTR != data_ready)
+    while(NULL_PTR != data_ready)
     {
-        /*trick! when input data_ready = EC_OBSCURE, wait file notification only but not read data*/
-        if(EC_OBSCURE != (*data_ready))
+        CRFSNP_FNODE        crfsnp_fnode;
+
+        if(EC_OBSCURE == (*data_ready))
         {
-            /*if data is already ready, return now*/
-            if(EC_TRUE == crfs_read_e(crfs_md_id, file_path, offset, max_len, cbytes))
+            (*data_ready) = EC_FALSE;
+            break; /*fall through*/
+        }
+
+        /*trick! when input data_ready = EC_OBSCURE, wait file notification only but not read data*/
+
+        /*if data is already ready, return now*/
+
+        crfsnp_fnode_init(&crfsnp_fnode);
+
+        if(EC_TRUE == crfs_read_npp(crfs_md_id, file_path, &crfsnp_fnode))
+        {
+            UINT32          file_size;
+
+            (*data_ready) = EC_TRUE;
+
+            file_size = CRFSNP_FNODE_FILESZ(&crfsnp_fnode);
+
+            if((*offset) >= file_size)
             {
-                (*data_ready) = EC_TRUE;
+                (*len) = 0;
                 return (EC_TRUE);
             }
+
+            if(0 == max_len)
+            {
+                (*len) = file_size - (*offset);
+            }
+            else
+            {
+                (*len) = DMIN(max_len, file_size - (*offset));
+            }
+
+            (*offset) += (*len);
+
+            return (EC_TRUE);
         }
 
         (*data_ready) = EC_FALSE;
+        break; /*fall through*/
     }
 
     if(EC_FALSE == __crfs_file_wait(crfs_md_id, mod_node, file_path))

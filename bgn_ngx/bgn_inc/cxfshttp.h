@@ -218,12 +218,6 @@ EC_BOOL cxfshttp_handle_statusdn_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_make_statusdn_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_commit_statusdn_get_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cxfshttp_is_http_get_file_wait(const CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_file_wait_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_handle_file_wait_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_make_file_wait_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_file_wait_get_response(CHTTP_NODE *chttp_node);
-
 EC_BOOL cxfshttp_is_http_get_file_notify(const CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_commit_file_notify_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_handle_file_notify_get_request(CHTTP_NODE *chttp_node);
@@ -253,12 +247,6 @@ EC_BOOL cxfshttp_commit_renew_header_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_make_renew_header_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_commit_renew_header_get_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL cxfshttp_is_http_get_wait_header(const CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_wait_header_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_handle_wait_header_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_make_wait_header_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_wait_header_get_response(CHTTP_NODE *chttp_node);
 
 EC_BOOL cxfshttp_is_http_get_locked_file_retire(const CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_commit_locked_file_retire_get_request(CHTTP_NODE *chttp_node);

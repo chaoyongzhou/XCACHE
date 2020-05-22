@@ -6084,7 +6084,7 @@ EC_BOOL cvendor_content_repair_header_in_filter(const UINT32 cvendor_md_id)
     /*set http request server or ipaddr*/
     do
     {
-        /*when cngx config direct server*/
+        /*when cngx config orig server*/
         k = (const char *)CNGX_VAR_ORIG_SERVER;
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
@@ -9615,7 +9615,7 @@ EC_BOOL cvendor_content_orig_send_seg_n(const UINT32 cvendor_md_id, const CRANGE
 
     if(EC_FALSE == cvendor_get_cache_seg_n(cvendor_md_id, crange_seg, &seg_cbytes))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_seg_n: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_orig_send_seg_n: "
                                                 "get cache seg %ld failed\n",
                                                 CRANGE_SEG_NO(crange_seg));
 
@@ -11894,7 +11894,7 @@ EC_BOOL cvendor_content_ms_send_seg_n(const UINT32 cvendor_md_id, const CRANGE_S
 
     if(EC_FALSE == cvendor_get_cache_seg_n(cvendor_md_id, crange_seg, &seg_cbytes))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ms_send_seg_n: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_ms_send_seg_n: "
                                                 "get cache seg %ld failed\n",
                                                 CRANGE_SEG_NO(crange_seg));
 
@@ -15427,7 +15427,7 @@ EC_BOOL cvendor_content_expired_send_seg_n(const UINT32 cvendor_md_id, const CRA
 
     if(EC_FALSE == cvendor_get_cache_seg_n(cvendor_md_id, crange_seg, &seg_cbytes))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_seg_n: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_expired_send_seg_n: "
                                                 "get cache seg %ld failed\n",
                                                 CRANGE_SEG_NO(crange_seg));
 
@@ -17191,7 +17191,7 @@ EC_BOOL cvendor_content_cache_send_seg_n(const UINT32 cvendor_md_id, const CRANG
 
     if(EC_FALSE == cvendor_get_cache_seg_n(cvendor_md_id, crange_seg, &seg_cbytes))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_seg_n: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_cache_send_seg_n: "
                                                 "get cache seg %ld failed\n",
                                                 CRANGE_SEG_NO(crange_seg));
 
@@ -17684,7 +17684,7 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
         /*here seg_no is 0*/
         if(EC_FALSE == cvendor_get_cache_seg(cvendor_md_id, seg_no, &seg_cbytes))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
                                                     "fetch seg %ld from cache failed\n",
                                                     seg_no);
 

@@ -1637,7 +1637,6 @@ EC_BOOL crfsnp_mgr_list_seg(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path, CVECTOR
 EC_BOOL crfsnp_mgr_file_num_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, const uint32_t crfsnp_id, UINT32 *file_num)
 {
     CRFSNP *crfsnp;
-    uint32_t  node_pos;
     uint32_t  cur_file_num;
 
     crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
@@ -1648,8 +1647,7 @@ EC_BOOL crfsnp_mgr_file_num_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cs
     }
 
     cur_file_num = 0;
-    node_pos = crfsnp_file_num(crfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cur_file_num);
-    if(CRFSNPRB_ERR_POS == node_pos)
+    if(EC_FALSE == crfsnp_file_num(crfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cur_file_num))
     {
         return (EC_TRUE);
     }
@@ -1749,9 +1747,8 @@ EC_BOOL crfsnp_mgr_dir_size(CRFSNP_MGR *crfsnp_mgr, uint32_t crfsnp_id, const CR
 
 EC_BOOL crfsnp_mgr_file_size_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, const uint32_t crfsnp_id, uint64_t *file_size)
 {
-    CRFSNP *crfsnp;
-    uint32_t  node_pos;
-    uint64_t  cur_file_size;
+    CRFSNP      *crfsnp;
+    uint64_t     cur_file_size;
 
     crfsnp = crfsnp_mgr_open_np(crfsnp_mgr, crfsnp_id);
     if(NULL_PTR == crfsnp)
@@ -1761,8 +1758,7 @@ EC_BOOL crfsnp_mgr_file_size_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_c
     }
 
     cur_file_size = 0;
-    node_pos = crfsnp_file_size(crfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cur_file_size);
-    if(CRFSNPRB_ERR_POS == node_pos)
+    if(EC_FALSE == crfsnp_file_size(crfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cur_file_size))
     {
         return (EC_TRUE);
     }
@@ -1774,9 +1770,8 @@ EC_BOOL crfsnp_mgr_file_size_of_np(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_c
 EC_BOOL crfsnp_mgr_file_size(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, uint64_t *file_size)
 {
     CRFSNP  *crfsnp;
-    uint32_t crfsnp_id;
-    uint32_t node_pos;
     uint64_t cur_file_size;
+    uint32_t crfsnp_id;
 
     crfsnp = __crfsnp_mgr_get_np(crfsnp_mgr, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), &crfsnp_id);
     if(NULL_PTR == crfsnp)
@@ -1785,8 +1780,7 @@ EC_BOOL crfsnp_mgr_file_size(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, u
         return (EC_FALSE);
     }
 
-    node_pos = crfsnp_file_size(crfsnp, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cur_file_size);
-    if(CRFSNPRB_ERR_POS == node_pos)
+    if(EC_FALSE == crfsnp_file_size(crfsnp, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), &cur_file_size))
     {
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_file_size: get size of file %s failed\n", (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);
@@ -1801,7 +1795,6 @@ EC_BOOL crfsnp_mgr_file_expire(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr)
 {
     CRFSNP  *crfsnp;
     uint32_t crfsnp_id;
-    uint32_t node_pos;
 
     crfsnp = __crfsnp_mgr_get_np(crfsnp_mgr, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), &crfsnp_id);
     if(NULL_PTR == crfsnp)
@@ -1810,8 +1803,7 @@ EC_BOOL crfsnp_mgr_file_expire(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr)
         return (EC_FALSE);
     }
 
-    node_pos = crfsnp_expire(crfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), CRFSNP_ITEM_FILE_IS_REG);
-    if(CRFSNPRB_ERR_POS == node_pos)
+    if(EC_FALSE == crfsnp_expire(crfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), CRFSNP_ITEM_FILE_IS_REG))
     {
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_file_expire: expire file %s failed\n", (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);
@@ -1876,7 +1868,6 @@ EC_BOOL crfsnp_mgr_file_walk(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, C
 {
     CRFSNP  *crfsnp;
     uint32_t crfsnp_id;
-    uint32_t node_pos;
 
     crfsnp = __crfsnp_mgr_get_np(crfsnp_mgr, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), &crfsnp_id);
     if(NULL_PTR == crfsnp)
@@ -1885,8 +1876,7 @@ EC_BOOL crfsnp_mgr_file_walk(CRFSNP_MGR *crfsnp_mgr, const CSTRING *path_cstr, C
         return (EC_FALSE);
     }
 
-    node_pos = crfsnp_walk(crfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), CRFSNP_ITEM_FILE_IS_REG, crfsnp_dit_node);
-    if(CRFSNPRB_ERR_POS == node_pos)
+    if(EC_FALSE == crfsnp_walk(crfsnp, cstring_get_len(path_cstr), cstring_get_str(path_cstr), CRFSNP_ITEM_FILE_IS_REG, crfsnp_dit_node))
     {
         dbg_log(SEC_0009_CRFSNPMGR, 0)(LOGSTDOUT, "error:crfsnp_mgr_file_walk: walk file %s failed\n", (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);

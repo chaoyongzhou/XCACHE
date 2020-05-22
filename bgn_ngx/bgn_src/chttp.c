@@ -476,6 +476,7 @@ STATIC_CAST static int __chttp_on_status(http_parser_t* http_parser, const char*
     ASSERT(CHTTP_TYPE_DO_CLT_RSP == CHTTP_NODE_TYPE(chttp_node));
 
     CHTTP_NODE_STATUS_CODE(chttp_node) = http_parser->status_code;
+    CHTTP_STAT_RSP_STATUS(CHTTP_NODE_STAT(chttp_node)) = CHTTP_NODE_STATUS_CODE(chttp_node);
 
     if(do_log(SEC_0149_CHTTP, 9))
     {
@@ -749,6 +750,7 @@ EC_BOOL chttp_store_init(CHTTP_STORE *chttp_store)
         cstring_init(CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store), NULL_PTR);
 
         CHTTP_STORE_CACHE_CTRL(chttp_store)        = CHTTP_STORE_CACHE_ERR;
+        CHTTP_STORE_CACHE_DONE(chttp_store)        = CHTTP_STORE_CACHE_ERR;
         CHTTP_STORE_MERGE_FLAG(chttp_store)        = BIT_FALSE;
         CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store)  = BIT_FALSE;
         CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store)  = BIT_FALSE;
@@ -809,6 +811,7 @@ EC_BOOL chttp_store_clean(CHTTP_STORE *chttp_store)
         cstring_clean(CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store));
 
         CHTTP_STORE_CACHE_CTRL(chttp_store)        = CHTTP_STORE_CACHE_ERR;
+        CHTTP_STORE_CACHE_DONE(chttp_store)        = CHTTP_STORE_CACHE_ERR;
         CHTTP_STORE_MERGE_FLAG(chttp_store)        = BIT_FALSE;
         CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store)  = BIT_FALSE;
         CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store)  = BIT_FALSE;
@@ -880,6 +883,7 @@ EC_BOOL chttp_store_clone(const CHTTP_STORE *chttp_store_src, CHTTP_STORE *chttp
         cstring_clone(CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store_src), CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store_des));
 
         CHTTP_STORE_CACHE_CTRL(chttp_store_des)         = CHTTP_STORE_CACHE_CTRL(chttp_store_src);
+        CHTTP_STORE_CACHE_DONE(chttp_store_des)         = CHTTP_STORE_CACHE_DONE(chttp_store_src);
         CHTTP_STORE_MERGE_FLAG(chttp_store_des)         = CHTTP_STORE_MERGE_FLAG(chttp_store_src);
         CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store_des)   = CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store_src);
         CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store_des)   = CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store_src);
@@ -1012,6 +1016,7 @@ void chttp_store_print(LOG *log, const CHTTP_STORE *chttp_store)
     sys_log(LOGSTDOUT, "chttp_store_print:billing client type      : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store)), CSTRING_STR(CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store)));
 
     sys_log(LOGSTDOUT, "chttp_store_print:cache_ctrl               : 0x%x\n", CHTTP_STORE_CACHE_CTRL(chttp_store));
+    sys_log(LOGSTDOUT, "chttp_store_print:cache_done               : 0x%x\n", CHTTP_STORE_CACHE_DONE(chttp_store));
     sys_log(LOGSTDOUT, "chttp_store_print:merge_flag               : %s\n"  , c_bit_bool_str(CHTTP_STORE_MERGE_FLAG(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:header_orig_flag         : %s\n"  , c_bit_bool_str(CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:direct_orig_flag         : %s\n"  , c_bit_bool_str(CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store)));
@@ -1534,10 +1539,10 @@ void chttp_stat_print(LOG *log, const CHTTP_STAT *chttp_stat)
     sys_log(LOGSTDOUT, "chttp_stat_print:send len   : %u\n", CHTTP_STAT_S_SEND_LEN(chttp_stat));
     sys_log(LOGSTDOUT, "chttp_stat_print:recv len   : %u\n", CHTTP_STAT_S_RECV_LEN(chttp_stat));
 
-    sys_log(LOGSTDOUT, "chttp_stat_print:start time : %u.%u\n", CHTTP_STAT_BASIC_S_NSEC(chttp_stat), CHTTP_STAT_BASIC_S_MSEC(chttp_stat));
-    sys_log(LOGSTDOUT, "chttp_stat_print:recvd time : %u.%u\n", CHTTP_STAT_BASIC_R_NSEC(chttp_stat), CHTTP_STAT_BASIC_R_MSEC(chttp_stat));
-    sys_log(LOGSTDOUT, "chttp_stat_print:done  time : %u.%u\n", CHTTP_STAT_BASIC_D_NSEC(chttp_stat), CHTTP_STAT_BASIC_D_MSEC(chttp_stat));
-    sys_log(LOGSTDOUT, "chttp_stat_print:end   time : %u.%u\n", CHTTP_STAT_BASIC_E_NSEC(chttp_stat), CHTTP_STAT_BASIC_E_MSEC(chttp_stat));
+    sys_log(LOGSTDOUT, "chttp_stat_print:start time : %lu\n", CHTTP_STAT_BASIC_S_MSEC(chttp_stat));
+    sys_log(LOGSTDOUT, "chttp_stat_print:recvd time : %lu\n", CHTTP_STAT_BASIC_R_MSEC(chttp_stat));
+    sys_log(LOGSTDOUT, "chttp_stat_print:done  time : %lu\n", CHTTP_STAT_BASIC_D_MSEC(chttp_stat));
+    sys_log(LOGSTDOUT, "chttp_stat_print:end   time : %lu\n", CHTTP_STAT_BASIC_E_MSEC(chttp_stat));
 
     sys_log(LOGSTDOUT, "chttp_stat_print:status str : %s\n", CHTTP_STAT_STAT_STR(chttp_stat));
     sys_log(LOGSTDOUT, "chttp_stat_print:info   str : %s\n", CHTTP_STAT_DESC_STR(chttp_stat));
@@ -3001,7 +3006,7 @@ EC_BOOL chttp_node_parse_on_message_complete(CHTTP_NODE *chttp_node)
 
             chttp_store = CHTTP_NODE_STORE(chttp_node);
 
-            if(CHTTP_STORE_CACHE_HEADER & CHTTP_STORE_CACHE_CTRL(chttp_store))
+            if(CHTTP_STORE_CACHE_HEADER & CHTTP_STORE_CACHE_DONE(chttp_store))
             {
                 chttp_node_renew_content_length(chttp_node, chttp_store, CHTTP_NODE_BODY_PARSED_LEN(chttp_node));
             }
@@ -3617,8 +3622,9 @@ EC_BOOL chttp_node_adjust_seg_id(CHTTP_NODE *chttp_node)
 
     if(EC_TRUE == chttp_node_is_chunked(chttp_node))
     {
-        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_adjust_seg_id: chunked, adjust seg_id %u => 0\n",
-                    CHTTP_STORE_SEG_ID(chttp_store));
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_adjust_seg_id: "
+                                              "chunked, adjust seg_id %u => 0\n",
+                                              CHTTP_STORE_SEG_ID(chttp_store));
 
         CHTTP_STORE_SEG_ID(chttp_store) = 0;
         return (EC_TRUE);
@@ -3631,8 +3637,9 @@ EC_BOOL chttp_node_adjust_seg_id(CHTTP_NODE *chttp_node)
 
         k = (const char *)"Content-Range";
         v = chttp_node_get_header(chttp_node, k);
-        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_adjust_seg_id: norange, '%s':'%s', adjust seg_id %u => 0\n",
-                    k, v, CHTTP_STORE_SEG_ID(chttp_store));
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_adjust_seg_id: "
+                                              "norange, '%s':'%s', adjust seg_id %u => 0\n",
+                                              k, v, CHTTP_STORE_SEG_ID(chttp_store));
 
         CHTTP_STORE_SEG_ID(chttp_store) = 0;
         return (EC_TRUE);
@@ -7258,26 +7265,32 @@ EC_BOOL chttp_node_detach(CHTTP_NODE *chttp_node)
     if(0 < rsp_body_len && 0 < CHTTP_NODE_CONTENT_LENGTH(chttp_node))
     {
         uint64_t content_len;
+
         content_len = CHTTP_NODE_CONTENT_LENGTH(chttp_node);
 
         if(content_len != rsp_body_len)
         {
-            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_detach: body len %"PRId64" != content len %"PRId64"\n",
-                            rsp_body_len, content_len);
+            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_detach: "
+                                                  "body len %"PRId64" != content len %"PRId64"\n",
+                                                  rsp_body_len, content_len);
 
             chttp_node_free(chttp_node);
             return (EC_FALSE);
         }
     }
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_detach: body len %"PRId64", content len %"PRId64"\n",
-                    rsp_body_len, CHTTP_NODE_CONTENT_LENGTH(chttp_node));
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_detach: "
+                                          "body len %"PRId64", content len %"PRId64"\n",
+                                          rsp_body_len, CHTTP_NODE_CONTENT_LENGTH(chttp_node));
 
     /*handover http response*/
 
     if(do_log(SEC_0149_CHTTP, 9))
     {
-        sys_log(LOGSTDOUT, "[DEBUG] chttp_node_detach: before handover, chttp_node: %p\n", chttp_node);
+        sys_log(LOGSTDOUT, "[DEBUG] chttp_node_detach: "
+                           "before handover, chttp_node: %p\n",
+                           chttp_node);
+
         chttp_node_print(LOGSTDOUT, chttp_node);
     }
 
@@ -8704,6 +8717,9 @@ EC_BOOL chttp_node_renew_content_length(CHTTP_NODE *chttp_node, CHTTP_STORE *cht
     cstrkv_mgr_free(cstrkv_mgr);
     cstring_clean(&path);
 
+    dbg_log(SEC_0149_CHTTP, 5)(LOGSTDOUT, "[DEBUG] chttp_node_renew_content_length: "
+                                          "remove chunked header done\n");
+
     return (EC_TRUE);
 }
 
@@ -8909,6 +8925,7 @@ EC_BOOL chttp_node_store_on_headers_complete(CHTTP_NODE *chttp_node)
 
         /*clear corresponding cache ctrl flag*/
         CHTTP_STORE_CACHE_CTRL(chttp_store) &= (uint32_t)(~CHTTP_STORE_CACHE_HEADER);
+        CHTTP_STORE_CACHE_DONE(chttp_store) |= CHTTP_STORE_CACHE_HEADER;
     }
 
     /*shortcut: send rsp header at once*/
@@ -8979,6 +8996,7 @@ EC_BOOL chttp_node_store_on_headers_complete(CHTTP_NODE *chttp_node)
 
         /*clear corresponding cache ctrl flag*/
         CHTTP_STORE_CACHE_CTRL(chttp_store) &= (uint32_t)(~CHTTP_STORE_CACHE_HEADER);
+        CHTTP_STORE_CACHE_DONE(chttp_store) |= CHTTP_STORE_CACHE_HEADER;
     }
 
     return (EC_TRUE);
@@ -9063,6 +9081,7 @@ EC_BOOL chttp_node_store_on_message_complete(CHTTP_NODE *chttp_node)
 
         /*clear corresponding cache ctrl flag*/
         CHTTP_STORE_CACHE_CTRL(chttp_store) &= (uint32_t)(~CHTTP_STORE_CACHE_BODY);
+        CHTTP_STORE_CACHE_DONE(chttp_store) |= CHTTP_STORE_CACHE_BODY;
     }
     else if((BIT_TRUE == CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store) || BIT_TRUE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store))
           && CMPI_ERROR_MODI != CHTTP_STORE_BGN_ORIG_MOID(chttp_store)
@@ -9145,6 +9164,7 @@ EC_BOOL chttp_node_store_on_message_complete(CHTTP_NODE *chttp_node)
 
         /*clear corresponding cache ctrl flag*/
         CHTTP_STORE_CACHE_CTRL(chttp_store) &= (uint32_t)(~CHTTP_STORE_CACHE_WHOLE);
+        CHTTP_STORE_CACHE_DONE(chttp_store) |= CHTTP_STORE_CACHE_WHOLE;
     }
 
     return (EC_TRUE);
@@ -9606,7 +9626,8 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
     CHTTP_NODE_LOG_TIME_WHEN_START(chttp_node); /*record start time*/
 
-    if(EC_FALSE == chttp_node_connect(chttp_node, CSOCKET_IS_NONBLOCK_MODE, CHTTP_REQ_IPADDR(chttp_req), CHTTP_REQ_PORT(chttp_req)))
+    if(EC_FALSE == chttp_node_connect(chttp_node, CSOCKET_IS_NONBLOCK_MODE,
+                                        CHTTP_REQ_IPADDR(chttp_req), CHTTP_REQ_PORT(chttp_req)))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_basic: connect server %s:%ld failed\n",
                             CHTTP_REQ_IPADDR_STR(chttp_req), CHTTP_REQ_PORT(chttp_req));
@@ -9719,7 +9740,8 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
                                                (UINT32)chttp_node_detach, 1, chttp_node);
             if(NULL_PTR == croutine_node)
             {
-                dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_basic: croutine load for chttp_node_detach failed\n");
+                dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_basic: "
+                                                      "croutine load for chttp_node_detach failed\n");
 
                 /*exception*/
                 chttp_stat_set_rsp_status(CHTTP_NODE_STAT(chttp_node), CHTTP_INTERNAL_SERVER_ERROR);
@@ -9736,7 +9758,10 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
             CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
             CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CHTTP_0048);
 
-            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_request_basic: chunked => detach flow\n");
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_request_basic: "
+                                                  "chunked => detach flow, co %p\n",
+                                                  croutine_node);
+
             chttp_node_clone_rsp_header(chttp_node, chttp_rsp, chttp_stat); /*clone*/
 
             chttp_rsp_del_header(chttp_rsp, (const char *)"Content-Length");
@@ -9786,8 +9811,9 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
         if(content_len != rsp_body_len)
         {
-            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_basic: body len %"PRId64" != content len %"PRId64"\n",
-                            rsp_body_len, content_len);
+            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_basic: "
+                                                  "body len %"PRId64" != content len %"PRId64"\n",
+                                                  rsp_body_len, content_len);
 
             chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
             chttp_node_free(chttp_node);
@@ -9795,8 +9821,9 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         }
     }
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_request_basic: body len %"PRId64", content len %"PRId64"\n",
-                    rsp_body_len, CHTTP_NODE_CONTENT_LENGTH(chttp_node));
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_request_basic: "
+                                          "body len %"PRId64", content len %"PRId64"\n",
+                                          rsp_body_len, CHTTP_NODE_CONTENT_LENGTH(chttp_node));
 
     /*handover http response*/
     if(EC_FALSE == chttp_node_handover_rsp(chttp_node, chttp_rsp, chttp_stat))
@@ -10023,7 +10050,6 @@ STATIC_CAST static EC_BOOL __chttp_request_merge_file_read(const CHTTP_REQ *chtt
         UINT8          *body_data;
         UINT32          body_len;
 
-        uint8_t         content_length[16];
         const char     *k;
         const char     *v;
 
@@ -10032,10 +10058,8 @@ STATIC_CAST static EC_BOOL __chttp_request_merge_file_read(const CHTTP_REQ *chtt
 
         CHTTP_RSP_STATUS(chttp_rsp) = CHTTP_OK;
 
-        snprintf(((char *)content_length), sizeof(content_length), "%ld", body_len);
-
         k = (const char *)"Content-Length";
-        v = (const char *)content_length;
+        v = (const char *)c_word_to_str(body_len);
         chttp_rsp_add_header(chttp_rsp, k, v);
     }
     else
@@ -10088,7 +10112,7 @@ STATIC_CAST static EC_BOOL __chttp_request_merge_file_wait(const CHTTP_REQ *chtt
     UINT32       store_srv_tcid;
     UINT32       store_srv_ipaddr;
     UINT32       store_srv_port;
-    CBYTES       content_cbytes;
+    UINT32       content_length;
 
     /*determine storage server*/
     if(EC_FALSE == chttp_store_srv_get(chttp_store, path, &store_srv_tcid, &store_srv_ipaddr, &store_srv_port))
@@ -10098,11 +10122,9 @@ STATIC_CAST static EC_BOOL __chttp_request_merge_file_wait(const CHTTP_REQ *chtt
         return (EC_FALSE);
     }
 
-    cbytes_init(&content_cbytes);
-
     if(EC_FALSE == ccache_file_wait(store_srv_tcid, store_srv_ipaddr, store_srv_port,
                                     path, CHTTP_SEG_ERR_OFFSET, CHTTP_SEG_ERR_OFFSET, /*wait whole file*/
-                                    &content_cbytes, data_ready))
+                                    &content_length, data_ready))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_request_merge_file_wait: [No.%ld] file_wait '%.*s' on %s:%s:%ld failed\n",
                         CHTTP_STORE_SEQ_NO_GET(chttp_store), (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
@@ -10116,24 +10138,15 @@ STATIC_CAST static EC_BOOL __chttp_request_merge_file_wait(const CHTTP_REQ *chtt
                     c_word_to_ipv4(store_srv_tcid), c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                     c_bool_str(*data_ready), (*data_ready));
 
-    if(EC_FALSE == cbytes_is_empty(&content_cbytes))
+    if(0 < content_length)
     {
-        UINT8          *body_data;
-        UINT32          body_len;
-
-        uint8_t         content_length[16];
         const char     *k;
         const char     *v;
 
-        cbytes_umount(&content_cbytes, &body_len, &body_data);
-        cbytes_mount(CHTTP_RSP_BODY(chttp_rsp), body_len, body_data);
-
         CHTTP_RSP_STATUS(chttp_rsp) = CHTTP_OK;
 
-        snprintf(((char *)content_length), sizeof(content_length), "%ld", body_len);
-
         k = (const char *)"Content-Length";
-        v = (const char *)content_length;
+        v = (const char *)c_word_to_str(content_length);
         chttp_rsp_add_header(chttp_rsp, k, v);
     }
     else
@@ -10258,6 +10271,7 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_merge: [No.%ld] file lock '%.*s' failed\n",
                         CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
+
         chttp_store_free(chttp_store_t);
         cstring_clean(&path);
         return (EC_FALSE);
@@ -10284,6 +10298,7 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
                 dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_merge: [No.%ld] [N] wait_ready '%.*s' failed\n",
                             CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
+
                 chttp_store_free(chttp_store_t);
                 cstring_clean(&path);
                 return (EC_FALSE);
@@ -10310,6 +10325,7 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
                 dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_merge: [No.%ld] [N] wait '%.*s' failed\n",
                             CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
+
                 chttp_store_free(chttp_store_t);
                 cstring_clean(&path);
                 return (EC_FALSE);
@@ -10324,6 +10340,7 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
                 dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_request_merge: [No.%ld] [N] wait '%.*s' done and data ready\n",
                             CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
+
                 chttp_store_free(chttp_store_t);
                 cstring_clean(&path);
                 return (EC_TRUE);
@@ -10347,6 +10364,7 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
             dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_merge: [No.%ld] [N] cond wait '%.*s' failed\n",
                         CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
+
             chttp_store_free(chttp_store_t);
             cstring_clean(&path);
             return (EC_FALSE);
@@ -10358,6 +10376,7 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_request_merge: [No.%ld] [N] cond wait '%.*s' => back\n",
                     CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
 
+#if 0 /*merge orig procedure would fetch seg, here read operation is not necessary*/
         /*s5: read file from storage*/
         if(EC_FALSE == __chttp_request_merge_file_read(chttp_req, chttp_store_t, &path, chttp_rsp, chttp_stat))
         {
@@ -10372,7 +10391,7 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
             cstring_clean(&path);
             return (EC_FALSE);
         }
-
+#endif
         CHTTP_STAT_LOG_MERGE_TIME_WHEN_READ(&chttp_stat_t); /*record merge file_read done time*/
         CHTTP_STAT_LOG_MERGE_STAT_WHEN_DONE(&chttp_stat_t, "MERGE_OK [No.%ld] [N]", CHTTP_STORE_SEQ_NO_GET(chttp_store_t));
         CHTTP_STAT_LOG_MERGE_INFO_WHEN_DONE(&chttp_stat_t, "[DEBUG] chttp_request_merge: %.*s", (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
@@ -10380,6 +10399,7 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
         dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_request_merge: [No.%ld] [N] read '%.*s' => succ\n",
                     CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
+
         chttp_store_free(chttp_store_t);
         cstring_clean(&path);
         return (EC_TRUE);
@@ -10403,6 +10423,9 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
             dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_merge: [No.%ld] [Y] wait_ready '%.*s' failed\n",
                         CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
+
+            __chttp_request_merge_file_unlock(chttp_req, chttp_store_t, &path); /*unlock when exception happen*/
+
             chttp_store_free(chttp_store_t);
             cstring_clean(&path);
             return (EC_FALSE);
@@ -10429,6 +10452,9 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
             dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_merge: [No.%ld] [Y] wait '%.*s' failed\n",
                         CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
+
+            __chttp_request_merge_file_unlock(chttp_req, chttp_store_t, &path); /*unlock when exception happen*/
+
             chttp_store_free(chttp_store_t);
             cstring_clean(&path);
             return (EC_FALSE);
@@ -10443,6 +10469,9 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
             dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_request_merge: [No.%ld] [Y] wait '%.*s' done and data ready\n",
                         CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
+
+            __chttp_request_merge_file_unlock(chttp_req, chttp_store_t, &path); /*for safe reason*/
+
             chttp_store_free(chttp_store_t);
             cstring_clean(&path);
             return (EC_TRUE);
@@ -10465,6 +10494,9 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_merge: [No.%ld] [Y] http orig '%.*s' failed\n",
                         CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
+
+        __chttp_request_merge_file_unlock(chttp_req, chttp_store_t, &path); /*unlock when exception happen*/
+
         chttp_store_free(chttp_store_t);
         cstring_clean(&path);
         return (EC_FALSE);
@@ -10485,6 +10517,9 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_merge: [No.%ld] [Y] cond wait '%.*s' failed\n",
                     CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
+
+        __chttp_request_merge_file_unlock(chttp_req, chttp_store_t, &path); /*unlock when exception happen*/
+
         chttp_store_free(chttp_store_t);
         cstring_clean(&path);
         return (EC_FALSE);
@@ -10494,7 +10529,7 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
     dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_request_merge: [No.%ld] [Y] cond wait '%.*s' => back\n",
                 CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
-#if 0
+
     /*s4: file unlock: remove the locked-file from remote. despite of response status*/
     if(EC_FALSE == __chttp_request_merge_file_unlock(chttp_req, chttp_store_t, &path))
     {
@@ -10508,7 +10543,8 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
                     CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path),
                     (uint32_t)CHTTP_STORE_AUTH_TOKEN_LEN(chttp_store_t), (char *)CHTTP_STORE_AUTH_TOKEN_STR(chttp_store_t));
     }
-#endif
+
+#if 0 /*merge orig procedure would fetch seg, here read operation is not necessary*/
     /*s5: read file from storage*/
     if(EC_FALSE == __chttp_request_merge_file_read(chttp_req, chttp_store_t, &path, chttp_rsp, chttp_stat))
     {
@@ -10519,11 +10555,12 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
 
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_merge: [No.%ld] [Y] read '%.*s' failed\n",
                     CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
+
         chttp_store_free(chttp_store_t);
         cstring_clean(&path);
         return (EC_FALSE);
     }
-
+#endif
     CHTTP_STAT_LOG_MERGE_TIME_WHEN_READ(&chttp_stat_t); /*record merge file_read done time*/
     CHTTP_STAT_LOG_MERGE_STAT_WHEN_DONE(&chttp_stat_t, "MERGE_OK [No.%ld] [Y]", CHTTP_STORE_SEQ_NO_GET(chttp_store_t));
     CHTTP_STAT_LOG_MERGE_INFO_WHEN_DONE(&chttp_stat_t, "[DEBUG] chttp_request_merge: %.*s", (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
@@ -10645,6 +10682,7 @@ STATIC_CAST static EC_BOOL __chttp_request_header_file_wait(const CHTTP_REQ *cht
     UINT32       store_srv_tcid;
     UINT32       store_srv_ipaddr;
     UINT32       store_srv_port;
+    UINT32       content_length;
     CBYTES       content_cbytes;
 
     /*determine storage server*/
@@ -10655,17 +10693,14 @@ STATIC_CAST static EC_BOOL __chttp_request_header_file_wait(const CHTTP_REQ *cht
         return (EC_FALSE);
     }
 
-    cbytes_init(&content_cbytes);
-
     if(EC_FALSE == ccache_file_wait(store_srv_tcid, store_srv_ipaddr, store_srv_port,
                                     path, CHTTP_SEG_ERR_OFFSET, CHTTP_SEG_ERR_OFFSET, /*wait whole file*/
-                                    &content_cbytes, data_ready))
+                                    &content_length, data_ready))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_request_header_file_wait: [No.%ld] file_wait '%.*s' on %s:%s:%ld failed\n",
                         CHTTP_STORE_SEQ_NO_GET(chttp_store), (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_tcid), c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
-        cbytes_init(&content_cbytes);
         return (EC_FALSE);
     }
 
@@ -10674,15 +10709,46 @@ STATIC_CAST static EC_BOOL __chttp_request_header_file_wait(const CHTTP_REQ *cht
                     c_word_to_ipv4(store_srv_tcid), c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                     c_bool_str(*data_ready), (*data_ready));
 
-    if(EC_TRUE == cbytes_is_empty(&content_cbytes))
-    {
-        return (EC_TRUE);
-    }
-
     if(EC_FALSE == (*data_ready))
     {
+        UINT32         timeout_msec;
+
+        UINT32         tag;
+
+        timeout_msec = 60 * 1000;
+
+        if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+        {
+            tag = MD_CXFS;
+        }
+
+        if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
+        {
+            tag = MD_CRFS;
+        }
+
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_request_header_file_wait: cond wait '%s' => go\n",
+                        (char *)cstring_get_str(path));
+        if(EC_FALSE == super_cond_wait(0, tag, path, timeout_msec))
+        {
+            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_request_header_file_wait: cond wait '%s' failed\n",
+                        (char *)cstring_get_str(path));
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_request_header_file_wait: cond wait '%s' <= back\n",
+                        (char *)cstring_get_str(path));
+    }
+
+    cbytes_init(&content_cbytes);
+
+    if(EC_FALSE == ccache_file_read(store_srv_tcid, store_srv_ipaddr, store_srv_port,
+                    path, CHTTP_SEG_ERR_OFFSET, CHTTP_SEG_ERR_OFFSET, &content_cbytes))
+    {
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_request_header_file_wait: "
+                                              "read header failed\n");
+
         cbytes_clean(&content_cbytes);
-        return (EC_TRUE);
+        return (EC_FALSE);
     }
 
     if(EC_FALSE == ccache_parse_http_header(&content_cbytes, chttp_rsp))
@@ -10910,6 +10976,7 @@ EC_BOOL chttp_request_header(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_stor
     dbg_log(SEC_0149_CHTTP, 1)(LOGSTDOUT, "[DEBUG] chttp_request_header: [No.%ld] cond wait '%.*s' => back\n",
                 CHTTP_STORE_SEQ_NO_GET(chttp_store_t), (uint32_t)CSTRING_LEN(&path), (char *)CSTRING_STR(&path));
 
+#if 0 /*merge orig procedure would fetch seg, here read operation is not necessary*/
     /*s5: read file from storage*/
     if(EC_FALSE == __chttp_request_header_file_read(chttp_req, chttp_store_t, &path, chttp_rsp, chttp_stat))
     {
@@ -10924,6 +10991,7 @@ EC_BOOL chttp_request_header(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_stor
         cstring_clean(&path);
         return (EC_FALSE);
     }
+#endif
 
     CHTTP_STAT_LOG_HEADER_TIME_WHEN_READ(&chttp_stat_t); /*record header file_read done time*/
     CHTTP_STAT_LOG_HEADER_STAT_WHEN_DONE(&chttp_stat_t, "HEADER_OK [No.%ld] ", CHTTP_STORE_SEQ_NO_GET(chttp_store_t));
@@ -10959,11 +11027,9 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
 
     if(BIT_FALSE == CHTTP_STORE_MERGE_FLAG(chttp_store))
     {
-        uint32_t s_nsec; /*start time in second*/
-        uint32_t s_msec; /*start time in micro-second*/
+        uint64_t s_msec; /*start time in micro-second*/
 
-        uint32_t e_nsec; /*end time in second*/
-        uint32_t e_msec; /*end time in micro-second*/
+        uint64_t e_msec; /*end time in micro-second*/
 
         uint32_t s2e_elapsed_msec;
         uint32_t need_log_flag;
@@ -10979,7 +11045,7 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
 
         if(BIT_TRUE == need_log_flag)
         {
-            CHTTP_STAT_LOG_ORIG_TIME_WHEN_START(s_nsec, s_msec);
+            CHTTP_STAT_LOG_ORIG_TIME_WHEN_START(s_msec);
         }
 
         if(EC_FALSE == chttp_request_basic(chttp_req, chttp_store, chttp_rsp, chttp_stat)) /*need store or not need store (e.g. direct procedure)*/
@@ -10987,8 +11053,8 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
             if(BIT_TRUE == need_log_flag
             && NULL_PTR != chttp_stat)
             {
-                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
-                s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
+                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+                s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
                 sys_log(LOGUSER07, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
                                    (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                    CHTTP_REQ_PORT(chttp_req),
@@ -11006,8 +11072,8 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
             if(BIT_TRUE == need_log_flag
             && NULL_PTR == chttp_stat)
             {
-                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
-                s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
+                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+                s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
                 sys_log(LOGUSER07, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
                                    (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                    CHTTP_REQ_PORT(chttp_req),
@@ -11026,8 +11092,8 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
         if(BIT_TRUE == need_log_flag
         && NULL_PTR != chttp_stat)
         {
-            CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
-            s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
+            CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+            s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
             sys_log(LOGUSER07, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
                                (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                CHTTP_REQ_PORT(chttp_req),
@@ -11045,8 +11111,8 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
         if(BIT_TRUE == need_log_flag
         && NULL_PTR == chttp_stat)
         {
-            CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_nsec, e_msec);
-            s2e_elapsed_msec = (uint32_t)CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_nsec, e_msec, s_nsec, s_msec);
+            CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+            s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
             sys_log(LOGUSER07, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
                                (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                CHTTP_REQ_PORT(chttp_req),

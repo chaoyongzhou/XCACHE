@@ -66,7 +66,6 @@ typedef struct
 
     UINT32    high_precision_time_switch    ;/*ONLY FOR DEBUG! give high precision in micro-second, reduce the affect of on-wall clock*/
 
-    UINT32    ngx_bgn_over_http_switch      ;/*only for NGX_BGN_SWITCH == SWITCH_ON*/
     UINT32    ngx_bgn_over_rfs_switch       ;/*only for NGX_BGN_SWITCH == SWITCH_ON*/
     UINT32    ngx_bgn_over_xfs_switch       ;/*only for NGX_BGN_SWITCH == SWITCH_ON*/
 
@@ -192,7 +191,6 @@ typedef struct
 #define CPARACFG_DNS_CACHE_EXPIRED_NSEC(cparacfg)                   ((cparacfg)->dns_cache_expired_nsec)
 
 #define CPARACFG_HIGH_PRECISION_TIME_SWITCH(cparacfg)               ((cparacfg)->high_precision_time_switch)
-#define CPARACFG_NGX_BGN_OVER_HTTP_SWITCH(cparacfg)                 ((cparacfg)->ngx_bgn_over_http_switch)
 #define CPARACFG_NGX_BGN_OVER_RFS_SWITCH(cparacfg)                  ((cparacfg)->ngx_bgn_over_rfs_switch)
 #define CPARACFG_NGX_BGN_OVER_XFS_SWITCH(cparacfg)                  ((cparacfg)->ngx_bgn_over_xfs_switch)
 
@@ -270,7 +268,6 @@ typedef struct
 #define CPARACFG_FILE_LOG_NAME_WITH_DATE_SWITCH_STR(cparacfg)       (c_switch_to_str(CPARACFG_FILE_LOG_NAME_WITH_DATE_SWITCH(cparacfg)))
 //#define CPARACFG_CONN_KEEPALIVE_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CONN_KEEPALIVE_SWITCH(cparacfg)))
 #define CPARACFG_HIGH_PRECISION_TIME_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_HIGH_PRECISION_TIME_SWITCH(cparacfg)))
-#define CPARACFG_NGX_BGN_OVER_HTTP_SWITCH_STR(cparacfg)             (c_switch_to_str(CPARACFG_NGX_BGN_OVER_HTTP_SWITCH(cparacfg)))
 #define CPARACFG_NGX_BGN_OVER_RFS_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_NGX_BGN_OVER_RFS_SWITCH(cparacfg)))
 #define CPARACFG_NGX_BGN_OVER_XFS_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_NGX_BGN_OVER_XFS_SWITCH(cparacfg)))
 #define CPARACFG_CSOCKET_SO_KEEPALIVE_SWITCH_STR(cparacfg)          (c_switch_to_str(CPARACFG_CSOCKET_SO_KEEPALIVE_SWITCH(cparacfg)))
@@ -399,7 +396,6 @@ typedef struct
 #define CPARACFG_DNS_CACHE_EXPIRED_NSEC_DEF                      60
 
 #define CPARACFG_HIGH_PRECISION_TIME_SWITCH_DEF                  SWITCH_OFF
-#define CPARACFG_NGX_BGN_OVER_HTTP_SWITCH_DEF                    SWITCH_OFF
 #define CPARACFG_NGX_BGN_OVER_RFS_SWITCH_DEF                     SWITCH_OFF
 #define CPARACFG_NGX_BGN_OVER_XFS_SWITCH_DEF                     SWITCH_ON
 
@@ -531,7 +527,6 @@ typedef struct
 
 #define    HIGH_PRECISION_TIME_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_HIGH_PRECISION_TIME_SWITCH)
 
-#define    NGX_BGN_OVER_HTTP_SWITCH                      CPARACFG_DEFAULT_MAP(CPARACFG_NGX_BGN_OVER_HTTP_SWITCH)
 #define    NGX_BGN_OVER_RFS_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_NGX_BGN_OVER_RFS_SWITCH)
 #define    NGX_BGN_OVER_XFS_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_NGX_BGN_OVER_XFS_SWITCH)
 

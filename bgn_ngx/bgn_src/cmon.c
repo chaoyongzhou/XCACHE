@@ -545,6 +545,12 @@ void cmon_node_print(const CMON_NODE *cmon_node, LOG *log)
     return;
 }
 
+void cmon_node_print_0(LOG *log, const CMON_NODE *cmon_node)
+{
+    cmon_node_print(cmon_node, log);
+    return;
+}
+
 void cmon_print_nodes(const UINT32 cmon_md_id, LOG *log)
 {
     CMON_MD    *cmon_md;
@@ -561,7 +567,7 @@ void cmon_print_nodes(const UINT32 cmon_md_id, LOG *log)
 
     cmon_md = CMON_MD_GET(cmon_md_id);
 
-    cvector_print(log, CMON_MD_CMON_NODE_VEC(cmon_md), (CVECTOR_DATA_PRINT)cmon_node_print);
+    cvector_print(log, CMON_MD_CMON_NODE_VEC(cmon_md), (CVECTOR_DATA_PRINT)cmon_node_print_0);
 
     return;
 }

@@ -3914,7 +3914,7 @@ EC_BOOL cxfs_read(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES *cby
     if(do_log(SEC_0192_CXFS, 9))
     {
         sys_log(LOGSTDOUT, "[DEBUG] cxfs_read: read file %s with size %ld done\n",
-                            (char *)cstring_get_str(file_path), cbytes_len(cbytes));
+                            (char *)cstring_get_str(file_path), CXFSNP_FNODE_FILESZ(&cxfsnp_fnode));
         cxfsnp_fnode_print(LOGSTDOUT, &cxfsnp_fnode);
     }
 
@@ -3925,14 +3925,17 @@ EC_BOOL cxfs_read(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES *cby
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == cxfs_read_dn(cxfs_md_id, &cxfsnp_fnode, cbytes))
+    if(NULL_PTR != cbytes)
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read: read file %s from dn failed where fnode is \n", (char *)cstring_get_str(file_path));
-        cxfsnp_fnode_print(LOGSTDOUT, &cxfsnp_fnode);
-        return (EC_FALSE);
-    }
+        if(EC_FALSE == cxfs_read_dn(cxfs_md_id, &cxfsnp_fnode, cbytes))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read: read file %s from dn failed where fnode is \n", (char *)cstring_get_str(file_path));
+            cxfsnp_fnode_print(LOGSTDOUT, &cxfsnp_fnode);
+            return (EC_FALSE);
+        }
 
-    CXFS_STAT_READ_NBYTES_COUNTER(CXFS_MD_STAT(cxfs_md)) += CBYTES_LEN(cbytes);
+        CXFS_STAT_READ_NBYTES_COUNTER(CXFS_MD_STAT(cxfs_md)) += CBYTES_LEN(cbytes);
+    }
 
     return (EC_TRUE);
 }
@@ -4097,14 +4100,17 @@ EC_BOOL cxfs_read_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *o
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == cxfs_read_e_dn(cxfs_md_id, &cxfsnp_fnode, offset, max_len, cbytes))
+    if(NULL_PTR != cbytes)
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_e: offset read file %s from dn failed where fnode is\n", (char *)cstring_get_str(file_path));
-        cxfsnp_fnode_print(LOGSTDOUT, &cxfsnp_fnode);
-        return (EC_FALSE);
-    }
+        if(EC_FALSE == cxfs_read_e_dn(cxfs_md_id, &cxfsnp_fnode, offset, max_len, cbytes))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_e: offset read file %s from dn failed where fnode is\n", (char *)cstring_get_str(file_path));
+            cxfsnp_fnode_print(LOGSTDOUT, &cxfsnp_fnode);
+            return (EC_FALSE);
+        }
 
-     CXFS_STAT_READ_NBYTES_COUNTER(CXFS_MD_STAT(cxfs_md)) += CBYTES_LEN(cbytes);
+        CXFS_STAT_READ_NBYTES_COUNTER(CXFS_MD_STAT(cxfs_md)) += CBYTES_LEN(cbytes);
+    }
 
     return (EC_TRUE);
 }
@@ -4783,6 +4789,13 @@ EC_BOOL cxfs_read_dn(const UINT32 cxfs_md_id, const CXFSNP_FNODE *cxfsnp_fnode, 
 #endif/*CXFS_DEBUG_SWITCH*/
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(NULL_PTR == cbytes)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_dn: "
+                                             "cbytes is null\n");
+        return (EC_FALSE);
+    }
 
     if(BIT_TRUE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md))
     {
@@ -5610,15 +5623,20 @@ EC_BOOL cxfs_wait_http_header(const UINT32 cxfs_md_id, const MOD_NODE *mod_node,
 
     if(EC_FALSE == cxfs_read(cxfs_md_id, file_path, &cbytes))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_wait_http_header: read '%s' failed\n", (char *)CSTRING_STR(file_path));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_wait_http_header: "
+                                             "read '%s' failed\n",
+                                             (char *)CSTRING_STR(file_path));
         cbytes_clean(&cbytes);
         return (EC_FALSE);
     }
 
     chttp_rsp_init(&chttp_rsp);
-    if(EC_FALSE == chttp_rsp_decode(&chttp_rsp, (const uint8_t *)CBYTES_BUF(&cbytes), (uint32_t)CBYTES_LEN(&cbytes)))
+    if(EC_FALSE == chttp_rsp_decode(&chttp_rsp, (const uint8_t *)CBYTES_BUF(&cbytes),
+                                                (uint32_t)CBYTES_LEN(&cbytes)))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_wait_http_header: '%s' decode to http rsp failed\n", (char *)CSTRING_STR(file_path));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_wait_http_header: "
+                                             "'%s' decode to http rsp failed\n",
+                                             (char *)CSTRING_STR(file_path));
         cbytes_clean(&cbytes);
         chttp_rsp_clean(&chttp_rsp);
         return (EC_FALSE);
@@ -5649,9 +5667,10 @@ EC_BOOL cxfs_wait_http_header(const UINT32 cxfs_md_id, const MOD_NODE *mod_node,
 
     if(EC_TRUE == (*header_ready))
     {
-        dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_wait_http_header: '%s' wait header '%s':'%s' => ready\n",
-                    (char *)CSTRING_STR(file_path),
-                    (char *)CSTRING_STR(key), (char *)CSTRING_STR(val));
+        dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_wait_http_header: "
+                                             "'%s' wait header '%s':'%s' => ready\n",
+                                             (char *)CSTRING_STR(file_path),
+                                             (char *)CSTRING_STR(key), (char *)CSTRING_STR(val));
 
         return (EC_TRUE);
     }
@@ -5661,9 +5680,10 @@ EC_BOOL cxfs_wait_http_header(const UINT32 cxfs_md_id, const MOD_NODE *mod_node,
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_wait_http_header: '%s' wait header '%s':'%s' => OK\n",
-                (char *)CSTRING_STR(file_path),
-                (char *)CSTRING_STR(key), (char *)CSTRING_STR(val));
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_wait_http_header: "
+                                         "'%s' wait header '%s':'%s' => OK\n",
+                                         (char *)CSTRING_STR(file_path),
+                                         (char *)CSTRING_STR(key), (char *)CSTRING_STR(val));
 
     return (EC_TRUE);
 }
@@ -5689,15 +5709,20 @@ EC_BOOL cxfs_wait_http_headers(const UINT32 cxfs_md_id, const MOD_NODE *mod_node
 
     if(EC_FALSE == cxfs_read(cxfs_md_id, file_path, &cbytes))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_wait_http_headers: read '%s' failed\n", (char *)CSTRING_STR(file_path));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_wait_http_headers: "
+                                             "read '%s' failed\n",
+                                             (char *)CSTRING_STR(file_path));
         cbytes_clean(&cbytes);
         return (EC_FALSE);
     }
 
     chttp_rsp_init(&chttp_rsp);
-    if(EC_FALSE == chttp_rsp_decode(&chttp_rsp, (const uint8_t *)CBYTES_BUF(&cbytes), (uint32_t)CBYTES_LEN(&cbytes)))
+    if(EC_FALSE == chttp_rsp_decode(&chttp_rsp, (const uint8_t *)CBYTES_BUF(&cbytes),
+                                                 (uint32_t)CBYTES_LEN(&cbytes)))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_wait_http_headers: '%s' decode to http rsp failed\n", (char *)CSTRING_STR(file_path));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_wait_http_headers: "
+                                             "'%s' decode to http rsp failed\n",
+                                             (char *)CSTRING_STR(file_path));
         cbytes_clean(&cbytes);
         chttp_rsp_clean(&chttp_rsp);
         return (EC_FALSE);
@@ -5803,11 +5828,15 @@ STATIC_CAST static EC_BOOL __cxfs_delete_dn(const UINT32 cxfs_md_id, const CXFSN
 
     if(EC_FALSE == cxfsdn_remove(CXFS_MD_DN(cxfs_md), disk_no, block_no, page_no, file_size))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_delete_dn: remove file fsize %u, disk %u, block %u, page %u failed\n", file_size, disk_no, block_no, page_no);
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_delete_dn: "
+                                             "remove file fsize %u, disk %u, block %u, page %u failed\n",
+                                             file_size, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] __cxfs_delete_dn: remove file fsize %u, disk %u, block %u, page %u done\n", file_size, disk_no, block_no, page_no);
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] __cxfs_delete_dn: "
+                                         "remove file fsize %u, disk %u, block %u, page %u done\n",
+                                         file_size, disk_no, block_no, page_no);
 
     return (EC_TRUE);
 }
@@ -5846,15 +5875,17 @@ EC_BOOL cxfs_delete_dn(const UINT32 cxfs_md_id, const UINT32 cxfsnp_id, const CX
         {
             if(EC_FALSE == __cxfs_delete_dn(cxfs_md_id, CXFSNP_ITEM_FNODE(cxfsnp_item)))
             {
-                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_dn: delete regular file from dn failed\n");
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_dn: "
+                                                     "delete regular file from dn failed\n");
                 return (EC_FALSE);
             }
             return (EC_TRUE);
         }
 
         /*Oops! not implement or not support yet ...*/
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_dn: cxfsnp_item %p dflag flag 0x%x is unknown\n",
-                            cxfsnp_item, CXFSNP_ITEM_DIR_FLAG(cxfsnp_item));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_dn: "
+                                             "cxfsnp_item %p dflag flag 0x%x is unknown\n",
+                                             cxfsnp_item, CXFSNP_ITEM_DIR_FLAG(cxfsnp_item));
     }
     return (EC_TRUE);
 }
@@ -6057,8 +6088,9 @@ EC_BOOL cxfs_delete_file_wildcard(const UINT32 cxfs_md_id, const CSTRING *path)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_delete_file_wildcard: cxfs_md_id %ld, path %s ...\n",
-                        cxfs_md_id, (char *)cstring_get_str(path));
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_delete_file_wildcard: "
+                                         "cxfs_md_id %ld, path %s ...\n",
+                                         cxfs_md_id, (char *)cstring_get_str(path));
 
     if(BIT_FALSE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md)
     && NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
@@ -6072,14 +6104,16 @@ EC_BOOL cxfs_delete_file_wildcard(const UINT32 cxfs_md_id, const CSTRING *path)
 
     if(EC_FALSE == cxfsnp_mgr_umount_wildcard(CXFS_MD_NPP(cxfs_md), path, CXFSNP_ITEM_FILE_IS_REG))
     {
-        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_delete_file_wildcard: umount %.*s failed or terminated\n",
-                            (uint32_t)cstring_get_len(path), cstring_get_str(path));
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_delete_file_wildcard: "
+                                             "umount %.*s failed or terminated\n",
+                                             (uint32_t)cstring_get_len(path), cstring_get_str(path));
 
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_delete_file_wildcard: cxfs_md_id %ld, path %s succ\n",
-                        cxfs_md_id, (char *)cstring_get_str(path));
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_delete_file_wildcard: "
+                                         "cxfs_md_id %ld, path %s succ\n",
+                                         cxfs_md_id, (char *)cstring_get_str(path));
 
     /*force to unlock the possible locked-file*/
     /*__cxfs_file_unlock(cxfs_md_id, path, NULL_PTR);*/
@@ -6202,15 +6236,17 @@ EC_BOOL cxfs_delete_dir_no_lock(const UINT32 cxfs_md_id, const CSTRING *path)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_delete_dir_no_lock: cxfs_md_id %ld, path %s ...\n",
-                        cxfs_md_id, (char *)cstring_get_str(path));
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_delete_dir_no_lock: "
+                                         "cxfs_md_id %ld, path %s ...\n",
+                                         cxfs_md_id, (char *)cstring_get_str(path));
 
     CXFS_STAT_DELETE_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
 
     if(EC_FALSE == cxfsnp_mgr_umount_deep(CXFS_MD_NPP(cxfs_md), path, CXFSNP_ITEM_FILE_IS_DIR))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_dir_no_lock: umount %.*s failed\n",
-                            (uint32_t)cstring_get_len(path), cstring_get_str(path));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_dir_no_lock: "
+                                             "umount %.*s failed\n",
+                                             (uint32_t)cstring_get_len(path), cstring_get_str(path));
         return (EC_FALSE);
     }
 
@@ -6222,8 +6258,9 @@ EC_BOOL cxfs_delete_dir_no_lock(const UINT32 cxfs_md_id, const CSTRING *path)
                                          (uint8_t *)cstring_get_str(path));
     }
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_delete_dir_no_lock: cxfs_md_id %ld, path %s done\n",
-                        cxfs_md_id, (char *)cstring_get_str(path));
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_delete_dir_no_lock: "
+                                         "cxfs_md_id %ld, path %s done\n",
+                                         cxfs_md_id, (char *)cstring_get_str(path));
 
     return (EC_TRUE);
 }
@@ -6278,13 +6315,15 @@ EC_BOOL cxfs_delete_dir_wildcard(const UINT32 cxfs_md_id, const CSTRING *path)
 
     if(EC_FALSE == cxfsnp_mgr_umount_wildcard_deep(CXFS_MD_NPP(cxfs_md), path, CXFSNP_ITEM_FILE_IS_DIR))
     {
-        dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_delete_dir_wildcard: umount %.*s failed or terminated\n",
-                            (uint32_t)cstring_get_len(path), cstring_get_str(path));
+        dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_delete_dir_wildcard: "
+                                             "umount %.*s failed or terminated\n",
+                                             (uint32_t)cstring_get_len(path), cstring_get_str(path));
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_delete_dir_wildcard: cxfs_md_id %ld, path %s succ\n",
-                        cxfs_md_id, (char *)cstring_get_str(path));
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_delete_dir_wildcard: "
+                                         "cxfs_md_id %ld, path %s succ\n",
+                                         cxfs_md_id, (char *)cstring_get_str(path));
 
      /*try to delete next matched file*/
     MOD_NODE_TCID(&mod_node) = CMPI_LOCAL_TCID;
@@ -6351,8 +6390,9 @@ EC_BOOL cxfs_delete(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 d
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete: cxfs_md_id %ld, path [invalid 0x%lx] %s\n",
-                        cxfs_md_id, dflag, (char *)cstring_get_str(path));
+    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete: "
+                                         "cxfs_md_id %ld, path [invalid 0x%lx] %s\n",
+                                         cxfs_md_id, dflag, (char *)cstring_get_str(path));
 
     return (EC_FALSE);
 }
@@ -6403,8 +6443,9 @@ EC_BOOL cxfs_delete_no_lock(const UINT32 cxfs_md_id, const CSTRING *path, const 
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_no_lock: cxfs_md_id %ld, path [invalid 0x%lx] %s\n",
-                        cxfs_md_id, dflag, (char *)cstring_get_str(path));
+    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_no_lock: "
+                                         "cxfs_md_id %ld, path [invalid 0x%lx] %s\n",
+                                         cxfs_md_id, dflag, (char *)cstring_get_str(path));
 
     return (EC_FALSE);
 }
@@ -6445,11 +6486,15 @@ EC_BOOL cxfs_update(const UINT32 cxfs_md_id, const CSTRING *file_path, const CBY
 
     if(EC_FALSE == cxfs_update_no_lock(cxfs_md_id, file_path, cbytes))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_update: update file %s failed\n", (char *)cstring_get_str(file_path));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_update: "
+                                             "update file %s failed\n",
+                                             (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_update: update file %s done\n", (char *)cstring_get_str(file_path));
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_update: "
+                                         "update file %s done\n",
+                                         (char *)cstring_get_str(file_path));
 
     return (EC_TRUE);
 }
@@ -6490,28 +6535,40 @@ EC_BOOL cxfs_update_no_lock(const UINT32 cxfs_md_id, const CSTRING *file_path, c
         /*file not exist, write as new file*/
         if(EC_FALSE == cxfs_write_no_lock(cxfs_md_id, file_path, cbytes))
         {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_update_no_lock: write file %s failed\n", (char *)cstring_get_str(file_path));
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_update_no_lock: "
+                                                 "write file %s failed\n",
+                                                 (char *)cstring_get_str(file_path));
             return (EC_FALSE);
         }
-        dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_update_no_lock: write file %s done\n", (char *)cstring_get_str(file_path));
+        dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_update_no_lock: "
+                                             "write file %s done\n",
+                                             (char *)cstring_get_str(file_path));
         return (EC_TRUE);
     }
 
     /*file exist, update it*/
     if(EC_FALSE == cxfs_delete_no_lock(cxfs_md_id, file_path, CXFSNP_ITEM_FILE_IS_REG))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_update_no_lock: delete old file %s failed\n", (char *)cstring_get_str(file_path));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_update_no_lock: "
+                                             "delete old file %s failed\n",
+                                             (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_update_no_lock: delete old file %s done\n", (char *)cstring_get_str(file_path));
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_update_no_lock: "
+                                         "delete old file %s done\n",
+                                         (char *)cstring_get_str(file_path));
 
     if(EC_FALSE == cxfs_write_no_lock(cxfs_md_id, file_path, cbytes))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_update_no_lock: write new file %s failed\n", (char *)cstring_get_str(file_path));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_update_no_lock: "
+                                             "write new file %s failed\n",
+                                             (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_update_no_lock: write new file %s done\n", (char *)cstring_get_str(file_path));
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_update_no_lock: "
+                                         "write new file %s done\n",
+                                         (char *)cstring_get_str(file_path));
 
     return (EC_TRUE);
 }
@@ -6694,7 +6751,9 @@ EC_BOOL cxfs_qlist_path(const UINT32 cxfs_md_id, const CSTRING *file_path, CVECT
 
     if(EC_FALSE == cxfsnp_mgr_list_path(CXFS_MD_NPP(cxfs_md), file_path, path_cstr_vec))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_path: list path '%s' failed\n", (char *)cstring_get_str(file_path));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_path: "
+                                             "list path '%s' failed\n",
+                                             (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
 
@@ -6733,8 +6792,10 @@ EC_BOOL cxfs_qlist_path_of_np(const UINT32 cxfs_md_id, const CSTRING *file_path,
 
     if(EC_FALSE == cxfsnp_mgr_list_path_of_np(CXFS_MD_NPP(cxfs_md), file_path, cxfsnp_id_t, path_cstr_vec))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_path_of_np: list path '%s' of np %u failed\n",
-                            (char *)cstring_get_str(file_path), cxfsnp_id_t);
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_path_of_np: "
+                                             "list path '%s' of np %u failed\n",
+                                             (char *)cstring_get_str(file_path),
+                                             cxfsnp_id_t);
         return (EC_FALSE);
     }
 
@@ -6770,7 +6831,9 @@ EC_BOOL cxfs_qlist_seg(const UINT32 cxfs_md_id, const CSTRING *file_path, CVECTO
 
     if(EC_FALSE == cxfsnp_mgr_list_seg(CXFS_MD_NPP(cxfs_md), file_path, seg_cstr_vec))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_seg: list seg of path '%s' failed\n", (char *)cstring_get_str(file_path));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_seg: "
+                                             "list seg of path '%s' failed\n",
+                                             (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
 
@@ -6809,7 +6872,9 @@ EC_BOOL cxfs_qlist_seg_of_np(const UINT32 cxfs_md_id, const CSTRING *file_path, 
 
     if(EC_FALSE == cxfsnp_mgr_list_seg_of_np(CXFS_MD_NPP(cxfs_md), file_path, cxfsnp_id_t, seg_cstr_vec))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_seg_of_np: list seg of path '%s' failed\n", (char *)cstring_get_str(file_path));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_seg_of_np: "
+                                             "list seg of path '%s' failed\n",
+                                             (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
 
@@ -6849,7 +6914,8 @@ STATIC_CAST static EC_BOOL __cxfs_qlist_tree(CXFSNP_DIT_NODE *cxfsnp_dit_node, C
             return (EC_FALSE);
         }
 
-        if(EC_FALSE == cstack_walk(CXFSNP_DIT_NODE_STACK(cxfsnp_dit_node), (void *)full_path, (CSTACK_DATA_DATA_WALKER)__cxfs_cat_path))
+        if(EC_FALSE == cstack_walk(CXFSNP_DIT_NODE_STACK(cxfsnp_dit_node), (void *)full_path,
+                                        (CSTACK_DATA_DATA_WALKER)__cxfs_cat_path))
         {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_qlist_tree: walk stack failed\n");
 
@@ -6866,8 +6932,9 @@ STATIC_CAST static EC_BOOL __cxfs_qlist_tree(CXFSNP_DIT_NODE *cxfsnp_dit_node, C
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_file_expire: invalid item dflag %u at node pos %u\n",
-                        CXFSNP_ITEM_DIR_FLAG(cxfsnp_item), node_pos);
+    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_file_expire: "
+                                         "invalid item dflag %u at node pos %u\n",
+                                         CXFSNP_ITEM_DIR_FLAG(cxfsnp_item), node_pos);
     return (EC_FALSE);
 }
 
@@ -6923,14 +6990,17 @@ EC_BOOL cxfs_qlist_tree(const UINT32 cxfs_md_id, const CSTRING *file_path, CVECT
         cstring_free(base_dir);
         cxfsnp_dit_node_clean(&cxfsnp_dit_node);
 
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_path: list path '%s' failed\n", (char *)cstring_get_str(file_path));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_path: "
+                                             "list path '%s' failed\n",
+                                             (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
 
     if(do_log(SEC_0192_CXFS, 9))
     {
         sys_log(LOGSTDOUT, "[DEBUG] cxfs_qlist_path: after walk, stack is:\n");
-        cstack_print(LOGSTDOUT, CXFSNP_DIT_NODE_STACK(&cxfsnp_dit_node), (CSTACK_DATA_DATA_PRINT)cxfsnp_item_and_key_print);
+        cstack_print(LOGSTDOUT, CXFSNP_DIT_NODE_STACK(&cxfsnp_dit_node),
+                                (CSTACK_DATA_DATA_PRINT)cxfsnp_item_and_key_print);
     }
 
     cstring_free(base_dir);
@@ -6994,14 +7064,17 @@ EC_BOOL cxfs_qlist_tree_of_np(const UINT32 cxfs_md_id, const UINT32 cxfsnp_id, c
         cstring_free(base_dir);
         cxfsnp_dit_node_clean(&cxfsnp_dit_node);
 
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_tree_of_np: list tree of path '%s' failed\n", (char *)cstring_get_str(file_path));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_tree_of_np: "
+                                             "list tree of path '%s' failed\n",
+                                             (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
 
     if(do_log(SEC_0192_CXFS, 9))
     {
         sys_log(LOGSTDOUT, "[DEBUG] cxfs_qlist_tree_of_np: after walk, stack is:\n");
-        cstack_print(LOGSTDOUT, CXFSNP_DIT_NODE_STACK(&cxfsnp_dit_node), (CSTACK_DATA_DATA_PRINT)cxfsnp_item_and_key_print);
+        cstack_print(LOGSTDOUT, CXFSNP_DIT_NODE_STACK(&cxfsnp_dit_node),
+                                (CSTACK_DATA_DATA_PRINT)cxfsnp_item_and_key_print);
     }
 
     cstring_free(base_dir);
@@ -7115,7 +7188,9 @@ EC_BOOL cxfs_file_num(const UINT32 cxfs_md_id, const CSTRING *path_cstr, UINT32 
 
     if(EC_FALSE == cxfsnp_mgr_file_num(CXFS_MD_NPP(cxfs_md), path_cstr, file_num))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_file_num: get file num of path '%s' failed\n", (char *)cstring_get_str(path_cstr));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_file_num: "
+                                             "get file num of path '%s' failed\n",
+                                             (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);
     }
 
@@ -7151,13 +7226,16 @@ EC_BOOL cxfs_file_size(const UINT32 cxfs_md_id, const CSTRING *path_cstr, uint64
 
     if(EC_FALSE == cxfsnp_mgr_file_size(CXFS_MD_NPP(cxfs_md), path_cstr, file_size))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_file_size: cxfsnp mgr get size of %s failed\n", (char *)cstring_get_str(path_cstr));
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "error:cxfs_file_size: "
+                                             "cxfsnp mgr get size of %s failed\n",
+                                             (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_file_size: file %s, size %ld\n",
-                             (char *)cstring_get_str(path_cstr),
-                             (*file_size));
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_file_size: "
+                                         "file %s, size %ld\n",
+                                         (char *)cstring_get_str(path_cstr),
+                                         (*file_size));
     return (EC_TRUE);
 }
 
@@ -7207,13 +7285,17 @@ EC_BOOL cxfs_file_expire(const UINT32 cxfs_md_id, const CSTRING *path_cstr)
 
     if(EC_FALSE == cxfs_renew_http_header(cxfs_md_id, path_cstr, &key, &val))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_file_expire: expire %s failed\n", (char *)cstring_get_str(path_cstr));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_file_expire: "
+                                             "expire %s failed\n",
+                                             (char *)cstring_get_str(path_cstr));
         cstring_clean(&key);
         cstring_clean(&val);
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_file_expire: expire %s done\n", (char *)cstring_get_str(path_cstr));
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_file_expire: "
+                                         "expire %s done\n",
+                                         (char *)cstring_get_str(path_cstr));
     cstring_clean(&key);
     cstring_clean(&val);
     return (EC_TRUE);
@@ -7251,7 +7333,9 @@ EC_BOOL cxfs_file_md5sum(const UINT32 cxfs_md_id, const CSTRING *path_cstr, CMD5
 
     if(EC_FALSE == cxfs_read(cxfs_md_id, path_cstr, &cbytes))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_file_md5sum: read %s failed\n", (char *)cstring_get_str(path_cstr));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_file_md5sum: "
+                                             "read %s failed\n",
+                                             (char *)cstring_get_str(path_cstr));
         cbytes_clean(&cbytes);
         return (EC_FALSE);
     }
@@ -7259,9 +7343,10 @@ EC_BOOL cxfs_file_md5sum(const UINT32 cxfs_md_id, const CSTRING *path_cstr, CMD5
     cmd5_sum((uint32_t)CBYTES_LEN(&cbytes), CBYTES_BUF(&cbytes), CMD5_DIGEST_SUM(md5sum));
     cbytes_clean(&cbytes);
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_file_md5sum: file %s, md5 %s\n",
-                             (char *)cstring_get_str(path_cstr),
-                             cmd5_digest_hex_str(md5sum));
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_file_md5sum: "
+                                         "file %s, md5 %s\n",
+                                         (char *)cstring_get_str(path_cstr),
+                                         cmd5_digest_hex_str(md5sum));
     return (EC_TRUE);
 }
 
@@ -7306,7 +7391,9 @@ EC_BOOL cxfs_mkdir(const UINT32 cxfs_md_id, const CSTRING *path_cstr)
 
     if(EC_FALSE == cxfsnp_mgr_mkdir(CXFS_MD_NPP(cxfs_md), path_cstr))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_mkdir: mkdir '%s' failed\n", (char *)cstring_get_str(path_cstr));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_mkdir: "
+                                             "mkdir '%s' failed\n",
+                                             (char *)cstring_get_str(path_cstr));
         return (EC_FALSE);
     }
 
@@ -7340,7 +7427,10 @@ EC_BOOL cxfs_search(const UINT32 cxfs_md_id, const CSTRING *path_cstr, const UIN
     }
 #endif/*CXFS_DEBUG_SWITCH*/
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_search: cxfs_md_id %ld, path %s, dflag %lx\n", cxfs_md_id, (char *)cstring_get_str(path_cstr), dflag);
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_search: "
+                                         "cxfs_md_id %ld, path %s, dflag %lx\n",
+                                         cxfs_md_id,
+                                         (char *)cstring_get_str(path_cstr), dflag);
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
@@ -7352,7 +7442,9 @@ EC_BOOL cxfs_search(const UINT32 cxfs_md_id, const CSTRING *path_cstr, const UIN
 
     if(EC_FALSE == cxfsnp_mgr_search(CXFS_MD_NPP(cxfs_md), (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), dflag, &cxfsnp_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_search: search '%s' with dflag %lx failed\n", (char *)cstring_get_str(path_cstr), dflag);
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_search: "
+                                             "search '%s' with dflag %lx failed\n",
+                                             (char *)cstring_get_str(path_cstr), dflag);
         return (EC_FALSE);
     }
 
@@ -7377,12 +7469,15 @@ STATIC_CAST static EC_BOOL __cxfs_recycle_of_np(const UINT32 cxfs_md_id, const u
 
     if(EC_FALSE == cxfsnp_mgr_recycle_np(CXFS_MD_NPP(cxfs_md), cxfsnp_id, max_num, NULL_PTR, &cxfsnp_recycle_dn, complete_num))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_recycle_of_np: recycle np %u failed\n", cxfsnp_id);
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_recycle_of_np: "
+                                             "recycle np %u failed\n",
+                                             cxfsnp_id);
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] __cxfs_recycle_of_np: recycle np %u done where complete %ld\n",
-                    cxfsnp_id, (*complete_num));
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] __cxfs_recycle_of_np: "
+                                         "recycle np %u done where complete %ld\n",
+                                         cxfsnp_id, (*complete_num));
 
     return (EC_TRUE);
 }
@@ -7596,14 +7691,17 @@ EC_BOOL cxfs_check_file_content(const UINT32 cxfs_md_id, const UINT32 disk_no, c
     cbytes = cbytes_new(file_size);
     if(NULL_PTR == cbytes)
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_file_content: new cxfs buff with len %ld failed\n", file_size);
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_file_content: "
+                                             "new cxfs buff with len %ld failed\n",
+                                             file_size);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == cxfsdn_read_p(CXFS_MD_DN(cxfs_md), (uint16_t)disk_no, (uint16_t)block_no, (uint16_t)page_no, file_size,
                                   CBYTES_BUF(cbytes), &(CBYTES_LEN(cbytes))))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_file_content: read %ld bytes from disk %u, block %u, page %u failed\n",
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_file_content: "
+                            "read %ld bytes from disk %u, block %u, page %u failed\n",
                             file_size, (uint16_t)disk_no, (uint16_t)block_no, (uint16_t)page_no);
         cbytes_free(cbytes);
         return (EC_FALSE);
@@ -7611,7 +7709,9 @@ EC_BOOL cxfs_check_file_content(const UINT32 cxfs_md_id, const UINT32 disk_no, c
 
     if(CBYTES_LEN(cbytes) < cstring_get_len(file_content_cstr))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_file_content: read %ld bytes from disk %u, block %u, page %u to buff len %u less than cstring len %u to compare\n",
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_file_content: "
+                            "read %ld bytes from disk %u, block %u, page %u to buff len %u "
+                            "less than cstring len %u to compare\n",
                             file_size, (uint16_t)disk_no, (uint16_t)block_no, (uint16_t)page_no,
                             (uint32_t)CBYTES_LEN(cbytes), (uint32_t)cstring_get_len(file_content_cstr));
         cbytes_free(cbytes);
@@ -7627,7 +7727,9 @@ EC_BOOL cxfs_check_file_content(const UINT32 cxfs_md_id, const UINT32 disk_no, c
     {
         if(buff[ pos ] != str[ pos ])
         {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_file_content: char at pos %ld not matched\n", pos);
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_file_content: "
+                                                 "char at pos %ld not matched\n",
+                                                 pos);
             sys_print(LOGSTDOUT, "read buff: %.*s\n", (uint32_t)len, buff);
             sys_print(LOGSTDOUT, "expected : %.*s\n", (uint32_t)len, str);
 
@@ -7684,14 +7786,17 @@ EC_BOOL cxfs_check_file_is(const UINT32 cxfs_md_id, const CSTRING *file_path, co
 
     if(EC_FALSE == cxfs_read(cxfs_md_id, file_path, cbytes))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_file_is: read file %s failed\n", (char *)cstring_get_str(file_path));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_file_is: "
+                                             "read file %s failed\n",
+                                             (char *)cstring_get_str(file_path));
         cbytes_free(cbytes);
         return (EC_FALSE);
     }
 
     if(CBYTES_LEN(cbytes) != CBYTES_LEN(file_content))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_file_is: mismatched len: file %s read len %ld which should be %ld\n",
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_file_is: "
+                            "mismatched len: file %s read len %ld which should be %ld\n",
                             (char *)cstring_get_str(file_path),
                             CBYTES_LEN(cbytes), CBYTES_LEN(file_content));
         cbytes_free(cbytes);
@@ -7707,7 +7812,9 @@ EC_BOOL cxfs_check_file_is(const UINT32 cxfs_md_id, const CSTRING *file_path, co
     {
         if(buff[ pos ] != str[ pos ])
         {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_file_is: char at pos %ld not matched\n", pos);
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_check_file_is: "
+                                                 "char at pos %ld not matched\n",
+                                                 pos);
             sys_print(LOGSTDOUT, "read buff: %.*s\n", (uint32_t)len, buff);
             sys_print(LOGSTDOUT, "expected : %.*s\n", (uint32_t)len, str);
 
@@ -7904,13 +8011,17 @@ EC_BOOL cxfs_show_specific_np(const UINT32 cxfs_md_id, const UINT32 cxfsnp_id, L
 
     if(EC_FALSE == c_check_is_uint32_t(cxfsnp_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_specific_np: cxfsnp_id %ld is invalid\n", cxfsnp_id);
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_specific_np: "
+                                             "cxfsnp_id %ld is invalid\n",
+                                             cxfsnp_id);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == cxfsnp_mgr_show_np(log, CXFS_MD_NPP(cxfs_md), (uint32_t)cxfsnp_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_specific_np: show np %ld but failed\n", cxfsnp_id);
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_specific_np: "
+                                             "show np %ld but failed\n",
+                                             cxfsnp_id);
         return (EC_FALSE);
     }
 
@@ -7941,13 +8052,17 @@ EC_BOOL cxfs_show_specific_np_lru_list(const UINT32 cxfs_md_id, const UINT32 cxf
 
     if(EC_FALSE == c_check_is_uint32_t(cxfsnp_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_specific_np_lru_list: cxfsnp_id %ld is invalid\n", cxfsnp_id);
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_specific_np_lru_list: "
+                                             "cxfsnp_id %ld is invalid\n",
+                                             cxfsnp_id);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == cxfsnp_mgr_show_np_lru_list(log, CXFS_MD_NPP(cxfs_md), (uint32_t)cxfsnp_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_specific_np_lru_list: show np %ld but failed\n", cxfsnp_id);
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_specific_np_lru_list: "
+                                             "show np %ld but failed\n",
+                                             cxfsnp_id);
         return (EC_FALSE);
     }
 
@@ -7978,13 +8093,17 @@ EC_BOOL cxfs_show_specific_np_del_list(const UINT32 cxfs_md_id, const UINT32 cxf
 
     if(EC_FALSE == c_check_is_uint32_t(cxfsnp_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_specific_np_del_list: cxfsnp_id %ld is invalid\n", cxfsnp_id);
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_specific_np_del_list: "
+                                             "cxfsnp_id %ld is invalid\n",
+                                             cxfsnp_id);
         return (EC_FALSE);
     }
 
     if(EC_FALSE == cxfsnp_mgr_show_np_del_list(log, CXFS_MD_NPP(cxfs_md), (uint32_t)cxfsnp_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_specific_np_del_list: show np %ld but failed\n", cxfsnp_id);
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_specific_np_del_list: "
+                                             "show np %ld but failed\n",
+                                             cxfsnp_id);
         return (EC_FALSE);
     }
 
@@ -8015,7 +8134,9 @@ EC_BOOL cxfs_show_path_depth(const UINT32 cxfs_md_id, const CSTRING *path, LOG *
 
     if(EC_FALSE == cxfsnp_mgr_show_path_depth(log, CXFS_MD_NPP(cxfs_md), path))
     {
-        sys_log(log, "error:cxfs_show_path_depth: show path %s in depth failed\n", (char *)cstring_get_str(path));
+        sys_log(log, "error:cxfs_show_path_depth: "
+                     "show path %s in depth failed\n",
+                     (char *)cstring_get_str(path));
         return (EC_FALSE);
     }
 
@@ -8067,8 +8188,10 @@ STATIC_CAST static EC_BOOL __cxfs_retire_of_np(const UINT32 cxfs_md_id, const ui
 
     if(EC_FALSE == cxfsnp_mgr_retire_np(CXFS_MD_NPP(cxfs_md), cxfsnp_id, expect_retire_num, complete_retire_num))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_retire_of_np: retire np %u failed where expect retire num %ld\n",
-                                            cxfsnp_id, expect_retire_num);
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_retire_of_np: "
+                                             "retire np %u failed "
+                                             "where expect retire num %ld\n",
+                                             cxfsnp_id, expect_retire_num);
         return (EC_FALSE);
     }
 
@@ -8130,8 +8253,10 @@ EC_BOOL cxfs_retire(const UINT32 cxfs_md_id, const UINT32 expect_retire_num, UIN
         __cxfs_retire_of_np(cxfs_md_id, cxfsnp_id, expect_retire_num, &complete_num);
         total_num += complete_num;
 
-        dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_retire: retire np %u done wher expect retire num %ld, complete %ld\n",
-                                cxfsnp_id, expect_retire_num, complete_num);
+        dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_retire: "
+                                             "retire np %u done "
+                                             "where expect retire num %ld, complete %ld\n",
+                                             cxfsnp_id, expect_retire_num, complete_num);
     }
 
     if(NULL_PTR != complete_retire_num)
@@ -8141,7 +8266,9 @@ EC_BOOL cxfs_retire(const UINT32 cxfs_md_id, const UINT32 expect_retire_num, UIN
 
     if(0 < total_num)
     {
-        dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_retire: retire done where complete %ld\n", total_num);
+        dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_retire: "
+                                             "retire done where complete %ld\n",
+                                             total_num);
     }
     return (EC_TRUE);
 }
@@ -8337,9 +8464,10 @@ EC_BOOL cxfs_wait_file_owner_wakeup (const UINT32 cxfs_md_id, const UINT32 store
 
     if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))/*block*/
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_wait_file_owner_wakeup: wakeup '%.*s' on %s:%ld failed\n",
-                        (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
-                        c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_wait_file_owner_wakeup: "
+                                             "wakeup '%.*s' on %s:%ld failed\n",
+                                             (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
+                                             c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
         chttp_req_clean(&chttp_req);
         chttp_rsp_clean(&chttp_rsp);
@@ -8414,12 +8542,12 @@ EC_BOOL cxfs_wait_file_owner_notify_over_http (CXFS_WAIT_FILE *cxfs_wait_file, c
             dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_wait_file_owner_notify_over_http: "
                                                  "file %s tag %ld notify owner: "
                                                  "tcid %s, comm %ld, rank %ld, modi %ld => kick off\n",
-                                                (char *)CXFS_WAIT_FILE_NAME_STR(cxfs_wait_file),
-                                                tag,
-                                                MOD_NODE_TCID_STR(mod_node),
-                                                MOD_NODE_COMM(mod_node),
-                                                MOD_NODE_RANK(mod_node),
-                                                MOD_NODE_MODI(mod_node));
+                                                 (char *)CXFS_WAIT_FILE_NAME_STR(cxfs_wait_file),
+                                                 tag,
+                                                 MOD_NODE_TCID_STR(mod_node),
+                                                 MOD_NODE_COMM(mod_node),
+                                                 MOD_NODE_RANK(mod_node),
+                                                 MOD_NODE_MODI(mod_node));
 
             mod_node_free(mod_node);
         }
@@ -8487,11 +8615,6 @@ EC_BOOL cxfs_wait_file_owner_notify_over_bgn (CXFS_WAIT_FILE *cxfs_wait_file, co
 
 EC_BOOL cxfs_wait_file_owner_notify(CXFS_WAIT_FILE *cxfs_wait_file, const UINT32 tag)
 {
-    if(SWITCH_ON == NGX_BGN_OVER_HTTP_SWITCH)
-    {
-        return cxfs_wait_file_owner_notify_over_http(cxfs_wait_file, tag);
-    }
-
     return cxfs_wait_file_owner_notify_over_bgn(cxfs_wait_file, tag);
 }
 
@@ -8611,13 +8734,13 @@ EC_BOOL cxfs_wait_file_owner_terminate_over_http (CXFS_WAIT_FILE *cxfs_wait_file
                         CXFS_WAIT_FILE_NAME(cxfs_wait_file));
 
             dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_wait_file_owner_terminate : "
-                                                "file %s tag %ld terminate owner: "
-                                                "tcid %s, comm %ld, rank %ld, modi %ld => kick off\n",
-                                                (char *)CXFS_WAIT_FILE_NAME_STR(cxfs_wait_file), tag,
-                                                MOD_NODE_TCID_STR(mod_node),
-                                                MOD_NODE_COMM(mod_node),
-                                                MOD_NODE_RANK(mod_node),
-                                                MOD_NODE_MODI(mod_node));
+                                                 "file %s tag %ld terminate owner: "
+                                                 "tcid %s, comm %ld, rank %ld, modi %ld => kick off\n",
+                                                 (char *)CXFS_WAIT_FILE_NAME_STR(cxfs_wait_file), tag,
+                                                 MOD_NODE_TCID_STR(mod_node),
+                                                 MOD_NODE_COMM(mod_node),
+                                                 MOD_NODE_RANK(mod_node),
+                                                 MOD_NODE_MODI(mod_node));
 
             mod_node_free(mod_node);
         }
@@ -8672,19 +8795,15 @@ EC_BOOL cxfs_wait_file_owner_terminate_over_bgn (CXFS_WAIT_FILE *cxfs_wait_file,
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_wait_file_owner_terminate : file %s tag %ld terminate none due to no owner\n",
-                            (char *)CXFS_WAIT_FILE_NAME_STR(cxfs_wait_file), tag);
+    dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_wait_file_owner_terminate : "
+                                         "file %s tag %ld terminate none due to no owner\n",
+                                         (char *)CXFS_WAIT_FILE_NAME_STR(cxfs_wait_file), tag);
 
     return (EC_TRUE);
 }
 
 EC_BOOL cxfs_wait_file_owner_terminate(CXFS_WAIT_FILE *cxfs_wait_file, const UINT32 tag)
 {
-    if(SWITCH_ON == NGX_BGN_OVER_HTTP_SWITCH)
-    {
-        return cxfs_wait_file_owner_terminate_over_http(cxfs_wait_file, tag);
-    }
-
     return cxfs_wait_file_owner_terminate_over_bgn(cxfs_wait_file, tag);
 }
 
@@ -8709,8 +8828,9 @@ STATIC_CAST static EC_BOOL __cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_N
     crb_node = crb_tree_insert_data(CXFS_MD_WAIT_FILES(cxfs_md), (void *)cxfs_wait_file);/*compare name*/
     if(NULL_PTR == crb_node)
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_file_wait: insert file %s to wait files tree failed\n",
-                                (char *)cstring_get_str(file_path));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_file_wait: "
+                                             "insert file %s to wait files tree failed\n",
+                                             (char *)cstring_get_str(file_path));
         cxfs_wait_file_free(cxfs_wait_file);
         return (EC_FALSE);
     }
@@ -8726,20 +8846,24 @@ STATIC_CAST static EC_BOOL __cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_N
         /*when found the file had been wait, register remote owner to it*/
         cxfs_wait_file_owner_push(cxfs_wait_file_duplicate, mod_node);
 
-        dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] __cxfs_file_wait: push %s to duplicated file '%s' in wait files tree done\n",
-                            MOD_NODE_TCID_STR(mod_node), (char *)cstring_get_str(file_path));
+        dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] __cxfs_file_wait: "
+                                             "push %s to duplicated file '%s' in wait files tree done\n",
+                                             MOD_NODE_TCID_STR(mod_node),
+                                             (char *)cstring_get_str(file_path));
         return (EC_TRUE);
     }
 
     /*register remote token owner to it*/
     cxfs_wait_file_owner_push(cxfs_wait_file, mod_node);
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] __cxfs_file_wait: push %s to inserted file %s in wait files tree done\n",
-                        MOD_NODE_TCID_STR(mod_node), (char *)cstring_get_str(file_path));
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] __cxfs_file_wait: "
+                                         "push %s to inserted file %s in wait files tree done\n",
+                                         MOD_NODE_TCID_STR(mod_node),
+                                         (char *)cstring_get_str(file_path));
     return (EC_TRUE);
 }
 
-EC_BOOL cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, CBYTES *cbytes, UINT32 *data_ready)
+EC_BOOL cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *file_size, UINT32 *data_ready)
 {
 #if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
@@ -8751,20 +8875,35 @@ EC_BOOL cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const 
     }
 #endif/*CXFS_DEBUG_SWITCH*/
 
-    if(NULL_PTR != data_ready)
+    while(NULL_PTR != data_ready)
     {
-        /*trick! when input data_ready = EC_OBSCURE, wait file notification only but not read data*/
-        if(EC_OBSCURE != (*data_ready))
+        uint64_t        file_size_t;
+        if(EC_OBSCURE == (*data_ready))
         {
-            /*if data is already ready, return now*/
-            if(EC_TRUE == cxfs_read(cxfs_md_id, file_path, cbytes))
+            (*data_ready) = EC_FALSE;
+            break; /*fall through*/
+        }
+
+        /*trick! when input data_ready = EC_OBSCURE, wait file notification only but not read data*/
+
+        /*if data is already ready, return now*/
+        if(EC_TRUE == cxfs_file_size(cxfs_md_id, file_path, &file_size_t))
+        {
+            if(NULL_PTR != file_size)
             {
-                (*data_ready) = EC_TRUE;
-                return (EC_TRUE);
+                (*file_size) = (UINT32)file_size_t;
             }
+
+            (*data_ready) = EC_TRUE;
+
+            /*notify all waiters*/
+            cxfs_file_notify(cxfs_md_id, file_path); /*patch*/
+
+            return (EC_TRUE);
         }
 
         (*data_ready) = EC_FALSE;
+        break; /*fall through*/
     }
 
     if(EC_FALSE == __cxfs_file_wait(cxfs_md_id, mod_node, file_path))
@@ -8790,8 +8929,10 @@ EC_BOOL cxfs_file_wait_ready(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, 
     return cxfs_file_wait(cxfs_md_id, mod_node, file_path, NULL_PTR, data_ready);
 }
 
-EC_BOOL cxfs_file_wait_e(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *data_ready)
+EC_BOOL cxfs_file_wait_e(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, UINT32 *len, UINT32 *data_ready)
 {
+    CXFS_MD          *cxfs_md;
+
 #if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
     {
@@ -8802,20 +8943,59 @@ EC_BOOL cxfs_file_wait_e(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, cons
     }
 #endif/*CXFS_DEBUG_SWITCH*/
 
-    if(NULL_PTR != data_ready)
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    while(NULL_PTR != data_ready)
     {
-        /*trick! when input data_ready = EC_OBSCURE, wait file notification only but not read data*/
-        if(EC_OBSCURE != (*data_ready))
+        CXFSNP_FNODE        cxfsnp_fnode;
+
+        if(EC_OBSCURE == (*data_ready))
         {
-            /*if data is already ready, return now*/
-            if(EC_TRUE == cxfs_read_e(cxfs_md_id, file_path, offset, max_len, cbytes))
+            (*data_ready) = EC_FALSE;
+            break; /*fall through*/
+        }
+
+        /*trick! when input data_ready = EC_OBSCURE, wait file notification only but not read data*/
+
+        /*if data is already ready, return now*/
+
+        CXFS_STAT_READ_TIMES_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+        cxfsnp_fnode_init(&cxfsnp_fnode);
+
+        if(EC_TRUE == cxfs_read_npp(cxfs_md_id, file_path, &cxfsnp_fnode))
+        {
+            UINT32          file_size;
+
+            (*data_ready) = EC_TRUE;
+
+            file_size = CXFSNP_FNODE_FILESZ(&cxfsnp_fnode);
+
+            if((*offset) >= file_size)
             {
-                (*data_ready) = EC_TRUE;
+                (*len) = 0;
                 return (EC_TRUE);
             }
+
+            if(0 == max_len)
+            {
+                (*len) = file_size - (*offset);
+            }
+            else
+            {
+                (*len) = DMIN(max_len, file_size - (*offset));
+            }
+
+            (*offset) += (*len);
+
+            /*notify all waiters*/
+            cxfs_file_notify(cxfs_md_id, file_path); /*patch*/
+
+            return (EC_TRUE);
         }
 
         (*data_ready) = EC_FALSE;
+        break; /*fall through*/
     }
 
     if(EC_FALSE == __cxfs_file_wait(cxfs_md_id, mod_node, file_path))
@@ -8932,15 +9112,17 @@ EC_BOOL cxfs_file_terminate(const UINT32 cxfs_md_id, const CSTRING *file_path)
 
     if(EC_FALSE == cxfs_wait_file_owner_terminate (cxfs_wait_file_found, tag))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_file_terminate: terminate waiters of file '%s' failed\n",
-                        (char *)CSTRING_STR(file_path));
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_file_terminate: "
+                                             "terminate waiters of file '%s' failed\n",
+                                             (char *)CSTRING_STR(file_path));
         return (EC_FALSE);
     }
 
     crb_tree_delete(CXFS_MD_WAIT_FILES(cxfs_md), crb_node);
 
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_file_terminate: terminate waiters of file '%s' done\n",
-                    (char *)CSTRING_STR(file_path));
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_file_terminate: "
+                                         "terminate waiters of file '%s' done\n",
+                                         (char *)CSTRING_STR(file_path));
     return (EC_TRUE);
 }
 

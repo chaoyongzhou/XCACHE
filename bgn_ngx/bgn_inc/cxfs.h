@@ -934,7 +934,7 @@ EC_BOOL cxfs_file_unlock(const UINT32 cxfs_md_id, const CSTRING *file_path, cons
 *  wait file to ready
 *
 **/
-EC_BOOL cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, CBYTES *cbytes, UINT32 *data_ready);
+EC_BOOL cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *file_size, UINT32 *data_ready);
 
 EC_BOOL cxfs_file_wait_ready(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *data_ready);
 
@@ -943,7 +943,7 @@ EC_BOOL cxfs_file_wait_ready(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, 
 *  wait file (range) to ready
 *
 **/
-EC_BOOL cxfs_file_wait_e(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes, UINT32 *data_ready);
+EC_BOOL cxfs_file_wait_e(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, UINT32 *len, UINT32 *data_ready);
 
 /**
 *
