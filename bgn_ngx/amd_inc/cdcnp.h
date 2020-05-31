@@ -175,7 +175,7 @@ EC_BOOL cdcnp_is_dontdump(const CDCNP *cdcnp);
 
 EC_BOOL cdcnp_is_full(const CDCNP *cdcnp);
 
-EC_BOOL cdcnp_lru_list_is_empty(const CDCNP *cdcnp);
+EC_BOOL cdcnp_que_list_is_empty(const CDCNP *cdcnp);
 
 EC_BOOL cdcnp_del_list_is_empty(const CDCNP *cdcnp);
 
@@ -189,7 +189,7 @@ void cdcnp_header_print(LOG *log, const CDCNP *cdcnp);
 
 void cdcnp_print(LOG *log, const CDCNP *cdcnp);
 
-void cdcnp_print_lru_list(LOG *log, const CDCNP *cdcnp);
+void cdcnp_print_que_list(LOG *log, const CDCNP *cdcnp);
 
 void cdcnp_print_del_list(LOG *log, const CDCNP *cdcnp);
 

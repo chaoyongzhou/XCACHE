@@ -119,7 +119,8 @@ void cdcnpdeg_node_add_head(CDCNP *cdcnp, CDCNPDEG_NODE *node, const uint32_t no
 
 void cdcnpdeg_node_add_tail(CDCNP *cdcnp, CDCNPDEG_NODE *node, const uint32_t node_pos)
 {
-    if(CDCNPDEG_ROOT_POS != node_pos /*ensure not root node*/
+    if(SWITCH_ON == CDC_LRU_MODEL_SWITCH
+    && CDCNPDEG_ROOT_POS != node_pos /*ensure not root node*/
     && CDCNPDEG_ROOT_POS != CDCNPDEG_NODE_NEXT_POS(node) /*ensure next node is not root node*/
     && node_pos == CDCNPDEG_NODE_NEXT_POS(node) /*ensure node not in list*/
     && node_pos == CDCNPDEG_NODE_PREV_POS(node) /*ensure node not in list*/
@@ -156,7 +157,8 @@ STATIC_CAST void __cdcnpdeg_node_rmv(
 
 void cdcnpdeg_node_move_head(CDCNP *cdcnp, CDCNPDEG_NODE *node, const uint32_t node_pos)
 {
-    if(CDCNPDEG_ROOT_POS != node_pos /*ensure not root node*/
+    if(SWITCH_ON == CDC_LRU_MODEL_SWITCH
+    && CDCNPDEG_ROOT_POS != node_pos /*ensure not root node*/
     && CDCNPDEG_ROOT_POS != CDCNPDEG_NODE_PREV_POS(node) /*ensure prev node is not root node*/
     && node_pos != CDCNPDEG_NODE_NEXT_POS(node) /*ensure node in list*/
     && node_pos != CDCNPDEG_NODE_PREV_POS(node) /*ensure node in list*/
@@ -200,7 +202,8 @@ void cdcnpdeg_node_move_head(CDCNP *cdcnp, CDCNPDEG_NODE *node, const uint32_t n
 
 void cdcnpdeg_node_move_tail(CDCNP *cdcnp, CDCNPDEG_NODE *node, const uint32_t node_pos)
 {
-    if(CDCNPDEG_ROOT_POS != node_pos /*ensure not root node*/
+    if(SWITCH_ON == CDC_LRU_MODEL_SWITCH
+    && CDCNPDEG_ROOT_POS != node_pos /*ensure not root node*/
     && CDCNPDEG_ROOT_POS != CDCNPDEG_NODE_NEXT_POS(node) /*ensure next node is not root node*/
     && node_pos != CDCNPDEG_NODE_NEXT_POS(node) /*ensure node in list*/
     && node_pos != CDCNPDEG_NODE_PREV_POS(node) /*ensure node in list*/

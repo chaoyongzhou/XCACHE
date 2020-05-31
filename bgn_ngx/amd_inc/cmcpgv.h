@@ -19,7 +19,7 @@ extern "C"{
 #include "cmmap.h"
 
 
-#define CMCPGV_MAX_DISK_NUM               (12)
+#define CMCPGV_MAX_DISK_NUM               (32)
 
 #define CMCPGV_PATH_MAX_LEN               (1024)  /*max len of file or dir path name*/
 #define CMCPGV_MEM_ALIGNMENT              (UINT32_ONE << 20) /*1MB alignment*/

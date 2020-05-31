@@ -9,16 +9,16 @@
 extern "C"{
 #endif/*__cplusplus*/
 
-#ifndef    _CMCNPLRU_INC
-#define    _CMCNPLRU_INC
+#ifndef    _CMCNPQUE_INC
+#define    _CMCNPQUE_INC
 
 #include "type.h"
 #include "cmcnprb.h"
 
-#define CMCNPLRU_ROOT_POS          (0)/*point to the root rb node*/
+#define CMCNPQUE_ROOT_POS          (0)/*point to the root rb node*/
 
-#define CMCNPLRU_NODE_NOT_USED     ((uint32_t)0)
-#define CMCNPLRU_NODE_USED         ((uint32_t)1)
+#define CMCNPQUE_NODE_NOT_USED     ((uint32_t)0)
+#define CMCNPQUE_NODE_USED         ((uint32_t)1)
 
 typedef struct
 {
@@ -27,13 +27,13 @@ typedef struct
 
     uint32_t next_pos :31; /*value range: [0, 0x7FFFFFFF)*/
     uint32_t rsvd2    : 1;
-}CMCNPLRU_NODE; /*8B*/
+}CMCNPQUE_NODE; /*8B*/
 
-#define CMCNPLRU_NODE_PREV_POS(node)          ((node)->prev_pos)
-#define CMCNPLRU_NODE_NEXT_POS(node)          ((node)->next_pos)
+#define CMCNPQUE_NODE_PREV_POS(node)          ((node)->prev_pos)
+#define CMCNPQUE_NODE_NEXT_POS(node)          ((node)->next_pos)
 
 
-#endif    /* _CMCNPLRU_INC */
+#endif    /* _CMCNPQUE_INC */
 
 #ifdef __cplusplus
 }

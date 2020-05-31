@@ -28,10 +28,11 @@ extern "C"{
 
 #include "cmisc.h"
 
+#include "cmc.h"
 #include "cmcpgrb.h"
 #include "cmcpgb.h"
 #include "cmcnprb.h"
-#include "cmcnplru.h"
+#include "cmcnpque.h"
 #include "cmcnpdel.h"
 #include "cmcnpdeg.h"
 #include "cmcnp.h"
@@ -584,7 +585,7 @@ EC_BOOL cmcnp_item_clone(const CMCNP_ITEM *cmcnp_item_src, CMCNP_ITEM *cmcnp_ite
 
     CMCNP_ITEM_PARENT_POS(cmcnp_item_des)      = CMCNP_ITEM_PARENT_POS(cmcnp_item_src);
 
-    cmcnplru_node_clone(CMCNP_ITEM_LRU_NODE(cmcnp_item_src), CMCNP_ITEM_LRU_NODE(cmcnp_item_des));
+    cmcnpque_node_clone(CMCNP_ITEM_QUE_NODE(cmcnp_item_src), CMCNP_ITEM_QUE_NODE(cmcnp_item_des));
     cmcnpdel_node_clone(CMCNP_ITEM_DEL_NODE(cmcnp_item_src), CMCNP_ITEM_DEL_NODE(cmcnp_item_des));
     cmcnpdeg_node_clone(CMCNP_ITEM_DEG_NODE(cmcnp_item_src), CMCNP_ITEM_DEG_NODE(cmcnp_item_des));
 
@@ -639,7 +640,7 @@ void cmcnp_item_print(LOG *log, const CMCNP_ITEM *cmcnp_item)
     sys_print(log, "cmcnp_item %p: flag 0x%x [%s], stat %u, "
                    "ssd dirty flag %u, sata dirty flag %u, "
                    "deg times %u, "
-                   "parent %u, lru node (%u, %u), del node (%u, %u), deg node (%u, %u)\n",
+                   "parent %u, que node (%u, %u), del node (%u, %u), deg node (%u, %u)\n",
                     cmcnp_item,
                     CMCNP_ITEM_DIR_FLAG(cmcnp_item), __cmcnp_item_dir_flag_str(CMCNP_ITEM_DIR_FLAG(cmcnp_item)),
                     CMCNP_ITEM_USED_FLAG(cmcnp_item),
@@ -647,8 +648,8 @@ void cmcnp_item_print(LOG *log, const CMCNP_ITEM *cmcnp_item)
                     CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item),
                     CMCNP_ITEM_DEG_TIMES(cmcnp_item),
                     CMCNP_ITEM_PARENT_POS(cmcnp_item),
-                    CMCNPLRU_NODE_PREV_POS(CMCNP_ITEM_LRU_NODE(cmcnp_item)),
-                    CMCNPLRU_NODE_NEXT_POS(CMCNP_ITEM_LRU_NODE(cmcnp_item)),
+                    CMCNPQUE_NODE_PREV_POS(CMCNP_ITEM_QUE_NODE(cmcnp_item)),
+                    CMCNPQUE_NODE_NEXT_POS(CMCNP_ITEM_QUE_NODE(cmcnp_item)),
                     CMCNPDEL_NODE_PREV_POS(CMCNP_ITEM_DEL_NODE(cmcnp_item)),
                     CMCNPDEL_NODE_NEXT_POS(CMCNP_ITEM_DEL_NODE(cmcnp_item)),
                     CMCNPDEG_NODE_PREV_POS(CMCNP_ITEM_DEG_NODE(cmcnp_item)),
@@ -1197,8 +1198,8 @@ STATIC_CAST static CMCNP_HEADER *__cmcnp_header_create(CMMAP_NODE *cmmap_node, c
     /*init RB Nodes*/
     cmcnprb_pool_init(CMCNP_HEADER_ITEMS_POOL(cmcnp_header), node_max_num, node_sizeof);
 
-    /*init LRU nodes*/
-    cmcnplru_pool_init(CMCNP_HEADER_ITEMS_POOL(cmcnp_header), node_max_num, node_sizeof);
+    /*init QUE nodes*/
+    cmcnpque_pool_init(CMCNP_HEADER_ITEMS_POOL(cmcnp_header), node_max_num, node_sizeof);
 
     /*init DEL nodes*/
     cmcnpdel_pool_init(CMCNP_HEADER_ITEMS_POOL(cmcnp_header), node_max_num, node_sizeof);
@@ -1273,8 +1274,8 @@ STATIC_CAST static CMCNP_HEADER *__cmcnp_header_new(const uint32_t np_id, const 
     /*init RB Nodes*/
     cmcnprb_pool_init(CMCNP_HEADER_ITEMS_POOL(cmcnp_header), node_max_num, node_sizeof);
 
-    /*init LRU nodes*/
-    cmcnplru_pool_init(CMCNP_HEADER_ITEMS_POOL(cmcnp_header), node_max_num, node_sizeof);
+    /*init QUE nodes*/
+    cmcnpque_pool_init(CMCNP_HEADER_ITEMS_POOL(cmcnp_header), node_max_num, node_sizeof);
 
     /*init DEL nodes*/
     cmcnpdel_pool_init(CMCNP_HEADER_ITEMS_POOL(cmcnp_header), node_max_num, node_sizeof);
@@ -1326,7 +1327,7 @@ EC_BOOL cmcnp_header_init(CMCNP_HEADER *cmcnp_header, const uint32_t np_id, cons
     CMCNP_HEADER_NP_ID(cmcnp_header)         = np_id;
     CMCNP_HEADER_MODEL(cmcnp_header)         = model;
 
-    /*do nothing on lru list*/
+    /*do nothing on que list*/
     /*do nothing on del list*/
     /*do nothing on bitmap*/
     /*do nothing on CMCNPRB_POOL pool*/
@@ -1339,7 +1340,7 @@ EC_BOOL cmcnp_header_clean(CMCNP_HEADER *cmcnp_header)
     CMCNP_HEADER_NP_ID(cmcnp_header)              = CMCNP_ERR_ID;
     CMCNP_HEADER_MODEL(cmcnp_header)              = CMCNP_ERR_MODEL;
 
-    /*do nothing on lru list*/
+    /*do nothing on que list*/
     /*do nothing on del list*/
     /*do nothing on bitmap*/
     /*do nothing on CMCNPRB_POOL pool*/
@@ -1401,7 +1402,7 @@ EC_BOOL cmcnp_init(CMCNP *cmcnp)
     CMCNP_RECYCLE_SIZE(cmcnp)    = 0;
     CMCNP_BITMAP(cmcnp)          = NULL_PTR;
     CMCNP_HDR(cmcnp)             = NULL_PTR;
-    CMCNP_LRU_LIST(cmcnp)        = NULL_PTR;
+    CMCNP_QUE_LIST(cmcnp)        = NULL_PTR;
     CMCNP_DEL_LIST(cmcnp)        = NULL_PTR;
     CMCNP_DEG_LIST(cmcnp)        = NULL_PTR;
 
@@ -1419,9 +1420,9 @@ EC_BOOL cmcnp_is_full(const CMCNP *cmcnp)
     return cmcnprb_pool_is_full(pool);
 }
 
-EC_BOOL cmcnp_lru_list_is_empty(const CMCNP *cmcnp)
+EC_BOOL cmcnp_que_list_is_empty(const CMCNP *cmcnp)
 {
-    return cmcnplru_is_empty(CMCNP_LRU_LIST(cmcnp));
+    return cmcnpque_is_empty(CMCNP_QUE_LIST(cmcnp));
 }
 
 EC_BOOL cmcnp_del_list_is_empty(const CMCNP *cmcnp)
@@ -1512,10 +1513,10 @@ void cmcnp_print(LOG *log, const CMCNP *cmcnp)
     return;
 }
 
-void cmcnp_print_lru_list(LOG *log, const CMCNP *cmcnp)
+void cmcnp_print_que_list(LOG *log, const CMCNP *cmcnp)
 {
-    sys_log(log, "cmcnp_print_lru_list: cmcnp %p: lru list: \n", cmcnp);
-    cmcnplru_list_print(log, cmcnp);
+    sys_log(log, "cmcnp_print_que_list: cmcnp %p: que list: \n", cmcnp);
+    cmcnpque_list_print(log, cmcnp);
     return;
 }
 
@@ -2024,10 +2025,11 @@ CMCNP_ITEM *cmcnp_set(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t d
             return (NULL_PTR);
         }
 
-        /*ensure only item of regular file enter LRU list*/
+        /*ensure only item of regular file enter QUE list*/
         if(CMCNP_ITEM_FILE_IS_REG == CMCNP_ITEM_DIR_FLAG(cmcnp_item))
         {
-            cmcnplru_node_add_head(cmcnp, CMCNP_ITEM_LRU_NODE(cmcnp_item), node_pos);
+            cmcnpque_node_add_head(cmcnp, CMCNP_ITEM_QUE_NODE(cmcnp_item), node_pos);
+
             cmcnpdeg_node_add_head(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
         }
         return (cmcnp_item);
@@ -2129,7 +2131,7 @@ CMCNP_FNODE *cmcnp_locate(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
 
         if(EC_FALSE == cmcnp_is_read_only(cmcnp))
         {
-            cmcnplru_node_move_head(cmcnp, CMCNP_ITEM_LRU_NODE(cmcnp_item), node_pos);
+            cmcnpque_node_move_head(cmcnp, CMCNP_ITEM_QUE_NODE(cmcnp_item), node_pos);
 
             /*move it if exist*/
             cmcnpdeg_node_move_head(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
@@ -2150,15 +2152,13 @@ CMCNP_ITEM *cmcnp_map(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key)
         CMCNP_ITEM    *cmcnp_item;
 
         cmcnp_item = cmcnp_fetch(cmcnp, node_pos);
-
         if(EC_FALSE == cmcnp_is_read_only(cmcnp))
         {
-            cmcnplru_node_move_head(cmcnp, CMCNP_ITEM_LRU_NODE(cmcnp_item), node_pos);
+            cmcnpque_node_move_head(cmcnp, CMCNP_ITEM_QUE_NODE(cmcnp_item), node_pos);
 
             /*move it if exist*/
             cmcnpdeg_node_move_head(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
         }
-
         return (cmcnp_item);
     }
     return (NULL_PTR);
@@ -2181,12 +2181,11 @@ EC_BOOL cmcnp_read(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, CMCNP_FNODE *cmcnp_
 
         if(EC_FALSE == cmcnp_is_read_only(cmcnp))
         {
-            cmcnplru_node_move_head(cmcnp, CMCNP_ITEM_LRU_NODE(cmcnp_item), node_pos);
+            cmcnpque_node_move_head(cmcnp, CMCNP_ITEM_QUE_NODE(cmcnp_item), node_pos);
 
             /*move it if exist*/
             cmcnpdeg_node_move_head(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
         }
-
         return (EC_TRUE);
     }
     return (EC_FALSE);
@@ -2204,8 +2203,9 @@ EC_BOOL cmcnp_update(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const CMCNP_FNODE
         CMCNP_ITEM *cmcnp_item;
 
         cmcnp_item = cmcnp_fetch(cmcnp, node_pos);
-        cmcnplru_node_move_head(cmcnp, CMCNP_ITEM_LRU_NODE(cmcnp_item), node_pos);
+        cmcnpque_node_move_head(cmcnp, CMCNP_ITEM_QUE_NODE(cmcnp_item), node_pos);
         cmcnpdeg_node_move_head(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
+
         return cmcnp_fnode_import(cmcnp_fnode, CMCNP_ITEM_FNODE(cmcnp_item));
     }
     return (EC_FALSE);
@@ -2647,7 +2647,7 @@ EC_BOOL cmcnp_exec_degrade_callback(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, co
     return (EC_TRUE);
 }
 
-EC_BOOL cmcnp_degrade(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expect_degrade_num, UINT32 *complete_degrade_num)
+EC_BOOL cmcnp_degrade(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expect_degrade_num, const uint64_t ssd_traffic_read_bps, UINT32 *complete_degrade_num)
 {
     CMCNPDEG_NODE   cmcnpdeg_node;
     UINT32          degrade_num;
@@ -2686,6 +2686,17 @@ EC_BOOL cmcnp_degrade(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expe
         {
             cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
             continue;
+        }
+
+        if(CMC_DEGRADE_TRAFFIC_048MB < ssd_traffic_read_bps)
+        {
+            if(BIT_TRUE == CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item)
+                && BIT_FALSE == CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item))
+            {
+                cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
+                CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item) = BIT_FALSE;
+                continue;
+            }
         }
 
         if(EC_FALSE == cmcnp_exec_degrade_callback(cmcnp, CMCNP_ITEM_KEY(cmcnp_item), node_pos))
@@ -2918,7 +2929,7 @@ EC_BOOL cmcnp_exec_retire_callback(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, con
 
 EC_BOOL cmcnp_retire(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expect_retire_num, UINT32 *complete_retire_num)
 {
-    CMCNPLRU_NODE   cmcnplru_node;
+    CMCNPQUE_NODE   cmcnpque_node;
     UINT32          retire_num;
     UINT32          scan_num;
 
@@ -2929,20 +2940,19 @@ EC_BOOL cmcnp_retire(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expec
         return (EC_FALSE);
     }
 
-    for(scan_num = 0, retire_num = 0, cmcnplru_node_clone(CMCNP_LRU_LIST(cmcnp), &cmcnplru_node);
+    for(scan_num = 0, retire_num = 0, cmcnpque_node_clone(CMCNP_QUE_LIST(cmcnp), &cmcnpque_node);
         scan_num < scan_max_num && retire_num < expect_retire_num
-     && CMCNPLRU_ROOT_POS != CMCNPLRU_NODE_PREV_POS(&cmcnplru_node);
+     && CMCNPQUE_ROOT_POS != CMCNPQUE_NODE_PREV_POS(&cmcnpque_node);
         scan_num ++)
     {
         CMCNP_ITEM *cmcnp_item;
         uint32_t    node_pos;
 
-        node_pos      = CMCNPLRU_NODE_PREV_POS(&cmcnplru_node);
+        node_pos      = CMCNPQUE_NODE_PREV_POS(&cmcnpque_node);
         cmcnp_item    = cmcnp_fetch(cmcnp, node_pos);
 
-        /*note: CMCNP_ITEM_LRU_NODE would be cleanup when umount item*/
-        cmcnplru_node_clone(CMCNP_ITEM_LRU_NODE(cmcnp_item), &cmcnplru_node); /*cloned and saved*/
-
+        /*note: CMCNP_ITEM_QUE_NODE would be cleanup when umount item*/
+        cmcnpque_node_clone(CMCNP_ITEM_QUE_NODE(cmcnp_item), &cmcnpque_node); /*cloned and saved*/
         CMCNP_ASSERT(EC_TRUE == cmcnprb_node_is_used(CMCNP_ITEMS_POOL(cmcnp), node_pos));
         CMCNP_ASSERT(CMCNP_ITEM_IS_USED == CMCNP_ITEM_USED_FLAG(cmcnp_item));
 
@@ -2989,6 +2999,7 @@ EC_BOOL cmcnp_retire(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expec
     return (EC_TRUE);
 }
 
+
 EC_BOOL cmcnp_umount_item(CMCNP *cmcnp, const uint32_t node_pos)
 {
     CMCNP_ITEM *cmcnp_item;
@@ -3031,7 +3042,7 @@ EC_BOOL cmcnp_umount_item(CMCNP *cmcnp, const uint32_t node_pos)
                 CMCNP_ASSERT(EC_FALSE == cmcnp_is_read_only(cmcnp));
 
                 cmcnp_release_key(cmcnp, CMCNP_ITEM_KEY(cmcnp_item));
-                cmcnplru_node_rmv(cmcnp, CMCNP_ITEM_LRU_NODE(cmcnp_item), node_pos);
+                cmcnpque_node_rmv(cmcnp, CMCNP_ITEM_QUE_NODE(cmcnp_item), node_pos);
                 cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
                 cmcnpdel_node_add_tail(cmcnp, CMCNP_ITEM_DEL_NODE(cmcnp_item), node_pos);
             }
@@ -3050,7 +3061,7 @@ EC_BOOL cmcnp_umount_item(CMCNP *cmcnp, const uint32_t node_pos)
             CMCNP_ASSERT(EC_FALSE == cmcnp_is_read_only(cmcnp));
 
             cmcnp_release_key(cmcnp, CMCNP_ITEM_KEY(cmcnp_item));
-            cmcnplru_node_rmv(cmcnp, CMCNP_ITEM_LRU_NODE(cmcnp_item), node_pos);
+            cmcnpque_node_rmv(cmcnp, CMCNP_ITEM_QUE_NODE(cmcnp_item), node_pos);
             cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
             cmcnpdel_node_add_tail(cmcnp, CMCNP_ITEM_DEL_NODE(cmcnp_item), node_pos);
         }
@@ -3223,8 +3234,9 @@ EC_BOOL cmcnp_recycle_dnode_item(CMCNP *cmcnp, CMCNP_DNODE *cmcnp_dnode, CMCNP_I
         cmcnp_recycle_item_file(cmcnp, cmcnp_item, node_pos, cmcnp_recycle_np, cmcnp_recycle_dn);
         CMCNP_DNODE_FILE_NUM(cmcnp_dnode) --;
 
-        /*this file is under a deleted directory in deep. it may be still in LRU list.*/
-        cmcnplru_node_rmv(cmcnp, CMCNP_ITEM_LRU_NODE(cmcnp_item), node_pos);
+        /*this file is under a deleted directory in deep. it may be still in QUE list.*/
+        cmcnpque_node_rmv(cmcnp, CMCNP_ITEM_QUE_NODE(cmcnp_item), node_pos);
+
         cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
 
         cmcnp_item_clean(cmcnp_item);
@@ -3316,7 +3328,7 @@ EC_BOOL cmcnp_recycle_item(CMCNP *cmcnp, CMCNP_ITEM *cmcnp_item, const uint32_t 
 
         CMCNP_RECYCLE_SIZE(cmcnp) += (UINT32)(((UINT32)CMCNP_FNODE_PAGENUM(cmcnp_fnode)) << CMCPGB_PAGE_SIZE_NBITS);
 
-        /*note: this file is in DEL list so that it must not be in LRU list*/
+        /*note: this file is in DEL list so that it must not be in QUE list*/
 
         cmcnp_item_clean(cmcnp_item);
         return (EC_TRUE);
@@ -3446,7 +3458,7 @@ CMCNP *cmcnp_create(const uint32_t np_id, const uint8_t np_model, const UINT32 k
     CMCNP_HDR(cmcnp)      = cmcnp_header;
 
     /*shortcut*/
-    CMCNP_LRU_LIST(cmcnp) = CMCNP_ITEM_LRU_NODE(cmcnp_fetch(cmcnp, CMCNPLRU_ROOT_POS));
+    CMCNP_QUE_LIST(cmcnp) = CMCNP_ITEM_QUE_NODE(cmcnp_fetch(cmcnp, CMCNPQUE_ROOT_POS));
     CMCNP_DEL_LIST(cmcnp) = CMCNP_ITEM_DEL_NODE(cmcnp_fetch(cmcnp, CMCNPDEL_ROOT_POS));
     CMCNP_DEG_LIST(cmcnp) = CMCNP_ITEM_DEG_NODE(cmcnp_fetch(cmcnp, CMCNPDEG_ROOT_POS));
 
@@ -3515,7 +3527,7 @@ CMCNP *cmcnp_create_shm(CMMAP_NODE *cmmap_node, const uint32_t np_id, const uint
     CMCNP_ASSERT(np_id == CMCNP_HEADER_NP_ID(cmcnp_header));
 
     /*shortcut*/
-    CMCNP_LRU_LIST(cmcnp) = CMCNP_ITEM_LRU_NODE(cmcnp_fetch(cmcnp, CMCNPLRU_ROOT_POS));
+    CMCNP_QUE_LIST(cmcnp) = CMCNP_ITEM_QUE_NODE(cmcnp_fetch(cmcnp, CMCNPQUE_ROOT_POS));
     CMCNP_DEL_LIST(cmcnp) = CMCNP_ITEM_DEL_NODE(cmcnp_fetch(cmcnp, CMCNPDEL_ROOT_POS));
     CMCNP_DEG_LIST(cmcnp) = CMCNP_ITEM_DEG_NODE(cmcnp_fetch(cmcnp, CMCNPDEG_ROOT_POS));
 
@@ -3577,7 +3589,7 @@ CMCNP *cmcnp_open_shm(CMMAP_NODE *cmmap_node, const uint32_t np_id, const uint8_
     CMCNP_ASSERT(np_id == CMCNP_HEADER_NP_ID(cmcnp_header));
 
     /*shortcut*/
-    CMCNP_LRU_LIST(cmcnp) = CMCNP_ITEM_LRU_NODE(cmcnp_fetch(cmcnp, CMCNPLRU_ROOT_POS));
+    CMCNP_QUE_LIST(cmcnp) = CMCNP_ITEM_QUE_NODE(cmcnp_fetch(cmcnp, CMCNPQUE_ROOT_POS));
     CMCNP_DEL_LIST(cmcnp) = CMCNP_ITEM_DEL_NODE(cmcnp_fetch(cmcnp, CMCNPDEL_ROOT_POS));
     CMCNP_DEG_LIST(cmcnp) = CMCNP_ITEM_DEG_NODE(cmcnp_fetch(cmcnp, CMCNPDEG_ROOT_POS));
 
@@ -3615,7 +3627,7 @@ EC_BOOL cmcnp_clean(CMCNP *cmcnp)
     CMCNP_DEL_SIZE(cmcnp)     = 0;
     CMCNP_RECYCLE_SIZE(cmcnp) = 0;
 
-    CMCNP_LRU_LIST(cmcnp) = NULL_PTR;
+    CMCNP_QUE_LIST(cmcnp) = NULL_PTR;
     CMCNP_DEL_LIST(cmcnp) = NULL_PTR;
     CMCNP_DEG_LIST(cmcnp) = NULL_PTR;
 

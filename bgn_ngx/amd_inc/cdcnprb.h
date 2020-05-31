@@ -23,7 +23,7 @@ extern "C"{
 #define CDCNPRB_ROOT_POS       ((uint32_t)0)/*31 bits*/
 #define CDCNPRB_ERR_POS        ((uint32_t)0x7FFFFFFF)/*31 bits*/
 
-#define CDCNPRB_POOL_MAX_SIZE  ((uint32_t)(1 << 24))/* < 2^24, about 16,000,000*/
+#define CDCNPRB_POOL_MAX_SIZE  ((uint32_t)(1 << (CAMD_SSD_DISK_MAX_SIZE_NBITS - CAMD_PAGE_SIZE_NBITS)))
 
 typedef struct
 {

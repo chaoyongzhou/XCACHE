@@ -35,6 +35,7 @@ extern "C"{
 
 #include "cmmap.h"
 
+
 #if (SWITCH_ON == CDC_ASSERT_SWITCH)
 #define CDC_ASSERT(condition)   ASSERT(condition)
 #endif/*(SWITCH_ON == CDC_ASSERT_SWITCH)*/
@@ -131,6 +132,36 @@ void cdc_mem_cache_counter_print(LOG *log)
     sys_log(log, "g_cdc_mem_cache_counter: %ld\n", g_cdc_mem_cache_counter);
 }
 
+EC_BOOL cdc_stat_init(CDC_STAT  *cdc_stat)
+{
+    CDC_STAT_SSD_USED_RATIO(cdc_stat)           = 0.00;
+    CDC_STAT_SSD_HIT_RATIO(cdc_stat)            = 0.00;
+
+    CDC_STAT_AMD_READ_SPEED(cdc_stat)           = 0;
+    CDC_STAT_AMD_WRITE_SPEED(cdc_stat)          = 0;
+
+    CDC_STAT_SSD_DEGRADE_RATIO(cdc_stat)        = 0.00;
+    CDC_STAT_SSD_DEGRADE_NUM(cdc_stat)          = 0;
+    CDC_STAT_SSD_DEGRADE_SPEED(cdc_stat)        = 0;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cdc_stat_clean(CDC_STAT  *cdc_stat)
+{
+    CDC_STAT_SSD_USED_RATIO(cdc_stat)           = 0.00;
+    CDC_STAT_SSD_HIT_RATIO(cdc_stat)            = 0.00;
+
+    CDC_STAT_AMD_READ_SPEED(cdc_stat)           = 0;
+    CDC_STAT_AMD_WRITE_SPEED(cdc_stat)          = 0;
+
+    CDC_STAT_SSD_DEGRADE_RATIO(cdc_stat)        = 0.00;
+    CDC_STAT_SSD_DEGRADE_NUM(cdc_stat)          = 0;
+    CDC_STAT_SSD_DEGRADE_SPEED(cdc_stat)        = 0;
+
+    return (EC_TRUE);
+}
+
 /**
 *
 * start CDC module
@@ -147,6 +178,15 @@ CDC_MD *cdc_start(const int ssd_fd, const UINT32 ssd_offset, const UINT32 ssd_di
     UINT32   key_max_num;
 
     init_static_mem();
+
+    if(1)
+    {
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_start: ssd_fd            = %d\n" , ssd_fd);
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_start: ssd_offset        = %ld\n", ssd_offset);
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_start: ssd_disk_size     = %ld\n", ssd_disk_size);
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_start: sata_fd           = %d\n" , sata_fd);
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_start: sata_disk_size    = %ld\n", sata_disk_size);
+    }
 
     if(ERR_FD == ssd_fd)
     {
@@ -179,6 +219,14 @@ CDC_MD *cdc_start(const int ssd_fd, const UINT32 ssd_offset, const UINT32 ssd_di
         f_e_offset = f_size;
     }
 
+    /*sata disk vm size must less than sata disk size*/
+    if(sata_disk_size <= CAMD_SATA_DISK_VM_S_OFFSET)
+    {
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_start: sata disk vm start offset %ld greater than sata disk size %ld\n",
+                                            CAMD_SATA_DISK_VM_S_OFFSET, sata_disk_size);
+        return (NULL_PTR);
+    }
+
     /*one key for one page in sata disk*/
     key_max_num = (sata_disk_size >> CDCPGB_PAGE_SIZE_NBITS);
     dbg_log(SEC_0182_CDC, 9)(LOGSTDOUT, "[DEBUG] cdc_start: "
@@ -196,6 +244,7 @@ CDC_MD *cdc_start(const int ssd_fd, const UINT32 ssd_offset, const UINT32 ssd_di
     /* initialize new one CDC module */
     CDC_MD_SSD_FD(cdc_md)                       = ssd_fd;
     CDC_MD_SATA_FD(cdc_md)                      = sata_fd;
+    CDC_MD_SATA_DISK_SIZE(cdc_md)               = sata_disk_size;
     CDC_MD_S_OFFSET(cdc_md)                     = f_s_offset;
     CDC_MD_E_OFFSET(cdc_md)                     = f_e_offset;
     CDC_MD_C_OFFSET(cdc_md)                     = CDC_ERR_OFFSET;
@@ -203,6 +252,7 @@ CDC_MD *cdc_start(const int ssd_fd, const UINT32 ssd_offset, const UINT32 ssd_di
     CDC_MD_LOCKED_PAGE_NUM(cdc_md)              = 0;
     CDC_MD_DN(cdc_md)                           = NULL_PTR;
     CDC_MD_NP(cdc_md)                           = NULL_PTR;
+    CDC_MD_CUR_DISK_NO(cdc_md)                  = 0;
     CDC_MD_CMMAP_NODE(cdc_md)                   = NULL_PTR;
     CDC_MD_CAIO_MD(cdc_md)                      = NULL_PTR;
     CDC_MD_SSD_BAD_BITMAP(cdc_md)               = NULL_PTR;
@@ -213,6 +263,8 @@ CDC_MD *cdc_start(const int ssd_fd, const UINT32 ssd_offset, const UINT32 ssd_di
     CDC_MD_RDONLY_FLAG(cdc_md)                  = BIT_FALSE;
     CDC_MD_RESTART_FLAG(cdc_md)                 = BIT_FALSE;
     CDC_MD_DONTDUMP_FLAG(cdc_md)                = BIT_FALSE;
+
+    cdc_stat_init(CDC_MD_STAT(cdc_md));
 
     CDC_MD_SEQ_NO(cdc_md)  = 0;
 
@@ -312,12 +364,16 @@ void cdc_end(CDC_MD *cdc_md)
         CDC_MD_RESTART_FLAG(cdc_md)                 = BIT_FALSE;
         CDC_MD_DONTDUMP_FLAG(cdc_md)                = BIT_FALSE;
 
+        CDC_MD_CUR_DISK_NO(cdc_md)                  = 0;
+
         cdcnp_degrade_cb_clean(CDC_MD_NP_DEGRADE_CB(cdc_md));
 
         CDC_MD_SSD_BAD_BITMAP(cdc_md)               = NULL_PTR;
         CDC_MD_SATA_BAD_BITMAP(cdc_md)              = NULL_PTR;
 
         CDC_MD_CMMAP_NODE(cdc_md)                   = NULL_PTR;
+
+        cdc_stat_clean(CDC_MD_STAT(cdc_md));
 
         safe_free(cdc_md, LOC_CDC_0004);
 
@@ -733,9 +789,10 @@ EC_BOOL cdc_try_quit(CDC_MD *cdc_md)
 
     static UINT32  warning_counter = 0; /*suppress warning report*/
 
-    cdc_process(cdc_md, CDC_DEGRADE_TRAFFIC_36MB, (REAL)0.0,
+    cdc_process(cdc_md, 0, CDC_DEGRADE_TRAFFIC_36MB, (REAL)0.0,
                 CDC_READ_TRAFFIC_08MB, CDC_WRITE_TRAFFIC_08MB,
-                CDC_READ_TRAFFIC_08MB, CDC_WRITE_TRAFFIC_08MB); /*process once*/
+                CDC_READ_TRAFFIC_08MB, CDC_WRITE_TRAFFIC_08MB,
+                -1); /*process once*/
 
     tree_idx = 0;
     if(EC_TRUE == cdc_has_page(cdc_md, tree_idx))
@@ -1061,27 +1118,44 @@ EC_BOOL cdc_flow_control_disable_max_speed(CDC_MD *cdc_md)
  *  note: limit cdc degrade traffic <= 30Mbps
  *
  **/
-STATIC_CAST static void __cdc_flow_control(const uint64_t ssd_traffic_bps, const REAL deg_ratio,
-                                                uint64_t *degrade_traffic_bps)
+STATIC_CAST static void __cdc_flow_control(const uint64_t ssd_traffic_write_bps, const uint64_t sata_read_traffic_bps, const uint64_t sata_write_traffic_bps,
+                                                const REAL deg_ratio, uint64_t *degrade_traffic_bps)
 {
     if(CDC_DEGRADE_LO_RATIO > deg_ratio)
     {
-        if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_32MB)
+        if(ssd_traffic_write_bps >= CDC_DEGRADE_TRAFFIC_32MB)
         {
             (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_16MB;
         }
         else
         {
             (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_08MB;
+        }
+
+        if(CDC_DEGRADE_TRAFFIC_08MB >= sata_read_traffic_bps)
+        {
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_24MB;
+        }
+        else if(CDC_DEGRADE_TRAFFIC_16MB >= sata_read_traffic_bps)
+        {
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_16MB;
+        }
+        else if(CDC_DEGRADE_TRAFFIC_24MB >= sata_read_traffic_bps)
+        {
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_08MB;
+        }
+        else
+        {
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_04MB;
         }
     }
     else if(CDC_DEGRADE_MD_RATIO > deg_ratio)
     {
-        if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_32MB)
+        if(ssd_traffic_write_bps >= CDC_DEGRADE_TRAFFIC_32MB)
         {
             (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_24MB;
         }
-        else if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_24MB)
+        else if(ssd_traffic_write_bps >= CDC_DEGRADE_TRAFFIC_24MB)
         {
             (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_16MB;
         }
@@ -1089,16 +1163,50 @@ STATIC_CAST static void __cdc_flow_control(const uint64_t ssd_traffic_bps, const
         {
             (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_08MB;
         }
+
+        if(CDC_DEGRADE_TRAFFIC_08MB >= sata_read_traffic_bps)
+        {
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_24MB;
+        }
+        else if(CDC_DEGRADE_TRAFFIC_16MB >= sata_read_traffic_bps)
+        {
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_16MB;
+        }
+        else if(CDC_DEGRADE_TRAFFIC_24MB >= sata_read_traffic_bps)
+        {
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_08MB;
+        }
+        else
+        {
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_04MB;
+        }
     }
     else if(CDC_DEGRADE_HI_RATIO > deg_ratio)
     {
-        if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_32MB)
+        if(ssd_traffic_write_bps >= CDC_DEGRADE_TRAFFIC_32MB)
         {
             (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_32MB;
         }
-        else if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_24MB)
+        else if(ssd_traffic_write_bps >= CDC_DEGRADE_TRAFFIC_24MB)
         {
             (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_16MB;
+        }
+        else
+        {
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_08MB;
+        }
+
+        if(CDC_DEGRADE_TRAFFIC_08MB >= sata_read_traffic_bps)
+        {
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_24MB;
+        }
+        else if(CDC_DEGRADE_TRAFFIC_16MB >= sata_read_traffic_bps)
+        {
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_16MB;
+        }
+        else if(CDC_DEGRADE_TRAFFIC_24MB >= sata_read_traffic_bps)
+        {
+            (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_08MB;
         }
         else
         {
@@ -1107,11 +1215,11 @@ STATIC_CAST static void __cdc_flow_control(const uint64_t ssd_traffic_bps, const
     }
     else
     {
-        if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_32MB)
+        if(ssd_traffic_write_bps >= CDC_DEGRADE_TRAFFIC_32MB)
         {
             (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_32MB;
         }
-        else if(ssd_traffic_bps >= CDC_DEGRADE_TRAFFIC_24MB)
+        else if(ssd_traffic_write_bps >= CDC_DEGRADE_TRAFFIC_24MB)
         {
             (*degrade_traffic_bps) = CDC_DEGRADE_TRAFFIC_16MB;
         }
@@ -1131,9 +1239,10 @@ STATIC_CAST static void __cdc_flow_control(const uint64_t ssd_traffic_bps, const
 * 2, process CAIO
 *
 **/
-void cdc_process(CDC_MD *cdc_md, const uint64_t ssd_traffic_bps, const REAL ssd_hit_ratio,
+void cdc_process(CDC_MD *cdc_md, const uint64_t ssd_traffic_read_bps, const uint64_t ssd_traffic_write_bps, const REAL ssd_hit_ratio,
                  const uint64_t amd_read_traffic_bps, const uint64_t amd_write_traffic_bps,
-                 const uint64_t sata_read_traffic_bps, const uint64_t sata_write_traffic_bps)
+                 const uint64_t sata_read_traffic_bps, const uint64_t sata_write_traffic_bps,
+                 int64_t punish_degrade_traffic_bps)
 {
     uint64_t    degrade_traffic_bps;
 
@@ -1159,15 +1268,22 @@ void cdc_process(CDC_MD *cdc_md, const uint64_t ssd_traffic_bps, const REAL ssd_
     retire_complete_num  = 0;
     recycle_complete_num = 0;
 
-    __cdc_flow_control(ssd_traffic_bps,
+    __cdc_flow_control(ssd_traffic_write_bps,
+                       sata_read_traffic_bps,
+                       sata_write_traffic_bps,
                        deg_ratio,
                        &degrade_traffic_bps);
 
+    if(0 < punish_degrade_traffic_bps)
+    {
+        degrade_traffic_bps = punish_degrade_traffic_bps;
+    }
     if(BIT_TRUE == CDC_MD_FC_MAX_SPEED_FLAG(cdc_md))
     {
         /*override*/
         degrade_traffic_bps = CDC_DEGRADE_TRAFFIC_36MB;
     }
+    #if 0
     else
     {
         if(CDC_READ_TRAFFIC_08MB  >= amd_read_traffic_bps
@@ -1229,6 +1345,7 @@ void cdc_process(CDC_MD *cdc_md, const uint64_t ssd_traffic_bps, const REAL ssd_
         }
 
     }
+    #endif
 
     cdc_process_degrades(cdc_md, degrade_traffic_bps,
                          (UINT32)CDC_SCAN_DEGRADE_MAX_NUM,
@@ -1268,13 +1385,21 @@ void cdc_process(CDC_MD *cdc_md, const uint64_t ssd_traffic_bps, const REAL ssd_
     || 0 < retire_complete_num
     || 0 < recycle_complete_num)
     {
+        CDC_STAT        *cdc_stat;
+
         dbg_log(SEC_0182_CDC, 2)(LOGSTDOUT, "[DEBUG] cdc_process: "
-                                            "used %.2f, r/w %ld/%ld MBps, hit %.2f, "
+                                            "used %.2f, amd r/w %ld/%ld MBps, "
+                                            "ssd r/w %ld/%ld, "
+                                            "sata r/w %ld/%ld MBps, hit %.2f, "
                                             "deg: %u, %.2f, %ld MBps, "
                                             "=> degrade %ld, retire %ld, recycle %ld\n",
                                             used_ratio,
                                             amd_read_traffic_bps >> 23,
                                             amd_write_traffic_bps >> 23,
+                                            ssd_traffic_read_bps >> 23,
+                                            ssd_traffic_write_bps >> 23,
+                                            sata_read_traffic_bps >> 23,
+                                            sata_write_traffic_bps >> 23,
                                             ssd_hit_ratio,
                                             deg_num,
                                             deg_ratio,
@@ -1282,6 +1407,19 @@ void cdc_process(CDC_MD *cdc_md, const uint64_t ssd_traffic_bps, const REAL ssd_
                                             degrade_complete_num,
                                             retire_complete_num,
                                             recycle_complete_num);
+
+        /*update statistics*/
+        cdc_stat = CDC_MD_STAT(cdc_md);
+
+        CDC_STAT_SSD_USED_RATIO(cdc_stat)           = used_ratio;
+        CDC_STAT_SSD_HIT_RATIO(cdc_stat)            = ssd_hit_ratio;
+
+        CDC_STAT_AMD_READ_SPEED(cdc_stat)           = (amd_read_traffic_bps >> 23);
+        CDC_STAT_AMD_WRITE_SPEED(cdc_stat)          = (amd_write_traffic_bps >> 23);
+
+        CDC_STAT_SSD_DEGRADE_RATIO(cdc_stat)        = deg_ratio;
+        CDC_STAT_SSD_DEGRADE_NUM(cdc_stat)          = deg_num;
+        CDC_STAT_SSD_DEGRADE_SPEED(cdc_stat)        = (degrade_traffic_bps >> 23);
     }
 
 #if 0
@@ -1440,6 +1578,7 @@ EC_BOOL cdc_create_np(CDC_MD *cdc_md, UINT32 *s_offset, const UINT32 e_offset, c
 
     /*inherit from cdc module*/
     CDCNP_FD(cdcnp)             = CDC_MD_SSD_FD(cdc_md);
+    CDCNP_SATA_DISK_SIZE(cdcnp) = CDC_MD_SATA_DISK_SIZE(cdc_md);
 
     CDC_MD_NP(cdc_md)           = cdcnp;
     CDC_MD_SHM_NP_FLAG(cdc_md)  = BIT_FALSE;
@@ -1496,6 +1635,7 @@ EC_BOOL cdc_create_np_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offs
 
     /*inherit from cdc module*/
     CDCNP_FD(cdcnp)             = CDC_MD_SSD_FD(cdc_md);
+    CDCNP_SATA_DISK_SIZE(cdcnp) = CDC_MD_SATA_DISK_SIZE(cdc_md);
 
     CDC_MD_NP(cdc_md)           = cdcnp;
     CDC_MD_SHM_NP_FLAG(cdc_md)  = BIT_TRUE;
@@ -1592,6 +1732,7 @@ EC_BOOL cdc_load_np(CDC_MD *cdc_md, UINT32 *s_offset, const UINT32 e_offset)
 
     /*inherit caio from cdc*/
     CDCNP_FD(cdcnp)             = CDC_MD_SSD_FD(cdc_md);
+    CDCNP_SATA_DISK_SIZE(cdcnp) = CDC_MD_SATA_DISK_SIZE(cdc_md);
 
     CDC_MD_NP(cdc_md)           = cdcnp;/*bind*/
     CDC_MD_SHM_NP_FLAG(cdc_md)  = BIT_FALSE;
@@ -1653,6 +1794,7 @@ EC_BOOL cdc_load_np_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offset
 
     /*inherit caio from cdc*/
     CDCNP_FD(cdcnp)             = CDC_MD_SSD_FD(cdc_md);
+    CDCNP_SATA_DISK_SIZE(cdcnp) = CDC_MD_SATA_DISK_SIZE(cdc_md);
 
     CDC_MD_NP(cdc_md)           = cdcnp;/*bind*/
     CDC_MD_SHM_NP_FLAG(cdc_md)  = BIT_TRUE;
@@ -1708,6 +1850,7 @@ EC_BOOL cdc_retrieve_np_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_of
 
     /*inherit caio from cdc*/
     CDCNP_FD(cdcnp)             = CDC_MD_SSD_FD(cdc_md);
+    CDCNP_SATA_DISK_SIZE(cdcnp) = CDC_MD_SATA_DISK_SIZE(cdc_md);
 
     CDC_MD_NP(cdc_md)           = cdcnp;/*bind*/
     CDC_MD_SHM_NP_FLAG(cdc_md)  = BIT_TRUE;
@@ -2053,10 +2196,12 @@ EC_BOOL cdc_close_dn(CDC_MD *cdc_md)
 *  reserve space from dn
 *
 **/
-STATIC_CAST static EC_BOOL __cdc_reserve_hash_dn(CDC_MD *cdc_md, const UINT32 data_len, const uint32_t path_hash, CDCNP_FNODE *cdcnp_fnode)
+STATIC_CAST static EC_BOOL __cdc_reserve_hash_dn(CDC_MD *cdc_md, const CDCNP_KEY *cdcnp_key, const UINT32 data_len, CDCNP_FNODE *cdcnp_fnode)
 {
     CDCNP_INODE *cdcnp_inode;
     CDCPGV      *cdcpgv;
+
+    uint32_t path_hash;
 
     uint32_t size;
     uint16_t disk_no;
@@ -2097,6 +2242,8 @@ STATIC_CAST static EC_BOOL __cdc_reserve_hash_dn(CDC_MD *cdc_md, const UINT32 da
         return (EC_FALSE);
     }
 
+    path_hash = cdcnp_key_hash(cdcnp_key);
+
     fail_tries = 0;
     for(;;)
     {
@@ -2135,7 +2282,7 @@ STATIC_CAST static EC_BOOL __cdc_reserve_hash_dn(CDC_MD *cdc_md, const UINT32 da
     CDC_ASSERT(CDCPGB_PAGE_SIZE_NBYTES == size);
 
     cdcnp_fnode_init(cdcnp_fnode);
-    CDCNP_FNODE_PAGENUM(cdcnp_fnode) = (uint16_t)(size >> CDCPGB_PAGE_SIZE_NBITS);
+    CDCNP_FNODE_PAGENUM(cdcnp_fnode) = (uint16_t)((size + CDCPGB_PAGE_SIZE_NBYTES - 1) >> CDCPGB_PAGE_SIZE_NBITS);
     CDCNP_FNODE_REPNUM(cdcnp_fnode)  = 1;
 
     cdcnp_inode = CDCNP_FNODE_INODE(cdcnp_fnode, 0);
@@ -2144,6 +2291,111 @@ STATIC_CAST static EC_BOOL __cdc_reserve_hash_dn(CDC_MD *cdc_md, const UINT32 da
     CDCNP_INODE_PAGE_NO(cdcnp_inode)    = page_no;
 
     return (EC_TRUE);
+}
+
+
+/**
+*
+*  reserve space from dn
+*
+**/
+STATIC_CAST static EC_BOOL __cdc_reserve_dn(CDC_MD *cdc_md, const UINT32 data_len, CDCNP_FNODE *cdcnp_fnode)
+{
+    CDCNP_INODE *cdcnp_inode;
+    CDCPGV      *cdcpgv;
+    CDCPGD      *cdcpgd;
+
+    uint32_t     size;
+    uint16_t     disk_no;
+    uint16_t     block_no;
+    uint16_t     page_no;
+
+    uint16_t     disk_idx;
+    uint16_t     disk_num;
+
+    if(CDCPGB_SIZE_NBYTES <= data_len)
+    {
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:__cdc_reserve_hash_dn: "
+                                            "data_len %ld overflow\n",
+                                            data_len);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CDC_MD_DN(cdc_md))
+    {
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:__cdc_reserve_hash_dn: no dn was open\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CDCDN_CDCPGV(CDC_MD_DN(cdc_md)))
+    {
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:__cdc_reserve_hash_dn: no pgv exist\n");
+        return (EC_FALSE);
+    }
+
+    cdcpgv = CDCDN_CDCPGV(CDC_MD_DN(cdc_md));
+    if(NULL_PTR == CDCPGV_HEADER(cdcpgv))
+    {
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:__cdc_reserve_hash_dn: pgv header is null\n");
+        return (EC_FALSE);
+    }
+
+    if(0 == CDCPGV_PAGE_DISK_NUM(cdcpgv))
+    {
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:__cdc_reserve_hash_dn: pgv has no disk yet\n");
+        return (EC_FALSE);
+    }
+
+    CDC_ASSERT(CDCPGB_PAGE_SIZE_NBYTES == size);
+
+    size    = (uint32_t)(data_len);
+
+    disk_num = CDCPGV_PAGE_DISK_NUM(cdcpgv);
+    disk_no  = CDC_MD_CUR_DISK_NO(cdc_md);
+
+    for(disk_idx = 0; disk_idx < disk_num; disk_idx ++)
+    {
+        cdcpgd = CDCPGV_DISK_NODE(cdcpgv, disk_no);
+
+        if(EC_TRUE == cdcpgd_is_full(cdcpgd))
+        {
+            /*move to next disk*/
+            disk_no = (disk_no + 1) % disk_num;
+            CDC_MD_CUR_DISK_NO(cdc_md) = disk_no;
+            continue;
+        }
+
+        if(EC_TRUE == cdcpgv_new_space_from_disk(cdcpgv, size, disk_no, &block_no, &page_no))
+        {
+            cdcnp_fnode_init(cdcnp_fnode);
+            CDCNP_FNODE_PAGENUM(cdcnp_fnode) = (uint16_t)((size + CDCPGB_PAGE_SIZE_NBYTES - 1) >> CDCPGB_PAGE_SIZE_NBITS);
+            CDCNP_FNODE_REPNUM(cdcnp_fnode)  = 1;
+
+            cdcnp_inode = CDCNP_FNODE_INODE(cdcnp_fnode, 0);
+            CDCNP_INODE_DISK_NO(cdcnp_inode)    = disk_no;
+            CDCNP_INODE_BLOCK_NO(cdcnp_inode)   = block_no;
+            CDCNP_INODE_PAGE_NO(cdcnp_inode)    = page_no;
+
+            return (EC_TRUE);
+        }
+
+        /*move to next disk*/
+        disk_no = (disk_no + 1) % disk_num;
+        CDC_MD_CUR_DISK_NO(cdc_md) = disk_no;
+
+        /*try to retire & recycle some files*/
+        dbg_log(SEC_0182_CDC, 7)(LOGSTDOUT, "warn:__cdc_reserve_hash_dn: "
+                                            "no %ld bytes space, try to retire & recycle\n",
+                                            data_len);
+
+        cdc_retire(cdc_md, (UINT32)CDC_TRY_RETIRE_MAX_NUM, NULL_PTR);
+        cdc_recycle(cdc_md, (UINT32)CDC_TRY_RECYCLE_MAX_NUM, NULL_PTR);
+    }
+
+    dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error::__cdc_reserve_hash_dn: "
+                                        "no %ld bytes space\n",
+                                        data_len);
+    return (EC_FALSE);
 }
 
 /**
@@ -2183,7 +2435,7 @@ EC_BOOL cdc_reserve_dn(CDC_MD *cdc_md, const UINT32 data_len, CDCNP_FNODE *cdcnp
     CDC_ASSERT(CDCPGB_PAGE_SIZE_NBYTES == size);
 
     cdcnp_fnode_init(cdcnp_fnode);
-    CDCNP_FNODE_PAGENUM(cdcnp_fnode) = (uint16_t)(size >> CDCPGB_PAGE_SIZE_NBITS);
+    CDCNP_FNODE_PAGENUM(cdcnp_fnode) = (uint16_t)((size + CDCPGB_PAGE_SIZE_NBYTES - 1) >> CDCPGB_PAGE_SIZE_NBITS);
     CDCNP_FNODE_REPNUM(cdcnp_fnode)  = 1;
 
     cdcnp_inode = CDCNP_FNODE_INODE(cdcnp_fnode, 0);
@@ -2228,7 +2480,7 @@ EC_BOOL cdc_release_dn(CDC_MD *cdc_md, const CDCNP_FNODE *cdcnp_fnode)
     /*refer cdc_page_write: when file size is zero, only reserve np but no dn space*/
     if(0 == file_size)
     {
-        dbg_log(SEC_0182_CDC, 1)(LOGSTDOUT, "warn:cdc_release_dn: file_size is zero\n");
+        dbg_log(SEC_0182_CDC, 3)(LOGSTDOUT, "warn:cdc_release_dn: file_size is zero\n");
         return (EC_TRUE);/*Jan 4,2017 modify it from EC_FALSE to EC_TRUE*/
     }
 
@@ -2332,7 +2584,7 @@ CDCNP_ITEM *cdc_find(CDC_MD *cdc_md, const CDCNP_KEY *cdcnp_key)
 
     if(NULL_PTR == CDC_MD_NP(cdc_md))
     {
-        dbg_log(SEC_0182_CDC, 1)(LOGSTDOUT, "warn:cdc_find: np was not open\n");
+        dbg_log(SEC_0182_CDC, 3)(LOGSTDOUT, "warn:cdc_find: np was not open\n");
         return (NULL_PTR);
     }
 
@@ -2392,7 +2644,7 @@ EC_BOOL cdc_file_read(CDC_MD *cdc_md, UINT32 *offset, const UINT32 rsize, UINT8 
 
         if(EC_FALSE == cdcnp_has_key(CDC_MD_NP(cdc_md), &cdcnp_key))
         {
-            dbg_log(SEC_0182_CDC, 1)(LOGSTDOUT, "warn:cdc_file_read: ssd miss page %ld\n",
+            dbg_log(SEC_0182_CDC, 3)(LOGSTDOUT, "warn:cdc_file_read: ssd miss page %ld\n",
                             s_page);
             break;
         }
@@ -2660,7 +2912,7 @@ EC_BOOL cdc_file_delete(CDC_MD *cdc_md, UINT32 *offset, const UINT32 dsize)
             else
             {
                 CDC_ASSERT(CDCPGB_PAGE_SIZE_NBYTES == (uint32_t)offset_t);
-                CDCNP_FNODE_PAGENUM(&cdcnp_fnode) = (uint16_t)((uint32_t)offset_t >> CDCPGB_PAGE_SIZE_NBITS);
+                CDCNP_FNODE_PAGENUM(&cdcnp_fnode) = (uint16_t)(((uint32_t)offset_t + CDCPGB_PAGE_SIZE_NBYTES - 1) >> CDCPGB_PAGE_SIZE_NBITS);
 
                 if(EC_FALSE == cdcnp_update(CDC_MD_NP(cdc_md), &cdcnp_key, &cdcnp_fnode))
                 {
@@ -3017,7 +3269,6 @@ EC_BOOL cdc_page_reserve(CDC_MD *cdc_md, CDC_PAGE *cdc_page, const CDCNP_KEY *cd
 
     UINT32        page_num;
     UINT32        data_len;
-    uint32_t      path_hash;
 
     uint32_t      cdcnp_item_pos;
 
@@ -3038,8 +3289,6 @@ EC_BOOL cdc_page_reserve(CDC_MD *cdc_md, CDC_PAGE *cdc_page, const CDCNP_KEY *cd
     }
     cdcnp_fnode = CDCNP_ITEM_FNODE(cdcnp_item);
 
-    path_hash = cdcnp_key_hash(cdcnp_key);
-
     /*note: when reserve space from data node, the length depends on cdcnp_key but not cbytes*/
     page_num  = (CDCNP_KEY_E_PAGE(cdcnp_key) - CDCNP_KEY_S_PAGE(cdcnp_key));
     data_len  = (page_num << CDCPGB_PAGE_SIZE_NBITS);
@@ -3055,9 +3304,21 @@ EC_BOOL cdc_page_reserve(CDC_MD *cdc_md, CDC_PAGE *cdc_page, const CDCNP_KEY *cd
             UINT32           d_s_offset;
             uint32_t         page_no;
 
-            if(EC_FALSE == __cdc_reserve_hash_dn(cdc_md, data_len, path_hash, cdcnp_fnode))
+            if(SWITCH_ON == CDC_LRU_MODEL_SWITCH
+            && EC_FALSE == __cdc_reserve_hash_dn(cdc_md, cdcnp_key, data_len, cdcnp_fnode))
             {
-                dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_page_reserve: reserve dn %ld bytes failed\n",
+                dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_page_reserve: [lru] reserve dn %ld bytes failed\n",
+                                data_len);
+
+                __cdc_release_np(cdc_md, cdcnp_key);
+
+                return (EC_FALSE);
+            }
+
+            if(SWITCH_ON == CDC_FIFO_MODEL_SWITCH
+            && EC_FALSE == __cdc_reserve_dn(cdc_md, data_len, cdcnp_fnode))
+            {
+                dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_page_reserve: [fifo] reserve dn %ld bytes failed\n",
                                 data_len);
 
                 __cdc_release_np(cdc_md, cdcnp_key);
@@ -3111,7 +3372,7 @@ EC_BOOL cdc_page_reserve(CDC_MD *cdc_md, CDC_PAGE *cdc_page, const CDCNP_KEY *cd
     else
     {
         /*when fnode is duplicate, update file size*/
-        CDCNP_FNODE_PAGENUM(cdcnp_fnode) = (uint16_t)(data_len >> CDCPGB_PAGE_SIZE_NBITS);
+        CDCNP_FNODE_PAGENUM(cdcnp_fnode) = (uint16_t)((data_len + CDCPGB_PAGE_SIZE_NBYTES - 1) >> CDCPGB_PAGE_SIZE_NBITS);
     }
 
     CDC_PAGE_CDCNP_ITEM(cdc_page)     = cdcnp_item;
@@ -3316,7 +3577,6 @@ EC_BOOL cdc_page_write(CDC_MD *cdc_md, const CDCNP_KEY *cdcnp_key, const CBYTES 
     UINT32        page_num;
     UINT32        space_len;
     UINT32        data_len;
-    uint32_t      path_hash;
 
     CDC_ASSERT(CDCNP_KEY_S_PAGE(cdcnp_key) + 1 == CDCNP_KEY_E_PAGE(cdcnp_key));
 
@@ -3335,14 +3595,12 @@ EC_BOOL cdc_page_write(CDC_MD *cdc_md, const CDCNP_KEY *cdcnp_key, const CBYTES 
     }
     cdcnp_fnode = CDCNP_ITEM_FNODE(cdcnp_item);
 
-    path_hash = cdcnp_key_hash(cdcnp_key);
-
     /*exception*/
     if(0 == CBYTES_LEN(cbytes))
     {
         cdcnp_fnode_init(cdcnp_fnode);
 
-        if(do_log(SEC_0182_CDC, 1))
+        if(do_log(SEC_0182_CDC, 3))
         {
             sys_log(LOGSTDOUT, "warn:cdc_page_write: write with zero len to dn where fnode is \n");
             cdcnp_fnode_print(LOGSTDOUT, cdcnp_fnode);
@@ -3361,9 +3619,21 @@ EC_BOOL cdc_page_write(CDC_MD *cdc_md, const CDCNP_KEY *cdcnp_key, const CBYTES 
     /*when fnode is duplicate, do not reserve data node anymore*/
     if(0 == CDCNP_FNODE_REPNUM(cdcnp_fnode))
     {
-        if(EC_FALSE == __cdc_reserve_hash_dn(cdc_md, data_len, path_hash, cdcnp_fnode))
+        if(SWITCH_ON == CDC_LRU_MODEL_SWITCH
+        && EC_FALSE == __cdc_reserve_hash_dn(cdc_md, cdcnp_key, data_len, cdcnp_fnode))
         {
-            dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_page_write: reserve dn %ld bytes failed\n",
+            dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_page_write: [lru] reserve dn %ld bytes failed\n",
+                            data_len);
+
+            __cdc_release_np(cdc_md, cdcnp_key);
+
+            return (EC_FALSE);
+        }
+
+        if(SWITCH_ON == CDC_FIFO_MODEL_SWITCH
+        && EC_FALSE == __cdc_reserve_dn(cdc_md, data_len, cdcnp_fnode))
+        {
+            dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_page_write: [fifo] reserve dn %ld bytes failed\n",
                             data_len);
 
             __cdc_release_np(cdc_md, cdcnp_key);
@@ -3374,7 +3644,7 @@ EC_BOOL cdc_page_write(CDC_MD *cdc_md, const CDCNP_KEY *cdcnp_key, const CBYTES 
     else
     {
         /*when fnode is duplicate, update file size*/
-        CDCNP_FNODE_PAGENUM(cdcnp_fnode) = (uint16_t)(data_len >> CDCPGB_PAGE_SIZE_NBITS);
+        CDCNP_FNODE_PAGENUM(cdcnp_fnode) = (uint16_t)((data_len + CDCPGB_PAGE_SIZE_NBYTES - 1) >> CDCPGB_PAGE_SIZE_NBITS);
     }
 
     if(EC_FALSE == cdc_export_dn(cdc_md, cbytes, cdcnp_fnode))
@@ -3414,7 +3684,7 @@ EC_BOOL cdc_page_read(CDC_MD *cdc_md, const CDCNP_KEY *cdcnp_key, CBYTES *cbytes
 
     if(EC_FALSE == cdcnp_read(CDC_MD_NP(cdc_md), cdcnp_key, &cdcnp_fnode))
     {
-        dbg_log(SEC_0182_CDC, 1)(LOGSTDOUT, "warn:cdc_page_read: read from np failed\n");
+        dbg_log(SEC_0182_CDC, 3)(LOGSTDOUT, "warn:cdc_page_read: read from np failed\n");
         return (EC_FALSE);
     }
 
@@ -3423,7 +3693,7 @@ EC_BOOL cdc_page_read(CDC_MD *cdc_md, const CDCNP_KEY *cdcnp_key, CBYTES *cbytes
     /*exception*/
     if(0 == CDCNP_FNODE_PAGENUM(&cdcnp_fnode))
     {
-        dbg_log(SEC_0182_CDC, 1)(LOGSTDOUT, "warn:cdc_page_read: read with zero len from np and fnode %p is \n", &cdcnp_fnode);
+        dbg_log(SEC_0182_CDC, 3)(LOGSTDOUT, "warn:cdc_page_read: read with zero len from np and fnode %p is \n", &cdcnp_fnode);
         return (EC_TRUE);
     }
 
@@ -3521,7 +3791,7 @@ EC_BOOL cdc_page_read_e(CDC_MD *cdc_md, const CDCNP_KEY *cdcnp_key, UINT32 *offs
     /*exception*/
     if(0 == CDCNP_FNODE_PAGENUM(&cdcnp_fnode))
     {
-        dbg_log(SEC_0182_CDC, 1)(LOGSTDOUT, "warn:cdc_page_read_e: read with zero len from np and fnode %p is \n", &cdcnp_fnode);
+        dbg_log(SEC_0182_CDC, 3)(LOGSTDOUT, "warn:cdc_page_read_e: read with zero len from np and fnode %p is \n", &cdcnp_fnode);
         cdcnp_fnode_print(LOGSTDOUT, &cdcnp_fnode);
         return (EC_TRUE);
     }
@@ -3644,7 +3914,7 @@ EC_BOOL cdc_write_dn(CDC_MD *cdc_md, const CBYTES *cbytes, CDCNP_FNODE *cdcnp_fn
     data_len = CBYTES_LEN(cbytes);
     CDC_ASSERT(CDCPGB_PAGE_SIZE_NBYTES == data_len);
 
-    CDCNP_FNODE_PAGENUM(cdcnp_fnode) = (uint16_t)(data_len >> CDCPGB_PAGE_SIZE_NBITS);
+    CDCNP_FNODE_PAGENUM(cdcnp_fnode) = (uint16_t)((data_len + CDCPGB_PAGE_SIZE_NBYTES - 1) >> CDCPGB_PAGE_SIZE_NBITS);
     CDCNP_FNODE_REPNUM(cdcnp_fnode)  = 1;
 
     return (EC_TRUE);
@@ -3789,7 +4059,7 @@ EC_BOOL cdc_write_e_dn(CDC_MD *cdc_md, CDCNP_FNODE *cdcnp_fnode, UINT32 *offset,
     {
         /*update file size info*/
         CDC_ASSERT((*offset) == CDCPGB_PAGE_SIZE_NBYTES);
-        CDCNP_FNODE_PAGENUM(cdcnp_fnode) = (uint16_t)((*offset) >> CDCPGB_PAGE_SIZE_NBITS);
+        CDCNP_FNODE_PAGENUM(cdcnp_fnode) = (uint16_t)(((*offset) + CDCPGB_PAGE_SIZE_NBYTES - 1) >> CDCPGB_PAGE_SIZE_NBITS);
     }
 
     return (EC_TRUE);
@@ -3908,7 +4178,7 @@ EC_BOOL cdc_page_delete(CDC_MD *cdc_md, const CDCNP_KEY *cdcnp_key)
 
     if(NULL_PTR == CDC_MD_NP(cdc_md))
     {
-        dbg_log(SEC_0182_CDC, 1)(LOGSTDOUT, "warn:cdc_page_delete: np was not open\n");
+        dbg_log(SEC_0182_CDC, 3)(LOGSTDOUT, "warn:cdc_page_delete: np was not open\n");
         return (EC_FALSE);
     }
 
@@ -3994,7 +4264,7 @@ EC_BOOL cdc_file_num(CDC_MD *cdc_md, UINT32 *file_num)
 
     if(NULL_PTR == CDC_MD_NP(cdc_md))
     {
-        dbg_log(SEC_0182_CDC, 1)(LOGSTDOUT, "warn:cdc_file_num: np was not open\n");
+        dbg_log(SEC_0182_CDC, 3)(LOGSTDOUT, "warn:cdc_file_num: np was not open\n");
         return (EC_FALSE);
     }
 
@@ -4027,7 +4297,7 @@ EC_BOOL cdc_file_size(CDC_MD *cdc_md, const CDCNP_KEY *cdcnp_key, UINT32 *file_s
 
     if(NULL_PTR == CDC_MD_NP(cdc_md))
     {
-        dbg_log(SEC_0182_CDC, 1)(LOGSTDOUT, "warn:cdc_file_size: np was not open\n");
+        dbg_log(SEC_0182_CDC, 3)(LOGSTDOUT, "warn:cdc_file_size: np was not open\n");
         return (EC_FALSE);
     }
 
@@ -4116,7 +4386,7 @@ EC_BOOL cdc_search(CDC_MD *cdc_md, const CDCNP_KEY *cdcnp_key, uint32_t *node_po
 
     if(NULL_PTR == CDC_MD_NP(cdc_md))
     {
-        dbg_log(SEC_0182_CDC, 1)(LOGSTDOUT, "warn:cdc_search: np was not open\n");
+        dbg_log(SEC_0182_CDC, 3)(LOGSTDOUT, "warn:cdc_search: np was not open\n");
         return (EC_FALSE);
     }
 
@@ -4154,7 +4424,7 @@ EC_BOOL cdc_recycle(CDC_MD *cdc_md, const UINT32 max_num, UINT32 *complete_num)
 
     if(NULL_PTR == CDC_MD_NP(cdc_md))
     {
-        dbg_log(SEC_0182_CDC, 1)(LOGSTDOUT, "warn:cdc_recycle: np was not open\n");
+        dbg_log(SEC_0182_CDC, 3)(LOGSTDOUT, "warn:cdc_recycle: np was not open\n");
         return (EC_FALSE);
     }
 
@@ -4195,7 +4465,7 @@ EC_BOOL cdc_retire(CDC_MD *cdc_md, const UINT32 max_num, UINT32 *complete_num)
 
     if(NULL_PTR == CDC_MD_NP(cdc_md))
     {
-        dbg_log(SEC_0182_CDC, 1)(LOGSTDOUT, "warn:cdc_retire: np was not open\n");
+        dbg_log(SEC_0182_CDC, 3)(LOGSTDOUT, "warn:cdc_retire: np was not open\n");
         return (EC_FALSE);
     }
 
@@ -4230,7 +4500,7 @@ EC_BOOL cdc_degrade(CDC_MD *cdc_md, const UINT32 max_num, UINT32 *complete_num)
 
     if(NULL_PTR == CDC_MD_NP(cdc_md))
     {
-        dbg_log(SEC_0182_CDC, 1)(LOGSTDOUT, "warn:cdc_degrade: np was not open\n");
+        dbg_log(SEC_0182_CDC, 3)(LOGSTDOUT, "warn:cdc_degrade: np was not open\n");
         return (EC_FALSE);
     }
 
@@ -4303,11 +4573,11 @@ EC_BOOL cdc_show_np(const CDC_MD *cdc_md, LOG *log)
 
 /**
 *
-*  show name node LRU
+*  show name node QUE
 *
 *
 **/
-EC_BOOL cdc_show_np_lru_list(const CDC_MD *cdc_md, LOG *log)
+EC_BOOL cdc_show_np_que_list(const CDC_MD *cdc_md, LOG *log)
 {
     if(NULL_PTR == CDC_MD_NP(cdc_md))
     {
@@ -4315,7 +4585,7 @@ EC_BOOL cdc_show_np_lru_list(const CDC_MD *cdc_md, LOG *log)
         return (EC_TRUE);
     }
 
-    cdcnp_print_lru_list(log, CDC_MD_NP(cdc_md));
+    cdcnp_print_que_list(log, CDC_MD_NP(cdc_md));
 
     return (EC_TRUE);
 }
@@ -4406,7 +4676,7 @@ EC_BOOL cdc_show_files(const CDC_MD *cdc_md, LOG *log)
 {
     if(NULL_PTR == CDC_MD_NP(cdc_md))
     {
-        dbg_log(SEC_0182_CDC, 1)(LOGSTDOUT, "warn:cdc_show_files: np was not open\n");
+        dbg_log(SEC_0182_CDC, 3)(LOGSTDOUT, "warn:cdc_show_files: np was not open\n");
         return (EC_FALSE);
     }
 
@@ -7374,15 +7644,62 @@ void cdc_process_degrades(CDC_MD *cdc_md, const uint64_t degrade_traffic_bps,
         {
             uint64_t    time_msec_cost; /*msec cost for degrading from ssd to sata*/
 
-            /*degrade 4MB at most once time*/
-            cdcnp_degrade(CDC_MD_NP(cdc_md), scan_max_num, expect_degrade_num, &complete_degrade_num_t);
-
-            if(0 == complete_degrade_num_t)
+            if(degrade_traffic_bps >= CDC_DEGRADE_TRAFFIC_02MB)
             {
-                break; /*fall through*/
+                /*degrade 2MB at most once time*/
+                cdcnp_degrade(CDC_MD_NP(cdc_md), scan_max_num, expect_degrade_num, &complete_degrade_num_t);
+
+                if(0 == complete_degrade_num_t)
+                {
+                    break; /*fall through*/
+                }
             }
 
-            if(degrade_traffic_bps <= CDC_DEGRADE_TRAFFIC_08MB) /*8MB/s*/
+            if(degrade_traffic_bps <= CDC_DEGRADE_TRAFFIC_02MB) /*2MB/s*/
+            {
+                /*
+                *
+                * if flow control is 2MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (2MB/s)
+                *                = ((n * 2^m * 500) / (2^20)) ms
+                *                = (((n * 500) << m) >> 20) ms
+                * where 2^m is cdc page size in bytes.
+                * e.g.,
+                * when cdc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 500
+                * if n = 8 , time cost msec = 250
+                * if n = 4 , time cost msec = 125
+                * if n = 2 , time cost msec = 62
+                * if n = 1 , time cost msec = 31
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 500) << CDCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else if(degrade_traffic_bps <= CDC_DEGRADE_TRAFFIC_04MB) /*4MB/s*/
+            {
+                /*
+                *
+                * if flow control is 4MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (4MB/s)
+                *                = ((n * 2^m * 250) / (2^20)) ms
+                *                = (((n * 250) << m) >> 20) ms
+                * where 2^m is cdc page size in bytes.
+                * e.g.,
+                * when cdc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 500
+                * if n = 8 , time cost msec = 250
+                * if n = 4 , time cost msec = 125
+                * if n = 2 , time cost msec = 62
+                * if n = 1 , time cost msec = 31
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 250) << CDCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else if(degrade_traffic_bps <= CDC_DEGRADE_TRAFFIC_08MB) /*8MB/s*/
             {
                 /*
                 *
@@ -7964,7 +8281,7 @@ EC_BOOL cdc_locate_page(CDC_MD *cdc_md, CDC_PAGE *cdc_page)
     return (EC_TRUE);
 }
 
-/*map page range to disk range with LRU modification*/
+/*map page range to disk range with LRU modification or without FIFO modificaton*/
 EC_BOOL cdc_map_page(CDC_MD *cdc_md, CDC_PAGE *cdc_page)
 {
     CDCNP_KEY       cdcnp_key;

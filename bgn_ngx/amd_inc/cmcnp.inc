@@ -26,7 +26,7 @@ extern "C"{
 #include "log.h"
 
 #include "cmcnprb.h"
-#include "cmcnplru.inc"
+#include "cmcnpque.inc"
 #include "cmcnpdel.inc"
 #include "cmcnpdeg.inc"
 
@@ -144,7 +144,7 @@ typedef struct
     uint32_t        parent_pos;/*parent directory*/
 
     /*8B*/
-    CMCNPLRU_NODE   lru_node;
+    CMCNPQUE_NODE   que_node;
 
     /*8B*/
     CMCNPDEL_NODE   del_node;
@@ -171,7 +171,9 @@ typedef struct
 #define CMCNP_ITEM_PARENT_POS(cmcnp_item)       ((cmcnp_item)->parent_pos)
 #define CMCNP_ITEM_FNODE(cmcnp_item)            (&((cmcnp_item)->u.fnode))
 #define CMCNP_ITEM_DNODE(cmcnp_item)            (&((cmcnp_item)->u.dnode))
-#define CMCNP_ITEM_LRU_NODE(cmcnp_item)         (&((cmcnp_item)->lru_node))
+
+#define CMCNP_ITEM_QUE_NODE(cmcnp_item)         (&((cmcnp_item)->que_node))
+
 #define CMCNP_ITEM_DEL_NODE(cmcnp_item)         (&((cmcnp_item)->del_node))
 #define CMCNP_ITEM_DEG_NODE(cmcnp_item)         (&((cmcnp_item)->deg_node))
 
@@ -184,9 +186,9 @@ typedef struct
 #define CMCNP_RB_NODE_ITEM(cmcnprb_node)        ((NULL_PTR == (cmcnprb_node)) ? NULL_PTR : \
     ((CMCNP_ITEM *)((char *)(cmcnprb_node)-(unsigned long)(&((CMCNP_ITEM *)0)->rb_node))))
 
-/*get CMCNP_ITEM from CMCNPLRU_NODE*/
-#define CMCNP_LRU_NODE_ITEM(cmcnplru_node)        ((NULL_PTR == (cmcnplru_node)) ? NULL_PTR : \
-    ((CMCNP_ITEM *)((char *)(cmcnplru_node)-(unsigned long)(&((CMCNP_ITEM *)0)->lru_node))))
+/*get CMCNP_ITEM from CMCNPQUE_NODE*/
+#define CMCNP_QUE_NODE_ITEM(cmcnpque_node)        ((NULL_PTR == (cmcnpque_node)) ? NULL_PTR : \
+    ((CMCNP_ITEM *)((char *)(cmcnpque_node)-(unsigned long)(&((CMCNP_ITEM *)0)->que_node))))
 
 /*get CMCNP_ITEM from CMCNPDEL_NODE*/
 #define CMCNP_DEL_NODE_ITEM(cmcnpdel_node)        ((NULL_PTR == (cmcnpdel_node)) ? NULL_PTR : \
@@ -475,8 +477,8 @@ typedef struct
     CMCNP_BITMAP           *bitmap;
     CMCNP_HEADER           *header;       /* namespace header */
 
-    /*shortcut of lru list which point to root rb node */
-    CMCNPLRU_NODE          *lru_list; /*the lastest access node is at head covering fnode only*/
+    /*shortcut of que list which point to root rb node */
+    CMCNPQUE_NODE          *que_list; /*the lastest access node is at head covering fnode only*/
 
     /*shortcut of del list which point to root rb node */
     CMCNPDEL_NODE          *del_list; /*the lastest access node is at head covering fnode only*/
@@ -500,7 +502,8 @@ typedef struct
 #define CMCNP_BITMAP(cmcnp)                 ((cmcnp)->bitmap)
 #define CMCNP_HDR(cmcnp)                    ((cmcnp)->header)
 
-#define CMCNP_LRU_LIST(cmcnp)               ((cmcnp)->lru_list)
+#define CMCNP_QUE_LIST(cmcnp)               ((cmcnp)->que_list)
+
 #define CMCNP_DEL_LIST(cmcnp)               ((cmcnp)->del_list)
 #define CMCNP_DEG_LIST(cmcnp)               ((cmcnp)->deg_list)
 

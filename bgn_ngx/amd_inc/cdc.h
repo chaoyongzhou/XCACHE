@@ -56,6 +56,8 @@ extern "C"{
 #define CDC_RETIRE_MD_RATIO                            (0.7) /*70%*/
 #define CDC_RETIRE_LO_RATIO                            (0.5) /*50%*/
 #endif
+#define CDC_DEGRADE_TRAFFIC_02MB                       (((uint64_t) 2) << 23) /* 2MBps*/
+#define CDC_DEGRADE_TRAFFIC_04MB                       (((uint64_t) 4) << 23) /* 4MBps*/
 #define CDC_DEGRADE_TRAFFIC_08MB                       (((uint64_t) 8) << 23) /* 8MBps*/
 #define CDC_DEGRADE_TRAFFIC_12MB                       (((uint64_t)12) << 23) /*12MBps*/
 #define CDC_DEGRADE_TRAFFIC_16MB                       (((uint64_t)16) << 23) /*16MBps*/
@@ -79,8 +81,32 @@ extern "C"{
 
 typedef struct
 {
+    REAL                ssd_used_ratio;
+    REAL                ssd_hit_ratio;
+
+    uint64_t            amd_read_traffic_mps;   /*MB/s*/
+    uint64_t            amd_write_traffic_mps;  /*MB/s*/
+
+    REAL                ssd_deg_ratio;
+    uint32_t            ssd_deg_num;
+    uint32_t            rsvd01;
+    uint64_t            ssd_degrade_traffic_mps;
+}CDC_STAT;
+
+#define CDC_STAT_SSD_USED_RATIO(cdc_stat)               ((cdc_stat)->ssd_used_ratio)
+#define CDC_STAT_SSD_HIT_RATIO(cdc_stat)                ((cdc_stat)->ssd_hit_ratio)
+#define CDC_STAT_AMD_READ_SPEED(cdc_stat)               ((cdc_stat)->amd_read_traffic_mps)
+#define CDC_STAT_AMD_WRITE_SPEED(cdc_stat)              ((cdc_stat)->amd_write_traffic_mps)
+#define CDC_STAT_SSD_DEGRADE_RATIO(cdc_stat)            ((cdc_stat)->ssd_deg_ratio)
+#define CDC_STAT_SSD_DEGRADE_NUM(cdc_stat)              ((cdc_stat)->ssd_deg_num)
+#define CDC_STAT_SSD_DEGRADE_SPEED(cdc_stat)            ((cdc_stat)->ssd_degrade_traffic_mps)
+
+typedef struct
+{
     int                      ssd_fd;
     int                      sata_fd;
+
+    UINT32                   sata_disk_size;
 
     UINT32                   s_offset;
     UINT32                   e_offset;
@@ -118,12 +144,15 @@ typedef struct
     uint32_t                 restart_flag     :1;/*cdc is restarting if set*/
     uint32_t                 dontdump_flag    :1;/*cdc not flush or dump if set*/
     uint32_t                 rsvd01           :26;
-    uint32_t                 rsvd02;
+    uint16_t                 rsvd02;
+    uint16_t                 cur_disk_no;     /*for cdc fifo model*/
 
+    CDC_STAT                 stat;
 }CDC_MD;
 
 #define CDC_MD_SSD_FD(cdc_md)                         ((cdc_md)->ssd_fd)
 #define CDC_MD_SATA_FD(cdc_md)                        ((cdc_md)->sata_fd)
+#define CDC_MD_SATA_DISK_SIZE(cdc_md)                 ((cdc_md)->sata_disk_size)
 #define CDC_MD_S_OFFSET(cdc_md)                       ((cdc_md)->s_offset)
 #define CDC_MD_E_OFFSET(cdc_md)                       ((cdc_md)->e_offset)
 #define CDC_MD_C_OFFSET(cdc_md)                       ((cdc_md)->c_offset)
@@ -131,6 +160,7 @@ typedef struct
 #define CDC_MD_LOCKED_PAGE_NUM(cdc_md)                ((cdc_md)->locked_page_num)
 #define CDC_MD_DN(cdc_md)                             ((cdc_md)->cdcdn)
 #define CDC_MD_NP(cdc_md)                             ((cdc_md)->cdcnp)
+#define CDC_MD_CUR_DISK_NO(cdc_md)                    ((cdc_md)->cur_disk_no)
 #define CDC_MD_NP_DEGRADE_CB(cdc_md)                  (&((cdc_md)->np_degrade_cb))
 #define CDC_MD_CAIO_MD(cdc_md)                        ((cdc_md)->caio_md)
 
@@ -145,6 +175,7 @@ typedef struct
 #define CDC_MD_RDONLY_FLAG(cdc_md)                    ((cdc_md)->read_only_flag)
 #define CDC_MD_RESTART_FLAG(cdc_md)                   ((cdc_md)->restart_flag)
 #define CDC_MD_DONTDUMP_FLAG(cdc_md)                  ((cdc_md)->dontdump_flag)
+#define CDC_MD_STAT(cdc_md)                           (&((cdc_md)->stat))
 
 #define CDC_MD_SEQ_NO(cdc_md)                         ((cdc_md)->seq_no)
 #define CDC_MD_REQ_LIST(cdc_md)                       (&((cdc_md)->req_list))
@@ -348,6 +379,10 @@ typedef struct
 #define CDC_NODE_NTIME_MS(cdc_node)                   ((cdc_node)->next_access_ms)
 #define CDC_NODE_MOUNTED_NODES(cdc_node)              ((cdc_node)->mounted_nodes)
 #define CDC_NODE_MOUNTED_OWNERS(cdc_node)             ((cdc_node)->mounted_owners)
+
+
+EC_BOOL cdc_stat_init(CDC_STAT  *cdc_stat);
+EC_BOOL cdc_stat_clean(CDC_STAT  *cdc_stat);
 
 /**
 *
@@ -851,11 +886,11 @@ EC_BOOL cdc_show_np(const CDC_MD *cdc_md, LOG *log);
 
 /**
 *
-*  show name node LRU
+*  show name node QUE
 *
 *
 **/
-EC_BOOL cdc_show_np_lru_list(const CDC_MD *cdc_md, LOG *log);
+EC_BOOL cdc_show_np_que_list(const CDC_MD *cdc_md, LOG *log);
 
 /**
 *
@@ -1058,9 +1093,10 @@ EC_BOOL cdc_req_cancel_node(CDC_REQ *cdc_req, CDC_NODE *cdc_node);
 /*----------------------------------- cdc module interface -----------------------------------*/
 
 
-void cdc_process(CDC_MD *cdc_md, const uint64_t ssd_traffic_bps, const REAL ssd_hit_ratio,
+void cdc_process(CDC_MD *cdc_md, const uint64_t ssd_traffic_read_bps, const uint64_t ssd_traffic_write_bps, const REAL ssd_hit_ratio,
                  const uint64_t amd_read_traffic_bps, const uint64_t amd_write_traffic_bps,
-                 const uint64_t sata_read_traffic_bps, const uint64_t sata_write_traffic_bps);
+                 const uint64_t sata_read_traffic_bps, const uint64_t sata_write_traffic_bps,
+                 int64_t punish_degrade_traffic_bps);
 
 void cdc_process_no_degrade(CDC_MD *cdc_md);
 

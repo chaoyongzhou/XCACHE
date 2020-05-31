@@ -37,29 +37,68 @@ extern "C"{
 #define CMC_RETIRE_LO_RATIO                (0.80) /*80%*/
 #endif
 
-#define CMC_TRAFFIC_08MB                   (((uint64_t) 8) << 23) /* 8Mbps*/
-#define CMC_TRAFFIC_16MB                   (((uint64_t)16) << 23) /*16Mbps*/
-#define CMC_TRAFFIC_24MB                   (((uint64_t)24) << 23) /*24Mbps*/
-#define CMC_TRAFFIC_32MB                   (((uint64_t)32) << 23) /*32Mbps*/
-#define CMC_TRAFFIC_36MB                   (((uint64_t)36) << 23) /*36Mbps*/
+#define CMC_TRAFFIC_008MB                  (((uint64_t)  8) << 23) /* 8Mbps*/
+#define CMC_TRAFFIC_016MB                  (((uint64_t) 16) << 23) /* 16Mbps*/
+#define CMC_TRAFFIC_024MB                  (((uint64_t) 24) << 23) /* 24Mbps*/
+#define CMC_TRAFFIC_032MB                  (((uint64_t) 32) << 23) /* 32Mbps*/
+#define CMC_TRAFFIC_036MB                  (((uint64_t) 36) << 23) /* 36Mbps*/
+#define CMC_TRAFFIC_040MB                  (((uint64_t) 40) << 23) /* 40Mbps*/
+#define CMC_TRAFFIC_048MB                  (((uint64_t) 48) << 23) /* 48Mbps*/
+#define CMC_TRAFFIC_056MB                  (((uint64_t) 56) << 23) /* 56Mbps*/
+#define CMC_TRAFFIC_064MB                  (((uint64_t) 64) << 23) /* 64Mbps*/
+#define CMC_TRAFFIC_072MB                  (((uint64_t) 72) << 23) /* 72Mbps*/
+#define CMC_TRAFFIC_096MB                  (((uint64_t) 96) << 23) /* 96Mbps*/
+#define CMC_TRAFFIC_128MB                  (((uint64_t)128) << 23) /*128Mbps*/
 
-#define CMC_DEGRADE_TRAFFIC_08MB           (((uint64_t) 8) << 23) /* 8Mbps*/
-#define CMC_DEGRADE_TRAFFIC_16MB           (((uint64_t)16) << 23) /*16Mbps*/
-#define CMC_DEGRADE_TRAFFIC_20MB           (((uint64_t)20) << 23) /*20Mbps*/
-#define CMC_DEGRADE_TRAFFIC_24MB           (((uint64_t)24) << 23) /*24Mbps*/
-#define CMC_DEGRADE_TRAFFIC_28MB           (((uint64_t)28) << 23) /*28Mbps*/
-#define CMC_DEGRADE_TRAFFIC_32MB           (((uint64_t)32) << 23) /*32Mbps*/
-#define CMC_DEGRADE_TRAFFIC_36MB           (((uint64_t)36) << 23) /*36Mbps*/
-#define CMC_DEGRADE_TRAFFIC_40MB           (((uint64_t)40) << 23) /*40Mbps*/
+#define CMC_DEGRADE_TRAFFIC_008MB          (((uint64_t)  8) << 23) /* 8Mbps*/
+#define CMC_DEGRADE_TRAFFIC_012MB          (((uint64_t) 12) << 23) /* 12Mbps*/
+#define CMC_DEGRADE_TRAFFIC_016MB          (((uint64_t) 16) << 23) /* 16Mbps*/
+#define CMC_DEGRADE_TRAFFIC_020MB          (((uint64_t) 20) << 23) /* 20Mbps*/
+#define CMC_DEGRADE_TRAFFIC_024MB          (((uint64_t) 24) << 23) /* 24Mbps*/
+#define CMC_DEGRADE_TRAFFIC_028MB          (((uint64_t) 28) << 23) /* 28Mbps*/
+#define CMC_DEGRADE_TRAFFIC_032MB          (((uint64_t) 32) << 23) /* 32Mbps*/
+#define CMC_DEGRADE_TRAFFIC_036MB          (((uint64_t) 36) << 23) /* 36Mbps*/
+#define CMC_DEGRADE_TRAFFIC_040MB          (((uint64_t) 40) << 23) /* 40Mbps*/
+#define CMC_DEGRADE_TRAFFIC_048MB          (((uint64_t) 48) << 23) /* 48Mbps*/
+#define CMC_DEGRADE_TRAFFIC_056MB          (((uint64_t) 56) << 23) /* 56Mbps*/
+#define CMC_DEGRADE_TRAFFIC_064MB          (((uint64_t) 64) << 23) /* 64Mbps*/
+#define CMC_DEGRADE_TRAFFIC_072MB          (((uint64_t) 72) << 23) /* 72Mbps*/
+#define CMC_DEGRADE_TRAFFIC_096MB          (((uint64_t) 96) << 23) /* 96Mbps*/
+#define CMC_DEGRADE_TRAFFIC_128MB          (((uint64_t)128) << 23) /*128Mbps*/
 
-#define CMC_READ_TRAFFIC_08MB              (((uint64_t) 8) << 23) /* 8Mbps*/
-#define CMC_READ_TRAFFIC_12MB              (((uint64_t)12) << 23) /*12Mbps*/
+//#define CMC_DEGRADE_TRAFFIC_QUIT           (CMC_DEGRADE_TRAFFIC_032MB)
+#define CMC_DEGRADE_TRAFFIC_QUIT           (CMC_DEGRADE_TRAFFIC_128MB)
 
-#define CMC_WRITE_TRAFFIC_08MB             (((uint64_t) 8) << 23) /* 8Mbps*/
-#define CMC_WRITE_TRAFFIC_12MB             (((uint64_t)12) << 23) /*12Mbps*/
+//#define CMC_DEGRADE_TRAFFIC_RESTART      (CMC_DEGRADE_TRAFFIC_032MB)
+#define CMC_DEGRADE_TRAFFIC_RESTART        (CMC_DEGRADE_TRAFFIC_128MB)
+
+//#define CMC_DEGRADE_TRAFFIC_MAX            (CMC_DEGRADE_TRAFFIC_032MB
+#define CMC_DEGRADE_TRAFFIC_MAX            (CMC_DEGRADE_TRAFFIC_128MB)
 
 #define CMC_DEGRADE_SSD                    ((uint32_t)0x0001)
 #define CMC_DEGRADE_SATA                   ((uint32_t)0x0010)
+
+typedef struct
+{
+    REAL                mem_used_ratio;
+    REAL                mem_hit_ratio;
+
+    uint64_t            amd_read_traffic_mps;   /*MB/s*/
+    uint64_t            amd_write_traffic_mps;  /*MB/s*/
+
+    REAL                mem_deg_ratio;
+    uint32_t            mem_deg_num;
+    uint32_t            rsvd01;
+    uint64_t            mem_degrade_traffic_mps;
+}CMC_STAT;
+
+#define CMC_STAT_MEM_USED_RATIO(cmc_stat)               ((cmc_stat)->mem_used_ratio)
+#define CMC_STAT_MEM_HIT_RATIO(cmc_stat)                ((cmc_stat)->mem_hit_ratio)
+#define CMC_STAT_AMD_READ_SPEED(cmc_stat)               ((cmc_stat)->amd_read_traffic_mps)
+#define CMC_STAT_AMD_WRITE_SPEED(cmc_stat)              ((cmc_stat)->amd_write_traffic_mps)
+#define CMC_STAT_MEM_DEGRADE_RATIO(cmc_stat)            ((cmc_stat)->mem_deg_ratio)
+#define CMC_STAT_MEM_DEGRADE_NUM(cmc_stat)              ((cmc_stat)->mem_deg_num)
+#define CMC_STAT_MEM_DEGRADE_SPEED(cmc_stat)            ((cmc_stat)->mem_degrade_traffic_mps)
 
 typedef struct
 {
@@ -83,6 +122,8 @@ typedef struct
     uint16_t            vdisk_num;
 
     UINT32              key_max_num;
+
+    CMC_STAT            stat;
 }CMC_MD;
 
 #define CMC_MD_DN(cmc_md)                             ((cmc_md)->cmcdn)
@@ -96,6 +137,11 @@ typedef struct
 #define CMC_MD_NP_MODEL(cmc_md)                       ((cmc_md)->np_model)
 #define CMC_MD_VDISK_NUM(cmc_md)                      ((cmc_md)->vdisk_num)
 #define CMC_MD_KEY_MAX_NUM(cmc_md)                    ((cmc_md)->key_max_num)
+#define CMC_MD_STAT(cmc_md)                           (&((cmc_md)->stat))
+
+
+EC_BOOL cmc_stat_init(CMC_STAT  *cmc_stat);
+EC_BOOL cmc_stat_clean(CMC_STAT  *cmc_stat);
 
 /**
 *
@@ -189,8 +235,8 @@ EC_BOOL cmc_flow_control_disable_max_speed(CMC_MD *cmc_md);
 * recycle deleted or retired space
 *
 **/
-void cmc_process(CMC_MD *cmc_md, const uint64_t mem_traffic_bps, REAL  mem_hit_ratio,
-                     const uint64_t amd_read_traffic_bps, const uint64_t amd_write_traffic_bps);
+void cmc_process(CMC_MD *cmc_md, const uint64_t mem_traffic_write_bps, const uint64_t ssd_traffic_read_bps, const uint64_t ssd_traffic_write_bps,
+        REAL  mem_hit_ratio, const uint64_t amd_read_traffic_bps, const uint64_t amd_write_traffic_bps);
 
 void cmc_process_no_degrade(CMC_MD *cmc_md);
 
@@ -200,6 +246,7 @@ void cmc_process_no_degrade(CMC_MD *cmc_md);
 *
 **/
 void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
+                                 const uint64_t ssd_traffic_read_bps,
                                  const UINT32 scan_max_num,
                                  const UINT32 expect_degrade_num,
                                  UINT32 *complete_degrade_num);
@@ -495,11 +542,11 @@ EC_BOOL cmc_show_np(const CMC_MD *cmc_md, LOG *log);
 
 /**
 *
-*  show name node LRU
+*  show name node QUE
 *
 *
 **/
-EC_BOOL cmc_show_np_lru_list(const CMC_MD *cmc_md, LOG *log);
+EC_BOOL cmc_show_np_que_list(const CMC_MD *cmc_md, LOG *log);
 
 /**
 *

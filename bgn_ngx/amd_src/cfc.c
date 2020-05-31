@@ -34,9 +34,12 @@ CFC *cfc_new()
 
 EC_BOOL cfc_init(CFC *cfc)
 {
-    CFC_NTIME_MS(cfc)       = 0;
-    CFC_TRAFFIC_NBYTES(cfc) = 0;
-    CFC_TRAFFIC_SPEED(cfc)  = 0;
+    CFC_NTIME_MS(cfc)                      = 0;
+    CFC_TRAFFIC_NBYTES(cfc)                = 0;
+    CFC_TRAFFIC_SPEED(cfc)                 = 0;
+    CFC_TRAFFIC_SPEED_NEXT(cfc)            = 0;
+    CFC_PUNISH_DEGRADE_TRAFFIC_BPS(cfc)    =-1;
+    CFC_FREQUENCY_RATE_CONTRAL(cfc)        = 0;
 
     return (EC_TRUE);
 }
@@ -66,13 +69,13 @@ EC_BOOL cfc_inc_traffic(CFC *cfc, const uint64_t traffic_nbytes)
     return (EC_TRUE);
 }
 
-EC_BOOL cfc_calc_speed(CFC *cfc, const uint64_t cur_time_ms, const uint64_t interval_ms)
+EC_BOOL cfc_calc_speed(CFC *cfc, /*CFC *own_cfc, */const uint64_t cur_time_ms, const uint64_t interval_ms)
 {
-    if(cur_time_ms >= CFC_NTIME_MS(cfc) + interval_ms)
+    if(cur_time_ms >= CFC_NTIME_MS(cfc))
     {
         uint64_t    elapsed_ms;
 
-        elapsed_ms = (cur_time_ms - CFC_NTIME_MS(cfc));
+        elapsed_ms = (cur_time_ms - CFC_NTIME_MS(cfc) + interval_ms);
 
         CFC_TRAFFIC_SPEED(cfc)  = (CFC_TRAFFIC_NBYTES(cfc) * 8 * 1000) / (elapsed_ms);
         CFC_TRAFFIC_NBYTES(cfc) = 0; /*clean up*/
@@ -85,6 +88,10 @@ EC_BOOL cfc_calc_speed(CFC *cfc, const uint64_t cur_time_ms, const uint64_t inte
 uint64_t cfc_get_speed(const CFC *cfc)
 {
     return CFC_TRAFFIC_SPEED(cfc);
+}
+int64_t cfc_get_punish_degrade_traffic_bps(const CFC *cfc)
+{
+    return CFC_PUNISH_DEGRADE_TRAFFIC_BPS(cfc);
 }
 
 EC_BOOL ciostat_init(CIOSTAT *ciostat)

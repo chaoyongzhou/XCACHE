@@ -167,7 +167,7 @@ EC_BOOL cmcnp_close(CMCNP *cmcnp);
 
 EC_BOOL cmcnp_is_full(const CMCNP *cmcnp);
 
-EC_BOOL cmcnp_lru_list_is_empty(const CMCNP *cmcnp);
+EC_BOOL cmcnp_que_list_is_empty(const CMCNP *cmcnp);
 
 EC_BOOL cmcnp_del_list_is_empty(const CMCNP *cmcnp);
 
@@ -181,7 +181,7 @@ void cmcnp_header_print(LOG *log, const CMCNP *cmcnp);
 
 void cmcnp_print(LOG *log, const CMCNP *cmcnp);
 
-void cmcnp_print_lru_list(LOG *log, const CMCNP *cmcnp);
+void cmcnp_print_que_list(LOG *log, const CMCNP *cmcnp);
 
 void cmcnp_print_del_list(LOG *log, const CMCNP *cmcnp);
 
@@ -292,8 +292,6 @@ EC_BOOL cmcnp_set_degrade_callback(CMCNP *cmcnp, const uint32_t flags, CMCNP_DEG
 
 EC_BOOL cmcnp_exec_degrade_callback(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, const uint32_t node_pos);
 
-EC_BOOL cmcnp_degrade(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expect_degrade_num, UINT32 *complete_degrade_num);
-
 EC_BOOL cmcnp_retire_cb_init(CMCNP_RETIRE_CB *cmcnp_retire_cb);
 
 EC_BOOL cmcnp_retire_cb_clean(CMCNP_RETIRE_CB *cmcnp_retire_cb);
@@ -312,7 +310,7 @@ EC_BOOL cmcnp_exec_retire_callback(CMCNP *cmcnp, const CMCNP_KEY *cmcnp_key, con
 
 EC_BOOL cmcnp_degrade_all(CMCNP *cmcnp, UINT32 *complete_degrade_num);
 
-EC_BOOL cmcnp_degrade(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expect_degrade_num, UINT32 *complete_degrade_num);
+EC_BOOL cmcnp_degrade(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expect_degrade_num, const uint64_t ssd_traffic_read_bps, UINT32 *complete_degrade_num);
 
 EC_BOOL cmcnp_retire(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expect_retire_num, UINT32 *ret_retire_num);
 

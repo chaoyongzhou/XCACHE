@@ -26,7 +26,7 @@ extern "C"{
 #include "log.h"
 
 #include "cdcnprb.h"
-#include "cdcnplru.inc"
+#include "cdcnpque.inc"
 #include "cdcnpdel.inc"
 #include "cdcnpdeg.inc"
 
@@ -38,7 +38,9 @@ extern "C"{
 #define CDCNP_PATH_MAX_LEN             (1024)  /*max len of file or dir path name*/
 #define CDCNP_MEM_ALIGNMENT            (UINT32_ONE << 20) /*1MB alignment*/
 
-#define CDCNP_HEADER_SIZE_NBYTES       ((UINT32)(UINT32_ONE << 23))  /*8MB = 2^23, support up to 16T sata disk*/
+/* 8MB = 2^23, support up to 16T sata disk for page-256K*/
+/*16MB = 2^24, support up to 16T sata disk for page-128K*/
+#define CDCNP_HEADER_SIZE_NBYTES       ((UINT32)(UINT32_ONE << (CAMD_SATA_DISK_MAX_SIZE_NBITS - CAMD_PAGE_SIZE_NBITS - 3)))
 #define CDCNP_HEADER_SIZE_MASK         (CDCNP_HEADER_SIZE_NBYTES - 1)
 
 #define CDCNP_OFFSET_ERR               ((UINT32)~0)
@@ -158,7 +160,7 @@ typedef struct
     uint32_t        parent_pos;/*parent directory*/
 
     /*8B*/
-    CDCNPLRU_NODE   lru_node;
+    CDCNPQUE_NODE   que_node;
 
     /*8B*/
     CDCNPDEL_NODE   del_node;
@@ -188,7 +190,7 @@ typedef struct
 #define CDCNP_ITEM_FNODE(cdcnp_item)                     (&((cdcnp_item)->u.fnode))
 #define CDCNP_ITEM_DNODE(cdcnp_item)                     (&((cdcnp_item)->u.dnode))
 
-#define CDCNP_ITEM_LRU_NODE(cdcnp_item)                  (&((cdcnp_item)->lru_node))
+#define CDCNP_ITEM_QUE_NODE(cdcnp_item)                  (&((cdcnp_item)->que_node))
 #define CDCNP_ITEM_DEL_NODE(cdcnp_item)                  (&((cdcnp_item)->del_node))
 #define CDCNP_ITEM_DEG_NODE(cdcnp_item)                  (&((cdcnp_item)->deg_node))
 
@@ -201,9 +203,9 @@ typedef struct
 #define CDCNP_RB_NODE_ITEM(cdcnprb_node)        ((NULL_PTR == (cdcnprb_node)) ? NULL_PTR : \
     ((CDCNP_ITEM *)((char *)(cdcnprb_node)-(unsigned long)(&((CDCNP_ITEM *)0)->rb_node))))
 
-/*get CDCNP_ITEM from CDCNPLRU_NODE*/
-#define CDCNP_LRU_NODE_ITEM(cdcnplru_node)        ((NULL_PTR == (cdcnplru_node)) ? NULL_PTR : \
-    ((CDCNP_ITEM *)((char *)(cdcnplru_node)-(unsigned long)(&((CDCNP_ITEM *)0)->lru_node))))
+/*get CDCNP_ITEM from CDCNPQUE_NODE*/
+#define CDCNP_QUE_NODE_ITEM(cdcnpque_node)        ((NULL_PTR == (cdcnpque_node)) ? NULL_PTR : \
+    ((CDCNP_ITEM *)((char *)(cdcnpque_node)-(unsigned long)(&((CDCNP_ITEM *)0)->que_node))))
 
 /*get CDCNP_ITEM from CDCNPDEL_NODE*/
 #define CDCNP_DEL_NODE_ITEM(cdcnpdel_node)        ((NULL_PTR == (cdcnpdel_node)) ? NULL_PTR : \
@@ -435,9 +437,12 @@ typedef struct
 typedef struct
 {
     int              fd;           /* memcache namespace fd */
+
     uint32_t         read_only_flag   :1;/*np is read-only if set*/
     uint32_t         dontdump_flag    :1;/*np not flush or dump if set*/
     uint32_t         rsvd01           :30;
+
+    UINT32           sata_disk_size;/*for sata disk vm space*/
 
     UINT32           s_offset;     /* start offset of name node */
     UINT32           e_offset;     /* end offset of name node   */
@@ -450,8 +455,8 @@ typedef struct
     CDCNP_BITMAP    *bitmap;
     CDCNP_HEADER    *header;       /* namespace header */
 
-    /*shortcut of lru list which point to root rb node */
-    CDCNPLRU_NODE   *lru_list;     /* the lastest access node is at head covering fnode only */
+    /*shortcut of que list which point to root rb node */
+    CDCNPQUE_NODE   *que_list;     /* the lastest access node is at head covering fnode only */
 
     /*shortcut of del list which point to root rb node */
     CDCNPDEL_NODE   *del_list;     /* the lastest access node is at head covering fnode only */
@@ -467,6 +472,7 @@ typedef struct
 #define CDCNP_DONTDUMP_FLAG(cdcnp)          ((cdcnp)->dontdump_flag)
 
 #define CDCNP_FD(cdcnp)                     ((cdcnp)->fd)
+#define CDCNP_SATA_DISK_SIZE(cdcnp)         ((cdcnp)->sata_disk_size)
 #define CDCNP_S_OFFSET(cdcnp)               ((cdcnp)->s_offset)
 #define CDCNP_E_OFFSET(cdcnp)               ((cdcnp)->e_offset)
 
@@ -477,7 +483,7 @@ typedef struct
 #define CDCNP_BITMAP(cdcnp)                 ((cdcnp)->bitmap)
 #define CDCNP_HDR(cdcnp)                    ((cdcnp)->header)
 
-#define CDCNP_LRU_LIST(cdcnp)               ((cdcnp)->lru_list)
+#define CDCNP_QUE_LIST(cdcnp)               ((cdcnp)->que_list)
 #define CDCNP_DEL_LIST(cdcnp)               ((cdcnp)->del_list)
 #define CDCNP_DEG_LIST(cdcnp)               ((cdcnp)->deg_list)
 

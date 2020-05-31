@@ -37,6 +37,37 @@ extern "C"{
 #define CMC_ASSERT(condition)   do{}while(0)
 #endif/*(SWITCH_OFF == CMC_ASSERT_SWITCH)*/
 
+
+EC_BOOL cmc_stat_init(CMC_STAT  *cmc_stat)
+{
+    CMC_STAT_MEM_USED_RATIO(cmc_stat)           = 0.00;
+    CMC_STAT_MEM_HIT_RATIO(cmc_stat)            = 0.00;
+
+    CMC_STAT_AMD_READ_SPEED(cmc_stat)           = 0;
+    CMC_STAT_AMD_WRITE_SPEED(cmc_stat)          = 0;
+
+    CMC_STAT_MEM_DEGRADE_RATIO(cmc_stat)        = 0.00;
+    CMC_STAT_MEM_DEGRADE_NUM(cmc_stat)          = 0;
+    CMC_STAT_MEM_DEGRADE_SPEED(cmc_stat)        = 0;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cmc_stat_clean(CMC_STAT  *cmc_stat)
+{
+    CMC_STAT_MEM_USED_RATIO(cmc_stat)           = 0.00;
+    CMC_STAT_MEM_HIT_RATIO(cmc_stat)            = 0.00;
+
+    CMC_STAT_AMD_READ_SPEED(cmc_stat)           = 0;
+    CMC_STAT_AMD_WRITE_SPEED(cmc_stat)          = 0;
+
+    CMC_STAT_MEM_DEGRADE_RATIO(cmc_stat)        = 0.00;
+    CMC_STAT_MEM_DEGRADE_NUM(cmc_stat)          = 0;
+    CMC_STAT_MEM_DEGRADE_SPEED(cmc_stat)        = 0;
+
+    return (EC_TRUE);
+}
+
 /**
 *
 * start CMC module
@@ -94,6 +125,8 @@ CMC_MD *cmc_start(const UINT32 mem_disk_size /*in byte*/, const UINT32 sata_disk
     CMC_MD_VDISK_NUM(cmc_md)         = (uint16_t)vdisk_num;
     CMC_MD_KEY_MAX_NUM(cmc_md)       = key_max_num;
 
+    cmc_stat_init(CMC_MD_STAT(cmc_md));
+
     dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "[DEBUG] cmc_start: start cmc done\n");
 
     return (cmc_md);
@@ -127,6 +160,8 @@ void cmc_end(CMC_MD *cmc_md)
     CMC_MD_KEY_MAX_NUM(cmc_md)       = 0;
 
     CMC_MD_CMMAP_NODE(cmc_md)        = NULL_PTR;
+
+    cmc_stat_clean(CMC_MD_STAT(cmc_md));
 
     safe_free(cmc_md, LOC_CMC_0002);
 
@@ -291,18 +326,19 @@ EC_BOOL cmc_try_quit(CMC_MD *cmc_md)
 
     cmc_recycle(cmc_md, (UINT32)~0, NULL_PTR);/*try to recycle all*/
 
-    cmc_process_degrades(cmc_md, CMC_DEGRADE_TRAFFIC_32MB,
+    cmc_process_degrades(cmc_md, CMC_DEGRADE_TRAFFIC_QUIT,
+                         0,/*ssd_traffic_read_bps*/
                          (UINT32)~0, /*try to degrade all*/
                          (UINT32)CMC_PROCESS_DEGRADE_MAX_NUM, NULL_PTR);
 
     if(NULL_PTR != CMC_MD_NP(cmc_md))
     {
-        if(EC_FALSE == cmcnp_lru_list_is_empty(CMC_MD_NP(cmc_md)))
+        if(EC_FALSE == cmcnp_que_list_is_empty(CMC_MD_NP(cmc_md)))
         {
             if(0 == (warning_counter % 1000))
             {
                 dbg_log(SEC_0118_CMC, 6)(LOGSTDOUT, "[DEBUG] cmc_try_quit: "
-                                                    "lru list is not empty\n");
+                                                    "que list is not empty\n");
             }
 
             warning_counter ++;
@@ -336,7 +372,8 @@ EC_BOOL cmc_try_restart(CMC_MD *cmc_md)
 
     cmc_recycle(cmc_md, CMC_TRY_RECYCLE_MAX_NUM, NULL_PTR);/*try to recycle all*/
 
-    cmc_process_degrades(cmc_md, CMC_DEGRADE_TRAFFIC_32MB,
+    cmc_process_degrades(cmc_md, CMC_DEGRADE_TRAFFIC_RESTART,
+                         0, /*ssd_traffic_read_bps*/
                          (UINT32)CMC_SCAN_DEGRADE_MAX_NUM,
                          (UINT32)CMC_PROCESS_DEGRADE_MAX_NUM,
                          NULL_PTR);
@@ -452,74 +489,193 @@ EC_BOOL cmc_flow_control_disable_max_speed(CMC_MD *cmc_md)
  *  cmc traffic flow has 3 categories: 10Mbps, 20Mbps, 30Mbps, or 40Mbps.
  *
  **/
-STATIC_CAST static void __cmc_flow_control(const uint64_t mem_traffic_bps, const REAL deg_ratio,
-                                                uint64_t *degrade_traffic_bps)
+ /*nvme*/
+STATIC_CAST static void __cmc_flow_control(const uint64_t mem_traffic_write_bps, const uint64_t ssd_traffic_read_bps, const uint64_t ssd_traffic_write_bps,
+                                                const REAL deg_ratio, uint64_t *degrade_traffic_bps)
 {
     if(CMC_DEGRADE_LO_RATIO > deg_ratio)
     {
-        if(mem_traffic_bps >= CMC_TRAFFIC_36MB)
+        if(mem_traffic_write_bps >= CMC_TRAFFIC_072MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_24MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_072MB;
         }
-        else if(mem_traffic_bps >= CMC_TRAFFIC_32MB)
+        else if(mem_traffic_write_bps >= CMC_TRAFFIC_036MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_16MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_036MB;
+        }
+        else if(mem_traffic_write_bps >= CMC_TRAFFIC_024MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_024MB;
+        }
+        else if(mem_traffic_write_bps >= CMC_TRAFFIC_016MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_016MB;
         }
         else
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_08MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_008MB;
         }
     }
     else if(CMC_DEGRADE_MD_RATIO > deg_ratio)
     {
-        if(mem_traffic_bps >= CMC_TRAFFIC_36MB)
+        if(mem_traffic_write_bps >= CMC_TRAFFIC_072MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_32MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_096MB;
         }
-        else if(mem_traffic_bps >= CMC_TRAFFIC_32MB)
+        else if(mem_traffic_write_bps >= CMC_TRAFFIC_064MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_24MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_072MB;
+        }
+        else if(mem_traffic_write_bps >= CMC_TRAFFIC_056MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_064MB;
+        }
+        else if(mem_traffic_write_bps >= CMC_TRAFFIC_048MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_056MB;
+        }
+        else if(mem_traffic_write_bps >= CMC_TRAFFIC_040MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_048MB;
+        }
+        else if(mem_traffic_write_bps >= CMC_TRAFFIC_036MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_040MB;
+        }
+        else if(mem_traffic_write_bps >= CMC_TRAFFIC_032MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_036MB;
+        }
+        else if(mem_traffic_write_bps >= CMC_TRAFFIC_024MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_032MB;
         }
         else
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_16MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_016MB;
         }
     }
     else if(CMC_DEGRADE_HI_RATIO > deg_ratio)
     {
-        if(mem_traffic_bps >= CMC_TRAFFIC_32MB)
+        if(mem_traffic_write_bps >= CMC_TRAFFIC_072MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_36MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_096MB;
         }
-        else if(mem_traffic_bps >= CMC_TRAFFIC_16MB)
+        else if(mem_traffic_write_bps >= CMC_TRAFFIC_036MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_32MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_072MB;
+        }
+        else if(mem_traffic_write_bps >= CMC_TRAFFIC_032MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_072MB;
+        }
+        else if(mem_traffic_write_bps >= CMC_TRAFFIC_024MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_048MB;
         }
         else
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_24MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_036MB;
         }
     }
     else
     {
-        if(mem_traffic_bps >= CMC_TRAFFIC_36MB)
+        if(mem_traffic_write_bps >= CMC_TRAFFIC_072MB)
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_40MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_128MB;
         }
         else
         {
-            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_36MB;
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_096MB;
         }
     }
 
     return;
 }
 
-STATIC_CAST static void __cmc_flow_control_02(const uint64_t mem_traffic_bps, const REAL deg_ratio,
+/*ssd + sata*/
+STATIC_CAST static void __cmc_flow_control_01(const uint64_t mem_traffic_write_bps, const uint64_t ssd_traffic_read_bps, const uint64_t ssd_traffic_write_bps,
+                                                const REAL deg_ratio, uint64_t *degrade_traffic_bps)
+{
+    if(CMC_DEGRADE_LO_RATIO > deg_ratio)
+    {
+        if(mem_traffic_write_bps >= CMC_TRAFFIC_036MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_024MB;
+        }
+        else if(mem_traffic_write_bps >= CMC_TRAFFIC_032MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_016MB;
+        }
+        else
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_008MB;
+        }
+        if(ssd_traffic_read_bps < CMC_TRAFFIC_024MB)
+        {
+            if((*degrade_traffic_bps) < CMC_DEGRADE_TRAFFIC_024MB)
+            {
+                (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_024MB;
+            }
+        }
+    }
+    else if(CMC_DEGRADE_MD_RATIO > deg_ratio)
+    {
+        if(mem_traffic_write_bps >= CMC_TRAFFIC_036MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_032MB;
+        }
+        else if(mem_traffic_write_bps >= CMC_TRAFFIC_032MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_024MB;
+        }
+        else
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_016MB;
+        }
+        if(ssd_traffic_read_bps < CMC_TRAFFIC_024MB)
+        {
+            if((*degrade_traffic_bps) < CMC_DEGRADE_TRAFFIC_024MB)
+            {
+                (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_024MB;
+            }
+        }
+    }
+    else if(CMC_DEGRADE_HI_RATIO > deg_ratio)
+    {
+        if(mem_traffic_write_bps >= CMC_TRAFFIC_032MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_036MB;
+        }
+        else if(mem_traffic_write_bps >= CMC_TRAFFIC_016MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_032MB;
+        }
+        else
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_024MB;
+        }
+    }
+    else
+    {
+        if(mem_traffic_write_bps >= CMC_TRAFFIC_036MB)
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_040MB;
+        }
+        else
+        {
+            (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_036MB;
+        }
+    }
+
+    return;
+}
+
+STATIC_CAST static void __cmc_flow_control_02(const uint64_t mem_traffic_write_bps, const REAL deg_ratio,
                                                 uint64_t *degrade_traffic_bps)
 {
-    static REAL        deg_ratio_saved       = 0.0;
-    static uint64_t    degrade_traffic_saved = 10;   /*MB/s*/
+    static REAL                 deg_ratio_saved       = 0.0;
+    static uint64_t             degrade_traffic_saved = 10;   /*MB/s*/
     const REAL                  deg_ratio_delta       = 0.01; /*1%*/
 
     const uint64_t              degrade_traffic_min   = 10;   /*MB/s*/
@@ -617,11 +773,11 @@ STATIC_CAST static void __cmc_flow_control_02(const uint64_t mem_traffic_bps, co
 *            degrade speed would keep unchanged which is out of expectation!
 *
 **/
-STATIC_CAST static void __cmc_flow_control_03_obsolete(const uint64_t mem_traffic_bps, const REAL deg_ratio,
+STATIC_CAST static void __cmc_flow_control_03_obsolete(const uint64_t mem_traffic_write_bps, const REAL deg_ratio,
                                                 uint64_t *degrade_traffic_bps)
 {
-    static REAL        deg_ratio_saved       = 0.0;
-    static uint64_t    degrade_traffic_saved = 10;   /*MB/s*/
+    static REAL                 deg_ratio_saved       = 0.0;
+    static uint64_t             degrade_traffic_saved = 10;   /*MB/s*/
     const REAL                  deg_ratio_delta       = 0.01; /*1%*/
 
     const uint64_t              degrade_traffic_min   = 10;   /*MB/s*/
@@ -675,8 +831,8 @@ STATIC_CAST static void __cmc_flow_control_03_obsolete(const uint64_t mem_traffi
 * recycle deleted or retired space
 *
 **/
-void cmc_process(CMC_MD *cmc_md, const uint64_t mem_traffic_bps, REAL  mem_hit_ratio,
-                     const uint64_t amd_read_traffic_bps, const uint64_t amd_write_traffic_bps)
+void cmc_process(CMC_MD *cmc_md, const uint64_t mem_traffic_write_bps, const uint64_t ssd_traffic_read_bps, const uint64_t ssd_traffic_write_bps,
+        REAL  mem_hit_ratio, const uint64_t amd_read_traffic_bps, const uint64_t amd_write_traffic_bps)
 {
     uint64_t    degrade_traffic_bps;
 
@@ -698,17 +854,20 @@ void cmc_process(CMC_MD *cmc_md, const uint64_t mem_traffic_bps, REAL  mem_hit_r
     retire_complete_num  = 0;
     recycle_complete_num = 0;
 
-    __cmc_flow_control(mem_traffic_bps,
+    __cmc_flow_control(mem_traffic_write_bps,
+                       ssd_traffic_read_bps,
+                       ssd_traffic_write_bps,
                        deg_ratio,
                       &degrade_traffic_bps);
 
     if(BIT_TRUE == CMC_MD_FC_MAX_SPEED_FLAG(cmc_md))
     {
         /*override*/
-        degrade_traffic_bps = CMC_DEGRADE_TRAFFIC_32MB;
+        degrade_traffic_bps = CMC_DEGRADE_TRAFFIC_MAX;
     }
 
     cmc_process_degrades(cmc_md, degrade_traffic_bps,
+                         ssd_traffic_read_bps,
                          (UINT32)CMC_SCAN_DEGRADE_MAX_NUM,
                          (UINT32)CMC_PROCESS_DEGRADE_MAX_NUM,
                          &degrade_complete_num);
@@ -717,35 +876,26 @@ void cmc_process(CMC_MD *cmc_md, const uint64_t mem_traffic_bps, REAL  mem_hit_r
     {
         cmc_retire(cmc_md, CMC_TRY_RETIRE_MAX_NUM, &retire_complete_num);
     }
-#if 0
-    if(CMC_DEGRADE_HI_RATIO > deg_ratio)
-    {
-        /*speed up retire*/
-        if(CMC_READ_TRAFFIC_08MB >= amd_read_traffic_bps
-        && CMC_WRITE_TRAFFIC_08MB >= amd_write_traffic_bps)
-        {
-            cmc_retire(cmc_md, CMC_TRY_RETIRE_MAX_NUM << 2, &retire_complete_num);
-        }
-        else if(CMC_READ_TRAFFIC_12MB >= amd_read_traffic_bps
-             && CMC_WRITE_TRAFFIC_12MB >= amd_write_traffic_bps)
-        {
-            cmc_retire(cmc_md, CMC_TRY_RETIRE_MAX_NUM << 1, &retire_complete_num);
-        }
-    }
-#endif
+
     cmc_recycle(cmc_md, CMC_TRY_RECYCLE_MAX_NUM, &recycle_complete_num);
 
     if(0 < degrade_complete_num
     || 0 < retire_complete_num
     || 0 < recycle_complete_num)
     {
+        CMC_STAT   *cmc_stat;
+
         dbg_log(SEC_0118_CMC, 2)(LOGSTDOUT, "[DEBUG] cmc_process: "
-                                            "used %.2f, r/w %ld/%ld MBps, hit %.2f, "
+                                            "used %.2f, r/w %ld/%ld MBps, "
+                                            "ssd r/w %ld/%ld MBps, "
+                                            "hit %.2f, "
                                             "deg: %u, %.2f, %ld MBps, "
                                             "=> degrade %ld, retire %ld, recycle %ld\n",
                                             used_ratio,
                                             amd_read_traffic_bps >> 23,
                                             amd_write_traffic_bps >> 23,
+                                            ssd_traffic_read_bps >> 23,
+                                            ssd_traffic_write_bps >> 23,
                                             mem_hit_ratio,
                                             deg_num,
                                             deg_ratio,
@@ -753,6 +903,19 @@ void cmc_process(CMC_MD *cmc_md, const uint64_t mem_traffic_bps, REAL  mem_hit_r
                                             degrade_complete_num,
                                             retire_complete_num,
                                             recycle_complete_num);
+
+        /*update statistics*/
+        cmc_stat = CMC_MD_STAT(cmc_md);
+
+        CMC_STAT_MEM_USED_RATIO(cmc_stat)           = used_ratio;
+        CMC_STAT_MEM_HIT_RATIO(cmc_stat)            = mem_hit_ratio;
+
+        CMC_STAT_AMD_READ_SPEED(cmc_stat)           = (amd_read_traffic_bps >> 23);
+        CMC_STAT_AMD_WRITE_SPEED(cmc_stat)          = (amd_write_traffic_bps >> 23);
+
+        CMC_STAT_MEM_DEGRADE_RATIO(cmc_stat)        = deg_ratio;
+        CMC_STAT_MEM_DEGRADE_NUM(cmc_stat)          = deg_num;
+        CMC_STAT_MEM_DEGRADE_SPEED(cmc_stat)        = (degrade_traffic_bps >> 23);
     }
 
     return;
@@ -801,7 +964,9 @@ void cmc_process_no_degrade(CMC_MD *cmc_md)
 *  degrade pages of cmc module
 *
 **/
+/*for sata ssd*/
 void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
+                                 const uint64_t ssd_traffic_read_bps,
                                  const UINT32 scan_max_num,
                                  const UINT32 expect_degrade_num,
                                  UINT32 *complete_degrade_num)
@@ -820,16 +985,16 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
 
         while(time_msec_cur >= time_msec_next)
         {
-            uint64_t    time_msec_cost; /*msec cost for degrading from ssd to sata*/
+            uint64_t    time_msec_cost; /*msec cost for degrading*/
 
             /*degrade 4MB at most once time*/
-            cmcnp_degrade(CMC_MD_NP(cmc_md), scan_max_num, expect_degrade_num, &complete_degrade_num_t);
+            cmcnp_degrade(CMC_MD_NP(cmc_md), scan_max_num, expect_degrade_num, ssd_traffic_read_bps, &complete_degrade_num_t);
             if(0 == complete_degrade_num_t)
             {
                 break; /*fall through*/
             }
 
-            if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_08MB) /*8MB/s*/
+            if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_008MB) /*8MB/s*/
             {
                 /*
                 *
@@ -838,9 +1003,9 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (8MB/s)
                 *                = ((n * 2^m * 125) / (2^20)) ms
                 *                = (((n * 125) << m) >> 20) ms
-                * where 2^m is cdc page size in bytes.
+                * where 2^m is cmc page size in bytes.
                 * e.g.,
-                * when cdc page size = 256KB, m = 18, now
+                * when cmc page size = 256KB, m = 18, now
                 * if n = 16, time cost msec = 500
                 * if n = 8 , time cost msec = 250
                 * if n = 4 , time cost msec = 125
@@ -851,7 +1016,7 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 time_msec_cost = (((complete_degrade_num_t * 125) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
             }
 
-            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_16MB) /*16MB/s*/
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_016MB) /*16MB/s*/
             {
                 /*
                 *
@@ -860,9 +1025,9 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (16MB/s)
                 *                = ((n * 2^m * 62) / (2^20)) ms
                 *                = (((n * 62) << m) >> 20) ms
-                * where 2^m is cdc page size in bytes.
+                * where 2^m is cmc page size in bytes.
                 * e.g.,
-                * when cdc page size = 256KB, m = 18, now
+                * when cmc page size = 256KB, m = 18, now
                 * if n = 16, time cost msec = 248
                 * if n = 8 , time cost msec = 124
                 * if n = 4 , time cost msec = 62
@@ -873,29 +1038,7 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 time_msec_cost = (((complete_degrade_num_t * 62) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
             }
 
-            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_20MB) /*20MB/s*/
-            {
-                /*
-                *
-                * if flow control is 20MB/s
-                *
-                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (20MB/s)
-                *                = ((n * 2^m * 50) / (2^20)) ms
-                *                = (((n * 50) << m) >> 20) ms
-                * where 2^m is cdc page size in bytes.
-                * e.g.,
-                * when cdc page size = 256KB, m = 18, now
-                * if n = 16, time cost msec = 200
-                * if n = 8 , time cost msec = 100
-                * if n = 4 , time cost msec = 50
-                * if n = 2 , time cost msec = 25
-                * if n = 1 , time cost msec = 12
-                *
-                */
-                time_msec_cost = (((complete_degrade_num_t * 50) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
-            }
-
-            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_24MB) /*24MB/s*/
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_024MB) /*24MB/s*/
             {
                 /*
                 *
@@ -904,9 +1047,9 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (24MB/s)
                 *                = ((n * 2^m * 41) / (2^20)) ms
                 *                = (((n * 41) << m) >> 20) ms
-                * where 2^m is cdc page size in bytes.
+                * where 2^m is cmc page size in bytes.
                 * e.g.,
-                * when cdc page size = 256KB, m = 18, now
+                * when cmc page size = 256KB, m = 18, now
                 * if n = 16, time cost msec = 164
                 * if n = 8 , time cost msec = 82
                 * if n = 4 , time cost msec = 41
@@ -917,29 +1060,7 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 time_msec_cost = (((complete_degrade_num_t * 41) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
             }
 
-            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_28MB) /*28MB/s*/
-            {
-                /*
-                *
-                * if flow control is 28MB/s
-                *
-                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (28MB/s)
-                *                = ((n * 2^m * 36) / (2^20)) ms
-                *                = (((n * 36) << m) >> 20) ms
-                * where 2^m is cdc page size in bytes.
-                * e.g.,
-                * when cdc page size = 256KB, m = 18, now
-                * if n = 16, time cost msec = 144
-                * if n = 8 , time cost msec = 72
-                * if n = 4 , time cost msec = 36
-                * if n = 2 , time cost msec = 18
-                * if n = 1 , time cost msec = 9
-                *
-                */
-                time_msec_cost = (((complete_degrade_num_t * 36) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
-            }
-
-            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_32MB)/*32MB/s*/
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_032MB)/*32MB/s*/
             {
                 /*
                 *
@@ -948,9 +1069,9 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (32MB/s)
                 *        (about) = ((n * 2^m * 31) / (2^20)) ms
                 *                = (((n * 31) << m) >> 20) ms
-                * where 2^m is cdc page size in bytes.
+                * where 2^m is cmc page size in bytes.
                 * e.g.,
-                * when cdc page size = 256KB, m = 18, now
+                * when cmc page size = 256KB, m = 18, now
                 * if n = 16, time cost msec = 124
                 * if n = 8 , time cost msec = 62
                 * if n = 4 , time cost msec = 31
@@ -960,7 +1081,7 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 */
                 time_msec_cost = (((complete_degrade_num_t * 31) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
             }
-            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_36MB)/*36MB/s*/
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_036MB)/*36MB/s*/
             {
                 /*
                 *
@@ -969,9 +1090,9 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (36MB/s)
                 *                = ((n * 2^m * 28) / (2^20)) ms
                 *                = (((n * 28) << m) >> 20) ms
-                * where 2^m is cdc page size in bytes.
+                * where 2^m is cmc page size in bytes.
                 * e.g.,
-                * when cdc page size = 256KB, m = 18, now
+                * when cmc page size = 256KB, m = 18, now
                 * if n = 16, time cost msec = 112
                 * if n = 8 , time cost msec = 56
                 * if n = 4 , time cost msec = 28
@@ -982,7 +1103,7 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 time_msec_cost = (((complete_degrade_num_t * 28) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
             }
 
-            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_40MB)/*40MB/s*/
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_040MB)/*40MB/s*/
             {
                 /*
                 *
@@ -991,9 +1112,9 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (40MB/s)
                 *                = ((n * 2^m * 25) / (2^20)) ms
                 *                = (((n * 25) << m) >> 20) ms
-                * where 2^m is cdc page size in bytes.
+                * where 2^m is cmc page size in bytes.
                 * e.g.,
-                * when cdc page size = 256KB, m = 18, now
+                * when cmc page size = 256KB, m = 18, now
                 * if n = 16, time cost msec = 100
                 * if n = 8 , time cost msec = 50
                 * if n = 4 , time cost msec = 25
@@ -1003,14 +1124,59 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 */
                 time_msec_cost = (((complete_degrade_num_t * 25) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
             }
-            else/*60MB/s*/
+
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_048MB)/*48MB/s*/
             {
                 /*
                 *
-                * if flow control is 60MB/s
+                * if flow control is 48MB/s
                 *
-                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (60MB/s)
-                *        (about) = ((n * 2^m * 16) / (2^20)) ms
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (48MB/s)
+                *                = ((n * 2^m * 21) / (2^20)) ms
+                *                = (((n * 21) << m) >> 20) ms
+                * where 2^m is cmc page size in bytes.
+                * e.g.,
+                * when cmc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 84
+                * if n = 8 , time cost msec = 42
+                * if n = 4 , time cost msec = 21
+                * if n = 2 , time cost msec = 10
+                * if n = 1 , time cost msec = 5
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 21) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_056MB)/*56MB/s*/
+            {
+                /*
+                *
+                * if flow control is 56MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (56MB/s)
+                *                = ((n * 2^m * 18) / (2^20)) ms
+                *                = (((n * 18) << m) >> 20) ms
+                * where 2^m is cmc page size in bytes.
+                * e.g.,
+                * when cmc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 72
+                * if n = 8 , time cost msec = 36
+                * if n = 4 , time cost msec = 18
+                * if n = 2 , time cost msec = 9
+                * if n = 1 , time cost msec = 4
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 18) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_064MB)/*64MB/s*/
+            {
+                /*
+                *
+                * if flow control is 64MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (64MB/s)
+                *                = ((n * 2^m * 16) / (2^20)) ms
                 *                = (((n * 16) << m) >> 20) ms
                 * where 2^m is cmc page size in bytes.
                 * e.g.,
@@ -1023,6 +1189,320 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                 *
                 */
                 time_msec_cost = (((complete_degrade_num_t * 16) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_072MB)/*72MB/s*/
+            {
+                /*
+                *
+                * if flow control is 72MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (72MB/s)
+                *                = ((n * 2^m * 14) / (2^20)) ms
+                *                = (((n * 14) << m) >> 20) ms
+                * where 2^m is cmc page size in bytes.
+                * e.g.,
+                * when cmc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 56
+                * if n = 8 , time cost msec = 28
+                * if n = 4 , time cost msec = 14
+                * if n = 2 , time cost msec = 7
+                * if n = 1 , time cost msec = 3
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 14) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_096MB)/*96MB/s*/
+            {
+                /*
+                *
+                * if flow control is 96MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (96MB/s)
+                *                = ((n * 2^m * 10) / (2^20)) ms
+                *                = (((n * 10) << m) >> 20) ms
+                * where 2^m is cmc page size in bytes.
+                * e.g.,
+                * when cmc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 10
+                * if n = 8 , time cost msec = 5
+                * if n = 4 , time cost msec = 2
+                * if n = 2 , time cost msec = 1
+                * if n = 1 , time cost msec = 0
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 10) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else/*128MB/s*/
+            {
+                /*
+                *
+                * if flow control is 128MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (128MB/s)
+                *        (about) = ((n * 2^m * 8) / (2^20)) ms
+                *                = (((n * 8) << m) >> 20) ms
+                * where 2^m is cmc page size in bytes.
+                * e.g.,
+                * when cmc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 8
+                * if n = 8 , time cost msec = 4
+                * if n = 4 , time cost msec = 2
+                * if n = 2 , time cost msec = 1
+                * if n = 1 , time cost msec = 0
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 8) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "[DEBUG] cmc_process_degrades: "
+                                                "complete %ld, expected cost %ld msec\n",
+                                                complete_degrade_num_t, time_msec_cost);
+
+            time_msec_next = time_msec_cur + time_msec_cost;
+
+            break; /*fall through*/
+        }
+    }
+
+    if(NULL_PTR != complete_degrade_num)
+    {
+        (*complete_degrade_num) = complete_degrade_num_t;
+    }
+
+    return;
+}
+
+/*for sata hdd*/
+void cmc_process_degrades_sata(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
+                                 const uint64_t ssd_traffic_read_bps,
+                                 const UINT32 scan_max_num,
+                                 const UINT32 expect_degrade_num,
+                                 UINT32 *complete_degrade_num)
+{
+    static uint64_t     time_msec_next = 0; /*init*/
+
+    UINT32      complete_degrade_num_t;
+
+    complete_degrade_num_t = 0;
+
+    if(NULL_PTR != CMC_MD_NP(cmc_md))
+    {
+        uint64_t    time_msec_cur;
+
+        time_msec_cur = c_get_cur_time_msec();
+
+        /*flow control: degrade 20MB/s at most to sata*/
+        while(time_msec_cur >= time_msec_next)
+        {
+            uint64_t    time_msec_cost; /*msec cost for degrading from ssd to sata*/
+
+            /*degrade 4MB at most once time*/
+            cmcnp_degrade(CMC_MD_NP(cmc_md), scan_max_num, expect_degrade_num, ssd_traffic_read_bps, &complete_degrade_num_t);
+
+            if(0 == complete_degrade_num_t)
+            {
+                break; /*fall through*/
+            }
+
+            if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_008MB) /*8MB/s*/
+            {
+                /*
+                *
+                * if flow control is 8MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (8MB/s)
+                *                = ((n * 2^m * 125) / (2^20)) ms
+                *                = (((n * 125) << m) >> 20) ms
+                * where 2^m is cmc page size in bytes.
+                * e.g.,
+                * when cmc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 500
+                * if n = 8 , time cost msec = 250
+                * if n = 4 , time cost msec = 125
+                * if n = 2 , time cost msec = 62
+                * if n = 1 , time cost msec = 31
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 125) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_012MB) /*12MB/s*/
+            {
+                /*
+                *
+                * if flow control is 12MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (12MB/s)
+                *                = ((n * 2^m * 83) / (2^20)) ms
+                *                = (((n * 83) << m) >> 20) ms
+                * where 2^m is cmc page size in bytes.
+                * e.g.,
+                * when cmc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 332
+                * if n = 8 , time cost msec = 166
+                * if n = 4 , time cost msec = 83
+                * if n = 2 , time cost msec = 41
+                * if n = 1 , time cost msec = 20
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 83) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_016MB) /*16MB/s*/
+            {
+                /*
+                *
+                * if flow control is 16MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (16MB/s)
+                *                = ((n * 2^m * 62) / (2^20)) ms
+                *                = (((n * 62) << m) >> 20) ms
+                * where 2^m is cmc page size in bytes.
+                * e.g.,
+                * when cmc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 248
+                * if n = 8 , time cost msec = 124
+                * if n = 4 , time cost msec = 62
+                * if n = 2 , time cost msec = 31
+                * if n = 1 , time cost msec = 15
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 62) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_020MB) /*20MB/s*/
+            {
+                /*
+                *
+                * if flow control is 20MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (20MB/s)
+                *                = ((n * 2^m * 50) / (2^20)) ms
+                *                = (((n * 50) << m) >> 20) ms
+                *                = (((n * 25) << m) >> 19) ms
+                * where 2^m is cmc page size in bytes.
+                * e.g.,
+                * when cmc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 200
+                * if n = 8 , time cost msec = 100
+                * if n = 4 , time cost msec = 50
+                * if n = 2 , time cost msec = 25
+                * if n = 1 , time cost msec = 12
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 50) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_024MB) /*24MB/s*/
+            {
+                /*
+                *
+                * if flow control is 24MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (24MB/s)
+                *                = ((n * 2^m * 41) / (2^20)) ms
+                *                = (((n * 41) << m) >> 20) ms
+                * where 2^m is cmc page size in bytes.
+                * e.g.,
+                * when cmc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 164
+                * if n = 8 , time cost msec = 82
+                * if n = 4 , time cost msec = 41
+                * if n = 2 , time cost msec = 20
+                * if n = 1 , time cost msec = 10
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 41) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_028MB) /*28MB/s*/
+            {
+                /*
+                *
+                * if flow control is 28MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (28MB/s)
+                *                = ((n * 2^m * 36) / (2^20)) ms
+                *                = (((n * 36) << m) >> 20) ms
+                * where 2^m is cmc page size in bytes.
+                * e.g.,
+                * when cmc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 144
+                * if n = 8 , time cost msec = 72
+                * if n = 4 , time cost msec = 36
+                * if n = 2 , time cost msec = 18
+                * if n = 1 , time cost msec = 9
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 36) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_032MB)/*32MB/s*/
+            {
+                /*
+                *
+                * if flow control is 32MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (32MB/s)
+                *        (about) = ((n * 2^m * 31) / (2^20)) ms
+                *                = (((n * 31) << m) >> 20) ms
+                * where 2^m is cmc page size in bytes.
+                * e.g.,
+                * when cmc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 124
+                * if n = 8 , time cost msec = 62
+                * if n = 4 , time cost msec = 31
+                * if n = 2 , time cost msec = 15
+                * if n = 1 , time cost msec = 7
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 31) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+            else if(degrade_traffic_bps <= CMC_DEGRADE_TRAFFIC_036MB)/*36MB/s*/
+            {
+                /*
+                *
+                * if flow control is 36MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (36MB/s)
+                *                = ((n * 2^m * 28) / (2^20)) ms
+                *                = (((n * 28) << m) >> 20) ms
+                * where 2^m is cmc page size in bytes.
+                * e.g.,
+                * when cmc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 112
+                * if n = 8 , time cost msec = 56
+                * if n = 4 , time cost msec = 28
+                * if n = 2 , time cost msec = 14
+                * if n = 1 , time cost msec = 7
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 28) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
+            }
+
+            else /*40MB/s*/
+            {
+                /*
+                *
+                * if flow control is 40MB/s
+                *
+                * time cost msec = ((n * 2^m B) * (1000 ms/s)) / (40MB/s)
+                *                = ((n * 2^m * 25) / (2^20)) ms
+                *                = (((n * 25) << m) >> 20) ms
+                * where 2^m is cmc page size in bytes.
+                * e.g.,
+                * when cmc page size = 256KB, m = 18, now
+                * if n = 16, time cost msec = 100
+                * if n = 8 , time cost msec = 50
+                * if n = 4 , time cost msec = 25
+                * if n = 2 , time cost msec = 12
+                * if n = 1 , time cost msec = 6
+                *
+                */
+                time_msec_cost = (((complete_degrade_num_t * 25) << CMCPGB_PAGE_SIZE_NBITS) >> 20);
             }
 
             dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "[DEBUG] cmc_process_degrades: "
@@ -1055,7 +1535,7 @@ void cmc_process_degrades_02(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
                                  const UINT32 expect_degrade_num,
                                  UINT32 *complete_degrade_num)
 {
-    static uint64_t  time_msec_next = 0; /*init*/
+    static uint64_t     time_msec_next = 0; /*init*/
 
     UINT32      complete_degrade_num_t;
 
@@ -1073,7 +1553,7 @@ void cmc_process_degrades_02(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
             uint64_t    time_msec_cost; /*msec cost for degrading from ssd to sata*/
 
             /*degrade 4MB at most once time*/
-            cmcnp_degrade(CMC_MD_NP(cmc_md), scan_max_num, expect_degrade_num, &complete_degrade_num_t);
+            cmcnp_degrade(CMC_MD_NP(cmc_md), scan_max_num, expect_degrade_num, 0, &complete_degrade_num_t);
             if(0 == complete_degrade_num_t)
             {
                 break; /*fall through*/
@@ -1368,7 +1848,7 @@ CMCNP_ITEM *cmc_find(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key)
 
     if(NULL_PTR == CMC_MD_NP(cmc_md))
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_find: np was not open\n");
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "warn:cmc_find: np was not open\n");
         return (NULL_PTR);
     }
 
@@ -1394,11 +1874,12 @@ CMCNP_ITEM *cmc_find(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key)
 *  reserve space from dn
 *
 **/
-STATIC_CAST static EC_BOOL __cmc_reserve_hash_dn(CMC_MD *cmc_md, const UINT32 data_len, const uint32_t path_hash, CMCNP_FNODE *cmcnp_fnode)
+STATIC_CAST static EC_BOOL __cmc_reserve_hash_dn(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key, const UINT32 data_len, CMCNP_FNODE *cmcnp_fnode)
 {
     CMCNP_INODE *cmcnp_inode;
     CMCPGV      *cmcpgv;
 
+    uint32_t path_hash;
     uint32_t size;
     uint16_t disk_no;
     uint16_t block_no;
@@ -1442,6 +1923,8 @@ STATIC_CAST static EC_BOOL __cmc_reserve_hash_dn(CMC_MD *cmc_md, const UINT32 da
         return (EC_FALSE);
     }
 
+    path_hash = cmcnp_key_hash(cmcnp_key);
+
     fail_tries = 0;
     for(;;)
     {
@@ -1480,7 +1963,7 @@ STATIC_CAST static EC_BOOL __cmc_reserve_hash_dn(CMC_MD *cmc_md, const UINT32 da
     CMC_ASSERT(CMCPGB_PAGE_SIZE_NBYTES == size);
 
     cmcnp_fnode_init(cmcnp_fnode);
-    CMCNP_FNODE_PAGENUM(cmcnp_fnode) = (uint16_t)(size >> CMCPGB_PAGE_SIZE_NBITS);
+    CMCNP_FNODE_PAGENUM(cmcnp_fnode) = (uint16_t)((size + CMCPGB_PAGE_SIZE_NBYTES - 1) >> CMCPGB_PAGE_SIZE_NBITS);
     CMCNP_FNODE_REPNUM(cmcnp_fnode)  = 1;
 
     cmcnp_inode = CMCNP_FNODE_INODE(cmcnp_fnode, 0);
@@ -1531,10 +2014,10 @@ EC_BOOL cmc_reserve_dn(CMC_MD *cmc_md, const UINT32 data_len, CMCNP_FNODE *cmcnp
         return (EC_FALSE);
     }
 
-     CMC_ASSERT(CMCPGB_PAGE_SIZE_NBYTES == size);
+    CMC_ASSERT(CMCPGB_PAGE_SIZE_NBYTES == size);
 
     cmcnp_fnode_init(cmcnp_fnode);
-    CMCNP_FNODE_PAGENUM(cmcnp_fnode) = (uint16_t)(size >> CMCPGB_PAGE_SIZE_NBITS);
+    CMCNP_FNODE_PAGENUM(cmcnp_fnode) = (uint16_t)((size + CMCPGB_PAGE_SIZE_NBYTES - 1) >> CMCPGB_PAGE_SIZE_NBITS);
     CMCNP_FNODE_REPNUM(cmcnp_fnode) = 1;
 
     cmcnp_inode = CMCNP_FNODE_INODE(cmcnp_fnode, 0);
@@ -1583,7 +2066,7 @@ EC_BOOL cmc_release_dn(CMC_MD *cmc_md, const CMCNP_FNODE *cmcnp_fnode)
     /*refer cmc_page_write: when file size is zero, only reserve np but no dn space*/
     if(0 == file_size)
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_release_dn: file_size is zero\n");
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "warn:cmc_release_dn: file_size is zero\n");
         return (EC_TRUE);/*Jan 4,2017 modify it from EC_FALSE to EC_TRUE*/
     }
 
@@ -1787,7 +2270,7 @@ EC_BOOL cmc_file_read(CMC_MD *cmc_md, UINT32 *offset, const UINT32 rsize, UINT8 
 
         if(EC_FALSE == cmcnp_has_key(CMC_MD_NP(cmc_md), &cmcnp_key))
         {
-            dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_file_read: mem miss page %ld\n",
+            dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "warn:cmc_file_read: mem miss page %ld\n",
                             s_page);
             break;
         }
@@ -2050,7 +2533,7 @@ EC_BOOL cmc_file_delete(CMC_MD *cmc_md, UINT32 *offset, const UINT32 dsize)
             else
             {
                 CMC_ASSERT(CMCPGB_PAGE_SIZE_NBYTES == (uint32_t)offset_t);
-                CMCNP_FNODE_PAGENUM(&cmcnp_fnode) = (uint16_t)(offset_t >> CMCPGB_PAGE_SIZE_NBITS);
+                CMCNP_FNODE_PAGENUM(&cmcnp_fnode) = (uint16_t)((offset_t + CMCPGB_PAGE_SIZE_NBYTES - 1) >> CMCPGB_PAGE_SIZE_NBITS);
 
                 if(EC_FALSE == cmcnp_update(CMC_MD_NP(cmc_md), &cmcnp_key, &cmcnp_fnode))
                 {
@@ -2322,7 +2805,7 @@ UINT8 *cmc_page_locate(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key)
     cmcnp_fnode = cmcnp_locate(CMC_MD_NP(cmc_md), cmcnp_key);
     if(NULL_PTR == cmcnp_fnode)
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_page_locate: locate np failed\n");
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "warn:cmc_page_locate: locate np failed\n");
         return (NULL_PTR);
     }
 
@@ -2345,7 +2828,7 @@ EC_BOOL cmc_page_write(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key, const CBYTES 
     UINT32        page_num;
     UINT32        space_len;
     UINT32        data_len;
-    uint32_t      path_hash;
+
 
     CMC_ASSERT(CMCNP_KEY_S_PAGE(cmcnp_key) + 1 == CMCNP_KEY_E_PAGE(cmcnp_key));
 
@@ -2363,14 +2846,12 @@ EC_BOOL cmc_page_write(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key, const CBYTES 
         return (EC_FALSE);
     }
 
-    path_hash = cmcnp_key_hash(cmcnp_key);
-
     /*exception*/
     if(0 == CBYTES_LEN(cbytes))
     {
         cmcnp_fnode_init(cmcnp_fnode);
 
-        if(do_log(SEC_0118_CMC, 1))
+        if(do_log(SEC_0118_CMC, 3))
         {
             sys_log(LOGSTDOUT, "warn:cmc_page_write: write with zero len to dn where fnode is \n");
             cmcnp_fnode_print(LOGSTDOUT, cmcnp_fnode);
@@ -2389,7 +2870,19 @@ EC_BOOL cmc_page_write(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key, const CBYTES 
     /*when fnode is duplicate, do not reserve data node anymore*/
     if(0 == CMCNP_FNODE_REPNUM(cmcnp_fnode))
     {
-        if(EC_FALSE == __cmc_reserve_hash_dn(cmc_md, data_len, path_hash, cmcnp_fnode))
+        if(SWITCH_ON == CMC_LRU_MODEL_SWITCH
+        && EC_FALSE == __cmc_reserve_hash_dn(cmc_md, cmcnp_key, data_len, cmcnp_fnode))
+        {
+            dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_page_write: reserve dn %ld bytes failed\n",
+                            data_len);
+
+            __cmc_release_np(cmc_md, cmcnp_key);
+
+            return (EC_FALSE);
+        }
+
+        if(SWITCH_ON == CMC_FIFO_MODEL_SWITCH
+        && EC_FALSE == cmc_reserve_dn(cmc_md, data_len, cmcnp_fnode))
         {
             dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_page_write: reserve dn %ld bytes failed\n",
                             data_len);
@@ -2402,7 +2895,7 @@ EC_BOOL cmc_page_write(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key, const CBYTES 
     else
     {
         /*when fnode is duplicate, update file size*/
-        CMCNP_FNODE_PAGENUM(cmcnp_fnode) = (uint16_t)(data_len >> CMCPGB_PAGE_SIZE_NBITS);
+        CMCNP_FNODE_PAGENUM(cmcnp_fnode) = (uint16_t)((data_len + CMCPGB_PAGE_SIZE_NBYTES - 1) >> CMCPGB_PAGE_SIZE_NBITS);
     }
 
     if(EC_FALSE == cmc_export_dn(cmc_md, cbytes, cmcnp_fnode))
@@ -2442,7 +2935,7 @@ EC_BOOL cmc_page_read(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key, CBYTES *cbytes
 
     if(EC_FALSE == cmcnp_read(CMC_MD_NP(cmc_md), cmcnp_key, &cmcnp_fnode))
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_page_read: read from np failed\n");
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "warn:cmc_page_read: read from np failed\n");
         return (EC_FALSE);
     }
 
@@ -2451,7 +2944,7 @@ EC_BOOL cmc_page_read(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key, CBYTES *cbytes
     /*exception*/
     if(0 == CMCNP_FNODE_PAGENUM(&cmcnp_fnode))
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_page_read: read with zero len from np and fnode %p is \n", &cmcnp_fnode);
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "warn:cmc_page_read: read with zero len from np and fnode %p is \n", &cmcnp_fnode);
         return (EC_TRUE);
     }
 
@@ -2549,7 +3042,7 @@ EC_BOOL cmc_page_read_e(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key, UINT32 *offs
     /*exception*/
     if(0 == CMCNP_FNODE_PAGENUM(&cmcnp_fnode))
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_page_read_e: read with zero len from np and fnode %p is \n", &cmcnp_fnode);
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "warn:cmc_page_read_e: read with zero len from np and fnode %p is \n", &cmcnp_fnode);
         cmcnp_fnode_print(LOGSTDOUT, &cmcnp_fnode);
         return (EC_TRUE);
     }
@@ -2581,7 +3074,6 @@ EC_BOOL cmc_export_dn(CMC_MD *cmc_md, const CBYTES *cbytes, const CMCNP_FNODE *c
     uint16_t disk_no;
     uint16_t block_no;
     uint16_t page_no;
-
 
     file_size = (UINT32)(((UINT32)CMCNP_FNODE_PAGENUM(cmcnp_fnode)) << CMCPGB_PAGE_SIZE_NBITS);
     data_len  = DMIN(CBYTES_LEN(cbytes), file_size);
@@ -2669,7 +3161,7 @@ EC_BOOL cmc_write_dn(CMC_MD *cmc_md, const CBYTES *cbytes, CMCNP_FNODE *cmcnp_fn
     data_len = CBYTES_LEN(cbytes);
     CMC_ASSERT(CMCPGB_PAGE_SIZE_NBYTES == data_len);
 
-    CMCNP_FNODE_PAGENUM(cmcnp_fnode) = (uint16_t)(data_len >> CMCPGB_PAGE_SIZE_NBITS);
+    CMCNP_FNODE_PAGENUM(cmcnp_fnode) = (uint16_t)((data_len + CMCPGB_PAGE_SIZE_NBYTES - 1) >> CMCPGB_PAGE_SIZE_NBITS);
     CMCNP_FNODE_REPNUM(cmcnp_fnode)  = 1;
 
     return (EC_TRUE);
@@ -2802,7 +3294,7 @@ EC_BOOL cmc_write_e_dn(CMC_MD *cmc_md, CMCNP_FNODE *cmcnp_fnode, UINT32 *offset,
     {
         CMC_ASSERT(CMCPGB_PAGE_SIZE_NBYTES == (*offset));
         /*update file size info*/
-        CMCNP_FNODE_PAGENUM(cmcnp_fnode) = (uint16_t)((*offset) >> CMCPGB_PAGE_SIZE_NBITS);
+        CMCNP_FNODE_PAGENUM(cmcnp_fnode) = (uint16_t)(((*offset) + CMCPGB_PAGE_SIZE_NBYTES - 1) >> CMCPGB_PAGE_SIZE_NBITS);
     }
 
     return (EC_TRUE);
@@ -2904,7 +3396,7 @@ EC_BOOL cmc_page_delete(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key)
 
     if(NULL_PTR == CMC_MD_NP(cmc_md))
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_page_delete: np was not open\n");
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "warn:cmc_page_delete: np was not open\n");
         return (EC_FALSE);
     }
 
@@ -2984,7 +3476,7 @@ EC_BOOL cmc_file_num(CMC_MD *cmc_md, UINT32 *file_num)
 
     if(NULL_PTR == CMC_MD_NP(cmc_md))
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_file_num: np was not open\n");
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "warn:cmc_file_num: np was not open\n");
         return (EC_FALSE);
     }
 
@@ -3017,7 +3509,7 @@ EC_BOOL cmc_file_size(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key, UINT32 *file_s
 
     if(NULL_PTR == CMC_MD_NP(cmc_md))
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_file_size: np was not open\n");
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "warn:cmc_file_size: np was not open\n");
         return (EC_FALSE);
     }
 
@@ -3105,7 +3597,7 @@ EC_BOOL cmc_search(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key)
 
     if(NULL_PTR == CMC_MD_NP(cmc_md))
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_search: np was not open\n");
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "warn:cmc_search: np was not open\n");
         return (EC_FALSE);
     }
 
@@ -3137,7 +3629,7 @@ EC_BOOL cmc_recycle(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num)
 
     if(NULL_PTR == CMC_MD_NP(cmc_md))
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_recycle: np was not open\n");
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "warn:cmc_recycle: np was not open\n");
         return (EC_FALSE);
     }
 
@@ -3181,7 +3673,7 @@ EC_BOOL cmc_retire(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num)
 
     if(NULL_PTR == CMC_MD_NP(cmc_md))
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_retire: np was not open\n");
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "warn:cmc_retire: np was not open\n");
         return (EC_FALSE);
     }
 
@@ -3221,7 +3713,7 @@ EC_BOOL cmc_degrade(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num)
 
     if(NULL_PTR == CMC_MD_NP(cmc_md))
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_degrade: np was not open\n");
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "warn:cmc_degrade: np was not open\n");
         return (EC_FALSE);
     }
 
@@ -3233,7 +3725,7 @@ EC_BOOL cmc_degrade(CMC_MD *cmc_md, const UINT32 max_num, UINT32 *complete_num)
 
     complete_degrade_num = 0;/*initialization*/
 
-    cmcnp_degrade(CMC_MD_NP(cmc_md), CMC_SCAN_DEGRADE_MAX_NUM, max_num, &complete_degrade_num);
+    cmcnp_degrade(CMC_MD_NP(cmc_md), CMC_SCAN_DEGRADE_MAX_NUM, max_num, 0, &complete_degrade_num);
 
     if(0 < complete_degrade_num)
     {
@@ -3273,12 +3765,11 @@ EC_BOOL cmc_set_degrade_callback(CMC_MD *cmc_md, const uint32_t flags, CMCNP_DEG
     return (EC_FALSE);
 }
 
-
 EC_BOOL cmc_set_retire_callback(CMC_MD *cmc_md, CMCNP_RETIRE_CALLBACK func, void *arg)
 {
     if(NULL_PTR == CMC_MD_NP(cmc_md))
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_set_retire_callback: np was not open\n");
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "warn:cmc_set_retire_callback: np was not open\n");
         return (EC_FALSE);
     }
 
@@ -3307,11 +3798,11 @@ EC_BOOL cmc_show_np(const CMC_MD *cmc_md, LOG *log)
 
 /**
 *
-*  show name node LRU
+*  show name node QUE
 *
 *
 **/
-EC_BOOL cmc_show_np_lru_list(const CMC_MD *cmc_md, LOG *log)
+EC_BOOL cmc_show_np_que_list(const CMC_MD *cmc_md, LOG *log)
 {
     if(NULL_PTR == CMC_MD_NP(cmc_md))
     {
@@ -3319,7 +3810,7 @@ EC_BOOL cmc_show_np_lru_list(const CMC_MD *cmc_md, LOG *log)
         return (EC_TRUE);
     }
 
-    cmcnp_print_lru_list(log, CMC_MD_NP(cmc_md));
+    cmcnp_print_que_list(log, CMC_MD_NP(cmc_md));
 
     return (EC_TRUE);
 }
@@ -3410,7 +3901,7 @@ EC_BOOL cmc_show_files(const CMC_MD *cmc_md, LOG *log)
 {
     if(NULL_PTR == CMC_MD_NP(cmc_md))
     {
-        dbg_log(SEC_0118_CMC, 1)(LOGSTDOUT, "warn:cmc_show_files: np was not open\n");
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "warn:cmc_show_files: np was not open\n");
         return (EC_FALSE);
     }
 

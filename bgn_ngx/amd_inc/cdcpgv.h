@@ -17,8 +17,9 @@ extern "C"{
 #include "cdcpgd.h"
 
 
-/*CDC support up to 1TB where 1TB = 2^40 B*/
-#define CDCPGV_MAX_BLOCK_NUM              (UINT32_ONE << (40 - CDCPGB_SIZE_NBITS))
+/*CDC support up to 4TB where 4TB = 2^42 B*/
+#define CDCPGV_MAX_SIZE_NBYTES            ((uint32_t)CAMD_SSD_DISK_MAX_SIZE_NBITS)
+#define CDCPGV_MAX_BLOCK_NUM              (UINT32_ONE << (CDCPGV_MAX_SIZE_NBYTES - CDCPGB_SIZE_NBITS))
 #define CDCPGV_MAX_DISK_NUM               ((uint16_t)(CDCPGV_MAX_BLOCK_NUM / CDCPGD_MAX_BLOCK_NUM))
 
 #define CDCPGV_ERR_OFFSET                 ((UINT32)~0)
