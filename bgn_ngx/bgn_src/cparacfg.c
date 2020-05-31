@@ -151,7 +151,7 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH);
-
+    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CAMD_SATA_DISK_VM_S_OFFSET);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CMC_TRY_RETIRE_MAX_NUM);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CMC_TRY_RECYCLE_MAX_NUM);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CMC_SCAN_RETIRE_MAX_NUM);
@@ -285,7 +285,7 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE         = %ld\n",  CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg));
     sys_log(log, "CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET       = %ld\n",  CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg));
     //sys_log(log, "CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE         = %ld\n",  CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
-
+    sys_log(log, "CAMD_SATA_DISK_VM_S_OFFSET     = %ld\n" ,  CPARACFG_CAMD_SATA_DISK_VM_S_OFFSET(cparacfg));
     sys_log(log, "CPARACFG_CMON_CONHASH_SWITCH               = %s\n" ,  CPARACFG_CMON_CONHASH_SWITCH_STR(cparacfg));
     sys_log(log, "CPARACFG_CMON_CONHASH_REPLICAS             = %u\n" ,  CPARACFG_CMON_CONHASH_REPLICAS(cparacfg));
     sys_log(log, "CPARACFG_CMON_HOT_PATH_SWITCH              = %s\n" ,  CPARACFG_CMON_HOT_PATH_SWITCH_STR(cparacfg));

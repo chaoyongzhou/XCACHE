@@ -416,7 +416,7 @@ typedef struct
 #define TASK_REPORT_NODE_FAIL_RSP_NUM(task_report_node)                 ((task_report_node)->fail_rsp_num)
 
 
-#define TASK_BRD_TIME_STR_SIZE         ((int)64)
+#define TASK_BRD_TIME_STR_SIZE         ((int)256)
 
 typedef EC_BOOL (*TASK_BRD_EXTRA_CLEANER)(void *);
 

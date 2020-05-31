@@ -1539,6 +1539,24 @@ void chttp_stat_print(LOG *log, const CHTTP_STAT *chttp_stat)
     sys_log(LOGSTDOUT, "chttp_stat_print:send len   : %u\n", CHTTP_STAT_S_SEND_LEN(chttp_stat));
     sys_log(LOGSTDOUT, "chttp_stat_print:recv len   : %u\n", CHTTP_STAT_S_RECV_LEN(chttp_stat));
 
+    sys_log(LOGSTDOUT, "chttp_stat_print:req s-time : %lu\n", CHTTP_STAT_REQ_S_MSEC(chttp_stat));
+    sys_log(LOGSTDOUT, "chttp_stat_print:req e-time : %lu\n", CHTTP_STAT_REQ_E_MSEC(chttp_stat));
+    sys_log(LOGSTDOUT, "chttp_stat_print:req c-time : %lu\n", CHTTP_STAT_REQ_C_MSEC(chttp_stat));
+
+    sys_log(LOGSTDOUT, "chttp_stat_print:rsp s-time : %lu\n", CHTTP_STAT_RSP_S_MSEC(chttp_stat));
+    sys_log(LOGSTDOUT, "chttp_stat_print:rsp e-time : %lu\n", CHTTP_STAT_RSP_E_MSEC(chttp_stat));
+
+    sys_log(LOGSTDOUT, "chttp_stat_print:ssl shakehand: %u\n", CHTTP_STAT_SSL_SHAKEHAND_MSEC(chttp_stat));
+    sys_log(LOGSTDOUT, "chttp_stat_print:ssl send len : %u\n", CHTTP_STAT_SSL_SEND_LEN(chttp_stat));
+    sys_log(LOGSTDOUT, "chttp_stat_print:client rtt   : %u\n", CHTTP_STAT_CLIENT_RTT_MSEC(chttp_stat));
+
+    sys_log(LOGSTDOUT, "chttp_stat_print:device name: %s\n", CHTTP_STAT_DEVICE_NAME(chttp_stat));
+    sys_log(LOGSTDOUT, "chttp_stat_print:trace id   : %s\n", CHTTP_STAT_TRACE_ID(chttp_stat));
+    sys_log(LOGSTDOUT, "chttp_stat_print:req ipaddr : %s\n", CHTTP_STAT_REQ_IPADDR_STR(chttp_stat));
+    sys_log(LOGSTDOUT, "chttp_stat_print:req host   : %s\n", CHTTP_STAT_REQ_HOST(chttp_stat));
+
+    sys_log(LOGSTDOUT, "chttp_stat_print:log bitmap : %s\n", c_uint64_t_to_bin_str(CHTTP_STAT_LOG_BITMAP(chttp_stat)));
+
     sys_log(LOGSTDOUT, "chttp_stat_print:start time : %lu\n", CHTTP_STAT_BASIC_S_MSEC(chttp_stat));
     sys_log(LOGSTDOUT, "chttp_stat_print:recvd time : %lu\n", CHTTP_STAT_BASIC_R_MSEC(chttp_stat));
     sys_log(LOGSTDOUT, "chttp_stat_print:done  time : %lu\n", CHTTP_STAT_BASIC_D_MSEC(chttp_stat));
@@ -1557,6 +1575,169 @@ EC_BOOL chttp_stat_set_rsp_status(CHTTP_STAT *chttp_stat, const uint32_t status)
         CHTTP_STAT_RSP_STATUS(chttp_stat) = status;
     }
     return (EC_TRUE);
+}
+
+void chttp_stat_log(const CHTTP_STAT *chttp_stat, LOG *log)
+{
+    static char space[ CHTTP_STAT_LOG_BUFF_MAX_SIZE ];
+
+    if(NULL_PTR != chttp_stat)
+    {
+        char       *buff;
+        uint32_t    buff_max_len;
+        uint32_t    buff_len;
+        uint64_t    log_bitmap;
+
+        buff            = (char *)space;
+        buff_max_len    = CHTTP_STAT_LOG_BUFF_MAX_SIZE;
+        buff_len        = 0;
+        log_bitmap      = CHTTP_STAT_LOG_BITMAP(chttp_stat);
+
+        if(CHTTP_STAT_LOG_000_RSVD & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "-");
+        }
+
+        if(CHTTP_STAT_LOG_001_NODE_LAYER & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "proxy");
+        }
+
+        if(CHTTP_STAT_LOG_002_ORIG_S_TIMESTAMP & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t",
+                                    c_http_time_msec(CHTTP_STAT_REQ_S_MSEC(chttp_stat)));
+        }
+
+        if(CHTTP_STAT_LOG_003_ORIG_E_TIME_MSEC & log_bitmap)
+        {
+            uint32_t    msec;
+
+            msec = (uint32_t)(CHTTP_STAT_REQ_E_MSEC(chttp_stat) - CHTTP_STAT_REQ_S_MSEC(chttp_stat));
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%u\t", msec);
+        }
+
+        if(CHTTP_STAT_LOG_004_CACHE_STATUS & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "MISS");
+        }
+
+        if(CHTTP_STAT_LOG_005_ORIG_RSP_STATUS & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%u\t",
+                                    CHTTP_STAT_RSP_STATUS(chttp_stat));
+        }
+
+        if(CHTTP_STAT_LOG_006_ORIG_PROTOCOL & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "http");
+        }
+
+        if(CHTTP_STAT_LOG_007_ORIG_HOST & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t",
+                                    (char *)CHTTP_STAT_REQ_HOST(chttp_stat));
+        }
+
+        if(CHTTP_STAT_LOG_008_ORIG_REQ_LEN & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%u\t",
+                                    CHTTP_STAT_S_SEND_LEN(chttp_stat));
+        }
+
+        if(CHTTP_STAT_LOG_009_LOCAL_IPADDR & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "-");
+        }
+
+        if(CHTTP_STAT_LOG_010_ORIG_RSP_TIME_MSEC & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%u\t", (uint32_t)0);
+        }
+
+        if(CHTTP_STAT_LOG_011_ORIG_RSP_REACH_MSEC & log_bitmap)
+        {
+            uint32_t    msec;
+
+            msec = (uint32_t)(CHTTP_STAT_RSP_S_MSEC(chttp_stat) - CHTTP_STAT_REQ_S_MSEC(chttp_stat));
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%u\t", msec);
+        }
+
+        if(CHTTP_STAT_LOG_012_DEV_NAME & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t",
+                                    (char *)CHTTP_STAT_DEVICE_NAME(chttp_stat));
+        }
+
+        if(CHTTP_STAT_LOG_013_LOCAL_PORT & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "-");
+        }
+
+        if(CHTTP_STAT_LOG_014_SERVICE_TYPE & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "-");
+        }
+
+        if(CHTTP_STAT_LOG_015_ORIG_IPADDR & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t",
+                                    (char *)CHTTP_STAT_REQ_IPADDR_STR(chttp_stat));
+        }
+
+        if(CHTTP_STAT_LOG_016_ORIG_C_TIME_MSEC & log_bitmap)
+        {
+            uint32_t    msec;
+
+            msec = (uint32_t)(CHTTP_STAT_REQ_C_MSEC(chttp_stat) - CHTTP_STAT_REQ_S_MSEC(chttp_stat));
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%u\t", msec);
+        }
+
+        if(CHTTP_STAT_LOG_017_ORIG_SENT_NBYTES & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%u\t", (uint32_t)0);
+        }
+
+        if(CHTTP_STAT_LOG_018_SSL_HANDSHAKE_MSEC & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "-");
+        }
+
+        if(CHTTP_STAT_LOG_019_SSL_SENT_NBYTES & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%u\t", (uint32_t)0);
+        }
+
+        if(CHTTP_STAT_LOG_020_CLIENT_RTT & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "-");
+        }
+
+        if(CHTTP_STAT_LOG_021_ORIG_RECV_NBYTES & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%u\t",
+                                    CHTTP_STAT_S_RECV_LEN(chttp_stat));
+        }
+
+        if(CHTTP_STAT_LOG_022_ORIG_SENT_NBYTES & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%u\t",
+                                    CHTTP_STAT_S_SEND_LEN(chttp_stat));
+        }
+
+        if(CHTTP_STAT_LOG_023_TRACE_ID & log_bitmap)
+        {
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t",
+                                    (char *)CHTTP_STAT_TRACE_ID(chttp_stat));
+        }
+
+        if(0 < buff_len && CHTTP_STAT_LOG_BUFF_MAX_SIZE > buff_len)
+        {
+            sys_print(log, "%.*s\n", buff_len, buff);
+        }
+    }
+
+    return;
 }
 
 /*---------------------------------------- INTERFACE WITH HTTP NODE  ----------------------------------------*/
@@ -1909,7 +2090,7 @@ EC_BOOL chttp_node_reserve(CHTTP_NODE *chttp_node)
     ASSERT(NULL_PTR != chttp_node);
     CHTTP_NODE_COUNTER(chttp_node) ++;
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEUG] chttp_node_reserve: reserve chttp_node %p, error %s, counter %u\n",
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_reserve: reserve chttp_node %p, error %s, counter %u\n",
                                           chttp_node,
                                           c_bit_bool_str(CHTTP_NODE_IS_ERROR(chttp_node)),
                                           CHTTP_NODE_COUNTER(chttp_node));
@@ -1925,7 +2106,7 @@ EC_BOOL chttp_node_release(CHTTP_NODE *chttp_node)
 
     CHTTP_NODE_COUNTER(chttp_node) --;
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEUG] chttp_node_release: reserve chttp_node %p, error %s, counter %u\n",
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_release: reserve chttp_node %p, error %s, counter %u\n",
                                           chttp_node,
                                           c_bit_bool_str(CHTTP_NODE_IS_ERROR(chttp_node)),
                                           CHTTP_NODE_COUNTER(chttp_node));
@@ -2219,6 +2400,12 @@ EC_BOOL chttp_node_recv_req(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
 
 EC_BOOL chttp_node_send_req(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
 {
+    if(0 == CHTTP_NODE_REQ_S_MSEC(chttp_node))
+    {
+        /*record 1st sending time*/
+        CHTTP_NODE_LOG_REQ_S_TIME(chttp_node);
+    }
+
     if(EC_FALSE == csocket_cnode_is_connected(csocket_cnode))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_send_req: sockfd %d is not connected\n",
@@ -2250,6 +2437,8 @@ EC_BOOL chttp_node_send_req(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
         ***********************************************************************************/
         return (EC_AGAIN);
     }
+
+    CHTTP_NODE_LOG_REQ_E_TIME(chttp_node);
 
     chunk_mgr_clean(CHTTP_NODE_SEND_BUF(chttp_node));/*clean up asap*/
 
@@ -2409,14 +2598,6 @@ EC_BOOL chttp_node_send_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
         return (EC_FALSE);
     }
 
-    if(0)
-    {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGUSER07, "[DEBUG] sockfd %d, to send len: %ld, uri: %.*s\n",
-                       CSOCKET_CNODE_SOCKFD(csocket_cnode),
-                       chttp_node_send_len(chttp_node),
-                       CBUFFER_USED(CHTTP_NODE_URI(chttp_node)), (char *)CBUFFER_DATA(CHTTP_NODE_URI(chttp_node)));
-    }
-
     if(EC_FALSE == chttp_node_send(chttp_node, csocket_cnode))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_send_rsp: sockfd %d send rsp failed\n",
@@ -2513,6 +2694,8 @@ EC_BOOL chttp_node_complete(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
 
     if(CHTTP_TYPE_DO_CLT_RSP == CHTTP_NODE_TYPE(chttp_node))/*on client side*/
     {
+        CHTTP_NODE_LOG_REQ_C_TIME(chttp_node);
+
         /* unbind */
         CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
 
@@ -2611,6 +2794,8 @@ EC_BOOL chttp_node_close(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
 
     if(CHTTP_TYPE_DO_CLT_RSP == CHTTP_NODE_TYPE(chttp_node))/*on client side*/
     {
+        CHTTP_NODE_LOG_REQ_C_TIME(chttp_node);
+
         /* unbind */
         CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
 
@@ -2707,6 +2892,8 @@ EC_BOOL chttp_node_timeout(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
 
     if(CHTTP_TYPE_DO_CLT_RSP == CHTTP_NODE_TYPE(chttp_node)) /*client side*/
     {
+        CHTTP_NODE_LOG_REQ_C_TIME(chttp_node);
+
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "[DEBUG] chttp_node_timeout: [client] sockfd %d timeout\n", sockfd);
 
         /* unbind */
@@ -2797,6 +2984,8 @@ EC_BOOL chttp_node_shutdown(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
 
     if(CHTTP_TYPE_DO_CLT_RSP == CHTTP_NODE_TYPE(chttp_node)) /*client side*/
     {
+        CHTTP_NODE_LOG_REQ_C_TIME(chttp_node);
+
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_shutdown: [client] sockfd %d shutdown\n", sockfd);
 
         /* unbind */
@@ -2854,6 +3043,15 @@ EC_BOOL chttp_node_shutdown(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
     CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
 
     CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;
+    return (EC_TRUE);
+}
+
+EC_BOOL chttp_node_parse_on_message_begin(CHTTP_NODE *chttp_node)
+{
+    if(NULL_PTR != chttp_node)
+    {
+        CHTTP_NODE_LOG_RSP_S_TIME(chttp_node);
+    }
     return (EC_TRUE);
 }
 
@@ -2969,6 +3167,8 @@ EC_BOOL chttp_node_parse_on_message_complete(CHTTP_NODE *chttp_node)
         CSOCKET_CNODE *csocket_cnode;
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+
+        CHTTP_NODE_LOG_RSP_E_TIME(chttp_node);
 
         /*
         *   note:
@@ -5062,6 +5262,10 @@ EC_BOOL chttp_req_init(CHTTP_REQ *chttp_req)
 #if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
     cstring_init(CHTTP_REQ_DOMAIN(chttp_req), NULL_PTR);
 #endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
+
+    cstring_init(CHTTP_REQ_DEVICE_NAME(chttp_req), NULL_PTR);
+    cstring_init(CHTTP_REQ_TRACE_ID(chttp_req), NULL_PTR);
+
     CHTTP_REQ_SSL_FLAG(chttp_req) = EC_FALSE;
 
     cstring_init(CHTTP_REQ_METHOD(chttp_req), NULL_PTR);
@@ -5090,6 +5294,9 @@ EC_BOOL chttp_req_clean(CHTTP_REQ *chttp_req)
 #if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
     cstring_clean(CHTTP_REQ_DOMAIN(chttp_req));
 #endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
+
+    cstring_clean(CHTTP_REQ_DEVICE_NAME(chttp_req));
+    cstring_clean(CHTTP_REQ_TRACE_ID(chttp_req));
 
     CHTTP_REQ_SSL_FLAG(chttp_req) = EC_FALSE;
 
@@ -5131,6 +5338,9 @@ void chttp_req_print(LOG *log, const CHTTP_REQ *chttp_req)
 #if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
     sys_log(log, "chttp_req_print: domain: %s\n" , cstring_get_str(CHTTP_REQ_DOMAIN(chttp_req)));
 #endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
+
+    sys_log(log, "chttp_req_print: domain: %s\n" , cstring_get_str(CHTTP_REQ_DEVICE_NAME(chttp_req)));
+    sys_log(log, "chttp_req_print: domain: %s\n" , cstring_get_str(CHTTP_REQ_TRACE_ID(chttp_req)));
 
     sys_log(log, "chttp_req_print: ssl: %s\n" , c_bool_str(CHTTP_REQ_SSL_FLAG(chttp_req)));
 
@@ -5600,6 +5810,9 @@ EC_BOOL chttp_req_clone(CHTTP_REQ *chttp_req_des, const CHTTP_REQ *chttp_req_src
 #if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
     cstring_clone(CHTTP_REQ_DOMAIN(chttp_req_src), CHTTP_REQ_DOMAIN(chttp_req_des));
 #endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
+
+    cstring_clone(CHTTP_REQ_DEVICE_NAME(chttp_req_src), CHTTP_REQ_DEVICE_NAME(chttp_req_des));
+    cstring_clone(CHTTP_REQ_TRACE_ID(chttp_req_src), CHTTP_REQ_TRACE_ID(chttp_req_des));
 
     CHTTP_REQ_SSL_FLAG(chttp_req_des)  = CHTTP_REQ_SSL_FLAG(chttp_req_src);
 
@@ -6887,6 +7100,11 @@ EC_BOOL chttp_node_set_parse_callback(CHTTP_NODE *chttp_node)
         {
             return (EC_TRUE);
         }
+
+        ccallback_list_push(CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CALLBACK_LIST(chttp_node),
+                            (const char *)"chttp_node_parse_on_message_begin",
+                            (UINT32)chttp_node,
+                            (UINT32)chttp_node_parse_on_message_begin);
 
         ccallback_list_push(CHTTP_NODE_PARSE_ON_HEADERS_COMPLETE_CALLBACK_LIST(chttp_node),
                             (const char *)"chttp_node_parse_on_headers_complete",
@@ -9318,6 +9536,52 @@ EC_BOOL chttp_node_set_billing(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store)
     return (EC_TRUE);
 }
 
+/*import key info from http req to http node*/
+EC_BOOL chttp_node_import_req(CHTTP_NODE *chttp_node, const CHTTP_REQ *chttp_req)
+{
+    if(NULL_PTR != chttp_node && NULL_PTR != chttp_req)
+    {
+        CHTTP_STAT      *chttp_stat;
+
+        chttp_stat = CHTTP_NODE_STAT(chttp_node);
+
+        if(EC_FALSE == cstring_is_empty(CHTTP_REQ_DEVICE_NAME(chttp_req)))
+        {
+            char     *device_name;
+
+            device_name = (char *)cstring_get_str(CHTTP_REQ_DEVICE_NAME(chttp_req));
+            CHTTP_STAT_SET_DEVICE_NAME(chttp_stat, device_name);
+
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_import_req: "
+                                                  "import device name '%s' to node\n",
+                                                  device_name);
+        }
+
+        if(EC_FALSE == cstring_is_empty(CHTTP_REQ_TRACE_ID(chttp_req)))
+        {
+            char     *trace_id;
+
+            trace_id = (char *)cstring_get_str(CHTTP_REQ_TRACE_ID(chttp_req));
+            CHTTP_STAT_SET_TRACE_ID(chttp_stat, trace_id);
+
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_import_req: "
+                                                  "import trace id '%s' to node\n",
+                                                  trace_id);
+        }
+    }
+
+    /*switch on all log putput*/
+    if(NULL_PTR != chttp_node)
+    {
+        CHTTP_STAT      *chttp_stat;
+
+        chttp_stat = CHTTP_NODE_STAT(chttp_node);
+
+        CHTTP_STAT_LOG_BITMAP(chttp_stat) = (~((uint64_t)0));
+    }
+    return (EC_TRUE);
+}
+
 /*-------------------------------------------------------------------------------------------------------------------------------------------\
  *
  * Block Http Flow
@@ -9339,6 +9603,8 @@ EC_BOOL chttp_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, CH
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_block: new chttp_node failed\n");
         return (EC_FALSE);
     }
+
+    chttp_node_import_req(chttp_node, chttp_req);
 
     CHTTP_NODE_LOG_TIME_WHEN_START(chttp_node); /*record start time*/
 
@@ -9413,6 +9679,8 @@ EC_BOOL chttp_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, CH
         chttp_node_free(chttp_node);
         return (EC_FALSE);
     }
+
+    CHTTP_NODE_LOG_REQ_S_TIME(chttp_node);
 
     for(;;)
     {
@@ -9587,6 +9855,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_basic: new chttp_node failed\n");
         return (EC_FALSE);
     }
+    chttp_node_import_req(chttp_node, chttp_req);
 
     if(NULL_PTR != chttp_store)/*store data to storage as long as http recving*/
     {
@@ -9909,6 +10178,7 @@ EC_BOOL chttp_check(const CHTTP_REQ *chttp_req, CHTTP_STAT *chttp_stat)
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_check: new chttp_node failed\n");
         return (EC_FALSE);
     }
+    chttp_node_import_req(chttp_node, chttp_req);
 
     croutine_cond = croutine_cond_new(0/*never timeout*/, LOC_CHTTP_0050);
     if(NULL_PTR == croutine_cond)
@@ -11048,14 +11318,23 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
             CHTTP_STAT_LOG_ORIG_TIME_WHEN_START(s_msec);
         }
 
+        if(BIT_TRUE == need_log_flag
+        && NULL_PTR != chttp_stat)
+        {
+            CHTTP_STAT_REQ_S_MSEC(chttp_stat) = s_msec;
+        }
+
         if(EC_FALSE == chttp_request_basic(chttp_req, chttp_store, chttp_rsp, chttp_stat)) /*need store or not need store (e.g. direct procedure)*/
         {
             if(BIT_TRUE == need_log_flag
             && NULL_PTR != chttp_stat)
             {
                 CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+
+                CHTTP_STAT_REQ_C_MSEC(chttp_stat) = e_msec;
+
                 s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
-                sys_log(LOGUSER07, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
+                sys_log(LOGUSER06, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
                                    (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                    CHTTP_REQ_PORT(chttp_req),
                                    CHTTP_RSP_STATUS(chttp_rsp),
@@ -11067,6 +11346,13 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
                                    CHTTP_STAT_S_SEND_LEN(chttp_stat),
                                    CHTTP_STAT_S_RECV_LEN(chttp_stat)
                                    );
+
+                CHTTP_STAT_SET_REQ_HOST(chttp_stat,
+                        (char *)chttp_req_get_header(chttp_req, (const char *)"Host"));
+
+                CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, CHTTP_REQ_IPADDR(chttp_req));
+
+                chttp_stat_log(chttp_stat, LOGUSER07);
             }
 
             if(BIT_TRUE == need_log_flag
@@ -11074,7 +11360,7 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
             {
                 CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
                 s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
-                sys_log(LOGUSER07, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
+                sys_log(LOGUSER06, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
                                    (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                    CHTTP_REQ_PORT(chttp_req),
                                    CHTTP_RSP_STATUS(chttp_rsp),
@@ -11093,8 +11379,11 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
         && NULL_PTR != chttp_stat)
         {
             CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+
+            CHTTP_STAT_REQ_C_MSEC(chttp_stat) = e_msec;
+
             s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
-            sys_log(LOGUSER07, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
+            sys_log(LOGUSER06, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
                                (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                CHTTP_REQ_PORT(chttp_req),
                                CHTTP_RSP_STATUS(chttp_rsp),
@@ -11106,6 +11395,13 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
                                CHTTP_STAT_S_SEND_LEN(chttp_stat),
                                CHTTP_STAT_S_RECV_LEN(chttp_stat)
                                );
+
+            CHTTP_STAT_SET_REQ_HOST(chttp_stat,
+                    (char *)chttp_req_get_header(chttp_req, (const char *)"Host"));
+
+            CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, CHTTP_REQ_IPADDR(chttp_req));
+
+            chttp_stat_log(chttp_stat, LOGUSER07);
         }
 
         if(BIT_TRUE == need_log_flag
@@ -11113,7 +11409,7 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
         {
             CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
             s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
-            sys_log(LOGUSER07, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
+            sys_log(LOGUSER06, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
                                (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                CHTTP_REQ_PORT(chttp_req),
                                CHTTP_RSP_STATUS(chttp_rsp),

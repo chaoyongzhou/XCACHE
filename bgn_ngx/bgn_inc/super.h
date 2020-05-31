@@ -842,6 +842,20 @@ void super_ngx_switch_so(const UINT32 super_md_id);
 **/
 void super_ngx_show_so(const UINT32 super_md_id, LOG *log);
 
+/**
+*
+* set dma:ssd:aio:req:max:<num>
+*
+**/
+EC_BOOL super_set_ssd_aio_req_max_num(const UINT32 super_md_id, const UINT32 aio_req_max_num);
+
+/**
+*
+* set dma:sata:aio:req:max:<num>
+*
+**/
+EC_BOOL super_set_sata_aio_req_max_num(const UINT32 super_md_id, const UINT32 aio_req_max_num);
+
 /*------------------------------------------------------ test for ict -----------------------------------------------------------------------*/
 EC_BOOL super_set_zone_size(const UINT32 super_md_id, const UINT32 obj_zone_size);
 EC_BOOL super_load_data(const UINT32 super_md_id);

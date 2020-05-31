@@ -46,7 +46,7 @@ extern "C"{
 #define CHTTP_IN_BUF_SIZE         ((uint32_t)(256 * 1024))
 #define CHTTP_OUT_BUF_SIZE        ((uint32_t)(  8 * 1024))
 
-#define CHTTP_STAT_STR_MAX_SIZE   (64)
+#define CHTTP_STAT_STR_MAX_SIZE   (128)
 #define CHTTP_DESC_STR_MAX_SIZE   (384)
 
 #define CHTTP_SEG_ERR_ID          ((uint32_t)~0)
@@ -203,15 +203,37 @@ typedef struct
 #define CHTTP_STORE_LAST_MODIFIED_STR(chttp_store)            (CSTRING_STR(CHTTP_STORE_LAST_MODIFIED(chttp_store)))
 #define CHTTP_STORE_LAST_MODIFIED_LEN(chttp_store)            (CSTRING_LEN(CHTTP_STORE_LAST_MODIFIED(chttp_store)))
 
+
+#define CHTTP_STAT_LOG_BUFF_MAX_SIZE                          (4 * 1024) /*4K*/
+
 /*statistics*/
 typedef struct
 {
     uint32_t                  rsp_status;
-    uint32_t                  rsvd;
+    uint32_t                  rsvd01;
 
     /*transfer statistics*/
     uint32_t                  send_len;
     uint32_t                  recv_len;
+
+    uint64_t                  req_s_msec; /*orig request send out time in msec*/
+    uint64_t                  req_e_msec; /*orig request end time in msec*/
+    uint64_t                  req_c_msec; /*orig request return (or complete) time in msec*/
+
+    uint64_t                  rsp_s_msec; /*orig rsp recv start time in msec*/
+    uint64_t                  rsp_e_msec; /*orig rsp recv complete time in msec*/
+
+    uint32_t                  ssl_shakehand_msec; /*not used yet*/
+    uint32_t                  ssl_send_len;       /*not used yet*/
+    uint32_t                  client_rtt_msec;    /*not used yet*/
+    uint32_t                  rsvd02;
+
+    uint8_t                   device_name[ CHTTP_STAT_STR_MAX_SIZE ];
+    uint8_t                   trace_id   [ CHTTP_STAT_STR_MAX_SIZE ];
+    uint8_t                   req_host   [ CHTTP_STAT_STR_MAX_SIZE ];
+    uint64_t                  req_ipaddr;
+
+    uint64_t                  log_bitmap;
 
     /*time statistics*/
     union
@@ -287,6 +309,26 @@ typedef struct
 #define CHTTP_STAT_S_SEND_LEN(chttp_stat)          ((chttp_stat)->send_len)
 #define CHTTP_STAT_S_RECV_LEN(chttp_stat)          ((chttp_stat)->recv_len)
 
+#define CHTTP_STAT_REQ_S_MSEC(chttp_stat)          ((chttp_stat)->req_s_msec)
+#define CHTTP_STAT_REQ_E_MSEC(chttp_stat)          ((chttp_stat)->req_e_msec)
+#define CHTTP_STAT_REQ_C_MSEC(chttp_stat)          ((chttp_stat)->req_c_msec)
+
+#define CHTTP_STAT_RSP_S_MSEC(chttp_stat)          ((chttp_stat)->rsp_s_msec)
+#define CHTTP_STAT_RSP_E_MSEC(chttp_stat)          ((chttp_stat)->rsp_e_msec)
+
+#define CHTTP_STAT_SSL_SHAKEHAND_MSEC(chttp_stat)  ((chttp_stat)->ssl_shakehand_msec)
+#define CHTTP_STAT_SSL_SEND_LEN(chttp_stat)        ((chttp_stat)->ssl_send_len)
+#define CHTTP_STAT_CLIENT_RTT_MSEC(chttp_stat)     ((chttp_stat)->client_rtt_msec)
+
+#define CHTTP_STAT_DEVICE_NAME(chttp_stat)         ((chttp_stat)->device_name)
+#define CHTTP_STAT_TRACE_ID(chttp_stat)            ((chttp_stat)->trace_id)
+#define CHTTP_STAT_REQ_HOST(chttp_stat)            ((chttp_stat)->req_host)
+#define CHTTP_STAT_REQ_IPADDR(chttp_stat)          ((chttp_stat)->req_ipaddr)
+
+#define CHTTP_STAT_REQ_IPADDR_STR(chttp_stat)      (c_word_to_ipv4((UINT32)CHTTP_STAT_REQ_IPADDR(chttp_stat)))
+
+#define CHTTP_STAT_LOG_BITMAP(chttp_stat)          ((chttp_stat)->log_bitmap)
+
 #define CHTTP_STAT_BASIC_S_MSEC(chttp_stat)        ((chttp_stat)->u.basic.s_msec)
 #define CHTTP_STAT_BASIC_R_MSEC(chttp_stat)        ((chttp_stat)->u.basic.r_msec)
 #define CHTTP_STAT_BASIC_L_MSEC(chttp_stat)        ((chttp_stat)->u.basic.l_msec)
@@ -324,6 +366,46 @@ typedef struct
 #define CHTTP_STAT_S_SEND_LEN_INC(chttp_stat, num) (CHTTP_STAT_S_SEND_LEN(chttp_stat) += (num))
 #define CHTTP_STAT_S_RECV_LEN_INC(chttp_stat, num) (CHTTP_STAT_S_RECV_LEN(chttp_stat) += (num))
 
+#define CHTTP_STAT_SET_DEVICE_NAME(chttp_stat, device_name) do {                                          \
+    snprintf((char *)CHTTP_STAT_DEVICE_NAME(chttp_stat), CHTTP_STAT_STR_MAX_SIZE, "%s", (device_name));   \
+}while(0)
+
+#define CHTTP_STAT_SET_REQ_HOST(chttp_stat, host_name) do {                                               \
+    snprintf((char *)CHTTP_STAT_REQ_HOST(chttp_stat), CHTTP_STAT_STR_MAX_SIZE, "%s", (host_name));        \
+}while(0)
+
+#define CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, ipaddr) do {                                                \
+    CHTTP_STAT_REQ_IPADDR(chttp_stat) = (ipaddr);                                                         \
+}while(0)
+
+#define CHTTP_STAT_SET_TRACE_ID(chttp_stat, trace_id) do {                                                \
+    snprintf((char *)CHTTP_STAT_TRACE_ID(chttp_stat), CHTTP_STAT_STR_MAX_SIZE, "%s", (trace_id));         \
+}while(0)
+
+#define CHTTP_STAT_LOG_000_RSVD                               ((uint64_t)(1 <<  0)) /*-*/
+#define CHTTP_STAT_LOG_001_NODE_LAYER                         ((uint64_t)(1 <<  1)) /*proxy*/
+#define CHTTP_STAT_LOG_002_ORIG_S_TIMESTAMP                   ((uint64_t)(1 <<  2))
+#define CHTTP_STAT_LOG_003_ORIG_E_TIME_MSEC                   ((uint64_t)(1 <<  3))
+#define CHTTP_STAT_LOG_004_CACHE_STATUS                       ((uint64_t)(1 <<  4)) /*MISS*/
+#define CHTTP_STAT_LOG_005_ORIG_RSP_STATUS                    ((uint64_t)(1 <<  5))
+#define CHTTP_STAT_LOG_006_ORIG_PROTOCOL                      ((uint64_t)(1 <<  6)) /*http(s)*/
+#define CHTTP_STAT_LOG_007_ORIG_HOST                          ((uint64_t)(1 <<  7))
+#define CHTTP_STAT_LOG_008_ORIG_REQ_LEN                       ((uint64_t)(1 <<  8)) /*0*/
+#define CHTTP_STAT_LOG_009_LOCAL_IPADDR                       ((uint64_t)(1 <<  9)) /*-*/
+#define CHTTP_STAT_LOG_010_ORIG_RSP_TIME_MSEC                 ((uint64_t)(1 << 10)) /*0*/
+#define CHTTP_STAT_LOG_011_ORIG_RSP_REACH_MSEC                ((uint64_t)(1 << 11))
+#define CHTTP_STAT_LOG_012_DEV_NAME                           ((uint64_t)(1 << 12))
+#define CHTTP_STAT_LOG_013_LOCAL_PORT                         ((uint64_t)(1 << 13)) /*-*/
+#define CHTTP_STAT_LOG_014_SERVICE_TYPE                       ((uint64_t)(1 << 14)) /*-*/
+#define CHTTP_STAT_LOG_015_ORIG_IPADDR                        ((uint64_t)(1 << 15))
+#define CHTTP_STAT_LOG_016_ORIG_C_TIME_MSEC                   ((uint64_t)(1 << 16)) /*save as 003*/
+#define CHTTP_STAT_LOG_017_ORIG_SENT_NBYTES                   ((uint64_t)(1 << 17)) /*0*/
+#define CHTTP_STAT_LOG_018_SSL_HANDSHAKE_MSEC                 ((uint64_t)(1 << 18)) /*-*/
+#define CHTTP_STAT_LOG_019_SSL_SENT_NBYTES                    ((uint64_t)(1 << 19)) /*0*/
+#define CHTTP_STAT_LOG_020_CLIENT_RTT                         ((uint64_t)(1 << 20)) /*-*/
+#define CHTTP_STAT_LOG_021_ORIG_RECV_NBYTES                   ((uint64_t)(1 << 21))
+#define CHTTP_STAT_LOG_022_ORIG_SENT_NBYTES                   ((uint64_t)(1 << 22))
+#define CHTTP_STAT_LOG_023_TRACE_ID                           ((uint64_t)(1 << 23))
 
 typedef struct
 {
@@ -545,6 +627,13 @@ typedef EC_BOOL (*CHTTP_NODE_SEND_BODY_CALLBACK)(const UINT32, const UINT32, con
 #define CHTTP_NODE_DESC_STR_INIT(chttp_node)               (CHTTP_STAT_DESC_STR_INIT(CHTTP_NODE_STAT(chttp_node)))
 #define CHTTP_NODE_DESC_STR_CLEAN(chttp_node)              (CHTTP_STAT_DESC_STR_CLEAN(CHTTP_NODE_STAT(chttp_node)))
 
+/*more statistics*/
+#define CHTTP_NODE_REQ_S_MSEC(chttp_node)                  (CHTTP_STAT_REQ_S_MSEC(CHTTP_NODE_STAT(chttp_node)))
+#define CHTTP_NODE_REQ_E_MSEC(chttp_node)                  (CHTTP_STAT_REQ_E_MSEC(CHTTP_NODE_STAT(chttp_node)))
+#define CHTTP_NODE_REQ_C_MSEC(chttp_node)                  (CHTTP_STAT_REQ_C_MSEC(CHTTP_NODE_STAT(chttp_node)))
+#define CHTTP_NODE_RSP_S_MSEC(chttp_node)                  (CHTTP_STAT_RSP_S_MSEC(CHTTP_NODE_STAT(chttp_node)))
+#define CHTTP_NODE_RSP_E_MSEC(chttp_node)                  (CHTTP_STAT_RSP_E_MSEC(CHTTP_NODE_STAT(chttp_node)))
+
 /*----------------------------- CHTTP_NODE interface for statistics -----------------------------*/
 #define CHTTP_NODE_S_SEND_LEN_INC(chttp_node, num) do{                                       \
     CHTTP_NODE_S_SEND_LEN(chttp_node) += (num);                                              \
@@ -565,7 +654,6 @@ typedef EC_BOOL (*CHTTP_NODE_SEND_BODY_CALLBACK)(const UINT32, const UINT32, con
 #define CHTTP_NODE_LOG_TIME_WHEN_START(chttp_node) do{                                       \
     CHTTP_NODE_S_MSEC(chttp_node) = c_get_cur_time_msec();                                   \
 }while(0)
-
 
 #define CHTTP_NODE_LOG_TIME_WHEN_RCVD(chttp_node) do{                                        \
     CHTTP_NODE_R_MSEC(chttp_node) = c_get_cur_time_msec();                                   \
@@ -608,6 +696,26 @@ typedef EC_BOOL (*CHTTP_NODE_SEND_BODY_CALLBACK)(const UINT32, const UINT32, con
             s2e_elapsed_msec,                                                                \
             (char *)CHTTP_NODE_DESC_STR(chttp_node)                                          \
            );                                                                                \
+}while(0)
+
+#define CHTTP_NODE_LOG_REQ_S_TIME(chttp_node) do{                                           \
+    CHTTP_NODE_REQ_S_MSEC(chttp_node) = c_get_cur_time_msec();                               \
+}while(0)
+
+#define CHTTP_NODE_LOG_REQ_E_TIME(chttp_node) do{                                           \
+    CHTTP_NODE_REQ_E_MSEC(chttp_node) = c_get_cur_time_msec();                               \
+}while(0)
+
+#define CHTTP_NODE_LOG_REQ_C_TIME(chttp_node) do{                                           \
+    CHTTP_NODE_REQ_C_MSEC(chttp_node) = c_get_cur_time_msec();                               \
+}while(0)
+
+#define CHTTP_NODE_LOG_RSP_S_TIME(chttp_node) do{                                           \
+    CHTTP_NODE_RSP_S_MSEC(chttp_node) = c_get_cur_time_msec();                               \
+}while(0)
+
+#define CHTTP_NODE_LOG_RSP_E_TIME(chttp_node) do{                                           \
+    CHTTP_NODE_RSP_E_MSEC(chttp_node) = c_get_cur_time_msec();                               \
 }while(0)
 
 /*----------------------------- CHTTP_STAT interface for merge statistics -----------------------------*/
@@ -769,6 +877,10 @@ typedef struct
                                 /* actually we can ignore such handling */
                                 /* and ask orig detector takes responsibility of ip working*/
 #endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
+
+    CSTRING             device_name;    /*carry on for http stat*/
+    CSTRING             trace_id;       /*carry on for http stat*/
+
     EC_BOOL             ssl_flag;
 
     CSTRING             method;
@@ -794,6 +906,10 @@ typedef struct
 #define CHTTP_REQ_DOMAIN(chttp_req)                 (&((chttp_req)->domain))
 #define CHTTP_REQ_DOMAIN_STR(chttp_req)             (cstring_get_str(CHTTP_REQ_DOMAIN(chttp_req)))
 #endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
+#define CHTTP_REQ_DEVICE_NAME(chttp_req)            (&((chttp_req)->device_name))
+#define CHTTP_REQ_DEVICE_NAME_STR(chttp_req)        (cstring_get_str(CHTTP_REQ_DEVICE_NAME(chttp_req)))
+#define CHTTP_REQ_TRACE_ID(chttp_req)               (&((chttp_req)->trace_id))
+#define CHTTP_REQ_TRACE_ID_STR(chttp_req)           (cstring_get_str(CHTTP_REQ_TRACE_ID(chttp_req)))
 #define CHTTP_REQ_SSL_FLAG(chttp_req)               ((chttp_req)->ssl_flag)
 #define CHTTP_REQ_METHOD(chttp_req)                 (&((chttp_req)->method))
 #define CHTTP_REQ_URI(chttp_req)                    (&((chttp_req)->uri))

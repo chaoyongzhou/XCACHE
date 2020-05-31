@@ -107,7 +107,7 @@ EC_BOOL cxfsnp_mgr_close_np_all(CXFSNP_MGR *cxfsnp_mgr);
 
 void cxfsnp_mgr_print_db(LOG *log, const CXFSNP_MGR *cxfsnp_mgr);
 
-void cxfsnp_mgr_print_lru_list(LOG *log, const CXFSNP_MGR *cxfsnp_mgr);
+void cxfsnp_mgr_print_que_list(LOG *log, const CXFSNP_MGR *cxfsnp_mgr);
 
 void cxfsnp_mgr_print_del_list(LOG *log, const CXFSNP_MGR *cxfsnp_mgr);
 
@@ -123,7 +123,7 @@ EC_BOOL cxfsnp_mgr_flush(CXFSNP_MGR *cxfsnp_mgr);
 
 EC_BOOL cxfsnp_mgr_load(CXFSNP_MGR *cxfsnp_mgr, const int cxfsnp_dev_fd, const CXFSCFG *cxfscfg);
 
-EC_BOOL cxfsnp_mgr_show_np_lru_list(LOG *log, CXFSNP_MGR *cxfsnp_mgr, const uint32_t cxfsnp_id);
+EC_BOOL cxfsnp_mgr_show_np_que_list(LOG *log, CXFSNP_MGR *cxfsnp_mgr, const uint32_t cxfsnp_id);
 
 EC_BOOL cxfsnp_mgr_show_np_del_list(LOG *log, CXFSNP_MGR *cxfsnp_mgr, const uint32_t cxfsnp_id);
 
@@ -228,7 +228,7 @@ EC_BOOL cxfsnp_mgr_walk_of_np(CXFSNP_MGR *cxfsnp_mgr, const uint32_t cxfsnp_id, 
 
 EC_BOOL cxfsnp_mgr_show_cached_np(LOG *log, const CXFSNP_MGR *cxfsnp_mgr);
 
-EC_BOOL cxfsnp_mgr_show_cached_np_lru_list(LOG *log, const CXFSNP_MGR *cxfsnp_mgr);
+EC_BOOL cxfsnp_mgr_show_cached_np_que_list(LOG *log, const CXFSNP_MGR *cxfsnp_mgr);
 
 EC_BOOL cxfsnp_mgr_show_cached_np_del_list(LOG *log, const CXFSNP_MGR *cxfsnp_mgr);
 

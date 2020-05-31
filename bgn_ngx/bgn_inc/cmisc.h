@@ -100,6 +100,8 @@ char *c_uint16_t_to_bin_str(const uint16_t num);
 
 char *c_uint32_t_to_bin_str(const uint32_t num);
 
+char *c_uint64_t_to_bin_str(const uint64_t num);
+
 char *c_word_to_bin_str(const word_t num);
 
 char *c_uint64_t_to_str(const uint64_t num);
@@ -417,6 +419,7 @@ time_t   c_parse_http_time(uint8_t *value, size_t len);
 
 void     c_gmtime(time_t t, CTM *tp);
 char    *c_http_time(time_t t);
+char    *c_http_time_msec(uint64_t msec);
 
 
 #define c_tolower(c)      (uint8_t) (((c) >= 'A' && (c) <= 'Z') ? ((c) | 0x20) : (c))

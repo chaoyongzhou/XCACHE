@@ -35,7 +35,7 @@ extern "C"{
 #include "cstack.h"
 
 #include "cxfsnprb.h"
-#include "cxfsnplru.inc"
+#include "cxfsnpque.inc"
 #include "cxfsnpdel.inc"
 #include "cxfsop.h"
 
@@ -141,7 +141,7 @@ typedef struct
     uint32_t        second_hash;
 
     /*8B*/
-    CXFSNPLRU_NODE  lru_node;
+    CXFSNPQUE_NODE  que_node;
 
     /*8B*/
     CXFSNPDEL_NODE  del_node;
@@ -163,7 +163,7 @@ typedef struct
 #define CXFSNP_ITEM_DNODE(cxfsnp_item)            (&((cxfsnp_item)->u.dnode))
 #define CXFSNP_ITEM_CREATE_TIME(cxfsnp_item)      ((cxfsnp_item)->create_time)
 #define CXFSNP_ITEM_SECOND_HASH(cxfsnp_item)      ((cxfsnp_item)->second_hash)
-#define CXFSNP_ITEM_LRU_NODE(cxfsnp_item)         (&((cxfsnp_item)->lru_node))
+#define CXFSNP_ITEM_QUE_NODE(cxfsnp_item)         (&((cxfsnp_item)->que_node))
 #define CXFSNP_ITEM_DEL_NODE(cxfsnp_item)         (&((cxfsnp_item)->del_node))
 
 #define CXFSNP_ITEM_KEY(cxfsnp_item)              \
@@ -177,9 +177,9 @@ typedef struct
 #define CXFSNP_RB_NODE_ITEM(cxfsnprb_node)        ((NULL_PTR == (cxfsnprb_node)) ? NULL_PTR : \
     ((CXFSNP_ITEM *)((char *)(cxfsnprb_node)-(unsigned long)(&((CXFSNP_ITEM *)0)->rb_node))))
 
-/*get CXFSNP_ITEM from CXFSNPLRU_NODE*/
-#define CXFSNP_LRU_NODE_ITEM(cxfsnplru_node)        ((NULL_PTR == (cxfsnplru_node)) ? NULL_PTR : \
-    ((CXFSNP_ITEM *)((char *)(cxfsnplru_node)-(unsigned long)(&((CXFSNP_ITEM *)0)->lru_node))))
+/*get CXFSNP_ITEM from CXFSNPQUE_NODE*/
+#define CXFSNP_QUE_NODE_ITEM(cxfsnpque_node)        ((NULL_PTR == (cxfsnpque_node)) ? NULL_PTR : \
+    ((CXFSNP_ITEM *)((char *)(cxfsnpque_node)-(unsigned long)(&((CXFSNP_ITEM *)0)->que_node))))
 
 /*get CXFSNP_ITEM from CXFSNPDEL_NODE*/
 #define CXFSNP_DEL_NODE_ITEM(cxfsnpdel_node)        ((NULL_PTR == (cxfsnpdel_node)) ? NULL_PTR : \
@@ -374,8 +374,8 @@ typedef struct
 
     CXFSNP_HEADER          *header;       /* np header */
 
-    /*shortcut of lru list which point to root rb node */
-    CXFSNPLRU_NODE         *lru_list; /*the lastest access node is at head covering fnode only*/
+    /*shortcut of que list which point to root rb node */
+    CXFSNPQUE_NODE         *que_list; /*the lastest access node is at head covering fnode only*/
 
     /*shortcut of del list which point to root rb node */
     CXFSNPDEL_NODE         *del_list;      /*the deleted but not recycled nodes are in covering fnode and dnode*/
@@ -394,7 +394,7 @@ typedef struct
 
 #define CXFSNP_OP_MGR(cxfsnp)                 ((cxfsnp)->cxfsop_mgr)
 
-#define CXFSNP_LRU_LIST(cxfsnp)               ((cxfsnp)->lru_list)
+#define CXFSNP_QUE_LIST(cxfsnp)               ((cxfsnp)->que_list)
 #define CXFSNP_DEL_LIST(cxfsnp)               ((cxfsnp)->del_list)
 
 #define CXFSNP_2ND_CHASH_ALGO(cxfsnp)         ((cxfsnp)->chash_algo_2nd)

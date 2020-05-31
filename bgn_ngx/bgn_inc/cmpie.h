@@ -317,9 +317,9 @@ UINT32 cmpi_encode_cxfsnp_key(const UINT32 comm, const CXFSNP_KEY *cxfsnp_key, U
 UINT32 cmpi_encode_cxfsnp_key_size(const UINT32 comm, const CXFSNP_KEY *cxfsnp_key, UINT32 *size);
 UINT32 cmpi_decode_cxfsnp_key(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CXFSNP_KEY *cxfsnp_key);
 
-UINT32 cmpi_encode_cxfsnplru_node(const UINT32 comm, const CXFSNPLRU_NODE *cxfsnplru_node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_cxfsnplru_node_size(const UINT32 comm, const CXFSNPLRU_NODE *cxfsnplru_node, UINT32 *size);
-UINT32 cmpi_decode_cxfsnplru_node(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CXFSNPLRU_NODE *cxfsnplru_node);
+UINT32 cmpi_encode_cxfsnpque_node(const UINT32 comm, const CXFSNPQUE_NODE *cxfsnpque_node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
+UINT32 cmpi_encode_cxfsnpque_node_size(const UINT32 comm, const CXFSNPQUE_NODE *cxfsnpque_node, UINT32 *size);
+UINT32 cmpi_decode_cxfsnpque_node(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CXFSNPQUE_NODE *cxfsnpque_node);
 
 UINT32 cmpi_encode_cxfsnpdel_node(const UINT32 comm, const CXFSNPDEL_NODE *cxfsnpdel_node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
 UINT32 cmpi_encode_cxfsnpdel_node_size(const UINT32 comm, const CXFSNPDEL_NODE *cxfsnpdel_node, UINT32 *size);

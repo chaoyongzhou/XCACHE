@@ -73,6 +73,8 @@ void    chttp_stat_print(LOG *log, const CHTTP_STAT *chttp_stat);
 
 EC_BOOL chttp_stat_set_rsp_status(CHTTP_STAT *chttp_stat, const uint32_t status);
 
+void chttp_stat_log(const CHTTP_STAT *chttp_stat, LOG *log);
+
 /*---------------------------------------- INTERFACE WITH HTTP NODE  ----------------------------------------*/
 CHTTP_NODE *chttp_node_new(const UINT32 type);
 
@@ -459,6 +461,9 @@ EC_BOOL chttp_node_store_on_body(CHTTP_NODE *chttp_node);
 EC_BOOL chttp_node_renew_content_length(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, const uint64_t content_length);
 
 EC_BOOL chttp_node_set_billing(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store);
+
+/*import key info from http req to http node*/
+EC_BOOL chttp_node_import_req(CHTTP_NODE *chttp_node, const CHTTP_REQ *chttp_req);
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------\
  *

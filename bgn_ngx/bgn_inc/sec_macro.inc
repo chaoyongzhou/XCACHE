@@ -94,7 +94,7 @@
 #define SEC_0084_DHCP                       ((UINT32)(     84)) /*dhcp                            */
 #define SEC_0085_CPROC                      ((UINT32)(     85)) /*cproc                           */
 #define SEC_0086_CLOAD                      ((UINT32)(     86)) /*cload                           */
-#define SEC_0087_XXXXXX                     ((UINT32)(     87)) /*-- obsolete --                  */
+#define SEC_0087_CLOG                       ((UINT32)(     87)) /*clog                            */
 #define SEC_0088_TCNODE                     ((UINT32)(     88)) /*tcnode                          */
 #define SEC_0089_CBITMAP                    ((UINT32)(     89)) /*cbitmap                         */
 #define SEC_0090_CSYSCFG                    ((UINT32)(     90)) /*csyscfg                         */
@@ -121,7 +121,7 @@
 #define SEC_0111_CMCNP                      ((UINT32)(    111)) /*cmcnp                           */
 #define SEC_0112_CSRV                       ((UINT32)(    112)) /*csrv                            */
 #define SEC_0113_CMCNPRB                    ((UINT32)(    113)) /*cmcnprb                         */
-#define SEC_0114_CMCNPLRU                   ((UINT32)(    114)) /*cmcnplru                        */
+#define SEC_0114_CMCNPQUE                   ((UINT32)(    114)) /*cmcnpque                        */
 #define SEC_0115_CHASHVEC                   ((UINT32)(    115)) /*chashvec                        */
 #define SEC_0116_CMCNPDEL                   ((UINT32)(    116)) /*cmcnpdel                        */
 #define SEC_0117_SUPER                      ((UINT32)(    117)) /*super                           */
@@ -187,7 +187,7 @@
 #define SEC_0177_CCACHE                     ((UINT32)(    177)) /*ccache                          */
 #define SEC_0178_CCALLBACK                  ((UINT32)(    178)) /*ccallback                       */
 #define SEC_0179_CREFRESH                   ((UINT32)(    179)) /*crefresh                        */
-#define SEC_0180_CDCNPLRU                   ((UINT32)(    180)) /*cdcnplru                        */
+#define SEC_0180_CDCNPQUE                   ((UINT32)(    180)) /*cdcnpque                        */
 #define SEC_0181_CDCNPRB                    ((UINT32)(    181)) /*cdcnprb                         */
 #define SEC_0182_CDC                        ((UINT32)(    182)) /*cdc                             */
 #define SEC_0183_CDCPGB                     ((UINT32)(    183)) /*cdcpgb                          */
@@ -202,18 +202,18 @@
 #define SEC_0192_CXFS                       ((UINT32)(    192)) /*cxfs                            */
 #define SEC_0193_CXFSGW                     ((UINT32)(    193)) /*cxfsgw                          */
 #define SEC_0194_CXFSHTTP                   ((UINT32)(    194)) /*cxfshttp                        */
-#define SEC_0195_CXFSNPLRU                  ((UINT32)(    195)) /*cxfsnplru                       */
+#define SEC_0195_CXFSNPQUE                  ((UINT32)(    195)) /*cxfsnpque                       */
 #define SEC_0196_CXFSNPDEL                  ((UINT32)(    196)) /*cxfsnpdel                       */
 #define SEC_0197_CXFSNP                     ((UINT32)(    197)) /*cxfsnp                          */
 #define SEC_0198_CXFSNPRB                   ((UINT32)(    198)) /*cxfsnprb                        */
-#define SEC_0199_XXXXXXXXXXX                ((UINT32)(    199)) /*-- obsolete --                  */
+#define SEC_0199_XXXXXXXXXX                 ((UINT32)(    199)) /*-- obsolete --                  */
 #define SEC_0200_CXFSHTTPS                  ((UINT32)(    200)) /*cxfshttps                       */
 #define SEC_0201_CXFSPGB                    ((UINT32)(    201)) /*cxfspgb                         */
 #define SEC_0202_CXFSPGD                    ((UINT32)(    202)) /*cxfspgd                         */
 #define SEC_0203_CXFSPGV                    ((UINT32)(    203)) /*cxfspgv                         */
 #define SEC_0204_CXFSPGRB                   ((UINT32)(    204)) /*cxfspgrb                        */
 #define SEC_0205_CXFSCFG                    ((UINT32)(    205)) /*cxfscfg                         */
-#define SEC_0206_XXXXXXX                    ((UINT32)(    206)) /*-- obsolete --                  */
+#define SEC_0206_XXXXXXXXXX                 ((UINT32)(    206)) /*-- obsolete --                  */
 #define SEC_0207_CDEQUEUE                   ((UINT32)(    207)) /*cdequeue                        */
 #define SEC_0208_CFC                        ((UINT32)(    208)) /*cfc                             */
 #define SEC_0209_CMMAP                      ((UINT32)(    209)) /*cmmap                           */

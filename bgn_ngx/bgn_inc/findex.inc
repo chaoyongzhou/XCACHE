@@ -170,6 +170,8 @@
 #define                FI_super_set_bgn_slow_down  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 151))
 #define                FI_super_set_ngx_slow_down  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 152))
 #define                       FI_super_reopen_log  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 153))
+#define          FI_super_set_ssd_aio_req_max_num  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 154))
+#define         FI_super_set_sata_aio_req_max_num  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 155))
 
 
 #define           FI_csession_print_module_status  ((UINT32) ((MD_CSESSION << (WORDSIZE/2)) +  0))
@@ -391,9 +393,9 @@
 #define               FI_cxfs_delete_dir_wildcard  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 85))
 #define            FI_cxfs_wait_file_owner_cancel  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 86))
 #define                    FI_cxfs_file_terminate  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 87))
-#define                 FI_cxfs_show_npp_lru_list  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 88))
+#define                 FI_cxfs_show_npp_que_list  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 88))
 #define                 FI_cxfs_show_npp_del_list  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 89))
-#define         FI_cxfs_show_specific_np_lru_list  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 90))
+#define         FI_cxfs_show_specific_np_que_list  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 90))
 #define         FI_cxfs_show_specific_np_del_list  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 91))
 #define            FI_cxfs_create_sata_bad_bitmap  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 92))
 #define                 FI_cxfs_set_sata_bad_page  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 93))

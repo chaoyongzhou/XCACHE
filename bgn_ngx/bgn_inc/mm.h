@@ -368,6 +368,8 @@ extern "C"{
 #define                        MM_000282    ((UINT32)282) /*-- obsolete --*/
 #define                    MM_CXFSOP_MGR    ((UINT32)283)
 #define                     MM_CAMD_COND    ((UINT32)284)
+#define                 MM_CAMD_FILE_REQ    ((UINT32)285)
+#define                 MM_CDIO_FILE_REQ    ((UINT32)286)
 
 #define                           MM_END    ((UINT32)512)
 #define                        MM_IGNORE    ((UINT32)0xFFFF)

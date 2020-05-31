@@ -130,7 +130,8 @@ typedef struct
     uint32_t             op_dump_flag  :1;
     uint32_t             op_replay_flag:1;
     uint32_t             rsvd01        :26;
-    uint32_t             rsvd02;
+    uint16_t             rsvd02;
+    uint16_t             cur_disk_no;    /*for cxfs queue model*/
     UINT32               state;
 
     CSTRING              sata_disk_path;
@@ -171,6 +172,7 @@ typedef struct
 #define CXFS_MD_DN_SYNC_FLAG(cxfs_md)                   ((cxfs_md)->dn_sync_flag)
 #define CXFS_MD_OP_DUMP_FLAG(cxfs_md)                   ((cxfs_md)->op_dump_flag)
 #define CXFS_MD_OP_REPLAY_FLAG(cxfs_md)                 ((cxfs_md)->op_replay_flag)
+#define CXFS_MD_CUR_DISK_NO(cxfs_md)                    ((cxfs_md)->cur_disk_no)
 #define CXFS_MD_STATE(cxfs_md)                          ((cxfs_md)->state)
 #define CXFS_MD_SATA_DISK_PATH(cxfs_md)                 (&((cxfs_md)->sata_disk_path))
 #define CXFS_MD_SATA_DISK_FD(cxfs_md)                   ((cxfs_md)->sata_disk_fd)
@@ -1033,11 +1035,11 @@ EC_BOOL cxfs_show_npp(const UINT32 cxfs_md_id, LOG *log);
 
 /**
 *
-*  show name node lru list if it is npp
+*  show name node que list if it is npp
 *
 *
 **/
-EC_BOOL cxfs_show_npp_lru_list(const UINT32 cxfs_md_id, LOG *log);
+EC_BOOL cxfs_show_npp_que_list(const UINT32 cxfs_md_id, LOG *log);
 
 /**
 *
@@ -1066,7 +1068,7 @@ void cxfs_locked_files_print(const UINT32 cxfs_md_id, LOG *log);
 
 EC_BOOL cxfs_show_specific_np(const UINT32 cxfs_md_id, const UINT32 cxfsnp_id, LOG *log);
 
-EC_BOOL cxfs_show_specific_np_lru_list(const UINT32 cxfs_md_id, const UINT32 cxfsnp_id, LOG *log);
+EC_BOOL cxfs_show_specific_np_que_list(const UINT32 cxfs_md_id, const UINT32 cxfsnp_id, LOG *log);
 
 EC_BOOL cxfs_show_specific_np_del_list(const UINT32 cxfs_md_id, const UINT32 cxfsnp_id, LOG *log);
 

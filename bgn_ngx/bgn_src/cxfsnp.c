@@ -43,7 +43,7 @@ extern "C"{
 #include "cxfspgrb.h"
 #include "cxfspgb.h"
 #include "cxfsnprb.h"
-#include "cxfsnplru.h"
+#include "cxfsnpque.h"
 #include "cxfsnpdel.h"
 #include "cxfsnpkey.h"
 #include "cxfsnp.h"
@@ -596,7 +596,7 @@ EC_BOOL cxfsnp_item_clone(const CXFSNP_ITEM *cxfsnp_item_src, CXFSNP_ITEM *cxfsn
     CXFSNP_ITEM_PARENT_POS(cxfsnp_item_des)  = CXFSNP_ITEM_PARENT_POS(cxfsnp_item_src);
     CXFSNP_ITEM_SECOND_HASH(cxfsnp_item_des) = CXFSNP_ITEM_SECOND_HASH(cxfsnp_item_src);
 
-    cxfsnplru_node_clone(CXFSNP_ITEM_LRU_NODE(cxfsnp_item_src), CXFSNP_ITEM_LRU_NODE(cxfsnp_item_des));
+    cxfsnpque_node_clone(CXFSNP_ITEM_QUE_NODE(cxfsnp_item_src), CXFSNP_ITEM_QUE_NODE(cxfsnp_item_des));
     cxfsnpdel_node_clone(CXFSNP_ITEM_DEL_NODE(cxfsnp_item_src), CXFSNP_ITEM_DEL_NODE(cxfsnp_item_des));
 
     if(CXFSNP_ITEM_FILE_IS_REG == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item_src))
@@ -648,7 +648,7 @@ void cxfsnp_item_print(LOG *log, const CXFSNP_ITEM *cxfsnp_item)
     uint32_t pos;
 
     sys_print(log, "cxfsnp_item %p: flag 0x%x [%s], stat %u, create time %u, hash %u, "
-                   "key offset %u, parent %u, lru node (%u, %u), del node (%u, %u)\n",
+                   "key offset %u, parent %u, que node (%u, %u), del node (%u, %u)\n",
                     cxfsnp_item,
                     CXFSNP_ITEM_DIR_FLAG(cxfsnp_item), __cxfsnp_item_dir_flag_str(CXFSNP_ITEM_DIR_FLAG(cxfsnp_item)),
                     CXFSNP_ITEM_USED_FLAG(cxfsnp_item),
@@ -656,8 +656,8 @@ void cxfsnp_item_print(LOG *log, const CXFSNP_ITEM *cxfsnp_item)
                     CXFSNP_ITEM_SECOND_HASH(cxfsnp_item),
                     CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item),
                     CXFSNP_ITEM_PARENT_POS(cxfsnp_item),
-                    CXFSNPLRU_NODE_PREV_POS(CXFSNP_ITEM_LRU_NODE(cxfsnp_item)),
-                    CXFSNPLRU_NODE_NEXT_POS(CXFSNP_ITEM_LRU_NODE(cxfsnp_item)),
+                    CXFSNPQUE_NODE_PREV_POS(CXFSNP_ITEM_QUE_NODE(cxfsnp_item)),
+                    CXFSNPQUE_NODE_NEXT_POS(CXFSNP_ITEM_QUE_NODE(cxfsnp_item)),
                     CXFSNPDEL_NODE_PREV_POS(CXFSNP_ITEM_DEL_NODE(cxfsnp_item)),
                     CXFSNPDEL_NODE_NEXT_POS(CXFSNP_ITEM_DEL_NODE(cxfsnp_item))
                     );
@@ -909,8 +909,8 @@ STATIC_CAST static CXFSNP_HEADER *__cxfsnp_header_new(const uint32_t np_id, cons
     /*init RB Nodes*/
     cxfsnprb_pool_init(CXFSNP_HEADER_ITEMS_POOL(cxfsnp_header), node_max_num, node_sizeof);
 
-    /*init LRU nodes*/
-    cxfsnplru_pool_init(CXFSNP_HEADER_ITEMS_POOL(cxfsnp_header), node_max_num, node_sizeof);
+    /*init QUE nodes*/
+    cxfsnpque_pool_init(CXFSNP_HEADER_ITEMS_POOL(cxfsnp_header), node_max_num, node_sizeof);
 
     /*init DEL nodes*/
     cxfsnpdel_pool_init(CXFSNP_HEADER_ITEMS_POOL(cxfsnp_header), node_max_num, node_sizeof);
@@ -964,7 +964,7 @@ EC_BOOL cxfsnp_header_init(CXFSNP_HEADER *cxfsnp_header, const uint32_t np_id, c
 
     CXFSNP_HEADER_2ND_CHASH_ALGO_ID(cxfsnp_header)  = second_chash_algo_id;
 
-    /*do nothing on lru list*/
+    /*do nothing on que list*/
     /*do nothing on del list*/
     /*do nothing on bitmap*/
     /*do nothing on CXFSNPRB_POOL pool*/
@@ -979,7 +979,7 @@ EC_BOOL cxfsnp_header_clean(CXFSNP_HEADER *cxfsnp_header)
 
     CXFSNP_HEADER_2ND_CHASH_ALGO_ID(cxfsnp_header)  = CHASH_ERR_ALGO_ID;
 
-    /*do nothing on lru list*/
+    /*do nothing on que list*/
     /*do nothing on del list*/
     /*do nothing on bitmap*/
     /*do nothing on CXFSNPRB_POOL pool*/
@@ -1020,8 +1020,8 @@ CXFSNP_HEADER *cxfsnp_header_create(const uint32_t np_id, const uint8_t np_model
     /*init RB Nodes*/
     cxfsnprb_pool_init(CXFSNP_HEADER_ITEMS_POOL(cxfsnp_header), node_max_num, node_sizeof);
 
-    /*init LRU nodes*/
-    cxfsnplru_pool_init(CXFSNP_HEADER_ITEMS_POOL(cxfsnp_header), node_max_num, node_sizeof);
+    /*init QUE nodes*/
+    cxfsnpque_pool_init(CXFSNP_HEADER_ITEMS_POOL(cxfsnp_header), node_max_num, node_sizeof);
 
     /*init DEL nodes*/
     cxfsnpdel_pool_init(CXFSNP_HEADER_ITEMS_POOL(cxfsnp_header), node_max_num, node_sizeof);
@@ -1058,7 +1058,7 @@ EC_BOOL cxfsnp_init(CXFSNP *cxfsnp)
     CXFSNP_FSIZE(cxfsnp)           = 0;
     CXFSNP_DEL_SIZE(cxfsnp)        = 0;
     CXFSNP_RECYCLE_SIZE(cxfsnp)    = 0;
-    CXFSNP_LRU_LIST(cxfsnp)        = NULL_PTR;
+    CXFSNP_QUE_LIST(cxfsnp)        = NULL_PTR;
     CXFSNP_DEL_LIST(cxfsnp)        = NULL_PTR;
 
     CXFSNP_HDR(cxfsnp)             = NULL_PTR;
@@ -1081,7 +1081,7 @@ EC_BOOL cxfsnp_clean(CXFSNP *cxfsnp)
     CXFSNP_DEL_SIZE(cxfsnp)        = 0;
     CXFSNP_RECYCLE_SIZE(cxfsnp)    = 0;
 
-    CXFSNP_LRU_LIST(cxfsnp)        = NULL_PTR;
+    CXFSNP_QUE_LIST(cxfsnp)        = NULL_PTR;
     CXFSNP_DEL_LIST(cxfsnp)        = NULL_PTR;
     CXFSNP_HDR(cxfsnp)             = NULL_PTR;
 
@@ -1227,9 +1227,9 @@ EC_BOOL cxfsnp_umount_op_mgr(CXFSNP *cxfsnp)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfsnp_lru_list_is_empty(const CXFSNP *cxfsnp)
+EC_BOOL cxfsnp_que_list_is_empty(const CXFSNP *cxfsnp)
 {
-    return cxfsnplru_is_empty(CXFSNP_LRU_LIST(cxfsnp));
+    return cxfsnpque_is_empty(CXFSNP_QUE_LIST(cxfsnp));
 }
 
 EC_BOOL cxfsnp_del_list_is_empty(const CXFSNP *cxfsnp)
@@ -1270,10 +1270,10 @@ void cxfsnp_print(LOG *log, const CXFSNP *cxfsnp)
     return;
 }
 
-void cxfsnp_print_lru_list(LOG *log, const CXFSNP *cxfsnp)
+void cxfsnp_print_que_list(LOG *log, const CXFSNP *cxfsnp)
 {
-    sys_log(log, "cxfsnp_print_lru_list: cxfsnp %p: lru list: \n", cxfsnp);
-    cxfsnplru_list_print(log, cxfsnp);
+    sys_log(log, "cxfsnp_print_que_list: cxfsnp %p: que list: \n", cxfsnp);
+    cxfsnpque_list_print(log, cxfsnp);
     return;
 }
 
@@ -2266,10 +2266,10 @@ CXFSNP_ITEM *cxfsnp_set(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *
     cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
     if(NULL_PTR != cxfsnp_item)
     {
-        /*ensure only item of regular file enter LRU list*/
+        /*ensure only item of regular file enter QUE list*/
         if(CXFSNP_ITEM_FILE_IS_REG == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
         {
-            cxfsnplru_node_add_head(cxfsnp, CXFSNP_ITEM_LRU_NODE(cxfsnp_item), node_pos);
+            cxfsnpque_node_add_head(cxfsnp, CXFSNP_ITEM_QUE_NODE(cxfsnp_item), node_pos);
         }
         return (cxfsnp_item);
     }
@@ -2461,7 +2461,7 @@ REAL cxfsnp_used_ratio(const CXFSNP *cxfsnp)
 
 EC_BOOL cxfsnp_retire(CXFSNP *cxfsnp, const UINT32 expect_retire_num, UINT32 *complete_retire_num)
 {
-    CXFSNPLRU_NODE  *cxfsnplru_node_head;
+    CXFSNPQUE_NODE  *cxfsnpque_node_head;
     UINT32   retire_num;
 
     if(BIT_TRUE == CXFSNP_READ_ONLY_FLAG(cxfsnp))
@@ -2471,15 +2471,15 @@ EC_BOOL cxfsnp_retire(CXFSNP *cxfsnp, const UINT32 expect_retire_num, UINT32 *co
         return (EC_FALSE);
     }
 
-    cxfsnplru_node_head = CXFSNP_LRU_LIST(cxfsnp);
+    cxfsnpque_node_head = CXFSNP_QUE_LIST(cxfsnp);
 
-    for(retire_num = 0; retire_num < expect_retire_num && EC_FALSE == cxfsnp_lru_list_is_empty(cxfsnp);)
+    for(retire_num = 0; retire_num < expect_retire_num && EC_FALSE == cxfsnp_que_list_is_empty(cxfsnp);)
     {
         uint32_t node_pos;
 
         CXFSNP_ITEM *cxfsnp_item;
 
-        node_pos = CXFSNPLRU_NODE_PREV_POS(cxfsnplru_node_head);
+        node_pos = CXFSNPQUE_NODE_PREV_POS(cxfsnpque_node_head);
         cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
 
         ASSERT(EC_TRUE == cxfsnprb_node_is_used(CXFSNP_ITEMS_POOL(cxfsnp), node_pos));
@@ -2630,7 +2630,7 @@ EC_BOOL cxfsnp_umount_item(CXFSNP *cxfsnp, const uint32_t node_pos)
             {
                 CXFSNP_ITEM_PARENT_POS(cxfsnp_item_first) = CXFSNPRB_ERR_POS; /*fix*/
 
-                cxfsnplru_node_rmv(cxfsnp, CXFSNP_ITEM_LRU_NODE(cxfsnp_item_first), first_node_pos);
+                cxfsnpque_node_rmv(cxfsnp, CXFSNP_ITEM_QUE_NODE(cxfsnp_item_first), first_node_pos);
                 cxfsnpdel_node_add_tail(cxfsnp, CXFSNP_ITEM_DEL_NODE(cxfsnp_item_first), first_node_pos);
             }
             else
@@ -2675,7 +2675,7 @@ EC_BOOL cxfsnp_umount_item(CXFSNP *cxfsnp, const uint32_t node_pos)
             {
                 CXFSNP_ITEM_PARENT_POS(cxfsnp_item) = CXFSNPRB_ERR_POS; /*fix*/
 
-                cxfsnplru_node_rmv(cxfsnp, CXFSNP_ITEM_LRU_NODE(cxfsnp_item), node_pos);
+                cxfsnpque_node_rmv(cxfsnp, CXFSNP_ITEM_QUE_NODE(cxfsnp_item), node_pos);
                 cxfsnpdel_node_add_tail(cxfsnp, CXFSNP_ITEM_DEL_NODE(cxfsnp_item), node_pos);
             }
             else
@@ -2688,7 +2688,7 @@ EC_BOOL cxfsnp_umount_item(CXFSNP *cxfsnp, const uint32_t node_pos)
         }
         else
         {
-            cxfsnplru_node_rmv(cxfsnp, CXFSNP_ITEM_LRU_NODE(cxfsnp_item), node_pos);
+            cxfsnpque_node_rmv(cxfsnp, CXFSNP_ITEM_QUE_NODE(cxfsnp_item), node_pos);
             cxfsnpdel_node_add_tail(cxfsnp, CXFSNP_ITEM_DEL_NODE(cxfsnp_item), node_pos);
         }
 
@@ -2719,7 +2719,7 @@ EC_BOOL cxfsnp_umount_item(CXFSNP *cxfsnp, const uint32_t node_pos)
             {
                 CXFSNP_ITEM_PARENT_POS(cxfsnp_item) = CXFSNPRB_ERR_POS; /*fix*/
 
-                //cxfsnplru_node_rmv(cxfsnp, CXFSNP_ITEM_LRU_NODE(cxfsnp_item), node_pos);
+                //cxfsnpque_node_rmv(cxfsnp, CXFSNP_ITEM_QUE_NODE(cxfsnp_item), node_pos);
                 cxfsnpdel_node_add_tail(cxfsnp, CXFSNP_ITEM_DEL_NODE(cxfsnp_item), node_pos);
             }
             else
@@ -2732,7 +2732,7 @@ EC_BOOL cxfsnp_umount_item(CXFSNP *cxfsnp, const uint32_t node_pos)
         }
         else
         {
-            //cxfsnplru_node_rmv(cxfsnp, CXFSNP_ITEM_LRU_NODE(cxfsnp_item), node_pos);
+            //cxfsnpque_node_rmv(cxfsnp, CXFSNP_ITEM_QUE_NODE(cxfsnp_item), node_pos);
             cxfsnpdel_node_add_tail(cxfsnp, CXFSNP_ITEM_DEL_NODE(cxfsnp_item), node_pos);
         }
 
@@ -2810,7 +2810,7 @@ EC_BOOL cxfsnp_umount_item_deep(CXFSNP *cxfsnp, const uint32_t node_pos)
             {
                 CXFSNP_ITEM_PARENT_POS(cxfsnp_item_first) = CXFSNPRB_ERR_POS; /*fix*/
 
-                cxfsnplru_node_rmv(cxfsnp, CXFSNP_ITEM_LRU_NODE(cxfsnp_item_first), first_node_pos);
+                cxfsnpque_node_rmv(cxfsnp, CXFSNP_ITEM_QUE_NODE(cxfsnp_item_first), first_node_pos);
                 cxfsnpdel_node_add_tail(cxfsnp, CXFSNP_ITEM_DEL_NODE(cxfsnp_item_first), first_node_pos);
             }
             else
@@ -2865,7 +2865,7 @@ EC_BOOL cxfsnp_umount_item_deep(CXFSNP *cxfsnp, const uint32_t node_pos)
             {
                 CXFSNP_ITEM_PARENT_POS(cxfsnp_item) = CXFSNPRB_ERR_POS; /*fix*/
 
-                cxfsnplru_node_rmv(cxfsnp, CXFSNP_ITEM_LRU_NODE(cxfsnp_item), node_pos);
+                cxfsnpque_node_rmv(cxfsnp, CXFSNP_ITEM_QUE_NODE(cxfsnp_item), node_pos);
                 cxfsnpdel_node_add_tail(cxfsnp, CXFSNP_ITEM_DEL_NODE(cxfsnp_item), node_pos);
             }
             else
@@ -2885,7 +2885,7 @@ EC_BOOL cxfsnp_umount_item_deep(CXFSNP *cxfsnp, const uint32_t node_pos)
         }
         else
         {
-            cxfsnplru_node_rmv(cxfsnp, CXFSNP_ITEM_LRU_NODE(cxfsnp_item), node_pos);
+            cxfsnpque_node_rmv(cxfsnp, CXFSNP_ITEM_QUE_NODE(cxfsnp_item), node_pos);
             cxfsnpdel_node_add_tail(cxfsnp, CXFSNP_ITEM_DEL_NODE(cxfsnp_item), node_pos);
         }
 
@@ -2915,7 +2915,7 @@ EC_BOOL cxfsnp_umount_item_deep(CXFSNP *cxfsnp, const uint32_t node_pos)
             {
                 CXFSNP_ITEM_PARENT_POS(cxfsnp_item) = CXFSNPRB_ERR_POS; /*fix*/
 
-                //cxfsnplru_node_rmv(cxfsnp, CXFSNP_ITEM_LRU_NODE(cxfsnp_item), node_pos);
+                //cxfsnpque_node_rmv(cxfsnp, CXFSNP_ITEM_QUE_NODE(cxfsnp_item), node_pos);
                 cxfsnpdel_node_add_tail(cxfsnp, CXFSNP_ITEM_DEL_NODE(cxfsnp_item), node_pos);
             }
             else
@@ -2935,7 +2935,7 @@ EC_BOOL cxfsnp_umount_item_deep(CXFSNP *cxfsnp, const uint32_t node_pos)
         }
         else
         {
-            //cxfsnplru_node_rmv(cxfsnp, CXFSNP_ITEM_LRU_NODE(cxfsnp_item), node_pos);
+            //cxfsnpque_node_rmv(cxfsnp, CXFSNP_ITEM_QUE_NODE(cxfsnp_item), node_pos);
             cxfsnpdel_node_add_tail(cxfsnp, CXFSNP_ITEM_DEL_NODE(cxfsnp_item), node_pos);
         }
 
@@ -3525,7 +3525,7 @@ CXFSNP *cxfsnp_open(UINT8 *base, const UINT32 size, const uint32_t np_id)
     CXFSNP_HDR(cxfsnp) = cxfsnp_header;
 
     /*shortcut*/
-    CXFSNP_LRU_LIST(cxfsnp) = CXFSNP_ITEM_LRU_NODE(cxfsnp_fetch(cxfsnp, CXFSNPLRU_ROOT_POS));
+    CXFSNP_QUE_LIST(cxfsnp) = CXFSNP_ITEM_QUE_NODE(cxfsnp_fetch(cxfsnp, CXFSNPQUE_ROOT_POS));
     CXFSNP_DEL_LIST(cxfsnp) = CXFSNP_ITEM_DEL_NODE(cxfsnp_fetch(cxfsnp, CXFSNPDEL_ROOT_POS));
 
     CXFSNP_2ND_CHASH_ALGO(cxfsnp) = chash_algo_fetch(CXFSNP_HEADER_2ND_CHASH_ALGO_ID(cxfsnp_header));
@@ -3550,7 +3550,7 @@ EC_BOOL cxfsnp_close(CXFSNP *cxfsnp)
         {
             cxfsnp_header_close(CXFSNP_HDR(cxfsnp));
 
-            CXFSNP_LRU_LIST(cxfsnp) = NULL_PTR;
+            CXFSNP_QUE_LIST(cxfsnp) = NULL_PTR;
             CXFSNP_DEL_LIST(cxfsnp) = NULL_PTR;
             CXFSNP_HDR(cxfsnp)      = NULL_PTR;
         }
@@ -3644,7 +3644,7 @@ CXFSNP *cxfsnp_clone(CXFSNP *src_cxfsnp, UINT8 *base, const uint32_t des_np_id)
     CXFSNP_HDR(des_cxfsnp) = des_cxfsnp_header;
 
     /*shortcut*/
-    CXFSNP_LRU_LIST(des_cxfsnp) = CXFSNP_ITEM_LRU_NODE(cxfsnp_fetch(des_cxfsnp, CXFSNPLRU_ROOT_POS));
+    CXFSNP_QUE_LIST(des_cxfsnp) = CXFSNP_ITEM_QUE_NODE(cxfsnp_fetch(des_cxfsnp, CXFSNPQUE_ROOT_POS));
     CXFSNP_DEL_LIST(des_cxfsnp) = CXFSNP_ITEM_DEL_NODE(cxfsnp_fetch(des_cxfsnp, CXFSNPDEL_ROOT_POS));
 
     CXFSNP_2ND_CHASH_ALGO(des_cxfsnp) = chash_algo_fetch(CXFSNP_HEADER_2ND_CHASH_ALGO_ID(des_cxfsnp_header));
@@ -3693,7 +3693,7 @@ CXFSNP *cxfsnp_create(UINT8 *base, const uint32_t np_id, const uint8_t np_model,
     CXFSNP_HDR(cxfsnp) = cxfsnp_header;
 
     /*shortcut*/
-    CXFSNP_LRU_LIST(cxfsnp) = CXFSNP_ITEM_LRU_NODE(cxfsnp_fetch(cxfsnp, CXFSNPLRU_ROOT_POS));
+    CXFSNP_QUE_LIST(cxfsnp) = CXFSNP_ITEM_QUE_NODE(cxfsnp_fetch(cxfsnp, CXFSNPQUE_ROOT_POS));
     CXFSNP_DEL_LIST(cxfsnp) = CXFSNP_ITEM_DEL_NODE(cxfsnp_fetch(cxfsnp, CXFSNPDEL_ROOT_POS));
 
     CXFSNP_2ND_CHASH_ALGO(cxfsnp) = chash_algo_fetch(CXFSNP_HEADER_2ND_CHASH_ALGO_ID(cxfsnp_header));
@@ -4126,8 +4126,8 @@ EC_BOOL cxfsnp_recycle_dnode_item(CXFSNP *cxfsnp, CXFSNP_DNODE *cxfsnp_dnode, CX
         cxfsnp_recycle_item_file(cxfsnp, cxfsnp_item, node_pos, cxfsnp_recycle_np, cxfsnp_recycle_dn);
         CXFSNP_DNODE_FILE_NUM(cxfsnp_dnode) --;
 
-        /*this file is under a deleted directory in deep. it may be still in LRU list.*/
-        cxfsnplru_node_rmv(cxfsnp, CXFSNP_ITEM_LRU_NODE(cxfsnp_item), node_pos);
+        /*this file is under a deleted directory in deep. it may be still in QUE list.*/
+        cxfsnpque_node_rmv(cxfsnp, CXFSNP_ITEM_QUE_NODE(cxfsnp_item), node_pos);
 
         cxfsnp_item_clean(cxfsnp_item);
         return (EC_TRUE);
@@ -4219,7 +4219,7 @@ EC_BOOL cxfsnp_recycle_item(CXFSNP *cxfsnp, CXFSNP_ITEM *cxfsnp_item, const uint
         /*CXFSNP_DEL_SIZE(cxfsnp) -= CXFSNP_FNODE_FILESZ(cxfsnp_fnode);*/
         CXFSNP_RECYCLE_SIZE(cxfsnp) += CXFSNP_FNODE_FILESZ(cxfsnp_fnode);
 
-        /*note: this file is in DEL list so that it must not be in LRU list*/
+        /*note: this file is in DEL list so that it must not be in QUE list*/
 
         cxfsnp_item_clean(cxfsnp_item);
         return (EC_TRUE);

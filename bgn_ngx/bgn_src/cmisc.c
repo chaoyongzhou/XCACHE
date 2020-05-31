@@ -879,6 +879,37 @@ char *c_uint32_t_to_bin_str(const uint32_t num)
     return (str_cache);
 }
 
+char *c_uint64_t_to_bin_str(const uint64_t num)
+{
+    char    *str_cache;
+    char    *pch;
+    uint64_t e;
+    uint64_t len;
+
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0019);
+    str_cache = (char *)(g_str_buff[g_str_idx]);
+    g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0020);
+
+    len = sizeof(uint64_t) * BYTESIZE;
+    e = (uint64_t)(1 << (len - 1));
+
+    for(pch = str_cache; len > 0; len --, e >>= 1)
+    {
+        if(num & e)
+        {
+            *pch ++ = '1';
+        }
+        else
+        {
+            *pch ++ = '0';
+        }
+    }
+
+    *pch = '\0';
+    return (str_cache);
+}
+
 char *c_word_to_bin_str(const word_t num)
 {
     char *str_cache;
@@ -5657,6 +5688,13 @@ char *c_http_time(time_t t)
     return (str_cache);
 }
 
+char *c_http_time_msec(uint64_t msec)
+{
+    time_t  t;
+
+    t = (time_t)(msec / 1000);
+    return c_http_time(t);
+}
 UINT32 c_hash_strlow(const uint8_t *src, const uint32_t slen, uint8_t **des)
 {
     UINT32    hash;

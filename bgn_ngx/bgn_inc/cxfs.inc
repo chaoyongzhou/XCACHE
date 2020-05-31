@@ -1332,14 +1332,14 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_show_npp_lru_list(const UINT32 cxfs_md_id, LOG *log); -- */
+/* -- EC_BOOL cxfs_show_npp_que_list(const UINT32 cxfs_md_id, LOG *log); -- */
 /*func module     */     MD_CXFS,
-/*func logic addr */     (UINT32)cxfs_show_npp_lru_list,
+/*func logic addr */     (UINT32)cxfs_show_npp_que_list,
 /*func beg addr   */     0,
 /*func end addr   */     0,
 /*func addr offset*/     0,
-/*func name       */     "cxfs_show_npp_lru_list",
-/*func index      */     FI_cxfs_show_npp_lru_list,
+/*func name       */     "cxfs_show_npp_que_list",
+/*func index      */     FI_cxfs_show_npp_que_list,
 /*func ret type   */     e_dbg_EC_BOOL,
 /*func para num   */     2,
 /*func para direct*/     {E_DIRECT_IN,E_DIRECT_IO,},
@@ -1362,14 +1362,14 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_show_specific_np_lru_list(const UINT32 cxfs_md_id, const UINT32 cxfsnp_id, LOG *log); -- */
+/* -- EC_BOOL cxfs_show_specific_np_que_list(const UINT32 cxfs_md_id, const UINT32 cxfsnp_id, LOG *log); -- */
 /*func module     */     MD_CXFS,
-/*func logic addr */     (UINT32)cxfs_show_specific_np_lru_list,
+/*func logic addr */     (UINT32)cxfs_show_specific_np_que_list,
 /*func beg addr   */     0,
 /*func end addr   */     0,
 /*func addr offset*/     0,
-/*func name       */     "cxfs_show_specific_np_lru_list",
-/*func index      */     FI_cxfs_show_specific_np_lru_list,
+/*func name       */     "cxfs_show_specific_np_que_list",
+/*func index      */     FI_cxfs_show_specific_np_que_list,
 /*func ret type   */     e_dbg_EC_BOOL,
 /*func para num   */     3,
 /*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IO,},

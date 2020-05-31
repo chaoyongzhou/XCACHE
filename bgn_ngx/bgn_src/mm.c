@@ -458,7 +458,8 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CAMD_SATA                    ,"MM_CAMD_SATA                    ",256       , sizeof(CAMD_SATA)                    , LOC_MM_0195);
     MM_MGR_DEF(MM_CAMD_SSD                     ,"MM_CAMD_SSD                     ",256       , sizeof(CAMD_SSD)                     , LOC_MM_0196);
     MM_MGR_DEF(MM_CAMD_COND                    ,"MM_CAMD_COND                    ",256       , sizeof(CAMD_COND)                    , LOC_MM_0197);
-
+    MM_MGR_DEF(MM_CAMD_FILE_REQ                ,"MM_CAMD_FILE_REQ                ",256       , sizeof(CAMD_FILE_REQ)                , LOC_MM_0198);
+    MM_MGR_DEF(MM_CDIO_FILE_REQ                ,"MM_CDIO_FILE_REQ                ",256       , sizeof(CDIO_FILE_REQ)                , LOC_MM_0199);
     MM_MGR_DEF(MM_CDCDN                        ,"MM_CDCDN                        ",1         , sizeof(CDCDN)                        , LOC_MM_0200);
     MM_MGR_DEF(MM_CDCPGV                       ,"MM_CDCPGV                       ",1         , sizeof(CDCPGV)                       , LOC_MM_0201);
     MM_MGR_DEF(MM_CDCPGD                       ,"MM_CDCPGD                       ",256       , sizeof(CDCPGD)                       , LOC_MM_0202);

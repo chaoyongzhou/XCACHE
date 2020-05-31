@@ -1007,14 +1007,6 @@ EC_BOOL chttps_node_send_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnod
         return (EC_FALSE);
     }
 
-    if(0)
-    {
-        dbg_log(SEC_0157_CHTTPS, 0)(LOGUSER07, "[DEBUG] sockfd %d, to send len: %ld, uri: %.*s\n",
-                       CSOCKET_CNODE_SOCKFD(csocket_cnode),
-                       chttp_node_send_len(chttp_node),
-                       CBUFFER_USED(CHTTP_NODE_URI(chttp_node)), (char *)CBUFFER_DATA(CHTTP_NODE_URI(chttp_node)));
-    }
-
     if(EC_FALSE == chttps_node_send(chttp_node, csocket_cnode))
     {
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_send_rsp: sockfd %d send rsp failed\n",
@@ -3371,6 +3363,7 @@ EC_BOOL chttps_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, C
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_request_block: new chttp_node failed\n");
         return (EC_FALSE);
     }
+    chttp_node_import_req(chttp_node, chttp_req);
 
     CHTTP_NODE_LOG_TIME_WHEN_START(chttp_node); /*record start time*/
 
@@ -3609,6 +3602,7 @@ EC_BOOL chttps_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_stor
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_request_basic: new chttp_node failed\n");
         return (EC_FALSE);
     }
+    chttp_node_import_req(chttp_node, chttp_req);
 
     /*set CA file*/
     if(EC_FALSE == cstring_is_empty(CHTTP_REQ_CA_FILE(chttp_req)))
@@ -3992,6 +3986,7 @@ EC_BOOL chttps_check(const CHTTP_REQ *chttp_req, CHTTP_STAT *chttp_stat)
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_check: new chttp_node failed\n");
         return (EC_FALSE);
     }
+    chttp_node_import_req(chttp_node, chttp_req);
 
     croutine_cond = croutine_cond_new(0/*never timeout*/, LOC_CHTTPS_0029);
     if(NULL_PTR == croutine_cond)
@@ -5094,14 +5089,23 @@ EC_BOOL chttps_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHT
             CHTTP_STAT_LOG_ORIG_TIME_WHEN_START(s_msec);
         }
 
+        if(BIT_TRUE == need_log_flag
+        && NULL_PTR != chttp_stat)
+        {
+            CHTTP_STAT_REQ_S_MSEC(chttp_stat) = s_msec;
+        }
+
         if(EC_FALSE == chttps_request_basic(chttp_req, chttp_store, chttp_rsp, chttp_stat)) /*need store or not need store (e.g. direct procedure)*/
         {
             if(BIT_TRUE == need_log_flag
             && NULL_PTR != chttp_stat)
             {
                 CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+
+                CHTTP_STAT_REQ_C_MSEC(chttp_stat) = e_msec;
+
                 s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
-                sys_log(LOGUSER07, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
+                sys_log(LOGUSER06, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
                                    (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                    CHTTP_REQ_PORT(chttp_req),
                                    CHTTP_RSP_STATUS(chttp_rsp),
@@ -5113,6 +5117,13 @@ EC_BOOL chttps_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHT
                                    CHTTP_STAT_S_SEND_LEN(chttp_stat),
                                    CHTTP_STAT_S_RECV_LEN(chttp_stat)
                                    );
+
+                CHTTP_STAT_SET_REQ_HOST(chttp_stat,
+                        (char *)chttp_req_get_header(chttp_req, (const char *)"Host"));
+
+                CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, CHTTP_REQ_IPADDR(chttp_req));
+
+                chttp_stat_log(chttp_stat, LOGUSER07);
             }
 
             if(BIT_TRUE == need_log_flag
@@ -5120,7 +5131,7 @@ EC_BOOL chttps_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHT
             {
                 CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
                 s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
-                sys_log(LOGUSER07, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
+                sys_log(LOGUSER06, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
                                    (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                    CHTTP_REQ_PORT(chttp_req),
                                    CHTTP_RSP_STATUS(chttp_rsp),
@@ -5139,8 +5150,11 @@ EC_BOOL chttps_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHT
         && NULL_PTR != chttp_stat)
         {
             CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+
+            CHTTP_STAT_REQ_C_MSEC(chttp_stat) = e_msec;
+
             s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
-            sys_log(LOGUSER07, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
+            sys_log(LOGUSER06, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
                                (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                CHTTP_REQ_PORT(chttp_req),
                                CHTTP_RSP_STATUS(chttp_rsp),
@@ -5152,6 +5166,13 @@ EC_BOOL chttps_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHT
                                CHTTP_STAT_S_SEND_LEN(chttp_stat),
                                CHTTP_STAT_S_RECV_LEN(chttp_stat)
                                );
+
+            CHTTP_STAT_SET_REQ_HOST(chttp_stat,
+                    (char *)chttp_req_get_header(chttp_req, (const char *)"Host"));
+
+            CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, CHTTP_REQ_IPADDR(chttp_req));
+
+            chttp_stat_log(chttp_stat, LOGUSER07);
         }
 
         if(BIT_TRUE == need_log_flag
@@ -5159,7 +5180,7 @@ EC_BOOL chttps_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHT
         {
             CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
             s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
-            sys_log(LOGUSER07, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
+            sys_log(LOGUSER06, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
                                (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                CHTTP_REQ_PORT(chttp_req),
                                CHTTP_RSP_STATUS(chttp_rsp),

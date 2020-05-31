@@ -132,6 +132,12 @@ EC_BOOL api_cmd_ui_check_ngx_slow_down_all(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_set_ngx_slow_down(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_set_ngx_slow_down_all(CMD_PARA_VEC * param);
 
+EC_BOOL api_cmd_ui_set_ssd_aio_req_max_num(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_set_ssd_aio_req_max_num_all(CMD_PARA_VEC * param);
+
+EC_BOOL api_cmd_ui_set_sata_aio_req_max_num(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_set_sata_aio_req_max_num_all(CMD_PARA_VEC * param);
+
 EC_BOOL api_cmd_ui_show_client(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_show_client_all(CMD_PARA_VEC * param);
 
@@ -322,11 +328,11 @@ EC_BOOL api_cmd_ui_cxfs_check_read_only(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_sync(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_replay_op(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_pop_op(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cxfs_show_npp_lru_list(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_show_npp_que_list(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_show_npp_del_list(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_show_npp(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_show_dn(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cxfs_show_specific_np_lru_list(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_show_specific_np_que_list(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_show_specific_np_del_list(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_show_specific_np(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_show_locked_files(CMD_PARA_VEC * param);

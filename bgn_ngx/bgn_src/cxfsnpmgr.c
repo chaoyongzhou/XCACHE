@@ -39,7 +39,7 @@ extern "C"{
 
 #include "cxfsnp.h"
 #include "cxfsnprb.h"
-#include "cxfsnplru.h"
+#include "cxfsnpque.h"
 #include "cxfsnpmgr.h"
 #include "cxfscfg.h"
 #include "cxfsop.h"
@@ -297,7 +297,7 @@ void cxfsnp_mgr_print_db(LOG *log, const CXFSNP_MGR *cxfsnp_mgr)
     return;
 }
 
-void cxfsnp_mgr_print_lru_list(LOG *log, const CXFSNP_MGR *cxfsnp_mgr)
+void cxfsnp_mgr_print_que_list(LOG *log, const CXFSNP_MGR *cxfsnp_mgr)
 {
     uint32_t cxfsnp_num;
     uint32_t cxfsnp_id;
@@ -314,7 +314,7 @@ void cxfsnp_mgr_print_lru_list(LOG *log, const CXFSNP_MGR *cxfsnp_mgr)
         }
         else
         {
-            cxfsnp_print_lru_list(log, cxfsnp);
+            cxfsnp_print_que_list(log, cxfsnp);
         }
     }
     return;
@@ -574,7 +574,7 @@ EC_BOOL cxfsnp_mgr_load(CXFSNP_MGR *cxfsnp_mgr, const int cxfsnp_dev_fd, const C
     return (EC_TRUE);
 }
 
-EC_BOOL cxfsnp_mgr_show_np_lru_list(LOG *log, CXFSNP_MGR *cxfsnp_mgr, const uint32_t cxfsnp_id)
+EC_BOOL cxfsnp_mgr_show_np_que_list(LOG *log, CXFSNP_MGR *cxfsnp_mgr, const uint32_t cxfsnp_id)
 {
     CXFSNP *cxfsnp;
 
@@ -585,17 +585,17 @@ EC_BOOL cxfsnp_mgr_show_np_lru_list(LOG *log, CXFSNP_MGR *cxfsnp_mgr, const uint
         cxfsnp = cxfsnp_mgr_open_np(cxfsnp_mgr, cxfsnp_id);
         if(NULL_PTR == cxfsnp)
         {
-            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_show_np_lru_list: open np %u failed\n", cxfsnp_id);
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_show_np_que_list: open np %u failed\n", cxfsnp_id);
             return (EC_FALSE);
         }
 
-        cxfsnp_print_lru_list(log, cxfsnp);
+        cxfsnp_print_que_list(log, cxfsnp);
 
         cxfsnp_mgr_close_np(cxfsnp_mgr, cxfsnp_id);
     }
     else
     {
-        cxfsnp_print_lru_list(log, cxfsnp);
+        cxfsnp_print_que_list(log, cxfsnp);
     }
 
     return (EC_TRUE);
@@ -1639,7 +1639,7 @@ EC_BOOL cxfsnp_mgr_read(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, CXFSNP
 
         if(BIT_FALSE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
         {
-            cxfsnplru_node_move_head(cxfsnp, CXFSNP_ITEM_LRU_NODE(cxfsnp_item), node_pos);
+            cxfsnpque_node_move_head(cxfsnp, CXFSNP_ITEM_QUE_NODE(cxfsnp_item), node_pos);
         }
 
         return (EC_TRUE);
@@ -1672,7 +1672,7 @@ EC_BOOL cxfsnp_mgr_update(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, cons
         CXFSNP_ITEM *cxfsnp_item;
 
         cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
-        cxfsnplru_node_move_head(cxfsnp, CXFSNP_ITEM_LRU_NODE(cxfsnp_item), node_pos);
+        cxfsnpque_node_move_head(cxfsnp, CXFSNP_ITEM_QUE_NODE(cxfsnp_item), node_pos);
         return cxfsnp_fnode_import(cxfsnp_fnode, CXFSNP_ITEM_FNODE(cxfsnp_item));
     }
     return (EC_FALSE);
@@ -2528,7 +2528,7 @@ EC_BOOL cxfsnp_mgr_show_cached_np(LOG *log, const CXFSNP_MGR *cxfsnp_mgr)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfsnp_mgr_show_cached_np_lru_list(LOG *log, const CXFSNP_MGR *cxfsnp_mgr)
+EC_BOOL cxfsnp_mgr_show_cached_np_que_list(LOG *log, const CXFSNP_MGR *cxfsnp_mgr)
 {
     uint32_t cxfsnp_num;
     uint32_t cxfsnp_pos;
@@ -2541,7 +2541,7 @@ EC_BOOL cxfsnp_mgr_show_cached_np_lru_list(LOG *log, const CXFSNP_MGR *cxfsnp_mg
         cxfsnp = CXFSNP_MGR_NP(cxfsnp_mgr, cxfsnp_pos);
         if(NULL_PTR != cxfsnp)
         {
-            cxfsnp_print_lru_list(log, cxfsnp);
+            cxfsnp_print_que_list(log, cxfsnp);
         }
     }
     return (EC_TRUE);

@@ -165,7 +165,7 @@ EC_BOOL cxfsnp_mount_op_mgr(CXFSNP *cxfsnp, CXFSOP_MGR *cxfsop_mgr);
 
 EC_BOOL cxfsnp_umount_op_mgr(CXFSNP *cxfsnp);
 
-EC_BOOL cxfsnp_lru_list_is_empty(const CXFSNP *cxfsnp);
+EC_BOOL cxfsnp_que_list_is_empty(const CXFSNP *cxfsnp);
 
 EC_BOOL cxfsnp_del_list_is_empty(const CXFSNP *cxfsnp);
 
@@ -173,7 +173,7 @@ void cxfsnp_header_print(LOG *log, const CXFSNP *cxfsnp);
 
 void cxfsnp_print(LOG *log, const CXFSNP *cxfsnp);
 
-void cxfsnp_print_lru_list(LOG *log, const CXFSNP *cxfsnp);
+void cxfsnp_print_que_list(LOG *log, const CXFSNP *cxfsnp);
 
 void cxfsnp_print_del_list(LOG *log, const CXFSNP *cxfsnp);
 
