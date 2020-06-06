@@ -2934,6 +2934,69 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_http_request: trigger request %p failed\n", chttp_req);
 
+        /*logging*/
+        do
+        {
+            if(BIT_TRUE == need_log_flag
+            && NULL_PTR != chttp_stat)
+            {
+                /*trick: restore need log flag*/
+                CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
+
+                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+
+                CHTTP_STAT_REQ_C_MSEC(chttp_stat) = e_msec;
+
+                s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
+                sys_log(LOGUSER06, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
+                                   (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
+                                   CHTTP_REQ_PORT(chttp_req),
+                                   CHTTP_STATUS_NONE,
+                                   s2e_elapsed_msec,
+                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Host"),
+                                   (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)),
+                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Range"),
+                                   ((uint32_t)0), /*redirect times*/
+                                   CHTTP_STAT_S_SEND_LEN(chttp_stat),
+                                   CHTTP_STAT_S_RECV_LEN(chttp_stat)
+                                   );
+
+                CHTTP_STAT_SET_REQ_HOST(chttp_stat,
+                        (char *)chttp_req_get_header(chttp_req, (const char *)"Host"));
+
+                CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, CHTTP_REQ_IPADDR(chttp_req));
+
+                chttp_stat_log(chttp_stat, LOGUSER07);
+            }
+
+            if(BIT_TRUE == need_log_flag
+            && NULL_PTR == chttp_stat)
+            {
+                /*trick: restore need log flag*/
+                CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
+
+                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+                s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
+                sys_log(LOGUSER06, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
+                                   (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
+                                   CHTTP_REQ_PORT(chttp_req),
+                                   CHTTP_STATUS_NONE,
+                                   s2e_elapsed_msec,
+                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Host"),
+                                   (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)),
+                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Range"),
+                                   ((uint32_t)0) /*redirect times*/
+                                   );
+
+            }
+        }while(0);
+
+        return (EC_FALSE);
+    }
+
+    /*logging*/
+    do
+    {
         if(BIT_TRUE == need_log_flag
         && NULL_PTR != chttp_stat)
         {
@@ -2945,10 +3008,10 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
             CHTTP_STAT_REQ_C_MSEC(chttp_stat) = e_msec;
 
             s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
-            sys_log(LOGUSER06, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
+            sys_log(LOGUSER06, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
                                (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                CHTTP_REQ_PORT(chttp_req),
-                               CHTTP_STATUS_NONE,
+                               CHTTP_RSP_STATUS(chttp_rsp),
                                s2e_elapsed_msec,
                                (char *)chttp_req_get_header(chttp_req, (const char *)"Host"),
                                (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)),
@@ -2958,12 +3021,12 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
                                CHTTP_STAT_S_RECV_LEN(chttp_stat)
                                );
 
-            CHTTP_STAT_SET_REQ_HOST(chttp_stat,
+          CHTTP_STAT_SET_REQ_HOST(chttp_stat,
                     (char *)chttp_req_get_header(chttp_req, (const char *)"Host"));
 
-            CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, CHTTP_REQ_IPADDR(chttp_req));
+          CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, CHTTP_REQ_IPADDR(chttp_req));
 
-            chttp_stat_log(chttp_stat, LOGUSER07);
+          chttp_stat_log(chttp_stat, LOGUSER07);
         }
 
         if(BIT_TRUE == need_log_flag
@@ -2974,21 +3037,19 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
 
             CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
             s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
-            sys_log(LOGUSER06, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
+            sys_log(LOGUSER06, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
                                (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
                                CHTTP_REQ_PORT(chttp_req),
-                               CHTTP_STATUS_NONE,
+                               CHTTP_RSP_STATUS(chttp_rsp),
                                s2e_elapsed_msec,
                                (char *)chttp_req_get_header(chttp_req, (const char *)"Host"),
                                (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)),
                                (char *)chttp_req_get_header(chttp_req, (const char *)"Range"),
                                ((uint32_t)0) /*redirect times*/
                                );
-
         }
+    }while(0);
 
-        return (EC_FALSE);
-    }
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_http_request: redirect_ctrl = %s, redirect_max_times = %ld\n",
                         c_bit_bool_str(CHTTP_STORE_REDIRECT_CTRL(chttp_store)),
                         CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store));
@@ -3034,82 +3095,102 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         }
 
         chttp_rsp_clean(chttp_rsp);
-        chttp_stat_clean(chttp_stat);
+
+        if(BIT_TRUE == need_log_flag
+        && NULL_PTR != chttp_stat)
+        {
+            CHTTP_STAT_LOG_ORIG_TIME_WHEN_START(s_msec);
+            CHTTP_STAT_REQ_S_MSEC(chttp_stat) = s_msec; /*reset*/
+        }
+        else
+        {
+            chttp_stat_clean(chttp_stat);
+        }
 
         chttp_req_init(&chttp_req_t);
         chttp_req_clone(&chttp_req_t, chttp_req);
 
         if(NULL_PTR != host)
         {
-            dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_http_request: location '%s' =>  host '%s'\n", loc, host);
+            dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_http_request: "
+                                                  "location '%s' =>  host '%s'\n",
+                                                  loc, host);
             chttp_req_set_ipaddr(&chttp_req_t, host);
             safe_free(host, LOC_SUPER_0056);
         }
 
         if(NULL_PTR != port)
         {
-            dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_http_request: location '%s' =>  port '%s'\n", loc, port);
+            dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_http_request: "
+                                                  "location '%s' =>  port '%s'\n",
+                                                  loc, port);
             chttp_req_set_port(&chttp_req_t, port);
             safe_free(port, LOC_SUPER_0057);
         }
 
         if(NULL_PTR == uri)
         {
-            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "[DEBUG] super_http_request: location '%s' =>  uri is null\n", loc);
+            dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "[DEBUG] super_http_request: "
+                                                  "location '%s' =>  uri is null\n",
+                                                  loc);
+            /*logging*/
+            do
+            {
+                if(BIT_TRUE == need_log_flag
+                && NULL_PTR != chttp_stat)
+                {
+                    /*trick: restore need log flag*/
+                    CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
+
+                    CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+
+                    CHTTP_STAT_REQ_C_MSEC(chttp_stat) = e_msec;
+
+                    s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
+                    sys_log(LOGUSER06, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
+                                       (char *)CHTTP_REQ_IPADDR_STR(&chttp_req_t),
+                                       CHTTP_REQ_PORT(&chttp_req_t),
+                                       CHTTP_STATUS_NONE,
+                                       s2e_elapsed_msec,
+                                       (char *)chttp_req_get_header(&chttp_req_t, (const char *)"Host"),
+                                       (char *)cstring_get_str(CHTTP_REQ_URI(&chttp_req_t)),
+                                       (char *)chttp_req_get_header(&chttp_req_t, (const char *)"Range"),
+                                       ((uint32_t)redirect_times + 1), /*redirect times*/
+                                       CHTTP_STAT_S_SEND_LEN(chttp_stat),
+                                       CHTTP_STAT_S_RECV_LEN(chttp_stat)
+                                       );
+
+                    CHTTP_STAT_SET_REQ_HOST(chttp_stat,
+                            (char *)chttp_req_get_header(&chttp_req_t, (const char *)"Host"));
+
+                    CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, CHTTP_REQ_IPADDR(&chttp_req_t));
+
+                    chttp_stat_log(chttp_stat, LOGUSER07);
+                }
+
+                if(BIT_TRUE == need_log_flag
+                && NULL_PTR == chttp_stat)
+                {
+                    /*trick: restore need log flag*/
+                    CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
+
+                    CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+                    s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
+                    sys_log(LOGUSER06, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
+                                       (char *)CHTTP_REQ_IPADDR_STR(&chttp_req_t),
+                                       CHTTP_REQ_PORT(&chttp_req_t),
+                                       CHTTP_STATUS_NONE,
+                                       s2e_elapsed_msec,
+                                       (char *)chttp_req_get_header(&chttp_req_t, (const char *)"Host"),
+                                       (char *)cstring_get_str(CHTTP_REQ_URI(&chttp_req_t)),
+                                       (char *)chttp_req_get_header(&chttp_req_t, (const char *)"Range"),
+                                       ((uint32_t)redirect_times + 1) /*redirect times*/
+                                       );
+                }
+            }while(0);
 
             chttp_req_clean(&chttp_req_t);
 
-            if(BIT_TRUE == need_log_flag
-            && NULL_PTR != chttp_stat)
-            {
-                /*trick: restore need log flag*/
-                CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
-
-                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
-
-                CHTTP_STAT_REQ_C_MSEC(chttp_stat) = e_msec;
-
-                s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
-                sys_log(LOGUSER06, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
-                                   (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
-                                   CHTTP_REQ_PORT(chttp_req),
-                                   CHTTP_STATUS_NONE,
-                                   s2e_elapsed_msec,
-                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Host"),
-                                   (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)),
-                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Range"),
-                                   ((uint32_t)redirect_times + 1), /*redirect times*/
-                                   CHTTP_STAT_S_SEND_LEN(chttp_stat),
-                                   CHTTP_STAT_S_RECV_LEN(chttp_stat)
-                                   );
-
-                CHTTP_STAT_SET_REQ_HOST(chttp_stat,
-                        (char *)chttp_req_get_header(chttp_req, (const char *)"Host"));
-
-                CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, CHTTP_REQ_IPADDR(chttp_req));
-
-                chttp_stat_log(chttp_stat, LOGUSER07);
-            }
-
-            if(BIT_TRUE == need_log_flag
-            && NULL_PTR == chttp_stat)
-            {
-                /*trick: restore need log flag*/
-                CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
-
-                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
-                s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
-                sys_log(LOGUSER06, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
-                                   (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
-                                   CHTTP_REQ_PORT(chttp_req),
-                                   CHTTP_STATUS_NONE,
-                                   s2e_elapsed_msec,
-                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Host"),
-                                   (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)),
-                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Range"),
-                                   ((uint32_t)redirect_times + 1) /*redirect times*/
-                                   );
-            }
             return (EC_FALSE);
         }
 
@@ -3133,8 +3214,6 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
             dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_http_request: redirect request failed\n");
             chttp_req_print(LOGSTDOUT, &chttp_req_t);
 
-            chttp_req_clean(&chttp_req_t);
-
             if(BIT_TRUE == need_log_flag
             && NULL_PTR != chttp_stat)
             {
@@ -3147,22 +3226,22 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
 
                 s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
                 sys_log(LOGUSER06, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
-                                   (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
-                                   CHTTP_REQ_PORT(chttp_req),
+                                   (char *)CHTTP_REQ_IPADDR_STR(&chttp_req_t),
+                                   CHTTP_REQ_PORT(&chttp_req_t),
                                    CHTTP_STATUS_NONE,
                                    s2e_elapsed_msec,
-                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Host"),
-                                   (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)),
-                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Range"),
+                                   (char *)chttp_req_get_header(&chttp_req_t, (const char *)"Host"),
+                                   (char *)cstring_get_str(CHTTP_REQ_URI(&chttp_req_t)),
+                                   (char *)chttp_req_get_header(&chttp_req_t, (const char *)"Range"),
                                    ((uint32_t)redirect_times + 1), /*redirect times*/
                                    CHTTP_STAT_S_SEND_LEN(chttp_stat),
                                    CHTTP_STAT_S_RECV_LEN(chttp_stat)
                                    );
 
                 CHTTP_STAT_SET_REQ_HOST(chttp_stat,
-                        (char *)chttp_req_get_header(chttp_req, (const char *)"Host"));
+                        (char *)chttp_req_get_header(&chttp_req_t, (const char *)"Host"));
 
-                CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, CHTTP_REQ_IPADDR(chttp_req));
+                CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, CHTTP_REQ_IPADDR(&chttp_req_t));
 
                 chttp_stat_log(chttp_stat, LOGUSER07);
             }
@@ -3176,17 +3255,20 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
                 CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
                 s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
                 sys_log(LOGUSER06, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
-                                   (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
-                                   CHTTP_REQ_PORT(chttp_req),
+                                   (char *)CHTTP_REQ_IPADDR_STR(&chttp_req_t),
+                                   CHTTP_REQ_PORT(&chttp_req_t),
                                    CHTTP_STATUS_NONE,
                                    s2e_elapsed_msec,
-                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Host"),
-                                   (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)),
-                                   (char *)chttp_req_get_header(chttp_req, (const char *)"Range"),
+                                   (char *)chttp_req_get_header(&chttp_req_t, (const char *)"Host"),
+                                   (char *)cstring_get_str(CHTTP_REQ_URI(&chttp_req_t)),
+                                   (char *)chttp_req_get_header(&chttp_req_t, (const char *)"Range"),
                                    ((uint32_t)redirect_times + 1) /*redirect times*/
                                    );
 
             }
+
+            chttp_req_clean(&chttp_req_t);
+
             return (EC_FALSE);
         }
 
@@ -3196,6 +3278,62 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
             chttp_rsp_print(LOGSTDOUT, chttp_rsp);
         }
 
+        /*logging*/
+        do
+        {
+            if(BIT_TRUE == need_log_flag
+            && NULL_PTR != chttp_stat)
+            {
+                /*trick: restore need log flag*/
+                CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
+
+                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+
+                CHTTP_STAT_REQ_C_MSEC(chttp_stat) = e_msec;
+
+                s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
+                sys_log(LOGUSER06, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
+                                   (char *)CHTTP_REQ_IPADDR_STR(&chttp_req_t),
+                                   CHTTP_REQ_PORT(&chttp_req_t),
+                                   CHTTP_RSP_STATUS(chttp_rsp),
+                                   s2e_elapsed_msec,
+                                   (char *)chttp_req_get_header(&chttp_req_t, (const char *)"Host"),
+                                   (char *)cstring_get_str(CHTTP_REQ_URI(&chttp_req_t)),
+                                   (char *)chttp_req_get_header(&chttp_req_t, (const char *)"Range"),
+                                   ((uint32_t)redirect_times), /*redirect times*/
+                                   CHTTP_STAT_S_SEND_LEN(chttp_stat),
+                                   CHTTP_STAT_S_RECV_LEN(chttp_stat)
+                                   );
+
+              CHTTP_STAT_SET_REQ_HOST(chttp_stat,
+                        (char *)chttp_req_get_header(&chttp_req_t, (const char *)"Host"));
+
+              CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, CHTTP_REQ_IPADDR(&chttp_req_t));
+
+              chttp_stat_log(chttp_stat, LOGUSER07);
+            }
+
+            if(BIT_TRUE == need_log_flag
+            && NULL_PTR == chttp_stat)
+            {
+                /*trick: restore need log flag*/
+                CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
+
+                CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+                s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
+                sys_log(LOGUSER06, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
+                                   (char *)CHTTP_REQ_IPADDR_STR(&chttp_req_t),
+                                   CHTTP_REQ_PORT(&chttp_req_t),
+                                   CHTTP_RSP_STATUS(chttp_rsp),
+                                   s2e_elapsed_msec,
+                                   (char *)chttp_req_get_header(&chttp_req_t, (const char *)"Host"),
+                                   (char *)cstring_get_str(CHTTP_REQ_URI(&chttp_req_t)),
+                                   (char *)chttp_req_get_header(&chttp_req_t, (const char *)"Range"),
+                                   ((uint32_t)redirect_times) /*redirect times*/
+                                   );
+            }
+        }while(0);
+
         chttp_req_clean(&chttp_req_t);
     }
 
@@ -3204,58 +3342,6 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
     {
         dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_http_request: restore cache_ctrl: result %#x\n",
                                               CHTTP_STORE_CACHE_CTRL(chttp_store));
-    }
-
-    if(BIT_TRUE == need_log_flag
-    && NULL_PTR != chttp_stat)
-    {
-        /*trick: restore need log flag*/
-        CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
-
-        CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
-
-        CHTTP_STAT_REQ_C_MSEC(chttp_stat) = e_msec;
-
-        s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
-        sys_log(LOGUSER06, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u %u %u\n",
-                           (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
-                           CHTTP_REQ_PORT(chttp_req),
-                           CHTTP_RSP_STATUS(chttp_rsp),
-                           s2e_elapsed_msec,
-                           (char *)chttp_req_get_header(chttp_req, (const char *)"Host"),
-                           (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)),
-                           (char *)chttp_req_get_header(chttp_req, (const char *)"Range"),
-                           ((uint32_t)redirect_times), /*redirect times*/
-                           CHTTP_STAT_S_SEND_LEN(chttp_stat),
-                           CHTTP_STAT_S_RECV_LEN(chttp_stat)
-                           );
-
-      CHTTP_STAT_SET_REQ_HOST(chttp_stat,
-                (char *)chttp_req_get_header(chttp_req, (const char *)"Host"));
-
-      CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, CHTTP_REQ_IPADDR(chttp_req));
-
-      chttp_stat_log(chttp_stat, LOGUSER07);
-    }
-
-    if(BIT_TRUE == need_log_flag
-    && NULL_PTR == chttp_stat)
-    {
-        /*trick: restore need log flag*/
-        CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
-
-        CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
-        s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
-        sys_log(LOGUSER06, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
-                           (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
-                           CHTTP_REQ_PORT(chttp_req),
-                           CHTTP_RSP_STATUS(chttp_rsp),
-                           s2e_elapsed_msec,
-                           (char *)chttp_req_get_header(chttp_req, (const char *)"Host"),
-                           (char *)cstring_get_str(CHTTP_REQ_URI(chttp_req)),
-                           (char *)chttp_req_get_header(chttp_req, (const char *)"Range"),
-                           ((uint32_t)redirect_times) /*redirect times*/
-                           );
     }
 
     return (EC_TRUE);
