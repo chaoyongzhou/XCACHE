@@ -939,7 +939,7 @@ void cxfspgd_print(LOG *log, const CXFSPGD *cxfspgd)
 
     ratio_page    = ((0.0 + CXFSPGD_PAGE_USED_NUM(cxfspgd)) / (0.0 + CXFSPGD_PAGE_MAX_NUM(cxfspgd)));
 
-    page_desc     = CXFSPCB_PAGE_DESC;
+    page_desc     = CXFSPGB_PAGE_DESC;
 
 /*
     sys_log(log, "cxfspgd_print: cxfspgd %p, ratio %.2f\n",

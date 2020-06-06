@@ -105,6 +105,10 @@ EC_BOOL cxfsnp_mgr_open_np_all(CXFSNP_MGR *cxfsnp_mgr);
 
 EC_BOOL cxfsnp_mgr_close_np_all(CXFSNP_MGR *cxfsnp_mgr);
 
+uint32_t cxfsnp_mgr_item_max_num(const CXFSNP_MGR *cxfsnp_mgr);
+
+uint32_t cxfsnp_mgr_item_used_num(const CXFSNP_MGR *cxfsnp_mgr);
+
 void cxfsnp_mgr_print_db(LOG *log, const CXFSNP_MGR *cxfsnp_mgr);
 
 void cxfsnp_mgr_print_que_list(LOG *log, const CXFSNP_MGR *cxfsnp_mgr);

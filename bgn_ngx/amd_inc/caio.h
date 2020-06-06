@@ -103,9 +103,11 @@ extern "C"{
 //#define CAIO_MEM_CACHE_MAX_NUM          ((UINT32)1024) /*256MB for 256K-page*/
 #define CAIO_MEM_CACHE_MAX_NUM          ((UINT32)~0)/*no limitation*/
 
-#define CAIO_OP_ERR                                     ((UINT32)0x0000) /*bitmap: 00*/
-#define CAIO_OP_RD                                      ((UINT32)0x0001) /*bitmap: 01*/
-#define CAIO_OP_WR                                      ((UINT32)0x0002) /*bitmap: 10*/
+#define CAIO_OP_RD                                      ((UINT32)0x0000)
+#define CAIO_OP_WR                                      ((UINT32)0x0001)
+#define CAIO_OP_ERR                                     ((UINT32)0xFFFF)
+
+#define CAIO_STAT_INTERVAL_NSEC                         ((uint64_t)1)
 
 #define CAIO_TIMEOUT_NSEC_DEFAULT                       (3600) /*second*/
 
@@ -153,6 +155,23 @@ typedef struct
 
 typedef struct
 {
+    uint64_t                 next_time_msec;  /*next time calculating statistics*/
+    uint64_t                 op_counter[ 2 ]; /*RD, WR*/
+    uint64_t                 cost_msec [ 2 ]; /*RD, WR*/
+    uint64_t                 max_msec  [ 2 ]; /*RD, WR*/
+    uint64_t                 min_msec  [ 2 ]; /*RD, WR*/
+    uint64_t                 avg_msec  [ 2 ]; /*RD, WR*/
+}CAIO_STAT;
+
+#define CAIO_STAT_NEXT_TIME_MSEC(caio_stat)        ((caio_stat)->next_time_msec)
+#define CAIO_STAT_OP_COUNTER(caio_stat, op)        ((caio_stat)->op_counter[ (op) ])
+#define CAIO_STAT_COST_MSEC(caio_stat, op)         ((caio_stat)->cost_msec[ (op) ])
+#define CAIO_STAT_MAX_MSEC(caio_stat, op)          ((caio_stat)->max_msec[ (op) ])
+#define CAIO_STAT_MIN_MSEC(caio_stat, op)          ((caio_stat)->min_msec[ (op) ])
+#define CAIO_STAT_AVG_MSEC(caio_stat, op)          ((caio_stat)->avg_msec[ (op) ])
+
+typedef struct
+{
     int                      fd;
     int                      rsvd;
 
@@ -161,6 +180,9 @@ typedef struct
     UINT32                   submit_req_num; /*record submit aio request num this time temporarily*/
 
     CPG_BITMAP              *bad_bitmap; /*mounted point. inheritted from camd*/
+
+    /*statistics*/
+    CAIO_STAT                caio_stat;
 }CAIO_DISK;
 
 #define CAIO_DISK_FD(caio_disk)                         ((caio_disk)->fd)
@@ -168,6 +190,14 @@ typedef struct
 #define CAIO_DISK_CUR_REQ_NUM(caio_disk)                ((caio_disk)->cur_req_num)
 #define CAIO_DISK_SUBMIT_REQ_NUM(caio_disk)             ((caio_disk)->submit_req_num)
 #define CAIO_DISK_BAD_BITMAP(caio_disk)                 ((caio_disk)->bad_bitmap)
+
+#define CAIO_DISK_STAT(caio_disk)                       (&((caio_disk)->caio_stat))
+#define CAIO_DISK_STAT_NEXT_TIME_MSEC(caio_disk)        (CAIO_STAT_NEXT_TIME_MSEC(CAIO_DISK_STAT(caio_disk)))
+#define CAIO_DISK_STAT_OP_COUNTER(caio_disk, op)        (CAIO_STAT_OP_COUNTER(CAIO_DISK_STAT(caio_disk), op))
+#define CAIO_DISK_STAT_COST_MSEC(caio_disk, op)         (CAIO_STAT_COST_MSEC(CAIO_DISK_STAT(caio_disk), op))
+#define CAIO_DISK_STAT_MAX_MSEC(caio_disk, op)          (CAIO_STAT_MAX_MSEC(CAIO_DISK_STAT(caio_disk), op))
+#define CAIO_DISK_STAT_MIN_MSEC(caio_disk, op)          (CAIO_STAT_MIN_MSEC(CAIO_DISK_STAT(caio_disk), op))
+#define CAIO_DISK_STAT_AVG_MSEC(caio_disk, op)          (CAIO_STAT_AVG_MSEC(CAIO_DISK_STAT(caio_disk), op))
 
 typedef void (*CAIO_EVENT_HANDLER)(void *);
 
@@ -216,7 +246,6 @@ typedef struct
         CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md) ^= 1;     \
     }while(0)
 
-
 typedef struct
 {
     uint32_t                working_flag     :1;    /*page is reading or writing disk*/
@@ -247,7 +276,10 @@ typedef struct
     CLIST_DATA             *mounted_pages;          /*mount point in page list of caio module*/
     UINT32                  mounted_list_idx;       /*mount in which page list*/
 
+    /*statistics*/
     uint64_t                submit_usec;            /*for debug only*/
+    uint64_t                s_msec;
+    uint64_t                e_msec;
 }CAIO_PAGE;
 
 #define CAIO_PAGE_WORKING_FLAG(caio_page)               ((caio_page)->working_flag)
@@ -269,6 +301,8 @@ typedef struct
 #define CAIO_PAGE_CAIO_DISK(caio_page)                  ((caio_page)->caio_disk)
 
 #define CAIO_PAGE_SUBMIT_USEC(caio_page)                ((caio_page)->submit_usec)
+#define CAIO_PAGE_S_MSEC(caio_page)                     ((caio_page)->s_msec)
+#define CAIO_PAGE_E_MSEC(caio_page)                     ((caio_page)->e_msec)
 
 #define CAIO_PAGE_MOUNTED_PAGES(caio_page)              ((caio_page)->mounted_pages)
 #define CAIO_PAGE_MOUNTED_LIST_IDX(caio_page)           ((caio_page)->mounted_list_idx)
@@ -422,6 +456,11 @@ EC_BOOL caio_cb_exec_complete_handler(CAIO_CB *caio_cb);
 EC_BOOL caio_cb_clone(const CAIO_CB *caio_cb_src, CAIO_CB *caio_cb_des);
 
 void caio_cb_print(LOG *log, const CAIO_CB *caio_cb);
+
+/*----------------------------------- caio stat interface -----------------------------------*/
+EC_BOOL caio_stat_init(CAIO_STAT *caio_stat);
+
+EC_BOOL caio_stat_clean(CAIO_STAT *caio_stat);
 
 /*----------------------------------- caio disk interface -----------------------------------*/
 
@@ -586,6 +625,8 @@ EC_BOOL caio_is_read_only(const CAIO_MD *caio_md);
 EC_BOOL caio_poll(CAIO_MD *caio_md);
 
 void caio_process(CAIO_MD *caio_md);
+
+void caio_process_stat(CAIO_MD *caio_md);
 
 void caio_process_reqs(CAIO_MD *caio_md);
 

@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -22,6 +22,11 @@ extern "C"{
 #include "json_object_iterator.h"
 #include "json_c_version.h"
 
+struct json_object* json_object_add_k_int64(struct json_object *jso, const char *k, const int64_t v);
+
+struct json_object* json_object_add_k_int32(struct json_object *jso, const char *k, const int32_t v);
+
+struct json_object* json_object_add_k_double(struct json_object *jso, const char *k, const double v);
 
 struct json_object* json_object_add_kv(struct json_object *jso, const char *k, const char *v);
 

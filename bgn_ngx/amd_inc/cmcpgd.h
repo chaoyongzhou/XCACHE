@@ -95,76 +95,91 @@ extern "C"{
 #if (CMCPGD_032M_DISK == CMCPGD_DISK_CHOICE)
 #define CMCPGD_SIZE_NBITS                  (CMCPGD_032MB_SIZE_NBITS)
 #define CMCPGD_MAX_BLOCK_NUM               (CMCPGD_032MB_BLOCK_NUM)
+#define CMCPGD_DISK_DESC                   ("32M-disk")
 #endif/*(CMCPGD_032M_DISK == CMCPGD_DISK_CHOICE)*/
 
 #if (CMCPGD_064M_DISK == CMCPGD_DISK_CHOICE)
 #define CMCPGD_SIZE_NBITS                  (CMCPGD_064MB_SIZE_NBITS)
 #define CMCPGD_MAX_BLOCK_NUM               (CMCPGD_064MB_BLOCK_NUM)
+#define CMCPGD_DISK_DESC                   ("64M-disk")
 #endif/*(CMCPGD_064M_DISK == CMCPGD_DISK_CHOICE)*/
 
 #if (CMCPGD_128M_DISK == CMCPGD_DISK_CHOICE)
 #define CMCPGD_SIZE_NBITS                  (CMCPGD_128MB_SIZE_NBITS)
 #define CMCPGD_MAX_BLOCK_NUM               (CMCPGD_128MB_BLOCK_NUM)
+#define CMCPGD_DISK_DESC                   ("128M-disk")
 #endif/*(CMCPGD_128M_DISK == CMCPGD_DISK_CHOICE)*/
 
 #if (CMCPGD_256M_DISK == CMCPGD_DISK_CHOICE)
 #define CMCPGD_SIZE_NBITS                  (CMCPGD_256MB_SIZE_NBITS)
 #define CMCPGD_MAX_BLOCK_NUM               (CMCPGD_256MB_BLOCK_NUM)
+#define CMCPGD_DISK_DESC                   ("256M-disk")
 #endif/*(CMCPGD_256M_DISK == CMCPGD_DISK_CHOICE)*/
 
 #if (CMCPGD_512M_DISK == CMCPGD_DISK_CHOICE)
 #define CMCPGD_SIZE_NBITS                  (CMCPGD_512MB_SIZE_NBITS)
 #define CMCPGD_MAX_BLOCK_NUM               (CMCPGD_512MB_BLOCK_NUM)
+#define CMCPGD_DISK_DESC                   ("512M-disk")
 #endif/*(CMCPGD_512M_DISK == CMCPGD_DISK_CHOICE)*/
 
 #if (CMCPGD_001G_DISK == CMCPGD_DISK_CHOICE)
 #define CMCPGD_SIZE_NBITS                  (CMCPGD_001GB_SIZE_NBITS)
 #define CMCPGD_MAX_BLOCK_NUM               (CMCPGD_001GB_BLOCK_NUM)
+#define CMCPGD_DISK_DESC                   ("1G-disk")
 #endif/*(CMCPGD_001G_DISK == CMCPGD_DISK_CHOICE)*/
 
 #if (CMCPGD_002G_DISK == CMCPGD_DISK_CHOICE)
 #define CMCPGD_SIZE_NBITS                  (CMCPGD_002GB_SIZE_NBITS)
 #define CMCPGD_MAX_BLOCK_NUM               (CMCPGD_002GB_BLOCK_NUM)
+#define CMCPGD_DISK_DESC                   ("2G-disk")
 #endif/*(CMCPGD_002G_DISK == CMCPGD_DISK_CHOICE)*/
 
 #if (CMCPGD_004G_DISK == CMCPGD_DISK_CHOICE)
 #define CMCPGD_SIZE_NBITS                  (CMCPGD_004GB_SIZE_NBITS)
 #define CMCPGD_MAX_BLOCK_NUM               (CMCPGD_004GB_BLOCK_NUM)
+#define CMCPGD_DISK_DESC                   ("4G-disk")
 #endif/*(CMCPGD_004G_DISK == CMCPGD_DISK_CHOICE)*/
 
 #if (CMCPGD_008G_DISK == CMCPGD_DISK_CHOICE)
 #define CMCPGD_SIZE_NBITS                  (CMCPGD_008GB_SIZE_NBITS)
 #define CMCPGD_MAX_BLOCK_NUM               (CMCPGD_008GB_BLOCK_NUM)
+#define CMCPGD_DISK_DESC                   ("8G-disk")
 #endif/*(CMCPGD_008G_DISK == CMCPGD_DISK_CHOICE)*/
 
 #if (CMCPGD_016G_DISK == CMCPGD_DISK_CHOICE)
 #define CMCPGD_SIZE_NBITS                  (CMCPGD_016GB_SIZE_NBITS)
 #define CMCPGD_MAX_BLOCK_NUM               (CMCPGD_016GB_BLOCK_NUM)
+#define CMCPGD_DISK_DESC                   ("16G-disk")
 #endif/*(CMCPGD_016G_DISK == CMCPGD_DISK_CHOICE)*/
 
 #if (CMCPGD_032G_DISK == CMCPGD_DISK_CHOICE)
 #define CMCPGD_SIZE_NBITS                  (CMCPGD_032GB_SIZE_NBITS)
 #define CMCPGD_MAX_BLOCK_NUM               (CMCPGD_032GB_BLOCK_NUM)
+#define CMCPGD_DISK_DESC                   ("32G-disk")
 #endif/*(CMCPGD_032G_DISK == CMCPGD_DISK_CHOICE)*/
 
 #if (CMCPGD_064G_DISK == CMCPGD_DISK_CHOICE)
 #define CMCPGD_SIZE_NBITS                  (CMCPGD_064GB_SIZE_NBITS)
 #define CMCPGD_MAX_BLOCK_NUM               (CMCPGD_064GB_BLOCK_NUM)
+#define CMCPGD_DISK_DESC                   ("64G-disk")
 #endif/*(CMCPGD_064G_DISK == CMCPGD_DISK_CHOICE)*/
 
 #if (CMCPGD_128G_DISK == CMCPGD_DISK_CHOICE)
 #define CMCPGD_SIZE_NBITS                  (CMCPGD_128GB_SIZE_NBITS)
 #define CMCPGD_MAX_BLOCK_NUM               (CMCPGD_128GB_BLOCK_NUM)
+#define CMCPGD_DISK_DESC                   ("128G-disk")
 #endif/*(CMCPGD_128G_DISK == CMCPGD_DISK_CHOICE)*/
 
 #if (CMCPGD_256G_DISK == CMCPGD_DISK_CHOICE)
 #define CMCPGD_SIZE_NBITS                  (CMCPGD_256GB_SIZE_NBITS)
 #define CMCPGD_MAX_BLOCK_NUM               (CMCPGD_256GB_BLOCK_NUM)
+#define CMCPGD_DISK_DESC                   ("256G-disk")
 #endif/*(CMCPGD_256G_DISK == CMCPGD_DISK_CHOICE)*/
 
 #if (CMCPGD_512G_DISK == CMCPGD_DISK_CHOICE)
 #define CMCPGD_SIZE_NBITS                  (CMCPGD_512GB_SIZE_NBITS)
 #define CMCPGD_MAX_BLOCK_NUM               (CMCPGD_512GB_BLOCK_NUM)
+#define CMCPGD_DISK_DESC                   ("512G-disk")
 #endif/*(CMCPGD_032G_DISK == CMCPGD_DISK_CHOICE)*/
 
 #define CMCPGD_BLOCK_PAGE_MODEL            (CMCPGB_PAGE_MODEL)

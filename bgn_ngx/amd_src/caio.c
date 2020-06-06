@@ -805,6 +805,41 @@ void caio_cb_print(LOG *log, const CAIO_CB *caio_cb)
     return;
 }
 
+/*----------------------------------- caio stat interface -----------------------------------*/
+EC_BOOL caio_stat_init(CAIO_STAT *caio_stat)
+{
+    CAIO_STAT_NEXT_TIME_MSEC(caio_stat)         = 0;
+    CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_RD) = 0;
+    CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_WR) = 0;
+    CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_RD)  = 0;
+    CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_WR)  = 0;
+    CAIO_STAT_MAX_MSEC(caio_stat, CAIO_OP_RD)   = 0;
+    CAIO_STAT_MAX_MSEC(caio_stat, CAIO_OP_WR)   = 0;
+    CAIO_STAT_MIN_MSEC(caio_stat, CAIO_OP_RD)   = ((uint64_t)~0);
+    CAIO_STAT_MIN_MSEC(caio_stat, CAIO_OP_WR)   = ((uint64_t)~0);
+    CAIO_STAT_AVG_MSEC(caio_stat, CAIO_OP_RD)   = 0;
+    CAIO_STAT_AVG_MSEC(caio_stat, CAIO_OP_WR)   = 0;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL caio_stat_clean(CAIO_STAT *caio_stat)
+{
+    CAIO_STAT_NEXT_TIME_MSEC(caio_stat)         = 0;
+    CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_RD) = 0;
+    CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_WR) = 0;
+    CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_RD)  = 0;
+    CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_WR)  = 0;
+    CAIO_STAT_MAX_MSEC(caio_stat, CAIO_OP_RD)   = 0;
+    CAIO_STAT_MAX_MSEC(caio_stat, CAIO_OP_WR)   = 0;
+    CAIO_STAT_MIN_MSEC(caio_stat, CAIO_OP_RD)   = 0;
+    CAIO_STAT_MIN_MSEC(caio_stat, CAIO_OP_WR)   = 0;
+    CAIO_STAT_AVG_MSEC(caio_stat, CAIO_OP_RD)   = 0;
+    CAIO_STAT_AVG_MSEC(caio_stat, CAIO_OP_WR)   = 0;
+
+    return (EC_TRUE);
+}
+
 /*----------------------------------- caio disk interface -----------------------------------*/
 
 CAIO_DISK *caio_disk_new()
@@ -829,6 +864,8 @@ EC_BOOL caio_disk_init(CAIO_DISK *caio_disk)
     CAIO_DISK_CUR_REQ_NUM(caio_disk)            = 0;
     CAIO_DISK_SUBMIT_REQ_NUM(caio_disk)         = 0;
     CAIO_DISK_BAD_BITMAP(caio_disk)             = NULL_PTR;
+
+    caio_stat_init(CAIO_DISK_STAT(caio_disk));
     return (EC_TRUE);
 }
 
@@ -841,6 +878,8 @@ EC_BOOL caio_disk_clean(CAIO_DISK *caio_disk)
         CAIO_DISK_CUR_REQ_NUM(caio_disk)            = 0;
         CAIO_DISK_SUBMIT_REQ_NUM(caio_disk)         = 0;
         CAIO_DISK_BAD_BITMAP(caio_disk)             = NULL_PTR;
+
+        caio_stat_clean(CAIO_DISK_STAT(caio_disk));
     }
 
     return (EC_TRUE);
@@ -966,6 +1005,10 @@ EC_BOOL caio_page_init(CAIO_PAGE *caio_page)
 
     clist_init(CAIO_PAGE_OWNERS(caio_page), MM_CAIO_NODE, LOC_CAIO_0004);
 
+    /*statistics*/
+    CAIO_PAGE_S_MSEC(caio_page)             = 0;
+    CAIO_PAGE_E_MSEC(caio_page)             = 0;
+
     return (EC_TRUE);
 }
 
@@ -1015,6 +1058,10 @@ EC_BOOL caio_page_clean(CAIO_PAGE *caio_page)
         CAIO_PAGE_CAIO_DISK(caio_page)          = NULL_PTR;
 
         BSET(CAIO_PAGE_AIOCB(caio_page), 0, sizeof(struct iocb));
+
+        /*statistics*/
+        CAIO_PAGE_S_MSEC(caio_page)             = 0;
+        CAIO_PAGE_E_MSEC(caio_page)             = 0;
     }
 
     return (EC_TRUE);
@@ -2727,6 +2774,7 @@ CAIO_MD *caio_start(const UINT32 model)
         caio_end(caio_md);
         return (NULL_PTR);
     }
+
     dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_start: aio context %ld\n",
                                          CAIO_MD_AIO_CONTEXT(caio_md));
 
@@ -3260,8 +3308,94 @@ void caio_process(CAIO_MD *caio_md)
     caio_process_pages(caio_md);
     caio_process_events(caio_md);
     caio_process_reqs(caio_md);
+    caio_process_stat(caio_md);
 
    return;
+}
+
+void caio_process_stat(CAIO_MD *caio_md)
+{
+    CLIST_DATA  *clist_data;
+    uint64_t     cur_time_msec;
+
+    cur_time_msec = c_get_cur_time_msec();
+
+    CLIST_LOOP_NEXT(CAIO_MD_DISK_LIST(caio_md), clist_data)
+    {
+        CAIO_DISK       *caio_disk;
+
+        caio_disk= CLIST_DATA_DATA(clist_data);
+        if(NULL_PTR == caio_disk)
+        {
+            continue;
+        }
+
+        if(cur_time_msec < CAIO_DISK_STAT_NEXT_TIME_MSEC(caio_disk))
+        {
+            continue;
+        }
+
+        if(0 < CAIO_DISK_STAT_OP_COUNTER(caio_disk, CAIO_OP_RD))
+        {
+            CAIO_DISK_STAT_AVG_MSEC(caio_disk, CAIO_OP_RD) =
+                        CAIO_DISK_STAT_COST_MSEC(caio_disk, CAIO_OP_RD) /
+                        CAIO_DISK_STAT_OP_COUNTER(caio_disk, CAIO_OP_RD);
+        }
+        else
+        {
+            CAIO_DISK_STAT_MIN_MSEC(caio_disk, CAIO_OP_RD) = 0;
+        }
+
+        if(0 < CAIO_DISK_STAT_OP_COUNTER(caio_disk, CAIO_OP_WR))
+        {
+            CAIO_DISK_STAT_AVG_MSEC(caio_disk, CAIO_OP_WR) =
+                        CAIO_DISK_STAT_COST_MSEC(caio_disk, CAIO_OP_WR) /
+                        CAIO_DISK_STAT_OP_COUNTER(caio_disk, CAIO_OP_WR);
+        }
+        else
+        {
+            CAIO_DISK_STAT_MIN_MSEC(caio_disk, CAIO_OP_WR) = 0;
+        }
+
+        if(do_log(SEC_0093_CAIO, 3))
+        {
+            sys_log(LOGSTDOUT, "caio_process_stat:"
+                               "disk %d, "
+                               "[RD] counter %lu, cost %lu, max %lu, min %lu, avg %lu,"
+                               "[WR] counter %lu, cost %lu, max %lu, min %lu, avg %lu\n",
+                               CAIO_DISK_FD(caio_disk),
+
+                               CAIO_DISK_STAT_OP_COUNTER(caio_disk, CAIO_OP_RD),
+                               CAIO_DISK_STAT_COST_MSEC(caio_disk, CAIO_OP_RD),
+                               CAIO_DISK_STAT_MAX_MSEC(caio_disk, CAIO_OP_RD),
+                               CAIO_DISK_STAT_MIN_MSEC(caio_disk, CAIO_OP_RD),
+                               CAIO_DISK_STAT_AVG_MSEC(caio_disk, CAIO_OP_RD),
+
+                               CAIO_DISK_STAT_OP_COUNTER(caio_disk, CAIO_OP_WR),
+                               CAIO_DISK_STAT_COST_MSEC(caio_disk, CAIO_OP_WR),
+                               CAIO_DISK_STAT_MAX_MSEC(caio_disk, CAIO_OP_WR),
+                               CAIO_DISK_STAT_MIN_MSEC(caio_disk, CAIO_OP_WR),
+                               CAIO_DISK_STAT_AVG_MSEC(caio_disk, CAIO_OP_WR));
+        }
+
+        /*reset */
+
+        CAIO_DISK_STAT_NEXT_TIME_MSEC(caio_disk) = cur_time_msec + CAIO_STAT_INTERVAL_NSEC * 1000;
+
+        CAIO_DISK_STAT_NEXT_TIME_MSEC(caio_disk)         = 0;
+        CAIO_DISK_STAT_OP_COUNTER(caio_disk, CAIO_OP_RD) = 0;
+        CAIO_DISK_STAT_OP_COUNTER(caio_disk, CAIO_OP_WR) = 0;
+        CAIO_DISK_STAT_COST_MSEC(caio_disk, CAIO_OP_RD)  = 0;
+        CAIO_DISK_STAT_COST_MSEC(caio_disk, CAIO_OP_WR)  = 0;
+        CAIO_DISK_STAT_MAX_MSEC(caio_disk, CAIO_OP_RD)   = 0;
+        CAIO_DISK_STAT_MAX_MSEC(caio_disk, CAIO_OP_WR)   = 0;
+        CAIO_DISK_STAT_MIN_MSEC(caio_disk, CAIO_OP_RD)   = ((uint64_t)~0);
+        CAIO_DISK_STAT_MIN_MSEC(caio_disk, CAIO_OP_WR)   = ((uint64_t)~0);
+        CAIO_DISK_STAT_AVG_MSEC(caio_disk, CAIO_OP_RD)   = 0;
+        CAIO_DISK_STAT_AVG_MSEC(caio_disk, CAIO_OP_WR)   = 0;
+    }
+
+    return;
 }
 
 void caio_process_reqs(CAIO_MD *caio_md)
@@ -3444,7 +3578,7 @@ UINT32 __caio_process_pages(CAIO_MD *caio_md, const UINT32 op)
     CAIO_PAGE       *caio_page;
 
     struct iocb     *piocb[ CAIO_REQ_MAX_NUM ];
-    uint16_t         aio_rw_stat[ 4 ];
+    uint32_t         aio_rw_stat[ 2 ];
     UINT32           aio_req_num_saved;
     UINT32           aio_req_num;
     UINT32           aio_req_idx;
@@ -3512,6 +3646,8 @@ UINT32 __caio_process_pages(CAIO_MD *caio_md, const UINT32 op)
         CAIO_PAGE_SUBMIT_USEC(caio_page) = c_get_cur_time_usec();
 #endif/*(SWITCH_ON == CAIO_STAT_DEBUG)*/
 
+        CAIO_PAGE_S_MSEC(caio_page) = c_get_cur_time_msec();
+
         aio_req_num ++;
 
         CAIO_DISK_SUBMIT_REQ_NUM(caio_disk) ++;
@@ -3577,15 +3713,20 @@ UINT32 __caio_process_pages(CAIO_MD *caio_md, const UINT32 op)
         for(req_idx = 0; req_idx < (UINT32)aio_succ_nr; req_idx ++)
         {
             CAIO_DISK       *caio_disk;
+            uint64_t         cost_msec;
 
             caio_page = CAIO_AIOCB_PAGE(piocb[ req_idx ]);
             piocb[ req_idx ] = NULL_PTR;
+
+            CAIO_PAGE_E_MSEC(caio_page) = c_get_cur_time_msec();
+            cost_msec = (CAIO_PAGE_E_MSEC(caio_page) - CAIO_PAGE_S_MSEC(caio_page));
 
             CAIO_PAGE_WORKING_FLAG(caio_page) = BIT_TRUE;
 
             /*add back to active page list*/
             caio_add_page(caio_md, CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md), caio_page);/*xxx*/
 
+            /*statistics*/
             aio_rw_stat[ CAIO_PAGE_OP(caio_page) ] ++; /*RD or WR statistics*/
 
             CAIO_ASSERT(NULL_PTR != CAIO_PAGE_CAIO_DISK(caio_page));
@@ -3593,6 +3734,18 @@ UINT32 __caio_process_pages(CAIO_MD *caio_md, const UINT32 op)
 
             CAIO_DISK_SUBMIT_REQ_NUM(caio_disk) = 0;  /*reset*/
             CAIO_DISK_CUR_REQ_NUM(caio_disk) ++;
+
+            /*statistics*/
+            CAIO_DISK_STAT_OP_COUNTER(caio_disk, CAIO_PAGE_OP(caio_page)) ++;
+            CAIO_DISK_STAT_COST_MSEC(caio_disk, CAIO_PAGE_OP(caio_page)) += cost_msec;
+            if(cost_msec > CAIO_DISK_STAT_MAX_MSEC(caio_disk, CAIO_PAGE_OP(caio_page)))
+            {
+                CAIO_DISK_STAT_MAX_MSEC(caio_disk, CAIO_PAGE_OP(caio_page)) = cost_msec;
+            }
+            if(cost_msec < CAIO_DISK_STAT_MIN_MSEC(caio_disk, CAIO_PAGE_OP(caio_page)))
+            {
+                CAIO_DISK_STAT_MIN_MSEC(caio_disk, CAIO_PAGE_OP(caio_page)) = cost_msec;
+            }
 
             dbg_log(SEC_0093_CAIO, 3)(LOGSTDOUT, "[DEBUG] __caio_process_pages: "
                             "[No.%ld] submit aio: page %s, [%ld, %ld), fd %d\n",

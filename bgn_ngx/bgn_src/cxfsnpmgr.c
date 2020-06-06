@@ -264,6 +264,33 @@ EC_BOOL cxfsnp_mgr_close_np_all(CXFSNP_MGR *cxfsnp_mgr)
     return (EC_TRUE);
 }
 
+uint32_t cxfsnp_mgr_item_max_num(const CXFSNP_MGR *cxfsnp_mgr)
+{
+    return CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr);
+}
+
+uint32_t cxfsnp_mgr_item_used_num(const CXFSNP_MGR *cxfsnp_mgr)
+{
+    uint32_t cxfsnp_num;
+    uint32_t cxfsnp_id;
+    uint32_t cxfsnp_used_num;
+
+    cxfsnp_used_num = 0;
+    cxfsnp_num = (uint32_t)cvector_size(CXFSNP_MGR_NP_VEC(cxfsnp_mgr));
+    for(cxfsnp_id = 0; cxfsnp_id < cxfsnp_num; cxfsnp_id ++)
+    {
+        const CXFSNP *cxfsnp;
+
+        cxfsnp = CXFSNP_MGR_NP(cxfsnp_mgr, cxfsnp_id);
+        if(NULL_PTR != cxfsnp)
+        {
+            cxfsnp_used_num += CXFSNP_ITEMS_MAX_NUM(cxfsnp);
+        }
+    }
+
+    return (cxfsnp_used_num);
+}
+
 
 void cxfsnp_mgr_print_db(LOG *log, const CXFSNP_MGR *cxfsnp_mgr)
 {

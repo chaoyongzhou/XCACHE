@@ -22,7 +22,7 @@ extern "C"{
 #include "cxfspgrb.h"
 #include "cxfspgd.h"
 
-#if (CXFSPGD_004G_DISK == CXFSPGD_DEBUG_CHOICE)
+#if (CXFSPGD_004G_DISK == CXFSPGD_DISK_CHOICE)
 #define CXFSPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  8))
 #define CXFSPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  9))
 #define CXFSPGV_004TB_DISK_NUM  ((uint16_t)(1 << 10))
@@ -30,9 +30,9 @@ extern "C"{
 #define CXFSPGV_016TB_DISK_NUM  ((uint16_t)(1 << 12))
 #define CXFSPGV_032TB_DISK_NUM  ((uint16_t)(1 << 13))
 #define CXFSPGV_064TB_DISK_NUM  ((uint16_t)(1 << 14))
-#endif/*(CXFSPGD_004G_DISK == CXFSPGD_DEBUG_CHOICE)*/
+#endif/*(CXFSPGD_004G_DISK == CXFSPGD_DISK_CHOICE)*/
 
-#if (CXFSPGD_008G_DISK == CXFSPGD_DEBUG_CHOICE)
+#if (CXFSPGD_008G_DISK == CXFSPGD_DISK_CHOICE)
 #define CXFSPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  7))
 #define CXFSPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  8))
 #define CXFSPGV_004TB_DISK_NUM  ((uint16_t)(1 <<  9))
@@ -40,9 +40,9 @@ extern "C"{
 #define CXFSPGV_016TB_DISK_NUM  ((uint16_t)(1 << 11))
 #define CXFSPGV_032TB_DISK_NUM  ((uint16_t)(1 << 12))
 #define CXFSPGV_064TB_DISK_NUM  ((uint16_t)(1 << 13))
-#endif/*(CXFSPGD_008G_DISK == CXFSPGD_DEBUG_CHOICE)*/
+#endif/*(CXFSPGD_008G_DISK == CXFSPGD_DISK_CHOICE)*/
 
-#if (CXFSPGD_016G_DISK == CXFSPGD_DEBUG_CHOICE)
+#if (CXFSPGD_016G_DISK == CXFSPGD_DISK_CHOICE)
 #define CXFSPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  6))
 #define CXFSPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  7))
 #define CXFSPGV_004TB_DISK_NUM  ((uint16_t)(1 <<  8))
@@ -50,9 +50,9 @@ extern "C"{
 #define CXFSPGV_016TB_DISK_NUM  ((uint16_t)(1 << 10))
 #define CXFSPGV_032TB_DISK_NUM  ((uint16_t)(1 << 11))
 #define CXFSPGV_064TB_DISK_NUM  ((uint16_t)(1 << 12))
-#endif/*(CXFSPGD_016G_DISK == CXFSPGD_DEBUG_CHOICE)*/
+#endif/*(CXFSPGD_016G_DISK == CXFSPGD_DISK_CHOICE)*/
 
-#if (CXFSPGD_032G_DISK == CXFSPGD_DEBUG_CHOICE)
+#if (CXFSPGD_032G_DISK == CXFSPGD_DISK_CHOICE)
 #define CXFSPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  5))
 #define CXFSPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  6))
 #define CXFSPGV_004TB_DISK_NUM  ((uint16_t)(1 <<  7))
@@ -60,9 +60,9 @@ extern "C"{
 #define CXFSPGV_016TB_DISK_NUM  ((uint16_t)(1 <<  9))
 #define CXFSPGV_032TB_DISK_NUM  ((uint16_t)(1 << 10))
 #define CXFSPGV_064TB_DISK_NUM  ((uint16_t)(1 << 11))
-#endif/*(CXFSPGD_032G_DISK == CXFSPGD_DEBUG_CHOICE)*/
+#endif/*(CXFSPGD_032G_DISK == CXFSPGD_DISK_CHOICE)*/
 
-#if (CXFSPGD_064G_DISK == CXFSPGD_DEBUG_CHOICE)
+#if (CXFSPGD_064G_DISK == CXFSPGD_DISK_CHOICE)
 #define CXFSPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  4))
 #define CXFSPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  5))
 #define CXFSPGV_004TB_DISK_NUM  ((uint16_t)(1 <<  6))
@@ -70,9 +70,9 @@ extern "C"{
 #define CXFSPGV_016TB_DISK_NUM  ((uint16_t)(1 <<  8))
 #define CXFSPGV_032TB_DISK_NUM  ((uint16_t)(1 <<  9))
 #define CXFSPGV_064TB_DISK_NUM  ((uint16_t)(1 << 10))
-#endif/*(CXFSPGD_064G_DISK == CXFSPGD_DEBUG_CHOICE)*/
+#endif/*(CXFSPGD_064G_DISK == CXFSPGD_DISK_CHOICE)*/
 
-#if (CXFSPGD_128G_DISK == CXFSPGD_DEBUG_CHOICE)
+#if (CXFSPGD_128G_DISK == CXFSPGD_DISK_CHOICE)
 #define CXFSPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  3))
 #define CXFSPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  4))
 #define CXFSPGV_004TB_DISK_NUM  ((uint16_t)(1 <<  5))
@@ -80,9 +80,9 @@ extern "C"{
 #define CXFSPGV_016TB_DISK_NUM  ((uint16_t)(1 <<  7))
 #define CXFSPGV_032TB_DISK_NUM  ((uint16_t)(1 <<  8))
 #define CXFSPGV_064TB_DISK_NUM  ((uint16_t)(1 <<  9))
-#endif/*(CXFSPGD_128G_DISK == CXFSPGD_DEBUG_CHOICE)*/
+#endif/*(CXFSPGD_128G_DISK == CXFSPGD_DISK_CHOICE)*/
 
-#if (CXFSPGD_256G_DISK == CXFSPGD_DEBUG_CHOICE)
+#if (CXFSPGD_256G_DISK == CXFSPGD_DISK_CHOICE)
 #define CXFSPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  2))
 #define CXFSPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  3))
 #define CXFSPGV_004TB_DISK_NUM  ((uint16_t)(1 <<  4))
@@ -90,9 +90,9 @@ extern "C"{
 #define CXFSPGV_016TB_DISK_NUM  ((uint16_t)(1 <<  6))
 #define CXFSPGV_032TB_DISK_NUM  ((uint16_t)(1 <<  7))
 #define CXFSPGV_064TB_DISK_NUM  ((uint16_t)(1 <<  8))
-#endif/*(CXFSPGD_256G_DISK == CXFSPGD_DEBUG_CHOICE)*/
+#endif/*(CXFSPGD_256G_DISK == CXFSPGD_DISK_CHOICE)*/
 
-#if (CXFSPGD_512G_DISK == CXFSPGD_DEBUG_CHOICE)
+#if (CXFSPGD_512G_DISK == CXFSPGD_DISK_CHOICE)
 #define CXFSPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  1))
 #define CXFSPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  2))
 #define CXFSPGV_004TB_DISK_NUM  ((uint16_t)(1 <<  3))
@@ -100,9 +100,9 @@ extern "C"{
 #define CXFSPGV_016TB_DISK_NUM  ((uint16_t)(1 <<  5))
 #define CXFSPGV_032TB_DISK_NUM  ((uint16_t)(1 <<  6))
 #define CXFSPGV_064TB_DISK_NUM  ((uint16_t)(1 <<  7))
-#endif/*(CXFSPGD_512G_DISK == CXFSPGD_DEBUG_CHOICE)*/
+#endif/*(CXFSPGD_512G_DISK == CXFSPGD_DISK_CHOICE)*/
 
-#if (CXFSPGD_001T_DISK == CXFSPGD_DEBUG_CHOICE)
+#if (CXFSPGD_001T_DISK == CXFSPGD_DISK_CHOICE)
 #define CXFSPGV_001TB_DISK_NUM  ((uint16_t)(1 <<  0))
 #define CXFSPGV_002TB_DISK_NUM  ((uint16_t)(1 <<  1))
 #define CXFSPGV_004TB_DISK_NUM  ((uint16_t)(1 <<  2))
@@ -110,7 +110,7 @@ extern "C"{
 #define CXFSPGV_016TB_DISK_NUM  ((uint16_t)(1 <<  4))
 #define CXFSPGV_032TB_DISK_NUM  ((uint16_t)(1 <<  5))
 #define CXFSPGV_064TB_DISK_NUM  ((uint16_t)(1 <<  6))
-#endif/*(CXFSPGD_001T_DISK == CXFSPGD_DEBUG_CHOICE)*/
+#endif/*(CXFSPGD_001T_DISK == CXFSPGD_DISK_CHOICE)*/
 
 #define CXFSPGV_MAX_DISK_NUM               (CXFSPGV_064TB_DISK_NUM)
 

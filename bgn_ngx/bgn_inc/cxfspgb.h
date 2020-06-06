@@ -449,7 +449,7 @@ extern "C"{
 /*actual used cxfspgb model num*/
 #define CXFSPGB_MODEL_NUM                (CXFSPGB_004KB_MODEL + 1)/*15*/
 #define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_4K_MODEL_MASK)
-#define CXFSPCB_PAGE_DESC                ("4K-page")
+#define CXFSPGB_PAGE_DESC                ("4K-page")
 #endif/*(CXFSPGB_004K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
 
 #if (CXFSPGB_008K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)
@@ -478,7 +478,7 @@ extern "C"{
 /*actual used cxfspgb model num*/
 #define CXFSPGB_MODEL_NUM                (CXFSPGB_008KB_MODEL + 1)/*14*/
 #define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_8K_MODEL_MASK)
-#define CXFSPCB_PAGE_DESC                ("8K-page")
+#define CXFSPGB_PAGE_DESC                ("8K-page")
 #endif/*(CXFSPGB_008K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
 
 #if (CXFSPGB_016K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)
@@ -507,7 +507,7 @@ extern "C"{
 /*actual used cxfspgb model num*/
 #define CXFSPGB_MODEL_NUM                (CXFSPGB_016KB_MODEL + 1)/*13*/
 #define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_16K_MODEL_MASK)
-#define CXFSPCB_PAGE_DESC                ("16K-page")
+#define CXFSPGB_PAGE_DESC                ("16K-page")
 #endif/*(CXFSPGB_016K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
 
 #if (CXFSPGB_032K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)
@@ -536,7 +536,7 @@ extern "C"{
 /*actual used cxfspgb model num*/
 #define CXFSPGB_MODEL_NUM                (CXFSPGB_032KB_MODEL + 1)/*12*/
 #define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_32K_MODEL_MASK)
-#define CXFSPCB_PAGE_DESC                ("32K-page")
+#define CXFSPGB_PAGE_DESC                ("32K-page")
 #endif/*(CXFSPGB_032K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
 
 #if (CXFSPGB_064K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)
@@ -565,7 +565,7 @@ extern "C"{
 /*actual used cxfspgb model num*/
 #define CXFSPGB_MODEL_NUM                (CXFSPGB_064KB_MODEL + 1)/*11*/
 #define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_64K_MODEL_MASK)
-#define CXFSPCB_PAGE_DESC                ("64K-page")
+#define CXFSPGB_PAGE_DESC                ("64K-page")
 #endif/*(CXFSPGB_064K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
 
 #if (CXFSPGB_128K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)
@@ -594,7 +594,7 @@ extern "C"{
 /*actual used cxfspgb model num*/
 #define CXFSPGB_MODEL_NUM                (CXFSPGB_128KB_MODEL + 1)/*10*/
 #define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_128K_MODEL_MASK)
-#define CXFSPCB_PAGE_DESC                ("128K-page")
+#define CXFSPGB_PAGE_DESC                ("128K-page")
 #endif/*(CXFSPGB_128K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
 
 #if (CXFSPGB_256K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)
@@ -623,7 +623,7 @@ extern "C"{
 /*actual used cxfspgb model num*/
 #define CXFSPGB_MODEL_NUM                (CXFSPGB_256KB_MODEL + 1)/*9*/
 #define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_256K_MODEL_MASK)
-#define CXFSPCB_PAGE_DESC                ("256K-page")
+#define CXFSPGB_PAGE_DESC                ("256K-page")
 #endif/*(CXFSPGB_256K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
 
 #if (CXFSPGB_512K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)
@@ -652,7 +652,7 @@ extern "C"{
 /*actual used cxfspgb model num*/
 #define CXFSPGB_MODEL_NUM                (CXFSPGB_512KB_MODEL + 1)/*8*/
 #define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_512K_MODEL_MASK)
-#define CXFSPCB_PAGE_DESC                ("512K-page")
+#define CXFSPGB_PAGE_DESC                ("512K-page")
 #endif/*(CXFSPGB_512K_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
 
 #if (CXFSPGB_001M_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)
@@ -681,7 +681,7 @@ extern "C"{
 /*actual used cxfspgb model num*/
 #define CXFSPGB_MODEL_NUM                (CXFSPGB_001MB_MODEL + 1)/*8*/
 #define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_001M_MODEL_MASK)
-#define CXFSPCB_PAGE_DESC                ("001M-page")
+#define CXFSPGB_PAGE_DESC                ("001M-page")
 #endif/*(CXFSPGB_001M_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
 
 #if (CXFSPGB_016M_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)
@@ -710,7 +710,7 @@ extern "C"{
 /*actual used cxfspgb model num*/
 #define CXFSPGB_MODEL_NUM                (CXFSPGB_016MB_MODEL + 1)/*3*/
 #define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_16M_MODEL_MASK)
-#define CXFSPCB_PAGE_DESC                ("16M-page")
+#define CXFSPGB_PAGE_DESC                ("16M-page")
 #endif/*(CXFSPGB_016M_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
 
 #if (CXFSPGB_032M_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)
@@ -739,7 +739,7 @@ extern "C"{
 /*actual used cxfspgb model num*/
 #define CXFSPGB_MODEL_NUM                (CXFSPGB_032MB_MODEL + 1)/*2*/
 #define CXFSPGB_MODEL_MASK_ALL           (CXFSPGB_PAGE_32M_MODEL_MASK)
-#define CXFSPCB_PAGE_DESC                ("32M-page")
+#define CXFSPGB_PAGE_DESC                ("32M-page")
 #endif/*(CXFSPGB_032M_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
 
 

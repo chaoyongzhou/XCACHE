@@ -1,8 +1,8 @@
 /******************************************************************************
 *
 * Copyright (C) Chaoyong Zhou
-* Email: bgnvendor@163.com 
-* QQ: 2796796 
+* Email: bgnvendor@163.com
+* QQ: 2796796
 *
 *******************************************************************************/
 #ifdef __cplusplus
@@ -21,6 +21,63 @@ extern "C"{
 
 #include "json_ext.h"
 
+struct json_object* json_object_add_k_int64(struct json_object *jso, const char *k, const int64_t v)
+{
+    struct json_object *v_jso;
+
+    v_jso = json_object_new_int64(v);
+    if(NULL == v_jso)
+    {
+        return (NULL);
+    }
+
+    if(0 != json_object_object_add(jso, k, v_jso))
+    {
+        json_object_put(v_jso);
+        return (NULL);
+    }
+
+    return (v_jso);
+}
+
+struct json_object* json_object_add_k_int32(struct json_object *jso, const char *k, const int32_t v)
+{
+    struct json_object *v_jso;
+
+    v_jso = json_object_new_int(v);
+    if(NULL == v_jso)
+    {
+        return (NULL);
+    }
+
+    if(0 != json_object_object_add(jso, k, v_jso))
+    {
+        json_object_put(v_jso);
+        return (NULL);
+    }
+
+    return (v_jso);
+}
+
+struct json_object* json_object_add_k_double(struct json_object *jso, const char *k, const double v)
+{
+    struct json_object *v_jso;
+
+    v_jso = json_object_new_double(v);
+    if(NULL == v_jso)
+    {
+        return (NULL);
+    }
+
+    if(0 != json_object_object_add(jso, k, v_jso))
+    {
+        json_object_put(v_jso);
+        return (NULL);
+    }
+
+    return (v_jso);
+}
+
 struct json_object* json_object_add_kv(struct json_object *jso, const char *k, const char *v)
 {
     struct json_object *v_jso;
@@ -30,7 +87,7 @@ struct json_object* json_object_add_kv(struct json_object *jso, const char *k, c
     {
         return (NULL);
     }
-    
+
     if(0 != json_object_object_add(jso, k, v_jso))
     {
         json_object_put(v_jso);
@@ -65,7 +122,7 @@ struct json_object *json_object_array_add_string(struct json_object *jso, const 
     {
         return (NULL);
     }
-    
+
     if(0 != json_object_array_add(jso, v_jso))
     {
         json_object_put(v_jso);
@@ -84,7 +141,7 @@ struct json_object *json_object_array_add_int64(struct json_object *jso, const i
     {
         return (NULL);
     }
-    
+
     if(0 != json_object_array_add(jso, v_jso))
     {
         json_object_put(v_jso);
@@ -103,7 +160,7 @@ struct json_object *json_object_array_add_int32(struct json_object *jso, const i
     {
         return (NULL);
     }
-    
+
     if(0 != json_object_array_add(jso, v_jso))
     {
         json_object_put(v_jso);

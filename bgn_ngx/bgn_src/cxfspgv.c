@@ -1377,7 +1377,7 @@ void cxfspgv_print(LOG *log, const CXFSPGV *cxfspgv)
 
     ratio_page    = ((0.0 + CXFSPGV_PAGE_USED_NUM(cxfspgv)) / (0.0 + CXFSPGV_PAGE_MAX_NUM(cxfspgv)));
 
-    page_desc     = CXFSPCB_PAGE_DESC;
+    page_desc     = CXFSPGB_PAGE_DESC;
 
     sys_log(log, "cxfspgv_print: cxfspgv %p, offset %ld, fsize %ld\n",
                  cxfspgv,
