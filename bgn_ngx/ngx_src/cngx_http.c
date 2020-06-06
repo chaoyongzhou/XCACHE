@@ -120,13 +120,19 @@ EC_BOOL cngx_http_log_start()
 
         /*open log and redirect LOGUSER08 to it*/
         log_file_name = cstring_new(NULL_PTR, LOC_CNGX_0064);
+#if 0
         cstring_format(log_file_name, "%s/ngx_%s_%ld",
                         (char *)TASK_BRD_LOG_PATH_STR(task_brd),
                         c_word_to_ipv4(TASK_BRD_TCID(task_brd)),
                         TASK_BRD_RANK(task_brd));
+#endif
+#if 1
+        cstring_format(log_file_name, "%s/xcache_ngx", (char *)TASK_BRD_LOG_PATH_STR(task_brd));
+#endif
+
         log = log_file_open((char *)cstring_get_str(log_file_name), "a+",
                             TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd),
-                            LOGD_FILE_RECORD_LIMIT_ENABLED, SWITCH_OFF,
+                            LOGD_FILE_RECORD_LIMIT_ENABLED,
                             LOGD_SWITCH_OFF_ENABLE, LOGD_PID_INFO_ENABLE);
         if(NULL_PTR == log)
         {
@@ -153,13 +159,19 @@ EC_BOOL cngx_http_log_start()
 
         /*open log and redirect LOGUSER08 to it*/
         log_file_name = cstring_new(NULL_PTR, LOC_CNGX_0065);
+#if 0
         cstring_format(log_file_name, "%s/storage_%s_%ld",
                         (char *)TASK_BRD_LOG_PATH_STR(task_brd),
                         c_word_to_ipv4(TASK_BRD_TCID(task_brd)),
                         TASK_BRD_RANK(task_brd));
+#endif
+#if 1
+        cstring_format(log_file_name, "%s/xcache_storage", (char *)TASK_BRD_LOG_PATH_STR(task_brd));
+#endif
+
         log = log_file_open((char *)cstring_get_str(log_file_name), "a+",
                             TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd),
-                            LOGD_FILE_RECORD_LIMIT_ENABLED, SWITCH_OFF,
+                            LOGD_FILE_RECORD_LIMIT_ENABLED,
                             LOGD_SWITCH_OFF_ENABLE, LOGD_PID_INFO_ENABLE);
         if(NULL_PTR == log)
         {
@@ -794,45 +806,99 @@ EC_BOOL cngx_http_handle_logrotate_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_TRUE == __cngx_http_uri_is_logrotate_get_op(uri_cbuffer))
     {
-        //CSOCKET_CNODE * csocket_cnode;
         UINT32 super_md_id;
 
         char  *log_index_str;
-        UINT32 log_index;
+        char  *log_index_str_t;
+        char  *log_index_seg[ DEFAULT_END_LOG_INDEX ];
+        UINT32 log_index_seg_num;
+        UINT32 log_index_seg_idx;
 
         super_md_id = 0;
-        //csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
         log_index_str = chttp_node_get_header(chttp_node, (const char *)"log-index");
-        if(NULL_PTR != log_index_str)
+        if(NULL_PTR == log_index_str)
         {
-            log_index = c_str_to_word(log_index_str);
-        }
-        else
-        {
-            log_index = DEFAULT_USRER08_LOG_INDEX; /*default LOGUSER08*/
-        }
+            UINT32 log_index;
 
-        if(EC_FALSE == super_rotate_log(super_md_id, log_index))
-        {
-            dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_handle_logrotate_get_request: log rotate %ld failed\n", log_index);
+            log_index = DEFAULT_USRER08_LOG_INDEX; /*default LOGUSER08*/
+
+            if(EC_FALSE == super_rotate_log(super_md_id, log_index))
+            {
+                dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_handle_logrotate_get_request: log rotate %ld failed\n", log_index);
+
+                CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_http_handle_logrotate_get_request: log rotate %ld failed", log_index);
+
+                CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+
+                return (EC_TRUE);
+            }
+
+            dbg_log(SEC_0054_CNGX_HTTP, 5)(LOGSTDOUT, "[DEBUG] cngx_http_handle_logrotate_get_request: log rotate %ld done\n", log_index);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_http_handle_logrotate_get_request: log rotate %ld failed", log_index);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_logrotate_get_request: log rotate %ld done", log_index);
 
-            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0054_CNGX_HTTP, 5)(LOGSTDOUT, "[DEBUG] cngx_http_handle_logrotate_get_request: log rotate %ld done\n", log_index);
+        /*else*/
+        log_index_str_t = c_str_dup(log_index_str);
+        if(NULL_PTR == log_index_str_t)
+        {
+            dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_handle_logrotate_get_request: no memory\n");
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_http_handle_logrotate_get_request: no memory");
+
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+            return (EC_TRUE);
+        }
+
+        log_index_seg_num = c_str_split(log_index_str_t, (const char *)", \t\r",
+                                        (char **)log_index_seg,
+                                        sizeof(log_index_seg)/sizeof(log_index_seg[0]));
+
+
+        for(log_index_seg_idx = 0; log_index_seg_idx < log_index_seg_num; log_index_seg_idx ++)
+        {
+            UINT32 log_index;
+
+            log_index = c_str_to_word(log_index_seg[ log_index_seg_idx ]);
+
+            if(EC_FALSE == super_rotate_log(super_md_id, log_index))
+            {
+                dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_handle_logrotate_get_request: log rotate %ld failed\n", log_index);
+
+                CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_http_handle_logrotate_get_request: log rotate %ld failed", log_index);
+
+                CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+
+                c_str_free(log_index_str_t);
+
+                return (EC_TRUE);
+            }
+        }
+
+        dbg_log(SEC_0054_CNGX_HTTP, 5)(LOGSTDOUT, "[DEBUG] cngx_http_handle_logrotate_get_request: log rotate %s done\n", log_index_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_logrotate_get_request: log rotate %ld done", log_index);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_logrotate_get_request: log rotate %s done", log_index_str);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+
+        c_str_free(log_index_str_t);
+
+        return (EC_TRUE);
     }
 
     return (EC_TRUE);
@@ -983,45 +1049,99 @@ EC_BOOL cngx_http_handle_logreopen_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_TRUE == __cngx_http_uri_is_logreopen_get_op(uri_cbuffer))
     {
-        //CSOCKET_CNODE * csocket_cnode;
         UINT32 super_md_id;
 
         char  *log_index_str;
-        UINT32 log_index;
+        char  *log_index_str_t;
+        char  *log_index_seg[ DEFAULT_END_LOG_INDEX ];
+        UINT32 log_index_seg_num;
+        UINT32 log_index_seg_idx;
 
         super_md_id = 0;
-        //csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 
         log_index_str = chttp_node_get_header(chttp_node, (const char *)"log-index");
-        if(NULL_PTR != log_index_str)
+        if(NULL_PTR == log_index_str)
         {
-            log_index = c_str_to_word(log_index_str);
-        }
-        else
-        {
-            log_index = DEFAULT_USRER08_LOG_INDEX; /*default LOGUSER08*/
-        }
+            UINT32 log_index;
 
-        if(EC_FALSE == super_reopen_log(super_md_id, log_index))
-        {
-            dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_handle_logreopen_get_request: log reopen %ld failed\n", log_index);
+            log_index = DEFAULT_USRER08_LOG_INDEX; /*default LOGUSER08*/
+
+            if(EC_FALSE == super_reopen_log(super_md_id, log_index))
+            {
+                dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_handle_logreopen_get_request: log reopen %ld failed\n", log_index);
+
+                CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_http_handle_logreopen_get_request: log reopen %ld failed", log_index);
+
+                CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+
+                return (EC_TRUE);
+            }
+
+            dbg_log(SEC_0054_CNGX_HTTP, 5)(LOGSTDOUT, "[DEBUG] cngx_http_handle_logreopen_get_request: log reopen %ld done\n", log_index);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_http_handle_logreopen_get_request: log reopen %ld failed", log_index);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_logreopen_get_request: log reopen %ld done", log_index);
 
-            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0054_CNGX_HTTP, 5)(LOGSTDOUT, "[DEBUG] cngx_http_handle_logreopen_get_request: log reopen %ld done\n", log_index);
+        /*else*/
+        log_index_str_t = c_str_dup(log_index_str);
+        if(NULL_PTR == log_index_str_t)
+        {
+            dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_handle_logreopen_get_request: no memory\n");
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_http_handle_logreopen_get_request: no memory");
+
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+            return (EC_TRUE);
+        }
+
+        log_index_seg_num = c_str_split(log_index_str_t, (const char *)", \t\r",
+                                        (char **)log_index_seg,
+                                        sizeof(log_index_seg)/sizeof(log_index_seg[0]));
+
+
+        for(log_index_seg_idx = 0; log_index_seg_idx < log_index_seg_num; log_index_seg_idx ++)
+        {
+            UINT32 log_index;
+
+            log_index = c_str_to_word(log_index_seg[ log_index_seg_idx ]);
+
+            if(EC_FALSE == super_reopen_log(super_md_id, log_index))
+            {
+                dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_handle_logreopen_get_request: log reopen %ld failed\n", log_index);
+
+                CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_http_handle_logreopen_get_request: log reopen %ld failed", log_index);
+
+                CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+
+                c_str_free(log_index_str_t);
+
+                return (EC_TRUE);
+            }
+        }
+
+        dbg_log(SEC_0054_CNGX_HTTP, 5)(LOGSTDOUT, "[DEBUG] cngx_http_handle_logreopen_get_request: log reopen %s done\n", log_index_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_logreopen_get_request: log reopen %ld done", log_index);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_logreopen_get_request: log reopen %s done", log_index_str);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+
+        c_str_free(log_index_str_t);
+
+        return (EC_TRUE);
     }
 
     return (EC_TRUE);

@@ -1046,7 +1046,6 @@ void cparacfg_log_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
     c_ident_print(log, level);
     sys_print(log, "<logConfig");
     sys_print(log, " logMaxRecords=\"%ld\""          , CPARACFG_FILE_LOG_MAX_RECORDS(cparacfg));
-    sys_print(log, " logNameWithDataSwitch=\"%s\""   , CPARACFG_FILE_LOG_NAME_WITH_DATE_SWITCH_STR(cparacfg));
     __cparacfg_log_level_print_xml(log, cparacfg);
     sys_print(log, "/>\n");
     return;

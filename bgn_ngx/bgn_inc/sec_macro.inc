@@ -94,7 +94,7 @@
 #define SEC_0084_DHCP                       ((UINT32)(     84)) /*dhcp                            */
 #define SEC_0085_CPROC                      ((UINT32)(     85)) /*cproc                           */
 #define SEC_0086_CLOAD                      ((UINT32)(     86)) /*cload                           */
-#define SEC_0087_CLOG                       ((UINT32)(     87)) /*clog                            */
+#define SEC_0087_XXXX                       ((UINT32)(     87)) /*-- obsolete --                  */
 #define SEC_0088_TCNODE                     ((UINT32)(     88)) /*tcnode                          */
 #define SEC_0089_CBITMAP                    ((UINT32)(     89)) /*cbitmap                         */
 #define SEC_0090_CSYSCFG                    ((UINT32)(     90)) /*csyscfg                         */

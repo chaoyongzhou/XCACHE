@@ -172,6 +172,10 @@
 #define                       FI_super_reopen_log  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 153))
 #define          FI_super_set_ssd_aio_req_max_num  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 154))
 #define         FI_super_set_sata_aio_req_max_num  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 155))
+#define       FI_super_cmc_flow_control_switch_on  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 156))
+#define      FI_super_cmc_flow_control_switch_off  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 157))
+#define       FI_super_cdc_flow_control_switch_on  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 158))
+#define      FI_super_cdc_flow_control_switch_off  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 159))
 
 
 #define           FI_csession_print_module_status  ((UINT32) ((MD_CSESSION << (WORDSIZE/2)) +  0))

@@ -138,6 +138,16 @@ EC_BOOL api_cmd_ui_set_ssd_aio_req_max_num_all(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_set_sata_aio_req_max_num(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_set_sata_aio_req_max_num_all(CMD_PARA_VEC * param);
 
+EC_BOOL api_cmd_ui_cmc_flow_control_switch_on(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cmc_flow_control_switch_on_all(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cmc_flow_control_switch_off(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cmc_flow_control_switch_off_all(CMD_PARA_VEC * param);
+
+EC_BOOL api_cmd_ui_cdc_flow_control_switch_on(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cdc_flow_control_switch_on_all(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cdc_flow_control_switch_off(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cdc_flow_control_switch_off_all(CMD_PARA_VEC * param);
+
 EC_BOOL api_cmd_ui_show_client(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_show_client_all(CMD_PARA_VEC * param);
 

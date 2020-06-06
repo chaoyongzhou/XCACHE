@@ -2688,17 +2688,6 @@ EC_BOOL cmcnp_degrade(CMCNP *cmcnp, const UINT32 scan_max_num, const UINT32 expe
             continue;
         }
 
-        if(CMC_DEGRADE_TRAFFIC_048MB < ssd_traffic_read_bps)
-        {
-            if(BIT_TRUE == CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item)
-                && BIT_FALSE == CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item))
-            {
-                cmcnpdeg_node_rmv(cmcnp, CMCNP_ITEM_DEG_NODE(cmcnp_item), node_pos);
-                CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item) = BIT_FALSE;
-                continue;
-            }
-        }
-
         if(EC_FALSE == cmcnp_exec_degrade_callback(cmcnp, CMCNP_ITEM_KEY(cmcnp_item), node_pos))
         {
             dbg_log(SEC_0111_CMCNP, 0)(LOGSTDOUT, "error:cmcnp_degrade: np %u node_pos %d [REG] failed\n",

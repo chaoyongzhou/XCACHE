@@ -121,6 +121,7 @@ CMC_MD *cmc_start(const UINT32 mem_disk_size /*in byte*/, const UINT32 sata_disk
     CMC_MD_SHM_NP_FLAG(cmc_md)       = BIT_FALSE;
     CMC_MD_SHM_DN_FLAG(cmc_md)       = BIT_FALSE;
     CMC_MD_RDONLY_FLAG(cmc_md)       = BIT_FALSE;
+    CMC_MD_CUR_DISK_NO(cmc_md)       = 0;
     CMC_MD_NP_MODEL(cmc_md)          = np_model;
     CMC_MD_VDISK_NUM(cmc_md)         = (uint16_t)vdisk_num;
     CMC_MD_KEY_MAX_NUM(cmc_md)       = key_max_num;
@@ -154,6 +155,8 @@ void cmc_end(CMC_MD *cmc_md)
     CMC_MD_SHM_NP_FLAG(cmc_md)       = BIT_FALSE;
     CMC_MD_SHM_DN_FLAG(cmc_md)       = BIT_FALSE;
     CMC_MD_RDONLY_FLAG(cmc_md)       = BIT_FALSE;
+
+    CMC_MD_CUR_DISK_NO(cmc_md)       = 0;
 
     CMC_MD_NP_MODEL(cmc_md)          = CMCNP_ERR_MODEL;
     CMC_MD_VDISK_NUM(cmc_md)         = 0;
@@ -490,8 +493,11 @@ EC_BOOL cmc_flow_control_disable_max_speed(CMC_MD *cmc_md)
  *
  **/
  /*nvme*/
-STATIC_CAST static void __cmc_flow_control(const uint64_t mem_traffic_write_bps, const uint64_t ssd_traffic_read_bps, const uint64_t ssd_traffic_write_bps,
-                                                const REAL deg_ratio, uint64_t *degrade_traffic_bps)
+STATIC_CAST static void __cmc_flow_control(const uint64_t mem_traffic_write_bps,
+                                                const uint64_t ssd_traffic_read_bps,
+                                                const uint64_t ssd_traffic_write_bps,
+                                                const REAL     deg_ratio,
+                                                uint64_t      *degrade_traffic_bps)
 {
     if(CMC_DEGRADE_LO_RATIO > deg_ratio)
     {
@@ -589,6 +595,18 @@ STATIC_CAST static void __cmc_flow_control(const uint64_t mem_traffic_write_bps,
             (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_096MB;
         }
     }
+
+    return;
+}
+
+/*pk*/
+STATIC_CAST static void __cmc_flow_control_pk(const uint64_t mem_traffic_write_bps,
+                                                const uint64_t ssd_traffic_read_bps,
+                                                const uint64_t ssd_traffic_write_bps,
+                                                const REAL     deg_ratio,
+                                                uint64_t      *degrade_traffic_bps)
+{
+    (*degrade_traffic_bps) = CMC_DEGRADE_TRAFFIC_MAX;
 
     return;
 }
@@ -983,7 +1001,7 @@ void cmc_process_degrades(CMC_MD *cmc_md, const uint64_t degrade_traffic_bps,
 
         time_msec_cur = c_get_cur_time_msec();
 
-        while(time_msec_cur >= time_msec_next)
+        while(SWITCH_OFF == CMC_FLOW_CONTROL_SWITCH || time_msec_cur >= time_msec_next)
         {
             uint64_t    time_msec_cost; /*msec cost for degrading*/
 
@@ -1974,6 +1992,112 @@ STATIC_CAST static EC_BOOL __cmc_reserve_hash_dn(CMC_MD *cmc_md, const CMCNP_KEY
     return (EC_TRUE);
 }
 
+STATIC_CAST static EC_BOOL __cmc_reserve_no_hash_dn(CMC_MD *cmc_md, const UINT32 data_len, CMCNP_FNODE *cmcnp_fnode)
+{
+    CMCNP_INODE *cmcnp_inode;
+    CMCPGV      *cmcpgv;
+
+    uint32_t size;
+    uint16_t disk_no;
+    uint16_t block_no;
+    uint16_t page_no;
+
+    uint16_t disk_idx;
+    uint16_t disk_num;
+
+    if(EC_TRUE == cmc_is_read_only(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "error:__cmc_reserve_no_hash_dn: cmc is read-only\n");
+        return (EC_FALSE);
+    }
+
+    if(CMCPGB_SIZE_NBYTES <= data_len)
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:__cmc_reserve_no_hash_dn: data_len %ld overflow\n", data_len);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CMC_MD_DN(cmc_md))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:__cmc_reserve_no_hash_dn: no dn was open\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CMCDN_CMCPGV(CMC_MD_DN(cmc_md)))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:__cmc_reserve_no_hash_dn: no pgv exist\n");
+        return (EC_FALSE);
+    }
+
+    cmcpgv = CMCDN_CMCPGV(CMC_MD_DN(cmc_md));
+    if(NULL_PTR == CMCPGV_HEADER(cmcpgv))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:__cmc_reserve_no_hash_dn: pgv header is null\n");
+        return (EC_FALSE);
+    }
+
+    if(0 == CMCPGV_PAGE_DISK_NUM(cmcpgv))
+    {
+        dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:__cmc_reserve_no_hash_dn: pgv has no disk yet\n");
+        return (EC_FALSE);
+    }
+
+    size     = (uint32_t)(data_len);
+
+    disk_num = CMCPGV_PAGE_DISK_NUM(cmcpgv);
+    disk_no  = CMC_MD_CUR_DISK_NO(cmc_md);
+
+    for(disk_idx = 0; disk_idx < disk_num; disk_idx ++)
+    {
+        CMCPGD     *cmcpgd;
+
+        cmcpgd = CMCPGV_DISK_NODE(cmcpgv, disk_no);
+
+        if(EC_TRUE == cmcpgd_is_full(cmcpgd))
+        {
+            /*move to next disk*/
+            disk_no = (disk_no + 1) % disk_num;
+            CMC_MD_CUR_DISK_NO(cmc_md) = disk_no;
+            continue;
+        }
+
+        if(EC_TRUE == cmcpgv_new_space_from_disk(cmcpgv, size, disk_no, &block_no, &page_no))
+        {
+            cmcnp_fnode_init(cmcnp_fnode);
+            CMCNP_FNODE_PAGENUM(cmcnp_fnode) = (uint16_t)((size + CMCPGB_PAGE_SIZE_NBYTES - 1) >> CMCPGB_PAGE_SIZE_NBITS);
+            CMCNP_FNODE_REPNUM(cmcnp_fnode)  = 1;
+
+            cmcnp_inode = CMCNP_FNODE_INODE(cmcnp_fnode, 0);
+            CMCNP_INODE_DISK_NO(cmcnp_inode)    = disk_no;
+            CMCNP_INODE_BLOCK_NO(cmcnp_inode)   = block_no;
+            CMCNP_INODE_PAGE_NO(cmcnp_inode)    = page_no;
+
+            dbg_log(SEC_0118_CMC, 3)(LOGSTDOUT, "[DEBUG] __cmc_reserve_no_hash_dn: "
+                                                "size %u => (disk %u, block %u, page %u), page num %u\n",
+                                                size, disk_no, block_no, page_no,
+                                                CMCNP_FNODE_PAGENUM(cmcnp_fnode));
+
+            return (EC_TRUE);
+         }
+
+        /*move to next disk*/
+        disk_no = (disk_no + 1) % disk_num;
+        CMC_MD_CUR_DISK_NO(cmc_md) = disk_no;
+
+        /*try to retire & recycle some files*/
+        dbg_log(SEC_0118_CMC, 7)(LOGSTDOUT, "warn:__cmc_reserve_no_hash_dn: "
+                                            "no %ld bytes space, try to retire & recycle\n",
+                                            data_len);
+        cmc_retire(cmc_md, (UINT32)CMC_TRY_RETIRE_MAX_NUM, NULL_PTR);
+        cmc_recycle(cmc_md, (UINT32)CMC_TRY_RECYCLE_MAX_NUM, NULL_PTR);
+    }
+
+    dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error::__cmc_reserve_no_hash_dn: "
+                                        "no %ld bytes space\n",
+                                        data_len);
+    return (EC_FALSE);
+}
+
 /**
 *
 *  reserve space from dn
@@ -2882,7 +3006,7 @@ EC_BOOL cmc_page_write(CMC_MD *cmc_md, const CMCNP_KEY *cmcnp_key, const CBYTES 
         }
 
         if(SWITCH_ON == CMC_FIFO_MODEL_SWITCH
-        && EC_FALSE == cmc_reserve_dn(cmc_md, data_len, cmcnp_fnode))
+        && EC_FALSE == __cmc_reserve_no_hash_dn(cmc_md, data_len, cmcnp_fnode))
         {
             dbg_log(SEC_0118_CMC, 0)(LOGSTDOUT, "error:cmc_page_write: reserve dn %ld bytes failed\n",
                             data_len);

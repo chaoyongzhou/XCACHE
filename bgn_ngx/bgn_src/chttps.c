@@ -5095,7 +5095,8 @@ EC_BOOL chttps_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHT
             CHTTP_STAT_REQ_S_MSEC(chttp_stat) = s_msec;
         }
 
-        if(EC_FALSE == chttps_request_basic(chttp_req, chttp_store, chttp_rsp, chttp_stat)) /*need store or not need store (e.g. direct procedure)*/
+        /*need store or not need store (e.g. direct procedure)*/
+        if(EC_FALSE == chttps_request_basic(chttp_req, chttp_store, chttp_rsp, chttp_stat))
         {
             if(BIT_TRUE == need_log_flag
             && NULL_PTR != chttp_stat)

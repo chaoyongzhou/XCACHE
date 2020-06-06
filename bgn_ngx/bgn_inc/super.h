@@ -856,6 +856,35 @@ EC_BOOL super_set_ssd_aio_req_max_num(const UINT32 super_md_id, const UINT32 aio
 **/
 EC_BOOL super_set_sata_aio_req_max_num(const UINT32 super_md_id, const UINT32 aio_req_max_num);
 
+/**
+*
+* set cmc:fc:switch:<on|off>
+*
+**/
+EC_BOOL super_cmc_flow_control_switch_on(const UINT32 super_md_id);
+
+/**
+*
+* set cmc:fc:switch:<on|off>
+*
+**/
+EC_BOOL super_cmc_flow_control_switch_off(const UINT32 super_md_id);
+
+/**
+*
+* set cdc:fc:switch:<on|off>
+*
+**/
+EC_BOOL super_cdc_flow_control_switch_on(const UINT32 super_md_id);
+
+/**
+*
+* set cdc:fc:switch:<on|off>
+*
+**/
+EC_BOOL super_cdc_flow_control_switch_off(const UINT32 super_md_id);
+
+
 /*------------------------------------------------------ test for ict -----------------------------------------------------------------------*/
 EC_BOOL super_set_zone_size(const UINT32 super_md_id, const UINT32 obj_zone_size);
 EC_BOOL super_load_data(const UINT32 super_md_id);

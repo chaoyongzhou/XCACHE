@@ -1216,6 +1216,54 @@ EC_BOOL cvendor_filter_header_in_common(const UINT32 cvendor_md_id)
 
     chttp_req_del_header(CVENDOR_MD_CHTTP_REQ(cvendor_md), (const char *)"Proxy-Connection");
 
+    if(1)
+    {
+        const char *k;
+        char       *v;
+
+        k = (const char *)CNGX_VAR_VISIABLE_HOSTNAME;
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, (const char *)"UNKNOWN_HOST"))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_in_common: "
+                                                    "get var '%s' failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != v)
+        {
+            cstring_set_str(CHTTP_REQ_DEVICE_NAME(CVENDOR_MD_CHTTP_REQ(cvendor_md)), (const UINT8 *)v);
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_in_common: "
+                                                    "get var '%s' val '%s'\n",
+                                                    k, v);
+        }
+    }
+
+    if(1)
+    {
+        const char *k;
+        char       *v;
+
+        k = (const char *)CNGX_VAR_TRACE_ID;
+        if(EC_FALSE == cngx_get_var_str(r, k, &v, (const char *)"UNKNOWN_TRACE"))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_in_common: "
+                                                    "get var '%s' failed\n",
+                                                    k);
+            return (EC_FALSE);
+        }
+
+        if(NULL_PTR != v)
+        {
+            cstring_set_str(CHTTP_REQ_TRACE_ID(CVENDOR_MD_CHTTP_REQ(cvendor_md)), (const UINT8 *)v);
+
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_in_common: "
+                                                    "get var '%s' val '%s'\n",
+                                                    k, v);
+        }
+    }
+
     if(EC_FALSE == cngx_script_dir1_filter(r))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_filter_header_in_common: "
@@ -2025,20 +2073,20 @@ EC_BOOL cvendor_content_handler(const UINT32 cvendor_md_id)
 
     if(EC_TRUE == cngx_is_direct_orig_switch_on(r))
     {
+        /*direct orig would cache none, preload need cache everthing => conflict*/
+        if(BIT_TRUE == CVENDOR_MD_CNGX_PRELOAD_SWITCH_ON_FLAG(cvendor_md))
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_handler: "
+                                                    "direct orig and preload procedure conflict\n");
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_BAD_REQUEST, LOC_CVENDOR_0010);
+            return (EC_FALSE);
+        }
+
         /*direct procedure to orig server*/
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_handler: "
                                                 "direct orig switch on => direct procedure\n");
 
-        if(EC_TRUE == cvendor_content_direct_procedure(cvendor_md_id))
-        {
-            if(BIT_TRUE == CVENDOR_MD_CNGX_PRELOAD_SWITCH_ON_FLAG(cvendor_md))
-            {
-                return cvendor_content_preload_procedure(cvendor_md_id);
-            }
-            return (EC_TRUE);
-        }
-
-        return (EC_FALSE);
+        return cvendor_content_direct_procedure(cvendor_md_id);
     }
 
     /*note: clear pragma header in conf if not support it*/
@@ -3124,6 +3172,7 @@ EC_BOOL cvendor_content_head_send_request(const UINT32 cvendor_md_id)
 
     CHTTP_REQ                   *chttp_req;
     CHTTP_RSP                   *chttp_rsp;
+    CHTTP_STAT                  *chttp_stat;
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -3178,6 +3227,26 @@ EC_BOOL cvendor_content_head_send_request(const UINT32 cvendor_md_id)
         chttp_rsp_clean(chttp_rsp);
     }
 
+    /*chttp_stat*/
+    if(NULL_PTR == CVENDOR_MD_CHTTP_STAT(cvendor_md))
+    {
+        chttp_stat = chttp_stat_new();
+        if(NULL_PTR == chttp_stat)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_send_request: "
+                                                    "new chttp_stat failed\n");
+            chttp_req_free(chttp_req);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0052);
+            return (EC_FALSE);
+        }
+        CVENDOR_MD_CHTTP_STAT(cvendor_md) = chttp_stat;
+    }
+    else
+    {
+        chttp_stat = CVENDOR_MD_CHTTP_STAT(cvendor_md);
+        chttp_stat_clean(chttp_stat);
+    }
+
     if(EC_FALSE == cngx_export_header_in(r, chttp_req))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_send_request: "
@@ -3198,13 +3267,15 @@ EC_BOOL cvendor_content_head_send_request(const UINT32 cvendor_md_id)
         sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_head_send_request: http req:\n");
         chttp_req_print_plain(LOGSTDOUT, chttp_req);
     }
-    if(EC_FALSE == chttp_request(chttp_req, NULL_PTR, chttp_rsp, NULL_PTR))
+
+    if(EC_FALSE == chttp_request(chttp_req, NULL_PTR, chttp_rsp, chttp_stat))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_send_request: "
                                                 "http request failed\n");
         cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_BAD_GATEWAY, LOC_CVENDOR_0055);
         return (EC_FALSE);
     }
+
     if(do_log(SEC_0175_CVENDOR, 9))
     {
         sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_head_send_request: http rsp:\n");
@@ -4677,6 +4748,7 @@ EC_BOOL cvendor_content_direct_send_request(const UINT32 cvendor_md_id)
     CHTTP_REQ                   *chttp_req;
     CHTTP_RSP                   *chttp_rsp;
     CHTTP_STORE                 *chttp_store;
+    CHTTP_STAT                  *chttp_stat;
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -4771,6 +4843,26 @@ EC_BOOL cvendor_content_direct_send_request(const UINT32 cvendor_md_id)
         chttp_store_clean(chttp_store);
     }
 
+    /*chttp_stat*/
+    if(NULL_PTR == CVENDOR_MD_CHTTP_STAT(cvendor_md))
+    {
+        chttp_stat = chttp_stat_new();
+        if(NULL_PTR == chttp_stat)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_request: "
+                                                    "new chttp_stat failed\n");
+            chttp_req_free(chttp_req);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0052);
+            return (EC_FALSE);
+        }
+        CVENDOR_MD_CHTTP_STAT(cvendor_md) = chttp_stat;
+    }
+    else
+    {
+        chttp_stat = CVENDOR_MD_CHTTP_STAT(cvendor_md);
+        chttp_stat_clean(chttp_stat);
+    }
+
     if(EC_FALSE == cvendor_content_direct_set_store(cvendor_md_id))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_request: "
@@ -4786,7 +4878,7 @@ EC_BOOL cvendor_content_direct_send_request(const UINT32 cvendor_md_id)
         chttp_store_print(LOGSTDOUT, chttp_store);
     }
 
-    if(EC_FALSE == chttp_request(chttp_req, chttp_store, chttp_rsp, NULL_PTR))
+    if(EC_FALSE == chttp_request(chttp_req, chttp_store, chttp_rsp, chttp_stat))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_request: "
                                                 "http request failed\n");
@@ -6700,6 +6792,7 @@ EC_BOOL cvendor_content_repair_send_request(const UINT32 cvendor_md_id)
 
     CHTTP_REQ                   *chttp_req;
     CHTTP_RSP                   *chttp_rsp;
+    CHTTP_STAT                  *chttp_stat;
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -6754,6 +6847,26 @@ EC_BOOL cvendor_content_repair_send_request(const UINT32 cvendor_md_id)
         chttp_rsp_clean(chttp_rsp);
     }
 
+    /*chttp_stat*/
+    if(NULL_PTR == CVENDOR_MD_CHTTP_STAT(cvendor_md))
+    {
+        chttp_stat = chttp_stat_new();
+        if(NULL_PTR == chttp_stat)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_send_request: "
+                                                    "new chttp_stat failed\n");
+            chttp_req_free(chttp_req);
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0052);
+            return (EC_FALSE);
+        }
+        CVENDOR_MD_CHTTP_STAT(cvendor_md) = chttp_stat;
+    }
+    else
+    {
+        chttp_stat = CVENDOR_MD_CHTTP_STAT(cvendor_md);
+        chttp_stat_clean(chttp_stat);
+    }
+
     if(EC_FALSE == cngx_export_header_in(r, chttp_req))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_send_request: "
@@ -6774,7 +6887,8 @@ EC_BOOL cvendor_content_repair_send_request(const UINT32 cvendor_md_id)
         sys_log(LOGSTDOUT, "[DEBUG] cvendor_content_repair_send_request: http req:\n");
         chttp_req_print_plain(LOGSTDOUT, chttp_req);
     }
-    if(EC_FALSE == chttp_request(chttp_req, NULL_PTR, chttp_rsp, NULL_PTR))
+
+    if(EC_FALSE == chttp_request(chttp_req, NULL_PTR, chttp_rsp, chttp_stat))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_send_request: "
                                                 "http request failed\n");
@@ -14951,6 +15065,7 @@ EC_BOOL cvendor_content_ims_send_request(const UINT32 cvendor_md_id)
 
     CHTTP_REQ                   *chttp_req;
     CHTTP_RSP                   *chttp_rsp;
+    CHTTP_STAT                  *chttp_stat;
 
 #if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
     if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
@@ -15004,6 +15119,25 @@ EC_BOOL cvendor_content_ims_send_request(const UINT32 cvendor_md_id)
         chttp_rsp_clean(chttp_rsp);
     }
 
+    /*chttp_stat*/
+    if(NULL_PTR == CVENDOR_MD_CHTTP_STAT(cvendor_md))
+    {
+        chttp_stat = chttp_stat_new();
+        if(NULL_PTR == chttp_stat)
+        {
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_send_request: "
+                                                    "new chttp_stat failed\n");
+            cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CVENDOR_0269);
+            return (EC_FALSE);
+        }
+        CVENDOR_MD_CHTTP_STAT(cvendor_md)  = chttp_stat;
+    }
+    else
+    {
+        chttp_stat = CVENDOR_MD_CHTTP_STAT(cvendor_md);
+        chttp_stat_clean(chttp_stat);
+    }
+
     if(EC_FALSE == cngx_export_header_in(r, chttp_req))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_send_request: "
@@ -15026,7 +15160,7 @@ EC_BOOL cvendor_content_ims_send_request(const UINT32 cvendor_md_id)
         chttp_req_print_plain(LOGSTDOUT, chttp_req);
     }
 
-    if(EC_FALSE == chttp_request(chttp_req, NULL_PTR, chttp_rsp, NULL_PTR))
+    if(EC_FALSE == chttp_request(chttp_req, NULL_PTR, chttp_rsp, chttp_stat))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ims_send_request: "
                                                 "http request failed\n");

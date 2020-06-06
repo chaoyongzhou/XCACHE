@@ -1706,7 +1706,6 @@ EC_BOOL cngx_export_uri(const ngx_http_request_t *r, CHTTP_REQ *chttp_req)
     return (EC_TRUE);
 }
 
-
 /*ref: ngx_http_lua_ngx_req_get_headers()*/
 /*copy header from r to chttp_req*/
 EC_BOOL cngx_export_header_in(const ngx_http_request_t *r, CHTTP_REQ *chttp_req)

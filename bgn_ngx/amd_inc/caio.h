@@ -94,11 +94,11 @@ extern "C"{
 #define CAIO_001M_BLOCK_SIZE_NBYTE  (UINT32_ONE << CAIO_001M_BLOCK_SIZE_NBIT)
 #define CAIO_001M_BLOCK_SIZE_MASK   (CAIO_001M_BLOCK_SIZE_NBYTE - 1)
 
-#define CAIO_REQ_MAX_NUM                (64)
+#define CAIO_REQ_MAX_NUM                (128)
 
-#define CAIO_EVENT_MAX_NUM              (64)
+#define CAIO_EVENT_MAX_NUM              (128)
 
-#define CAIO_PROCESS_EVENT_ONCE_NUM     (64)
+#define CAIO_PROCESS_EVENT_ONCE_NUM     (128)
 
 //#define CAIO_MEM_CACHE_MAX_NUM          ((UINT32)1024) /*256MB for 256K-page*/
 #define CAIO_MEM_CACHE_MAX_NUM          ((UINT32)~0)/*no limitation*/
@@ -106,7 +106,6 @@ extern "C"{
 #define CAIO_OP_ERR                                     ((UINT32)0x0000) /*bitmap: 00*/
 #define CAIO_OP_RD                                      ((UINT32)0x0001) /*bitmap: 01*/
 #define CAIO_OP_WR                                      ((UINT32)0x0002) /*bitmap: 10*/
-#define CAIO_OP_RW                                      ((UINT32)0x0003) /*bitmap: 11*/
 
 #define CAIO_TIMEOUT_NSEC_DEFAULT                       (3600) /*second*/
 
@@ -159,6 +158,7 @@ typedef struct
 
     UINT32                  *max_req_num;
     UINT32                   cur_req_num;
+    UINT32                   submit_req_num; /*record submit aio request num this time temporarily*/
 
     CPG_BITMAP              *bad_bitmap; /*mounted point. inheritted from camd*/
 }CAIO_DISK;
@@ -166,6 +166,7 @@ typedef struct
 #define CAIO_DISK_FD(caio_disk)                         ((caio_disk)->fd)
 #define CAIO_DISK_MAX_REQ_NUM(caio_disk)                ((caio_disk)->max_req_num)
 #define CAIO_DISK_CUR_REQ_NUM(caio_disk)                ((caio_disk)->cur_req_num)
+#define CAIO_DISK_SUBMIT_REQ_NUM(caio_disk)             ((caio_disk)->submit_req_num)
 #define CAIO_DISK_BAD_BITMAP(caio_disk)                 ((caio_disk)->bad_bitmap)
 
 typedef void (*CAIO_EVENT_HANDLER)(void *);
@@ -174,7 +175,8 @@ typedef struct
 {
     UINT32           model;             /*CAIO_xxxx_MODEL*/
 
-    UINT32           seq_no;            /*sequence number factory*/
+    UINT32           req_seq_no;        /*req sequence number factory of aio requests*/
+    UINT32           submit_seq_no;     /*sequence number factory of aio submit action*/
 
     uint32_t         read_only_flag:1;  /*caio is read-only if set*/
     uint32_t         rsvd01:31;
@@ -193,7 +195,8 @@ typedef struct
 
 #define CAIO_MD_MODEL(caio_md)                          ((caio_md)->model)
 
-#define CAIO_MD_SEQ_NO(caio_md)                         ((caio_md)->seq_no)
+#define CAIO_MD_REQ_SEQ_NO(caio_md)                     ((caio_md)->req_seq_no)
+#define CAIO_MD_SUBMIT_SEQ_NO(caio_md)                  ((caio_md)->submit_seq_no)
 
 #define CAIO_MD_RDONLY_FLAG(caio_md)                    ((caio_md)->read_only_flag)
 

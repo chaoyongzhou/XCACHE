@@ -5695,6 +5695,46 @@ char *c_http_time_msec(uint64_t msec)
     t = (time_t)(msec / 1000);
     return c_http_time(t);
 }
+
+char *c_http_log_time(time_t t)
+{
+    char *str_cache;
+    CTM  ctm;
+    int  gmtoff;
+
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0065);
+    str_cache = (char *)(g_str_buff[g_str_idx]);
+    g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0066);
+
+    localtime_r(&t, &ctm);
+    ctm.tm_mon ++;
+    ctm.tm_year += 1900;
+
+    gmtoff = (- (ctm.tm_isdst ? timezone + 3600 : timezone) / 60);
+
+    /*format: 28/Sep/1970:12:00:00 +0600*/
+    snprintf(str_cache, CMISC_BUFF_LEN, "%02d/%s/%4d:%02d:%02d:%02d %c%02u%02u",
+                       ctm.tm_mday,
+                       g_months[ctm.tm_mon - 1],
+                       ctm.tm_year,
+                       ctm.tm_hour,
+                       ctm.tm_min,
+                       ctm.tm_sec,
+                       (gmtoff < 0 ? '-' : '+'),
+                       abs(gmtoff / 60),
+                       abs(gmtoff % 60));
+    return (str_cache);
+}
+
+char *c_http_log_time_msec(uint64_t msec)
+{
+    time_t  t;
+
+    t = (time_t)(msec / 1000);
+    return c_http_log_time(t);
+}
+
 UINT32 c_hash_strlow(const uint8_t *src, const uint32_t slen, uint8_t **des)
 {
     UINT32    hash;

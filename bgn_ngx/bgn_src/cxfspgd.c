@@ -385,7 +385,7 @@ STATIC_CAST static EC_BOOL __cxfspgd_assign_block(CXFSPGD *cxfspgd, uint16_t *pa
     mask = (uint16_t)((1 << (page_model_t + 1)) - 1);
     if(0 == (CXFSPGD_PAGE_MODEL_ASSIGN_BITMAP(cxfspgd) & mask))
     {
-        dbg_log(SEC_0202_CXFSPGD, 0)(LOGSTDERR, "error:__cxfspgd_assign_block: page_model = %u where 0 == bitmap %x & mask %x indicates page is not available\n",
+        dbg_log(SEC_0202_CXFSPGD, 1)(LOGSTDERR, "error:__cxfspgd_assign_block: page_model = %u where 0 == bitmap %x & mask %x indicates page is not available\n",
                            page_model_t, CXFSPGD_PAGE_MODEL_ASSIGN_BITMAP(cxfspgd), mask);
         return (EC_FALSE);
     }
@@ -472,7 +472,7 @@ EC_BOOL cxfspgd_new_space(CXFSPGD *cxfspgd, const uint32_t size, uint16_t *block
 
         if(EC_FALSE == __cxfspgd_assign_block(cxfspgd, &page_model_t, &block_no_t))
         {
-            dbg_log(SEC_0202_CXFSPGD, 0)(LOGSTDERR, "error:cxfspgd_new_space: assign one block from page model %u failed\n", page_model_t);
+            dbg_log(SEC_0202_CXFSPGD, 1)(LOGSTDERR, "error:cxfspgd_new_space: assign one block from page model %u failed\n", page_model_t);
             return (EC_FALSE);
         }
 

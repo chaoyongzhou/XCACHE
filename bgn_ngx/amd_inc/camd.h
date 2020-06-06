@@ -64,11 +64,6 @@ extern "C"{
 #define CAMD_AIO_TIMEOUT_NSEC_DEFAULT                   (3600)
 #define CAMD_DIO_TIMEOUT_NSEC_DEFAULT                   (3600)
 
-#if 0
-#define CAMD_SSD_AIO_REQ_MAX_NUM                        (8)
-#define CAMD_SATA_AIO_REQ_MAX_NUM                       (8)
-#endif
-
 //#define CAMD_MEM_CACHE_MAX_NUM                          ((UINT32)512) /*128MB for 256K-page*/
 #define CAMD_MEM_CACHE_MAX_NUM                          ((UINT32)~0)/*no limitation*/
 
@@ -196,7 +191,6 @@ typedef struct
     uint32_t                rsvd03;
 
     UINT8                  *m_cache;                /*cache for one page*/
-    UINT8                  *m_tmp_cache;            /*for write load sata*/
 
     CLIST                   owners;                 /*item is CAMD_NODE*/
 
@@ -230,7 +224,6 @@ typedef struct
 #define CAMD_PAGE_MEM_CACHE_FLAG(camd_page)             ((camd_page)->mem_cache_flag)
 
 #define CAMD_PAGE_M_CACHE(camd_page)                    ((camd_page)->m_cache)
-#define CAMD_PAGE_M_TMP_CACHE(camd_page)                ((camd_page)->m_tmp_cache)
 #define CAMD_PAGE_OWNERS(camd_page)                     (&((camd_page)->owners))
 #define CAMD_PAGE_CAMD_MD(camd_page)                    ((camd_page)->camd_md)
 #define CAMD_PAGE_MOUNTED_PAGES(camd_page)              ((camd_page)->mounted_pages)
@@ -480,7 +473,7 @@ EC_BOOL camd_page_load_sata_aio_terminate(CAMD_PAGE *camd_page);
 EC_BOOL camd_page_load_sata_aio_complete(CAMD_PAGE *camd_page);
 
 /*load page from sata to mem cache*/
-EC_BOOL camd_page_load_sata_aio(CAMD_PAGE *camd_page, UINT32 is_for_write);
+EC_BOOL camd_page_load_sata_aio(CAMD_PAGE *camd_page);
 
 EC_BOOL camd_page_notify_timeout(CAMD_PAGE *camd_page);
 

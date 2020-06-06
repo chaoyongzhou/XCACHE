@@ -25,22 +25,33 @@ EC_BOOL cbytecode_pack_uint64(const uint64_t *in_buff, const UINT32 data_num, UI
 {
     uint64_t *src_data;
     uint64_t *des_data;
+#if (SWITCH_OFF == SBE_SWITCH)
     UINT32  data_idx;
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
     UINT32  end_pos;
 
     end_pos = (*position) + data_num * sizeof(uint64_t);
     if(end_pos > out_buff_max_len)
     {
-        dbg_log(SEC_0120_CBYTECODE, 0)(LOGSTDOUT, "error:cbytecode_pack_uint64: would overflow where postion = %ld, data_num = %ld out_buff_max_len = %ld\n", (*position), data_num, out_buff_max_len);
+        dbg_log(SEC_0120_CBYTECODE, 0)(LOGSTDOUT, "error:cbytecode_pack_uint64: "
+                        "would overflow where postion = %ld, data_num = %ld out_buff_max_len = %ld\n",
+                        (*position), data_num, out_buff_max_len);
         exit( 3 ); /*return (EC_FALSE);*/
     }
 
     src_data = (uint64_t *)(in_buff);
     des_data = (uint64_t *)(out_buff + (*position));
+
+#if (SWITCH_ON == SBE_SWITCH)
+    BCOPY(src_data, des_data, data_num * sizeof(uint64_t));
+#endif/*(SWITCH_ON == SBE_SWITCH)*/
+
+#if (SWITCH_OFF == SBE_SWITCH)
     for(data_idx = 0; data_idx < data_num; data_idx ++)
     {
         *(des_data ++) = hton_uint64(*(src_data ++));
     }
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
 
     (*position) = end_pos;
     return (EC_TRUE);
@@ -56,7 +67,9 @@ EC_BOOL cbytecode_unpack_uint64(const UINT8 *in_buff, const UINT32 in_buff_max_l
 {
     uint64_t *src_data;
     uint64_t *des_data;
+#if (SWITCH_OFF == SBE_SWITCH)
     UINT32  data_idx;
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
     UINT32  end_pos;
 
     end_pos = (*position) + data_num * sizeof(uint64_t);
@@ -68,11 +81,17 @@ EC_BOOL cbytecode_unpack_uint64(const UINT8 *in_buff, const UINT32 in_buff_max_l
 
     src_data = (uint64_t *)(in_buff + (*position));
     des_data = (uint64_t *)(out_buff);
+
+#if (SWITCH_ON == SBE_SWITCH)
+    BCOPY(src_data, des_data, data_num * sizeof(uint64_t));
+#endif/*(SWITCH_ON == SBE_SWITCH)*/
+
+#if (SWITCH_OFF == SBE_SWITCH)
     for(data_idx = 0; data_idx < data_num; data_idx ++)
     {
         *(des_data ++) = ntoh_uint64(*(src_data ++));
     }
-
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
     (*position) = end_pos;
     return (EC_TRUE);
 }
@@ -82,7 +101,9 @@ EC_BOOL cbytecode_pack_uint32(const UINT32 *in_buff, const UINT32 data_num, UINT
 {
     UINT32 *src_data;
     UINT32 *des_data;
+#if (SWITCH_OFF == SBE_SWITCH)
     UINT32  data_idx;
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
     UINT32  end_pos;
 
     end_pos = (*position) + data_num * sizeof(UINT32);
@@ -94,10 +115,17 @@ EC_BOOL cbytecode_pack_uint32(const UINT32 *in_buff, const UINT32 data_num, UINT
 
     src_data = (UINT32 *)(in_buff);
     des_data = (UINT32 *)(out_buff + (*position));
+
+#if (SWITCH_ON == SBE_SWITCH)
+    BCOPY(src_data, des_data, data_num * sizeof(UINT32));
+#endif/*(SWITCH_ON == SBE_SWITCH)*/
+
+#if (SWITCH_OFF == SBE_SWITCH)
     for(data_idx = 0; data_idx < data_num; data_idx ++)
     {
         *(des_data ++) = hton_uint32(*(src_data ++));
     }
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
 
     (*position) = end_pos;
     return (EC_TRUE);
@@ -113,7 +141,9 @@ EC_BOOL cbytecode_unpack_uint32(const UINT8 *in_buff, const UINT32 in_buff_max_l
 {
     UINT32 *src_data;
     UINT32 *des_data;
+#if (SWITCH_OFF == SBE_SWITCH)
     UINT32  data_idx;
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
     UINT32  end_pos;
 
     end_pos = (*position) + data_num * sizeof(UINT32);
@@ -125,10 +155,17 @@ EC_BOOL cbytecode_unpack_uint32(const UINT8 *in_buff, const UINT32 in_buff_max_l
 
     src_data = (UINT32 *)(in_buff + (*position));
     des_data = (UINT32 *)(out_buff);
+
+#if (SWITCH_ON == SBE_SWITCH)
+    BCOPY(src_data, des_data, data_num * sizeof(UINT32));
+#endif/*(SWITCH_ON == SBE_SWITCH)*/
+
+#if (SWITCH_OFF == SBE_SWITCH)
     for(data_idx = 0; data_idx < data_num; data_idx ++)
     {
         *(des_data ++) = ntoh_uint32(*(src_data ++));
     }
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
 
     (*position) = end_pos;
     return (EC_TRUE);
@@ -139,7 +176,9 @@ EC_BOOL cbytecode_pack_uint32_t(const UINT32 *in_buff, const UINT32 data_num, UI
     uint32_t *src_data;
     uint32_t *des_data;
 
+#if (SWITCH_OFF == SBE_SWITCH)
     UINT32    data_idx;
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
     UINT32    end_pos;
 
     end_pos = (*position) + data_num * sizeof(uint32_t);
@@ -151,10 +190,17 @@ EC_BOOL cbytecode_pack_uint32_t(const UINT32 *in_buff, const UINT32 data_num, UI
 
     src_data = (uint32_t *)(in_buff);
     des_data = (uint32_t *)(out_buff + (*position));
+
+#if (SWITCH_ON == SBE_SWITCH)
+    BCOPY(src_data, des_data, data_num * sizeof(uint32_t));
+#endif/*(SWITCH_ON == SBE_SWITCH)*/
+
+#if (SWITCH_OFF == SBE_SWITCH)
     for(data_idx = 0; data_idx < data_num; data_idx ++)
     {
         *(des_data ++) = hton_uint32_t(*(src_data ++));
     }
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
 
     (*position) = end_pos;
     return (EC_TRUE);
@@ -170,7 +216,10 @@ EC_BOOL cbytecode_unpack_uint32_t(const UINT8 *in_buff, const UINT32 in_buff_max
 {
     uint32_t *src_data;
     uint32_t *des_data;
+
+#if (SWITCH_OFF == SBE_SWITCH)
     UINT32    data_idx;
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
     UINT32    end_pos;
 
     end_pos = (*position) + data_num * sizeof(uint32_t);
@@ -182,10 +231,17 @@ EC_BOOL cbytecode_unpack_uint32_t(const UINT8 *in_buff, const UINT32 in_buff_max
 
     src_data = (uint32_t *)(in_buff + (*position));
     des_data = (uint32_t *)(out_buff);
+
+#if (SWITCH_ON == SBE_SWITCH)
+    BCOPY(src_data, des_data, data_num * sizeof(uint32_t));
+#endif/*(SWITCH_ON == SBE_SWITCH)*/
+
+#if (SWITCH_OFF == SBE_SWITCH)
     for(data_idx = 0; data_idx < data_num; data_idx ++)
     {
         *(des_data ++) = ntoh_uint32_t(*(src_data ++));
     }
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
 
     (*position) = end_pos;
     return (EC_TRUE);
@@ -196,7 +252,11 @@ EC_BOOL cbytecode_pack_uint16(const UINT16 *in_buff, const UINT32 data_num, UINT
 {
     UINT16 *src_data;
     UINT16 *des_data;
+
+#if (SWITCH_OFF == SBE_SWITCH)
     UINT32  data_idx;
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
+
     UINT32  end_pos;
 
     end_pos = (*position) + data_num * sizeof(UINT16);
@@ -208,10 +268,17 @@ EC_BOOL cbytecode_pack_uint16(const UINT16 *in_buff, const UINT32 data_num, UINT
 
     src_data = (UINT16 *)in_buff;
     des_data = (UINT16 *)(out_buff + (*position));
+
+#if (SWITCH_ON == SBE_SWITCH)
+    BCOPY(src_data, des_data, data_num * sizeof(uint16_t));
+#endif/*(SWITCH_ON == SBE_SWITCH)*/
+
+#if (SWITCH_OFF == SBE_SWITCH)
     for(data_idx = 0; data_idx < data_num; data_idx ++)
     {
         *(des_data ++) = hton_uint16(*(src_data ++));
     }
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
 
     (*position) = end_pos;
     return (EC_TRUE);
@@ -227,7 +294,10 @@ EC_BOOL cbytecode_unpack_uint16(const UINT8 *in_buff, const UINT32 in_buff_max_l
 {
     UINT16 *src_data;
     UINT16 *des_data;
+
+#if (SWITCH_OFF == SBE_SWITCH)
     UINT32  data_idx;
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
     UINT32  end_pos;
 
     end_pos = (*position) + data_num * sizeof(UINT16);
@@ -239,10 +309,17 @@ EC_BOOL cbytecode_unpack_uint16(const UINT8 *in_buff, const UINT32 in_buff_max_l
 
     src_data = (UINT16 *)(in_buff + (*position));
     des_data = (UINT16 *)(out_buff);
+
+#if (SWITCH_ON == SBE_SWITCH)
+    BCOPY(src_data, des_data, data_num * sizeof(uint16_t));
+#endif/*(SWITCH_ON == SBE_SWITCH)*/
+
+#if (SWITCH_OFF == SBE_SWITCH)
     for(data_idx = 0; data_idx < data_num; data_idx ++)
     {
         *(des_data ++) = ntoh_uint16(*(src_data ++));
     }
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
 
     (*position) = end_pos;
     return (EC_TRUE);
@@ -264,16 +341,9 @@ EC_BOOL cbytecode_pack_uint8(const UINT8 *in_buff, const UINT32 data_num, UINT8 
 
     src_data = (UINT8 *)(in_buff);
     des_data = (UINT8 *)(out_buff + (*position));
-#if 0
-    for(data_idx = 0; data_idx < data_num; data_idx ++)
-    {
-        *(des_data ++) = hton_uint8(*(src_data ++));
-    }
-#endif
-#if 1
-    //dbg_log(SEC_0120_CBYTECODE, 9)(LOGSTDOUT, "[DEBUG] pack: %lx (%ld) => %lx (%ld), len %ld\n", src_data, (((UINT32)src_data)& 0x3), des_data, (((UINT32)des_data)& 0x3), data_num);
-    memcpy(des_data, src_data, data_num);
-#endif
+
+    BCOPY(src_data, des_data, data_num);
+
     (*position) = end_pos;
     return (EC_TRUE);
 }
@@ -300,16 +370,9 @@ EC_BOOL cbytecode_unpack_uint8(const UINT8 *in_buff, const UINT32 in_buff_max_le
 
     src_data = (UINT8 *)(in_buff + (*position));
     des_data = (UINT8 *)(out_buff);
-#if 0
-    for(data_idx = 0; data_idx < data_num; data_idx ++)
-    {
-        *(des_data ++) = ntoh_uint8(*(src_data ++));
-    }
-#endif
-#if 1
-    //dbg_log(SEC_0120_CBYTECODE, 9)(LOGSTDOUT, "[DEBUG] unpack: %lx (%ld) => %lx (%ld), len %ld\n", src_data, (((UINT32)src_data)& 0x3), des_data, (((UINT32)des_data)& 0x3), data_num);
-    memcpy(des_data, src_data, data_num);
-#endif
+
+    BCOPY(src_data, des_data, data_num);
+
     (*position) = end_pos;
     return (EC_TRUE);
 }
@@ -318,7 +381,11 @@ EC_BOOL cbytecode_pack_real(const REAL *in_buff, const UINT32 data_num, UINT8 *o
 {
     UINT32   *src_data;
     UINT32   *des_data;
+
+#if (SWITCH_OFF == SBE_SWITCH)
     UINT32  data_idx;
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
+
     UINT32  end_pos;
 
     end_pos = (*position) + data_num * sizeof(REAL);
@@ -330,6 +397,12 @@ EC_BOOL cbytecode_pack_real(const REAL *in_buff, const UINT32 data_num, UINT8 *o
 
     src_data = (UINT32 *)(in_buff);
     des_data = (UINT32 *)(out_buff + (*position));
+
+#if (SWITCH_ON == SBE_SWITCH)
+    BCOPY(src_data, des_data, data_num * sizeof(REAL));
+#endif/*(SWITCH_ON == SBE_SWITCH)*/
+
+#if (SWITCH_OFF == SBE_SWITCH)
     for(data_idx = 0; data_idx < data_num; data_idx ++)
     {
         *(des_data ++) = hton_uint32(*(src_data ++));
@@ -341,7 +414,7 @@ EC_BOOL cbytecode_pack_real(const REAL *in_buff, const UINT32 data_num, UINT8 *o
         *(des_data ++) = hton_uint32(*(src_data ++));
     }
 #endif/*(32 == WORDSIZE)*/
-
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
     (*position) = end_pos;
     return (EC_TRUE);
 }
@@ -356,7 +429,10 @@ EC_BOOL cbytecode_unpack_real(const UINT8 *in_buff, const UINT32 in_buff_max_len
 {
     UINT32 *src_data;
     UINT32 *des_data;
+
+#if (SWITCH_OFF == SBE_SWITCH)
     UINT32  data_idx;
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
     UINT32  end_pos;
 
     end_pos = (*position) + data_num * sizeof(REAL);
@@ -368,6 +444,12 @@ EC_BOOL cbytecode_unpack_real(const UINT8 *in_buff, const UINT32 in_buff_max_len
 
     src_data = (UINT32 *)(in_buff + (*position));
     des_data = (UINT32 *)(out_buff);
+
+#if (SWITCH_ON == SBE_SWITCH)
+    BCOPY(src_data, des_data, data_num * sizeof(REAL));
+#endif/*(SWITCH_ON == SBE_SWITCH)*/
+
+#if (SWITCH_OFF == SBE_SWITCH)
     for(data_idx = 0; data_idx < data_num; data_idx ++)
     {
         *(des_data ++) = ntoh_uint32(*(src_data ++));
@@ -379,6 +461,7 @@ EC_BOOL cbytecode_unpack_real(const UINT8 *in_buff, const UINT32 in_buff_max_len
         *(des_data ++) = ntoh_uint32(*(src_data ++));
     }
 #endif/*(32 == WORDSIZE)*/
+#endif/*(SWITCH_OFF == SBE_SWITCH)*/
 
     (*position) = end_pos;
     return (EC_TRUE);

@@ -497,11 +497,17 @@ EC_BOOL ccache_file_write_over_bgn(const UINT32 store_srv_tcid, const UINT32 sto
 
     if(EC_FALSE == ret)
     {
-        sys_log(LOGUSER09, "[FAIL] UPDATE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+        sys_log(LOGUSER09, "[FAIL] UPDATE %ld %s %s\n",
+                           e_time_msec - s_time_msec,
+                           c_word_to_ipv4(store_srv_tcid),
+                           (char *)cstring_get_str(file_path));
     }
     else
     {
-        sys_log(LOGUSER09, "[SUCC] UPDATE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+        sys_log(LOGUSER09, "[SUCC] UPDATE %ld %s %s\n",
+                           e_time_msec - s_time_msec,
+                           c_word_to_ipv4(store_srv_tcid),
+                           (char *)cstring_get_str(file_path));
     }
 
     return (ret);
@@ -567,11 +573,17 @@ EC_BOOL ccache_renew_headers_over_bgn(const UINT32 store_srv_tcid, const UINT32 
 
     if(EC_FALSE == ret)
     {
-        sys_log(LOGUSER09, "[FAIL] RENEWH %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+        sys_log(LOGUSER09, "[FAIL] RENEWH %ld %s %s\n",
+                           e_time_msec - s_time_msec,
+                           c_word_to_ipv4(store_srv_tcid),
+                           (char *)cstring_get_str(file_path));
     }
     else
     {
-        sys_log(LOGUSER09, "[SUCC] RENEWH %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+        sys_log(LOGUSER09, "[SUCC] RENEWH %ld %s %s\n",
+                           e_time_msec - s_time_msec,
+                           c_word_to_ipv4(store_srv_tcid),
+                           (char *)cstring_get_str(file_path));
     }
 
     return (EC_TRUE);
@@ -652,11 +664,17 @@ EC_BOOL ccache_file_terminate_over_bgn(const UINT32 store_srv_tcid, const UINT32
 
     if(EC_FALSE == ret)
     {
-        sys_log(LOGUSER09, "[FAIL] TERMINATE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+        sys_log(LOGUSER09, "[FAIL] TERMINATE %ld %s %s\n",
+                           e_time_msec - s_time_msec,
+                           c_word_to_ipv4(store_srv_tcid),
+                           (char *)cstring_get_str(file_path));
     }
     else
     {
-        sys_log(LOGUSER09, "[SUCC] TERMINATE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+        sys_log(LOGUSER09, "[SUCC] TERMINATE %ld %s %s\n",
+                           e_time_msec - s_time_msec,
+                           c_word_to_ipv4(store_srv_tcid),
+                           (char *)cstring_get_str(file_path));
     }
 
     return (EC_TRUE);
@@ -702,7 +720,10 @@ EC_BOOL ccache_file_lock_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
     {
         if(EC_TRUE == (*locked_already))
         {
-            sys_log(LOGUSER09, "[SUCC] LOCK %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+            sys_log(LOGUSER09, "[SUCC] LOCK %ld %s %s\n",
+                               e_time_msec - s_time_msec,
+                               c_word_to_ipv4(store_srv_tcid),
+                               (char *)cstring_get_str(file_path));
 
             dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_lock_over_bgn: lock_req '%.*s' on %s => locked by other\n",
                             (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
@@ -710,12 +731,18 @@ EC_BOOL ccache_file_lock_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
             return (EC_TRUE);
         }
 
-        sys_log(LOGUSER09, "[FAIL] LOCK %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+        sys_log(LOGUSER09, "[FAIL] LOCK %ld %s %s\n",
+                           e_time_msec - s_time_msec,
+                           c_word_to_ipv4(store_srv_tcid),
+                           (char *)cstring_get_str(file_path));
 
         return (EC_FALSE);
     }
 
-    sys_log(LOGUSER09, "[SUCC] LOCK %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+    sys_log(LOGUSER09, "[SUCC] LOCK %ld %s %s\n",
+                       e_time_msec - s_time_msec,
+                       c_word_to_ipv4(store_srv_tcid),
+                       (char *)cstring_get_str(file_path));
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_lock_over_bgn: lock_req '%.*s' on %s => OK\n",
                     (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
@@ -762,7 +789,10 @@ EC_BOOL ccache_file_unlock_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
 
     if(EC_FALSE == ret)
     {
-        sys_log(LOGUSER09, "[FAIL] UNLOCK %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+        sys_log(LOGUSER09, "[FAIL] UNLOCK %ld %s %s\n",
+                           e_time_msec - s_time_msec,
+                           c_word_to_ipv4(store_srv_tcid),
+                           (char *)cstring_get_str(file_path));
 
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_unlock_over_bgn: "
                                                "unlock_req '%.*s' with token '%.*s' on %s => failed\n",
@@ -773,7 +803,10 @@ EC_BOOL ccache_file_unlock_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
         return (EC_FALSE);
     }
 
-    sys_log(LOGUSER09, "[SUCC] UNLOCK %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+    sys_log(LOGUSER09, "[SUCC] UNLOCK %ld %s %s\n",
+                       e_time_msec - s_time_msec,
+                       c_word_to_ipv4(store_srv_tcid),
+                       (char *)cstring_get_str(file_path));
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_unlock_over_bgn: "
                                            "unlock_req '%.*s' with token '%.*s' on %s => OK\n",
@@ -832,7 +865,10 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
 
         if(EC_FALSE == ret)
         {
-            sys_log(LOGUSER09, "[FAIL] READE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+            sys_log(LOGUSER09, "[FAIL] READE %ld %s %s\n",
+                               e_time_msec - s_time_msec,
+                               c_word_to_ipv4(store_srv_tcid),
+                               (char *)cstring_get_str(file_path));
 
             dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "error:ccache_file_read_over_bgn: read_e '%s' from cache failed\n",
                         (char *)cstring_get_str(file_path));
@@ -840,7 +876,10 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
             return (EC_FALSE);
         }
 
-        sys_log(LOGUSER09, "[SUCC] READE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+        sys_log(LOGUSER09, "[SUCC] READE %ld %s %s\n",
+                           e_time_msec - s_time_msec,
+                           c_word_to_ipv4(store_srv_tcid),
+                           (char *)cstring_get_str(file_path));
 
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_read_over_bgn: read_e '%s' from cache done\n",
                     (char *)cstring_get_str(file_path));
@@ -868,7 +907,10 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
 
     if(EC_FALSE == ret)
     {
-        sys_log(LOGUSER09, "[FAIL] READ %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+        sys_log(LOGUSER09, "[FAIL] READ %ld %s %s\n",
+                           e_time_msec - s_time_msec,
+                           c_word_to_ipv4(store_srv_tcid),
+                           (char *)cstring_get_str(file_path));
 
         dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "error:ccache_file_read_over_bgn: read '%s' from cache failed\n",
                     (char *)cstring_get_str(file_path));
@@ -876,7 +918,10 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         return (EC_FALSE);
     }
 
-    sys_log(LOGUSER09, "[SUCC] READ %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+    sys_log(LOGUSER09, "[SUCC] READ %ld %s %s\n",
+                       e_time_msec - s_time_msec,
+                       c_word_to_ipv4(store_srv_tcid),
+                       (char *)cstring_get_str(file_path));
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_read_over_bgn: read '%s' from cache done\n",
                 (char *)cstring_get_str(file_path));
@@ -920,7 +965,10 @@ EC_BOOL ccache_file_retire_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
 
     if(EC_FALSE == ret)
     {
-        sys_log(LOGUSER09, "[FAIL] DELETE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+        sys_log(LOGUSER09, "[FAIL] DELETE %ld %s %s\n",
+                           e_time_msec - s_time_msec,
+                           c_word_to_ipv4(store_srv_tcid),
+                           (char *)cstring_get_str(file_path));
 
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_retire_over_bgn: file_retire '%s' on %s failed\n",
                     (char *)cstring_get_str(file_path),
@@ -929,7 +977,10 @@ EC_BOOL ccache_file_retire_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
         return (EC_FALSE);
     }
 
-    sys_log(LOGUSER09, "[SUCC] DELETE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+    sys_log(LOGUSER09, "[SUCC] DELETE %ld %s %s\n",
+                       e_time_msec - s_time_msec,
+                       c_word_to_ipv4(store_srv_tcid),
+                       (char *)cstring_get_str(file_path));
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_retire_over_bgn: file_retire '%s' on %s done\n",
                 (char *)cstring_get_str(file_path),
@@ -993,7 +1044,10 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
 
         if(EC_FALSE == ret)
         {
-            sys_log(LOGUSER09, "[FAIL] WAITE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+            sys_log(LOGUSER09, "[FAIL] WAITE %ld %s %s\n",
+                               e_time_msec - s_time_msec,
+                               c_word_to_ipv4(store_srv_tcid),
+                               (char *)cstring_get_str(file_path));
 
             dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_over_bgn: file_wait '%s' on %s failed\n",
                         (char *)cstring_get_str(file_path),
@@ -1002,7 +1056,10 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
             return (EC_FALSE);
         }
 
-        sys_log(LOGUSER09, "[SUCC] WAITE %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+        sys_log(LOGUSER09, "[SUCC] WAITE %ld %s %s\n",
+                           e_time_msec - s_time_msec,
+                           c_word_to_ipv4(store_srv_tcid),
+                           (char *)cstring_get_str(file_path));
 
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_over_bgn: file_wait '%s' on %s done\n",
                     (char *)cstring_get_str(file_path),
@@ -1050,7 +1107,10 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
 
         if(EC_FALSE == ret)
         {
-            sys_log(LOGUSER09, "[FAIL] WAIT %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+            sys_log(LOGUSER09, "[FAIL] WAIT %ld %s %s\n",
+                               e_time_msec - s_time_msec,
+                               c_word_to_ipv4(store_srv_tcid),
+                               (char *)cstring_get_str(file_path));
 
             dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_over_bgn: file_wait '%s' on %s failed\n",
                         (char *)cstring_get_str(file_path),
@@ -1059,7 +1119,10 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
             return (EC_FALSE);
         }
 
-        sys_log(LOGUSER09, "[SUCC] WAIT %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+        sys_log(LOGUSER09, "[SUCC] WAIT %ld %s %s\n",
+                           e_time_msec - s_time_msec,
+                           c_word_to_ipv4(store_srv_tcid),
+                           (char *)cstring_get_str(file_path));
 
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_over_bgn: file_wait '%s' on %s done\n",
                     (char *)cstring_get_str(file_path),
@@ -1115,7 +1178,10 @@ EC_BOOL ccache_file_wait_ready_over_bgn(const UINT32 store_srv_tcid, const UINT3
 
     if(EC_FALSE == ret)
     {
-        sys_log(LOGUSER09, "[FAIL] WAITR %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+        sys_log(LOGUSER09, "[FAIL] WAITR %ld %s %s\n",
+                           e_time_msec - s_time_msec,
+                           c_word_to_ipv4(store_srv_tcid),
+                           (char *)cstring_get_str(file_path));
 
         dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_file_wait_ready_over_bgn: file '%s' on %s failed\n",
                     (char *)cstring_get_str(file_path),
@@ -1129,7 +1195,10 @@ EC_BOOL ccache_file_wait_ready_over_bgn(const UINT32 store_srv_tcid, const UINT3
         (*data_ready) = data_ready_t;
     }
 
-    sys_log(LOGUSER09, "[SUCC] WAITR %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+    sys_log(LOGUSER09, "[SUCC] WAITR %ld %s %s\n",
+                       e_time_msec - s_time_msec,
+                       c_word_to_ipv4(store_srv_tcid),
+                       (char *)cstring_get_str(file_path));
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_ready_over_bgn: file '%s' on %s done\n",
                 (char *)cstring_get_str(file_path),
@@ -1185,7 +1254,10 @@ EC_BOOL ccache_wait_http_headers_over_bgn(const UINT32 store_srv_tcid, const UIN
 
     if(EC_FALSE == ret)
     {
-        sys_log(LOGUSER09, "[FAIL] WAITH %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+        sys_log(LOGUSER09, "[FAIL] WAITH %ld %s %s\n",
+                           e_time_msec - s_time_msec,
+                           c_word_to_ipv4(store_srv_tcid),
+                           (char *)cstring_get_str(file_path));
 
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_wait_http_headers_over_bgn: wait headers of '%.*s' on %s done => failed\n",
                     (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
@@ -1194,7 +1266,10 @@ EC_BOOL ccache_wait_http_headers_over_bgn(const UINT32 store_srv_tcid, const UIN
         return (EC_FALSE);
     }
 
-    sys_log(LOGUSER09, "[SUCC] WAITH %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+    sys_log(LOGUSER09, "[SUCC] WAITH %ld %s %s\n",
+                       e_time_msec - s_time_msec,
+                       c_word_to_ipv4(store_srv_tcid),
+                       (char *)cstring_get_str(file_path));
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_wait_http_headers_over_bgn: wait headers of '%.*s' on %s done => OK\n",
                     (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
@@ -1276,7 +1351,9 @@ EC_BOOL ccache_dir_delete_over_bgn(const CSTRING *file_path)
 
         e_time_msec = c_get_cur_time_msec();
 
-        sys_log(LOGUSER09, "[SUCC] DELETED %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+        sys_log(LOGUSER09, "[SUCC] DELETED %ld %s\n",
+                           e_time_msec - s_time_msec,
+                           (char *)cstring_get_str(file_path));
 
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_dir_delete_over_bgn: rfs delete '%.*s' done\n",
                         (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path));
@@ -1355,7 +1432,9 @@ EC_BOOL ccache_dir_delete_over_bgn(const CSTRING *file_path)
 
         e_time_msec = c_get_cur_time_msec();
 
-        sys_log(LOGUSER09, "[SUCC] DELETED %ld %s\n", e_time_msec - s_time_msec, (char *)cstring_get_str(file_path));
+        sys_log(LOGUSER09, "[SUCC] DELETED %ld %s\n",
+                           e_time_msec - s_time_msec,
+                           (char *)cstring_get_str(file_path));
 
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_dir_delete_over_bgn: xfs delete '%.*s' done\n",
                         (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path));

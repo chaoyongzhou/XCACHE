@@ -173,6 +173,37 @@ EC_BOOL tasks_cfg_cmp(const TASKS_CFG *tasks_cfg_1st, TASKS_CFG *tasks_cfg_2nd)
     return (EC_TRUE);
 }
 
+EC_BOOL tasks_cfg_check_duplicate(const TASKS_CFG *tasks_cfg_1st, TASKS_CFG *tasks_cfg_2nd)
+{
+    if(TASKS_CFG_TCID(tasks_cfg_2nd) == TASKS_CFG_TCID(tasks_cfg_1st))
+    {
+        return (EC_TRUE);
+    }
+
+    if(TASKS_CFG_SRVIPADDR(tasks_cfg_2nd) == TASKS_CFG_SRVIPADDR(tasks_cfg_1st)
+    && TASKS_CFG_SRVPORT(tasks_cfg_2nd) == TASKS_CFG_SRVPORT(tasks_cfg_1st)
+    && CMPI_ERROR_SRVPORT != TASKS_CFG_SRVPORT(tasks_cfg_2nd))
+    {
+        return (EC_TRUE);
+    }
+
+    if(TASKS_CFG_SRVIPADDR(tasks_cfg_2nd) == TASKS_CFG_SRVIPADDR(tasks_cfg_1st)
+    && TASKS_CFG_CSRVPORT(tasks_cfg_2nd) == TASKS_CFG_CSRVPORT(tasks_cfg_1st)
+    && CMPI_ERROR_SRVPORT != TASKS_CFG_CSRVPORT(tasks_cfg_2nd))
+    {
+        return (EC_TRUE);
+    }
+
+    if(TASKS_CFG_SRVIPADDR(tasks_cfg_2nd) == TASKS_CFG_SRVIPADDR(tasks_cfg_1st)
+    && TASKS_CFG_SSRVPORT(tasks_cfg_2nd) == TASKS_CFG_SSRVPORT(tasks_cfg_1st)
+    && CMPI_ERROR_SRVPORT != TASKS_CFG_SSRVPORT(tasks_cfg_2nd))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
 EC_BOOL tasks_cfg_is_matched(const TASKS_CFG *tasks_cfg, const UINT32 tcid, const UINT32 maski, const UINT32 maske, const UINT32 srvipaddr, const UINT32 srvport)
 {
     if(CMPI_ANY_TCID != tcid && (TASKS_CFG_TCID(tasks_cfg) & maski) != (tcid & maski))

@@ -385,26 +385,26 @@ typedef struct
 #define CHTTP_STAT_LOG_000_RSVD                               ((uint64_t)(1 <<  0)) /*-*/
 #define CHTTP_STAT_LOG_001_NODE_LAYER                         ((uint64_t)(1 <<  1)) /*proxy*/
 #define CHTTP_STAT_LOG_002_ORIG_S_TIMESTAMP                   ((uint64_t)(1 <<  2))
-#define CHTTP_STAT_LOG_003_ORIG_E_TIME_MSEC                   ((uint64_t)(1 <<  3))
-#define CHTTP_STAT_LOG_004_CACHE_STATUS                       ((uint64_t)(1 <<  4)) /*MISS*/
+#define CHTTP_STAT_LOG_003_CLIENT_IPADDR                      ((uint64_t)(1 <<  3)) /*127.0.0.1*/
+#define CHTTP_STAT_LOG_004_CACHE_STATUS                       ((uint64_t)(1 <<  4)) /*TCPMISS*/
 #define CHTTP_STAT_LOG_005_ORIG_RSP_STATUS                    ((uint64_t)(1 <<  5))
 #define CHTTP_STAT_LOG_006_ORIG_PROTOCOL                      ((uint64_t)(1 <<  6)) /*http(s)*/
 #define CHTTP_STAT_LOG_007_ORIG_HOST                          ((uint64_t)(1 <<  7))
 #define CHTTP_STAT_LOG_008_ORIG_REQ_LEN                       ((uint64_t)(1 <<  8)) /*0*/
-#define CHTTP_STAT_LOG_009_LOCAL_IPADDR                       ((uint64_t)(1 <<  9)) /*-*/
+#define CHTTP_STAT_LOG_009_LOCAL_IPADDR                       ((uint64_t)(1 <<  9)) /*127.0.0.1*/
 #define CHTTP_STAT_LOG_010_ORIG_RSP_TIME_MSEC                 ((uint64_t)(1 << 10)) /*0*/
 #define CHTTP_STAT_LOG_011_ORIG_RSP_REACH_MSEC                ((uint64_t)(1 << 11))
 #define CHTTP_STAT_LOG_012_DEV_NAME                           ((uint64_t)(1 << 12))
-#define CHTTP_STAT_LOG_013_LOCAL_PORT                         ((uint64_t)(1 << 13)) /*-*/
-#define CHTTP_STAT_LOG_014_SERVICE_TYPE                       ((uint64_t)(1 << 14)) /*-*/
+#define CHTTP_STAT_LOG_013_LOCAL_PORT                         ((uint64_t)(1 << 13)) /*18080*/
+#define CHTTP_STAT_LOG_014_SERVICE_TYPE                       ((uint64_t)(1 << 14)) /*video*/
 #define CHTTP_STAT_LOG_015_ORIG_IPADDR                        ((uint64_t)(1 << 15))
-#define CHTTP_STAT_LOG_016_ORIG_C_TIME_MSEC                   ((uint64_t)(1 << 16)) /*save as 003*/
+#define CHTTP_STAT_LOG_016_ORIG_C_TIME_NSEC                   ((uint64_t)(1 << 16)) /*xx.xxx*/
 #define CHTTP_STAT_LOG_017_ORIG_SENT_NBYTES                   ((uint64_t)(1 << 17)) /*0*/
-#define CHTTP_STAT_LOG_018_SSL_HANDSHAKE_MSEC                 ((uint64_t)(1 << 18)) /*-*/
+#define CHTTP_STAT_LOG_018_SSL_HANDSHAKE_MSEC                 ((uint64_t)(1 << 18)) /*0*/
 #define CHTTP_STAT_LOG_019_SSL_SENT_NBYTES                    ((uint64_t)(1 << 19)) /*0*/
-#define CHTTP_STAT_LOG_020_CLIENT_RTT                         ((uint64_t)(1 << 20)) /*-*/
-#define CHTTP_STAT_LOG_021_ORIG_RECV_NBYTES                   ((uint64_t)(1 << 21))
-#define CHTTP_STAT_LOG_022_ORIG_SENT_NBYTES                   ((uint64_t)(1 << 22))
+#define CHTTP_STAT_LOG_020_CLIENT_RTT                         ((uint64_t)(1 << 20)) /*0*/
+#define CHTTP_STAT_LOG_021_ORIG_RECV_NBYTES                   ((uint64_t)(1 << 21)) /*header + body*/
+#define CHTTP_STAT_LOG_022_ORIG_SENT_NBYTES                   ((uint64_t)(1 << 22)) /*header + body*/
 #define CHTTP_STAT_LOG_023_TRACE_ID                           ((uint64_t)(1 << 23))
 
 typedef struct

@@ -35,8 +35,11 @@ typedef fd_set FD_CSET;
 
 #define BITS_TO_MASK(nbits)  (0 == (nbits)? 0 : ((0xffffffff) << (32 - (nbits))))
 
-#define TASKS_CFG_DEFAULT_MASKI     ((UINT32) 32)
-#define TASKS_CFG_DEFAULT_MASKE     ((UINT32) 16)
+//#define TASKS_CFG_DEFAULT_MASKI     ((UINT32) 32)
+//#define TASKS_CFG_DEFAULT_MASKE     ((UINT32) 16)
+
+#define TASKS_CFG_DEFAULT_MASKI     ((UINT32) 0)
+#define TASKS_CFG_DEFAULT_MASKE     ((UINT32) 0)
 
 /*des_tcid belong to intranet of src_tcid: src & maski(src) == des & maski(src)*/
 #define DES_TCID_IS_INTRANET(src_tcid, src_maski, des_tcid, des_maske) (((src_tcid) & (src_maski)) == ((des_tcid) & (des_maske)))

@@ -89,10 +89,12 @@ uint64_t cfc_get_speed(const CFC *cfc)
 {
     return CFC_TRAFFIC_SPEED(cfc);
 }
+
 int64_t cfc_get_punish_degrade_traffic_bps(const CFC *cfc)
 {
     return CFC_PUNISH_DEGRADE_TRAFFIC_BPS(cfc);
 }
+
 
 EC_BOOL ciostat_init(CIOSTAT *ciostat)
 {
@@ -137,12 +139,12 @@ REAL ciostat_get_io_hit_ratio(const CIOSTAT *ciostat)
 
 EC_BOOL ciostat_calc_io_ratio(CIOSTAT *ciostat, const uint64_t cur_time_ms, const uint64_t interval_ms)
 {
-    if(cur_time_ms >= CIOSTAT_NTIME_MS(ciostat) + interval_ms)
+    if(cur_time_ms >= CIOSTAT_NTIME_MS(ciostat))
     {
         uint64_t    elapsed_ms;
         uint32_t    io_num;
 
-        elapsed_ms = (cur_time_ms - CIOSTAT_NTIME_MS(ciostat));
+        elapsed_ms = (cur_time_ms - CIOSTAT_NTIME_MS(ciostat) + interval_ms);
         io_num     = CIOSTAT_IO_HIT_NUM(ciostat) + CIOSTAT_IO_MISS_NUM(ciostat);
 
         if(0 < io_num)

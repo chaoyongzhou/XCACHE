@@ -209,12 +209,16 @@ typedef struct _CSOCKET_CNODE
     void               *recving_task_node;/*be incoming data*/
     void               *sending_task_node;/*be sending data*/
 
+    /*BEG: protocol callback over socket*/
     CCALLBACK_LIST      recv_callback_list;    /*after data recv complete*/
     CCALLBACK_LIST      send_callback_list;    /*after data sent complete*/
     CCALLBACK_LIST      complete_callback_list;/*after procedure complete*/
     CCALLBACK_LIST      close_callback_list;   /*before connection close*/
     CCALLBACK_LIST      shutdown_callback_list;/*before connection shutdown (force close)*/
     CCALLBACK_LIST      timeout_callback_list; /*when connection timeout*/
+
+    void               *mounted_point; /*used when tasks handshake, never free it.*/
+    /*END: protocol callback over socket*/
 }CSOCKET_CNODE;
 
 #define CSOCKET_CNODE_IPADDR(csocket_cnode)                  ((csocket_cnode)->ipaddr)
@@ -264,6 +268,8 @@ typedef struct _CSOCKET_CNODE
 #define CSOCKET_CNODE_CLOSE_CALLBACK_LIST(csocket_cnode)     (&((csocket_cnode)->close_callback_list))
 #define CSOCKET_CNODE_SHUTDOWN_CALLBACK_LIST(csocket_cnode)  (&((csocket_cnode)->shutdown_callback_list))
 #define CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode)   (&((csocket_cnode)->timeout_callback_list))
+
+#define CSOCKET_CNODE_MOUNTED_POINT(csocket_cnode)           ((csocket_cnode)->mounted_point)
 
 #define CSOCKET_CNODE_SET_DISCONNECTED(csocket_cnode)        ((csocket_cnode)->rsvd = 1)
 #define CSOCKET_CNODE_SET_CONNECTED(csocket_cnode)           ((csocket_cnode)->rsvd = 0)

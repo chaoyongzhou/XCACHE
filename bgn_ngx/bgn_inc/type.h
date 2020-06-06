@@ -350,10 +350,7 @@ typedef struct _LOG
     {
         struct
         {
-            UINT32   fname_with_date_switch;
             CSTRING *fname;   /*one part of log file name. */
-                              /*when fname_with_date_switch = SWITCH_ON , log file name = {fname}_{date/time}.log*/
-                              /*when fname_with_date_switch = SWITCH_OFF, log file name = {fname}.log*/
             CSTRING *mode;    /*log file open mode*/
             FILE    *fp;
 

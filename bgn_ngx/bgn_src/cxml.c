@@ -277,38 +277,6 @@ STATIC_CAST static EC_BOOL __cxml_parse_tag_dn_model(xmlNodePtr node, const char
     return (EC_FALSE);
 }
 
-STATIC_CAST static EC_BOOL __cxml_parse_tag_encode_rule(xmlNodePtr node, const char *tag, UINT32 *encode_rule)
-{
-    if(xmlHasProp(node, (const xmlChar*)tag))
-    {
-        xmlChar *attr_val;
-
-        attr_val = xmlGetProp(node, (const xmlChar*)tag);
-        if(
-           0 == strcasecmp((char *)attr_val, (char *)"DBG_ENCODING_RULE")
-        || 0 == strcasecmp((char *)attr_val, (char *)"DBG_ENCODING")
-        )
-        {
-            (*encode_rule) = DBG_ENCODING_RULE;
-        }
-        else if(
-           0 == strcasecmp((char *)attr_val, (char *)"BYTE_ENCODING_RULE")
-        || 0 == strcasecmp((char *)attr_val, (char *)"BYTE_ENCODING")
-        )
-        {
-            (*encode_rule) = BYTE_ENCODING_RULE;
-        }
-        else
-        {
-            (*encode_rule) = ((UINT32)-1);
-        }
-        xmlFree(attr_val);
-
-        return (EC_TRUE);
-    }
-    return (EC_FALSE);
-}
-
 STATIC_CAST static EC_BOOL __cxml_parse_tag_mac_addr(xmlNodePtr node, const char *tag, UINT8 *mac_addr)
 {
     if(xmlHasProp(node, (const xmlChar*)tag))
@@ -985,12 +953,22 @@ EC_BOOL cxml_parse_task_cfg(xmlNodePtr node, TASK_CFG *task_cfg, const UINT32 de
             }
 
             CVECTOR_LOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_CXML_0008);
-            if(CVECTOR_ERR_POS == cvector_search_front_no_lock(TASK_CFG_TASKS_CFG_VEC(task_cfg), (void *)tasks_cfg, (CVECTOR_DATA_CMP)tasks_cfg_cmp))
+            if(CVECTOR_ERR_POS == cvector_search_front_no_lock(TASK_CFG_TASKS_CFG_VEC(task_cfg),
+                                (void *)tasks_cfg, (CVECTOR_DATA_CMP)tasks_cfg_check_duplicate))
             {
                 cvector_push_no_lock(TASK_CFG_TASKS_CFG_VEC(task_cfg), (void *)tasks_cfg);
             }
             else
             {
+                dbg_log(SEC_0046_CXML, 0)(LOGSTDOUT, "warn:cxml_parse_task_cfg: "
+                        "duplicate: tcid %s, srvipaddr %s, srvport %ld, csrvport %ld, ssrvport %ld "
+                        "=> give up\n",
+                        TASKS_CFG_TCID_STR(tasks_cfg),
+                        TASKS_CFG_SRVIPADDR_STR(tasks_cfg),
+                        TASKS_CFG_SRVPORT(tasks_cfg),
+                        TASKS_CFG_CSRVPORT(tasks_cfg),
+                        TASKS_CFG_SSRVPORT(tasks_cfg));
+
                 tasks_cfg_free(tasks_cfg);
             }
             CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_CXML_0009);
@@ -1206,14 +1184,25 @@ EC_BOOL cxml_parse_tasks_cfg_vec(xmlNodePtr node, TASK_CFG *task_cfg, const UINT
             }
 
             CVECTOR_LOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_CXML_0015);
-            if(CVECTOR_ERR_POS == cvector_search_front_no_lock(TASK_CFG_TASKS_CFG_VEC(task_cfg), (void *)tasks_cfg, (CVECTOR_DATA_CMP)tasks_cfg_cmp))
+            if(CVECTOR_ERR_POS == cvector_search_front_no_lock(TASK_CFG_TASKS_CFG_VEC(task_cfg),
+                                (void *)tasks_cfg, (CVECTOR_DATA_CMP)tasks_cfg_check_duplicate))
             {
                 cvector_push_no_lock(TASK_CFG_TASKS_CFG_VEC(task_cfg), (void *)tasks_cfg);
             }
             else
             {
+                dbg_log(SEC_0046_CXML, 0)(LOGSTDOUT, "warn:cxml_parse_tasks_cfg_vec: "
+                        "duplicate: tcid %s, srvipaddr %s, srvport %ld, csrvport %ld, ssrvport %ld "
+                        "=> give up\n",
+                        TASKS_CFG_TCID_STR(tasks_cfg),
+                        TASKS_CFG_SRVIPADDR_STR(tasks_cfg),
+                        TASKS_CFG_SRVPORT(tasks_cfg),
+                        TASKS_CFG_CSRVPORT(tasks_cfg),
+                        TASKS_CFG_SSRVPORT(tasks_cfg));
+
                 tasks_cfg_free(tasks_cfg);
             }
+
             CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_CXML_0016);
         }
 
@@ -1540,13 +1529,6 @@ EC_BOOL cxml_parse_cparacfg_thread_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     return (EC_TRUE);
 }
 
-EC_BOOL cxml_parse_cparacfg_encode_rule_cfg(xmlNodePtr node, CPARACFG *cparacfg)
-{
-    __cxml_parse_tag_encode_rule(node, (const char *)"taskEncodeRule", &(CPARACFG_TASK_ENCODING_RULE(cparacfg)));
-
-    return (EC_TRUE);
-}
-
 EC_BOOL cxml_parse_cparacfg_csocket_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 {
     __cxml_parse_tag_int(node, (const char *)"sendBuffSize" , &(CPARACFG_CSOCKET_SO_SNDBUFF_SIZE(cparacfg)));
@@ -1577,7 +1559,6 @@ EC_BOOL cxml_parse_cparacfg_csocket_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 EC_BOOL cxml_parse_cparacfg_log_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 {
     __cxml_parse_tag_uint32(node, (const char *)"logMaxRecords", &(CPARACFG_FILE_LOG_MAX_RECORDS(cparacfg)));
-    __cxml_parse_tag_switch(node, (const char *)"logNameWithDataSwitch", &(CPARACFG_FILE_LOG_NAME_WITH_DATE_SWITCH(cparacfg)));
     __cxml_parse_tag_log_level_tab(node, (const char *)"logLevel", CPARACFG_LOG_LEVEL_TAB(cparacfg), SEC_NONE_END);
 
     return (EC_TRUE);
@@ -1712,11 +1693,6 @@ EC_BOOL cxml_parse_cparacfg_para_cfg(xmlNodePtr node, CPARACFG *cparacfg)
         if(0 == xmlStrcmp(cur->name, (const xmlChar*)"threadConfig"))
         {
             cxml_parse_cparacfg_thread_cfg(cur, cparacfg);
-            continue;
-        }
-        if(0 == xmlStrcmp(cur->name, (const xmlChar*)"encodeConfig"))
-        {
-            cxml_parse_cparacfg_encode_rule_cfg(cur, cparacfg);
             continue;
         }
         if(0 == xmlStrcmp(cur->name, (const xmlChar*)"socketConfig"))

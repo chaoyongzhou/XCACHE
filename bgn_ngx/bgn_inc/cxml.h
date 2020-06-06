@@ -62,8 +62,6 @@ EC_BOOL cxml_parse_udp_bcast_dhcp_cfg(xmlNodePtr node, BCAST_DHCP_CFG *bcast_dhc
 
 EC_BOOL cxml_parse_cparacfg_thread_cfg(xmlNodePtr node, CPARACFG *cparacfg);
 
-EC_BOOL cxml_parse_cparacfg_encode_rule_cfg(xmlNodePtr node, CPARACFG *cparacfg);
-
 EC_BOOL cxml_parse_cparacfg_csocket_cfg(xmlNodePtr node, CPARACFG *cparacfg);
 
 EC_BOOL cxml_parse_cparacfg_log_cfg(xmlNodePtr node, CPARACFG *cparacfg);

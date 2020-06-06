@@ -758,7 +758,7 @@ EC_BOOL cxfspgv_new_space_from_disk(CXFSPGV *cxfspgv, const uint32_t size, const
 
     if(EC_FALSE == cxfspgd_new_space(cxfspgd, size, &block_no_t, &page_no_t))
     {
-        dbg_log(SEC_0203_CXFSPGV, 0)(LOGSTDERR, "error:cxfspgv_new_space_from_disk: assign size %u from disk %u failed\n", size, disk_no);
+        dbg_log(SEC_0203_CXFSPGV, 1)(LOGSTDERR, "error:cxfspgv_new_space_from_disk: assign size %u from disk %u failed\n", size, disk_no);
         return (EC_FALSE);
     }
 

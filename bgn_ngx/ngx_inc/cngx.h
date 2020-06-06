@@ -102,6 +102,9 @@ extern "C"{
 
 #define  CNGX_VAR_SEND_TIMEOUT_EVENT_MSEC         ("c_send_body_timeout_event_msec")
 
+#define  CNGX_VAR_VISIABLE_HOSTNAME               ("c_visible_hostname")
+#define  CNGX_VAR_TRACE_ID                        ("c_trace_id")
+
 #define  CNGX_VAR_MP4_BUFFER_SIZE                 ("c_mp4_buffer_size")
 #define  CNGX_VAR_MP4_MAX_BUFFER_SIZE             ("c_mp4_max_buffer_size")
 

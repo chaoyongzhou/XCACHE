@@ -14,6 +14,8 @@ extern "C"{
 
 #include "type.h"
 
+#define SBE_SWITCH SWITCH_ON
+
 EC_BOOL cbytecode_pack_uint64(const uint64_t *in_buff, const UINT32 data_num, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
 EC_BOOL cbytecode_pack_uint64_size(const UINT32 data_num, UINT32 *size);
 EC_BOOL cbytecode_unpack_uint64(const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, uint64_t *out_buff, const UINT32 data_num);

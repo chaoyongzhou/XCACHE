@@ -117,9 +117,13 @@ typedef struct
     uint32_t            read_only_flag   :1;/*cmc is read-only if set*/
     uint32_t            rsvd01           :28;
 
-    uint8_t             rsvd02;
+    uint16_t            cur_disk_no;        /*for cmc queue model*/
+    uint16_t            rsvd02;
+
+    uint8_t             rsvd03;
     uint8_t             np_model;
     uint16_t            vdisk_num;
+    uint32_t            rsvd04;
 
     UINT32              key_max_num;
 
@@ -134,6 +138,7 @@ typedef struct
 #define CMC_MD_SHM_NP_FLAG(cmc_md)                    ((cmc_md)->shm_np_flag)
 #define CMC_MD_SHM_DN_FLAG(cmc_md)                    ((cmc_md)->shm_dn_flag)
 #define CMC_MD_RDONLY_FLAG(cmc_md)                    ((cmc_md)->read_only_flag)
+#define CMC_MD_CUR_DISK_NO(cmc_md)                    ((cmc_md)->cur_disk_no)
 #define CMC_MD_NP_MODEL(cmc_md)                       ((cmc_md)->np_model)
 #define CMC_MD_VDISK_NUM(cmc_md)                      ((cmc_md)->vdisk_num)
 #define CMC_MD_KEY_MAX_NUM(cmc_md)                    ((cmc_md)->key_max_num)

@@ -421,6 +421,8 @@ void     c_gmtime(time_t t, CTM *tp);
 char    *c_http_time(time_t t);
 char    *c_http_time_msec(uint64_t msec);
 
+char *c_http_log_time(time_t t);
+char *c_http_log_time_msec(uint64_t msec);
 
 #define c_tolower(c)      (uint8_t) (((c) >= 'A' && (c) <= 'Z') ? ((c) | 0x20) : (c))
 #define c_toupper(c)      (uint8_t) (((c) >= 'a' && (c) <= 'z') ? ((c) & ~0x20) : (c))

@@ -31,7 +31,6 @@ typedef struct
     UINT32    cthread_stack_max_size        ;
     UINT32    cthread_stack_guard_size      ;
 
-    UINT32    task_encoding_rule            ;
     UINT32    task_slow_down_msec           ;
        int    csocket_so_sndbuff_size       ;/*for fwd rank only*/
        int    csocket_so_rcvbuff_size       ;/*for fwd rank only*/
@@ -54,7 +53,6 @@ typedef struct
     UINT32    csocket_heartbeat_intvl_nsec  ;/*for fwd rank only*/
 
     UINT32    file_log_max_records          ;
-    UINT32    file_log_name_with_date_switch;
 
     //UINT32    conn_keepalive_switch         ;/*internal communication keepalive by hearbeat, http connection by checking data transfering*/
     UINT32    conn_timeout_nsec             ;/*if no data tranfer in n seconds, shutdown the connection*/
@@ -124,6 +122,7 @@ typedef struct
     UINT32    cmc_try_recycle_max_num;     /*default: 128*/
     UINT32    cmc_scan_retire_max_num;     /*default: 256*/
 
+    UINT32    cmc_flow_control_switch;     /*default: on*/
     UINT32    cmc_process_degrade_max_num; /*default: 8*/
     UINT32    cmc_scan_degrade_max_num;    /*default: 256*/
 
@@ -135,6 +134,7 @@ typedef struct
     UINT32    cdc_try_recycle_max_num;     /*default: 128*/
     UINT32    cdc_scan_retire_max_num;     /*default: 128*/
 
+    UINT32    cdc_flow_control_switch;      /*default: on*/
     UINT32    cdc_process_degrade_max_num; /*default: 8*/
     UINT32    cdc_scan_degrade_max_num;    /*default: 256*/
 
@@ -154,8 +154,6 @@ typedef struct
 #define CPARACFG_TASK_RSP_THREAD_MAX_NUM(cparacfg)                  ((cparacfg)->task_rsp_thread_max_num       )
 #define CPARACFG_CTHREAD_STACK_MAX_SIZE(cparacfg)                   ((cparacfg)->cthread_stack_max_size        )
 #define CPARACFG_CTHREAD_STACK_GUARD_SIZE(cparacfg)                 ((cparacfg)->cthread_stack_guard_size      )
-
-#define CPARACFG_TASK_ENCODING_RULE(cparacfg)                       ((cparacfg)->task_encoding_rule            )
 
 #define CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg)                      ((cparacfg)->task_slow_down_msec           )
 #define CPARACFG_CSOCKET_SO_SNDBUFF_SIZE(cparacfg)                  ((cparacfg)->csocket_so_sndbuff_size       )
@@ -180,7 +178,6 @@ typedef struct
 
 #define CPARACFG_CSOCKET_HEARTBEAT_INTVL_NSEC(cparacfg)             ((cparacfg)->csocket_heartbeat_intvl_nsec  )
 #define CPARACFG_FILE_LOG_MAX_RECORDS(cparacfg)                     ((cparacfg)->file_log_max_records          )
-#define CPARACFG_FILE_LOG_NAME_WITH_DATE_SWITCH(cparacfg)           ((cparacfg)->file_log_name_with_date_switch)
 //#define CPARACFG_CONN_KEEPALIVE_SWITCH(cparacfg)                    ((cparacfg)->conn_keepalive_switch)
 #define CPARACFG_CONN_TIMEOUT_NSEC(cparacfg)                        ((cparacfg)->conn_timeout_nsec)
 #define CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP(cparacfg)                 ((cparacfg)->timeout_max_num_per_loop)
@@ -242,13 +239,16 @@ typedef struct
 
 #define CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH(cparacfg)              ((cparacfg)->camd_ssd_upgrade_mem_switch)
 #define CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH(cparacfg)             ((cparacfg)->camd_sata_upgrade_mem_switch)
-#define CPARACFG_CAMD_SATA_DISK_VM_S_OFFSET(cparacfg)             ((cparacfg)->camd_sata_disk_vm_s_offset)
+#define CPARACFG_CAMD_SATA_DISK_VM_S_OFFSET(cparacfg)               ((cparacfg)->camd_sata_disk_vm_s_offset)
 #define CPARACFG_CMC_TRY_RETIRE_MAX_NUM(cparacfg)                   ((cparacfg)->cmc_try_retire_max_num)
 #define CPARACFG_CMC_TRY_RECYCLE_MAX_NUM(cparacfg)                  ((cparacfg)->cmc_try_recycle_max_num)
 #define CPARACFG_CMC_SCAN_RETIRE_MAX_NUM(cparacfg)                  ((cparacfg)->cmc_scan_retire_max_num)
 
+#define CPARACFG_CMC_FLOW_CONTROL_SWITCH(cparacfg)                  ((cparacfg)->cmc_flow_control_switch)
 #define CPARACFG_CMC_PROCESS_DEGRADE_MAX_NUM(cparacfg)              ((cparacfg)->cmc_process_degrade_max_num)
 #define CPARACFG_CMC_SCAN_DEGRADE_MAX_NUM(cparacfg)                 ((cparacfg)->cmc_scan_degrade_max_num)
+
+#define CPARACFG_CMC_FLOW_CONTROL_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_CMC_FLOW_CONTROL_SWITCH(cparacfg)))
 
 #define CPARACFG_CMC_DEGRADE_HI_RATIO(cparacfg)                     ((cparacfg)->cmc_degrade_hi_ratio)
 #define CPARACFG_CMC_DEGRADE_MD_RATIO(cparacfg)                     ((cparacfg)->cmc_degrade_md_ratio)
@@ -258,14 +258,16 @@ typedef struct
 #define CPARACFG_CDC_TRY_RECYCLE_MAX_NUM(cparacfg)                  ((cparacfg)->cdc_try_recycle_max_num)
 #define CPARACFG_CDC_SCAN_RETIRE_MAX_NUM(cparacfg)                  ((cparacfg)->cdc_scan_retire_max_num)
 
+#define CPARACFG_CDC_FLOW_CONTROL_SWITCH(cparacfg)                  ((cparacfg)->cdc_flow_control_switch)
 #define CPARACFG_CDC_PROCESS_DEGRADE_MAX_NUM(cparacfg)              ((cparacfg)->cdc_process_degrade_max_num)
 #define CPARACFG_CDC_SCAN_DEGRADE_MAX_NUM(cparacfg)                 ((cparacfg)->cdc_scan_degrade_max_num)
+
+#define CPARACFG_CDC_FLOW_CONTROL_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_CDC_FLOW_CONTROL_SWITCH(cparacfg)))
 
 #define CPARACFG_CDC_DEGRADE_HI_RATIO(cparacfg)                     ((cparacfg)->cdc_degrade_hi_ratio)
 #define CPARACFG_CDC_DEGRADE_MD_RATIO(cparacfg)                     ((cparacfg)->cdc_degrade_md_ratio)
 #define CPARACFG_CDC_DEGRADE_LO_RATIO(cparacfg)                     ((cparacfg)->cdc_degrade_lo_ratio)
 
-#define CPARACFG_FILE_LOG_NAME_WITH_DATE_SWITCH_STR(cparacfg)       (c_switch_to_str(CPARACFG_FILE_LOG_NAME_WITH_DATE_SWITCH(cparacfg)))
 //#define CPARACFG_CONN_KEEPALIVE_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CONN_KEEPALIVE_SWITCH(cparacfg)))
 #define CPARACFG_HIGH_PRECISION_TIME_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_HIGH_PRECISION_TIME_SWITCH(cparacfg)))
 #define CPARACFG_NGX_BGN_OVER_RFS_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_NGX_BGN_OVER_RFS_SWITCH(cparacfg)))
@@ -364,8 +366,6 @@ typedef struct
 
 #define CPARACFG_TASK_SLOW_DOWN_MSEC_DEF                         1
 /*-- read only configuration -- */
-//#define CPARACFG_TASK_ENCODING_RULE_DEF                          BYTE_ENCODING_RULE
-#define CPARACFG_TASK_ENCODING_RULE_DEF                          TASK_ENCODING_RULE
 
 #define CPARACFG_CSOCKET_HEARTBEAT_INTVL_NSEC_DEF                10
 #define CPARACFG_CSOCKET_SO_SNDBUFF_SIZE_DEF                     MEM_BUFF_64K
@@ -384,7 +384,6 @@ typedef struct
 #define CPARACFG_CSOCKET_CNODE_NUM_DEF                           1
 
 #define CPARACFG_FILE_LOG_MAX_RECORDS_DEF                        FILE_LOG_RECORDS_001M
-#define CPARACFG_FILE_LOG_NAME_WITH_DATE_SWITCH_DEF              SWITCH_OFF
 
 #define CPARACFG_CONSOLE_TERM_SWITCH_DEF                         SWITCH_OFF
 
@@ -440,17 +439,18 @@ typedef struct
 #define CPARACFG_TDNS_RESOLVE_SWITCH_DEF                         SWITCH_OFF
 #define CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC_DEF                   30 /*30 seconds*/
 
-#define CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM_DEF                    4
-#define CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM_DEF                   4
+#define CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM_DEF                    64
+#define CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM_DEF                   64
 #define CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH_DEF                SWITCH_ON
 
-#define CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH_DEF                 SWITCH_OFF
-#define CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH_DEF                SWITCH_OFF
-#define CPARACFG_CAMD_SATA_DISK_VM_S_OFFSET_DEF                   0
+#define CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH_DEF                 SWITCH_ON
+#define CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH_DEF                SWITCH_ON
+#define CPARACFG_CAMD_SATA_DISK_VM_S_OFFSET_DEF                  0
 #define CPARACFG_CMC_TRY_RETIRE_MAX_NUM_DEF                      8
 #define CPARACFG_CMC_TRY_RECYCLE_MAX_NUM_DEF                     128
 #define CPARACFG_CMC_SCAN_RETIRE_MAX_NUM_DEF                     256
 
+#define CPARACFG_CMC_FLOW_CONTROL_SWITCH_DEF                     SWITCH_OFF
 #define CPARACFG_CMC_PROCESS_DEGRADE_MAX_NUM_DEF                 8
 #define CPARACFG_CMC_SCAN_DEGRADE_MAX_NUM_DEF                    256
 
@@ -462,6 +462,7 @@ typedef struct
 #define CPARACFG_CDC_TRY_RECYCLE_MAX_NUM_DEF                     128
 #define CPARACFG_CDC_SCAN_RETIRE_MAX_NUM_DEF                     128
 
+#define CPARACFG_CDC_FLOW_CONTROL_SWITCH_DEF                     SWITCH_OFF
 #define CPARACFG_CDC_PROCESS_DEGRADE_MAX_NUM_DEF                 8
 #define CPARACFG_CDC_SCAN_DEGRADE_MAX_NUM_DEF                    256
 
@@ -586,6 +587,7 @@ typedef struct
 #define    CMC_TRY_RECYCLE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CMC_TRY_RECYCLE_MAX_NUM)
 #define    CMC_SCAN_RETIRE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CMC_SCAN_RETIRE_MAX_NUM)
 
+#define    CMC_FLOW_CONTROL_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_CMC_FLOW_CONTROL_SWITCH)
 #define    CMC_PROCESS_DEGRADE_MAX_NUM                   CPARACFG_DEFAULT_MAP(CPARACFG_CMC_PROCESS_DEGRADE_MAX_NUM)
 #define    CMC_SCAN_DEGRADE_MAX_NUM                      CPARACFG_DEFAULT_MAP(CPARACFG_CMC_SCAN_DEGRADE_MAX_NUM)
 
@@ -597,6 +599,7 @@ typedef struct
 #define    CDC_TRY_RECYCLE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CDC_TRY_RECYCLE_MAX_NUM)
 #define    CDC_SCAN_RETIRE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CDC_SCAN_RETIRE_MAX_NUM)
 
+#define    CDC_FLOW_CONTROL_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_CDC_FLOW_CONTROL_SWITCH)
 #define    CDC_PROCESS_DEGRADE_MAX_NUM                   CPARACFG_DEFAULT_MAP(CPARACFG_CDC_PROCESS_DEGRADE_MAX_NUM)
 #define    CDC_SCAN_DEGRADE_MAX_NUM                      CPARACFG_DEFAULT_MAP(CPARACFG_CDC_SCAN_DEGRADE_MAX_NUM)
 

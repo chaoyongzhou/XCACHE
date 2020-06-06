@@ -62,7 +62,6 @@ extern LOG g_default_log_tbl[];
 #define LOG_PID_INFO_ENABLE(this_log)               ((this_log)->pid_info_enable)
 #define LOG_REDIRECT(this_log)                      ((this_log)->redirect_log)
 
-#define LOG_FILE_NAME_WITH_DATE_SWITCH(file_log)    ((file_log)->logd.file.fname_with_date_switch)
 #define LOG_FILE_NAME(file_log)                     ((file_log)->logd.file.fname)
 #define LOG_FILE_NAME_STR(file_log)                 (cstring_get_str(LOG_FILE_NAME(file_log)))
 #define LOG_FILE_MODE(file_log)                     ((file_log)->logd.file.mode)
@@ -227,9 +226,9 @@ int sys_log_redirect_setup(LOG *old_log, LOG *new_log);
 
 LOG * sys_log_redirect_cancel(LOG *log);
 
-LOG *log_file_new(const char *fname, const char *mode, const UINT32 tcid, const UINT32 rank, const UINT32 record_limit_enabled, const UINT32 fname_with_date_switch, const UINT32 switch_off_enable, const UINT32 pid_info_enable);
+LOG *log_file_new(const char *fname, const char *mode, const UINT32 tcid, const UINT32 rank, const UINT32 record_limit_enabled, const UINT32 switch_off_enable, const UINT32 pid_info_enable);
 
-EC_BOOL log_file_init(LOG *log, const char *fname, const char *mode, const UINT32 tcid, const UINT32 rank, const UINT32 record_limit_enabled, const UINT32 fname_with_date_switch, const UINT32 switch_off_enable, const UINT32 pid_info_enable);
+EC_BOOL log_file_init(LOG *log, const char *fname, const char *mode, const UINT32 tcid, const UINT32 rank, const UINT32 record_limit_enabled, const UINT32 switch_off_enable, const UINT32 pid_info_enable);
 
 EC_BOOL log_file_clean(LOG *log);
 
@@ -243,7 +242,7 @@ EC_BOOL log_file_rotate(LOG *log);
 
 void log_file_free(LOG *log);
 
-LOG * log_file_open(const char *fname, const char *mode, const UINT32 tcid, const UINT32 rank, const UINT32 record_limit_enabled, const UINT32 fname_with_date_switch, const UINT32 switch_off_enable, const UINT32 pid_info_enable);
+LOG * log_file_open(const char *fname, const char *mode, const UINT32 tcid, const UINT32 rank, const UINT32 record_limit_enabled, const UINT32 switch_off_enable, const UINT32 pid_info_enable);
 
 EC_BOOL log_file_close(LOG *log);
 

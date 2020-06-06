@@ -130,7 +130,7 @@ STATIC_CAST static char *__cngx_bgn_mod_node_dl_path_latest(const char *dl_path,
         so_path_len = ((uint32_t)(so_name - dl_path - 1));
     }
 
-    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "[DEBUG] __cngx_bgn_mod_node_dl_path_latest: "
+    dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "[DEBUG] __cngx_bgn_mod_node_dl_path_latest: "
                                          "dl_path '%.*s' => so_name '%.*s' done\n",
                                          dl_path_len, dl_path,
                                          so_name_len, so_name);
@@ -159,7 +159,7 @@ STATIC_CAST static char *__cngx_bgn_mod_node_dl_path_latest(const char *dl_path,
         return (NULL_PTR);
     }
 
-    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "[DEBUG] __cngx_bgn_mod_node_dl_path_latest: "
+    dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "[DEBUG] __cngx_bgn_mod_node_dl_path_latest: "
                                          "dl_path '%.*s' => so_path '%.*s'\n",
                                          dl_path_len, dl_path,
                                          so_path_len, so_path);
@@ -219,7 +219,7 @@ STATIC_CAST static char *__cngx_bgn_mod_node_dl_path_latest(const char *dl_path,
                 ver_val = ver_val_t;
             }
 
-            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "[DEBUG] __cngx_bgn_mod_node_dl_path_latest: "
+            dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "[DEBUG] __cngx_bgn_mod_node_dl_path_latest: "
                                "[matched] %s, so_name %.*s, ver str %s (%u) => ver_val: %u\n",
                                entry->d_name,
                                so_name_t_len, so_name_t,
@@ -412,7 +412,7 @@ EC_BOOL cngx_bgn_mod_node_dl_load(CNGX_BGN_MOD_NODE *cngx_bgn_mod_node,
 
     CNGX_BGN_MOD_NODE_COUNTER(cngx_bgn_mod_node) = 0;
 
-    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_node_dl_load: "
+    dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_node_dl_load: "
                                          "load '%.*s' done\n",
                                          dl_path_len, dl_path);
 
@@ -708,7 +708,7 @@ EC_BOOL cngx_bgn_mod_mgr_switch(CNGX_BGN_MOD_MGR *cngx_bgn_mod_mgr)
     /*switch active and standby*/
     CNGX_BGN_MOD_MGR_SWITCH_NODE(cngx_bgn_mod_mgr);
 
-    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_switch: "
+    dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_switch: "
                                          "switch %u -> %u\n",
                                          choice,
                                          CNGX_BGN_MOD_MGR_CHOICE(cngx_bgn_mod_mgr));
@@ -820,7 +820,7 @@ CNGX_BGN_MOD_MGR *cngx_bgn_mod_mgr_dl_load(const char *so_path, const uint32_t s
         }
         dl_path_latest_len = strlen(dl_path_latest);
 
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_dl_load: "
+        dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_dl_load: "
                                              "finger latest dl '%.*s', version %u done\n",
                                              dl_path_latest_len, dl_path_latest, dl_version_latest);
 
@@ -890,7 +890,7 @@ EC_BOOL cngx_bgn_mod_mgr_dl_unload(const char *mod_name, const uint32_t mod_name
 
         return (EC_FALSE);
     }
-    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_dl_unload: "
+    dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_dl_unload: "
                                          "unload standby of '%.*s' done\n",
                                          mod_name_len, mod_name);
 
@@ -904,7 +904,7 @@ EC_BOOL cngx_bgn_mod_mgr_dl_unload(const char *mod_name, const uint32_t mod_name
 
         return (EC_FALSE);
     }
-    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_dl_unload: "
+    dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_dl_unload: "
                                          "unload active of '%.*s' done\n",
                                          mod_name_len, mod_name);
 
@@ -1002,7 +1002,7 @@ EC_BOOL cngx_bgn_mod_mgr_dl_reload(const char *so_path, const uint32_t so_path_l
         }
         dl_path_latest_len = strlen(dl_path_latest);
 
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_dl_reload: "
+        dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_dl_reload: "
                                              "finger latest dl '%.*s', version %u done\n",
                                              dl_path_latest_len, dl_path_latest, dl_version_latest);
 
@@ -1112,7 +1112,7 @@ EC_BOOL cngx_bgn_mod_mgr_dl_reload(const char *so_path, const uint32_t so_path_l
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_dl_reload: "
+    dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_dl_reload: "
                                          "module '%.*s' reload done\n",
                                          mod_name_len, mod_name);
 
@@ -1150,7 +1150,7 @@ EC_BOOL cngx_bgn_mod_mgr_dl_set_reload(const char *mod_name, const uint32_t mod_
 
     CNGX_BGN_MOD_MGR_STATE(cngx_bgn_mod_mgr) = CNGX_BGN_MOD_MGR_STATE_RELOADING;
 
-    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_dl_set_reload: "
+    dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_dl_set_reload: "
                                          "module '%.*s' set reloading\n",
                                          mod_name_len, mod_name);
     return (EC_TRUE);
@@ -1338,7 +1338,7 @@ EC_BOOL cngx_bgn_mod_mgr_table_set_reload()
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_table_set_reload: "
+    dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_table_set_reload: "
                                          "reload done\n");
     return (EC_TRUE);
 }
@@ -1355,7 +1355,7 @@ EC_BOOL cngx_bgn_mod_mgr_table_switch()
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_table_switch: "
+    dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "[DEBUG] cngx_bgn_mod_mgr_table_switch: "
                                          "switch done\n");
     return (EC_TRUE);
 }

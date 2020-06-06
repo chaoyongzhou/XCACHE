@@ -6961,24 +6961,43 @@ EC_BOOL task_brd_http_connp_cluster(TASK_BRD *task_brd)
 }
 
 /*--------------------------------- register remote servers ---------------------------------*/
+
+#if 1
 UINT32 task_brd_connection_count(TASK_BRD *task_brd, const UINT32 remote_tcid, const UINT32 remote_srv_ipaddr, const UINT32 remote_srv_port)
 {
+    TASKS_CFG   *local_tasks_cfg;
+
     TASKS_WORKER    *tasks_worker;
     TASKS_MONITOR   *tasks_monitor;
+
+    UINT32           worker_conn_num;
+    UINT32           monitor_conn_num;
     UINT32           conn_count;
 
-    tasks_worker  = TASKS_CFG_WORKER(TASK_BRD_LOCAL_TASKS_CFG(task_brd));
-    tasks_monitor = TASKS_CFG_MONITOR(TASK_BRD_LOCAL_TASKS_CFG(task_brd));
+    local_tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
 
-    conn_count = tasks_worker_count(tasks_worker, remote_tcid, remote_srv_ipaddr, remote_srv_port)
-               + tasks_monitor_count(tasks_monitor, remote_tcid, remote_srv_ipaddr, remote_srv_port);
+    tasks_worker  = TASKS_CFG_WORKER(local_tasks_cfg);
+    tasks_monitor = TASKS_CFG_MONITOR(local_tasks_cfg);
+
+    worker_conn_num  = tasks_worker_count(tasks_worker, remote_tcid, remote_srv_ipaddr, remote_srv_port);
+    monitor_conn_num = tasks_monitor_count(tasks_monitor, remote_tcid, remote_srv_ipaddr, remote_srv_port);
+
+    conn_count = worker_conn_num + monitor_conn_num;
+
+    dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "[DEBUG] task_brd_connection_count: "
+                        "remote tasks tcid %s srvipaddr %s srvport %ld, worker conn %ld, monitor conn %ld => %ld\n",
+                        c_word_to_ipv4(remote_tcid), c_word_to_ipv4(remote_srv_ipaddr), remote_srv_port,
+                        worker_conn_num, monitor_conn_num, conn_count);
 
     return (conn_count);
 }
 
 EC_BOOL task_brd_register_one(TASK_BRD *task_brd, const UINT32 remote_tcid, const UINT32 remote_srv_ipaddr, const UINT32 remote_srv_port, const UINT32 conn_num)
 {
-    if(TASKS_CFG_TCID(TASK_BRD_LOCAL_TASKS_CFG(task_brd)) == remote_tcid)/*skip itself*/
+    TASKS_CFG   *local_tasks_cfg;
+
+    local_tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
+    if(TASKS_CFG_TCID(local_tasks_cfg) == remote_tcid)/*skip itself*/
     {
         return (EC_TRUE);
     }
@@ -6993,7 +7012,49 @@ EC_BOOL task_brd_register_one(TASK_BRD *task_brd, const UINT32 remote_tcid, cons
             break;
         }
 
-        dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG]task_brd_register_one: try to register to remote tasks tcid %s srvipaddr %s srvport %ld\n",
+        dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_register_one: "
+                            "try to register to remote tasks tcid %s srvipaddr %s srvport %ld\n",
+                            c_word_to_ipv4(remote_tcid), c_word_to_ipv4(remote_srv_ipaddr), remote_srv_port);
+
+        if(EC_FALSE == tasks_monitor_open(TASKS_CFG_MONITOR(local_tasks_cfg),
+                                            remote_tcid, remote_srv_ipaddr, remote_srv_port))
+        {
+            dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "error:task_brd_register_one: "
+                                "register to remote tasks tcid %s srvipaddr %s srvport %ld failed\n",
+                                c_word_to_ipv4(remote_tcid), c_word_to_ipv4(remote_srv_ipaddr), remote_srv_port);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_register_one: "
+                            "register to remote tasks tcid %s srvipaddr %s srvport %ld done\n",
+                            c_word_to_ipv4(remote_tcid), c_word_to_ipv4(remote_srv_ipaddr), remote_srv_port);
+    }
+
+    return (EC_TRUE);
+}
+#endif
+
+#if 0
+EC_BOOL task_brd_register_one(TASK_BRD *task_brd, const UINT32 remote_tcid, const UINT32 remote_srv_ipaddr, const UINT32 remote_srv_port, const UINT32 conn_num)
+{
+    UINT32 csocket_cnode_idx;
+    UINT32 conn_count;
+
+    if(TASKS_CFG_TCID(TASK_BRD_LOCAL_TASKS_CFG(task_brd)) == remote_tcid)/*skip itself*/
+    {
+        return (EC_TRUE);
+    }
+
+    //dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_register_one: tasks_cfg %lx of task_brd\n", TASK_BRD_LOCAL_TASKS_CFG(task_brd));
+    //tasks_cfg_print(LOGSTDOUT, TASK_BRD_LOCAL_TASKS_CFG(task_brd));
+
+    conn_count = tasks_worker_count(TASKS_CFG_WORKER(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), remote_tcid, remote_srv_ipaddr, remote_srv_port)
+               + tasks_monitor_count(TASKS_CFG_MONITOR(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), remote_tcid, remote_srv_ipaddr, remote_srv_port);
+
+    /*setup multi sockets to remote taskcomm*/
+    for(csocket_cnode_idx = conn_count; csocket_cnode_idx < conn_num; csocket_cnode_idx ++)
+    {
+        dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_register_one: try to register to remote tasks tcid %s srvipaddr %s srvport %ld\n",
                             c_word_to_ipv4(remote_tcid), c_word_to_ipv4(remote_srv_ipaddr),remote_srv_port);
 
         if(EC_FALSE == tasks_monitor_open(TASKS_CFG_MONITOR(TASK_BRD_LOCAL_TASKS_CFG(task_brd)), remote_tcid, remote_srv_ipaddr, remote_srv_port))
@@ -7006,9 +7067,9 @@ EC_BOOL task_brd_register_one(TASK_BRD *task_brd, const UINT32 remote_tcid, cons
         dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] task_brd_register_one: register to remote tasks tcid %s srvipaddr %s srvport %ld done\n",
                             c_word_to_ipv4(remote_tcid), c_word_to_ipv4(remote_srv_ipaddr),remote_srv_port);
     }
-
     return (EC_TRUE);
 }
+#endif
 
 TASKS_CFG *task_brd_register_node_fetch(TASK_BRD *task_brd, const UINT32 tcid)
 {
@@ -8092,10 +8153,21 @@ LOG * task_brd_default_init(int argc, char **argv)
 
     /*open log and redirect LOGSTDOUT & LOGSTDERR log to it*/
     log_file_name = cstring_new(NULL_PTR, LOC_TASK_0133);
+#if (SWITCH_ON == NGX_BGN_SWITCH)
+#if 0
     cstring_format(log_file_name, "%s/rank_%s_%ld", (char *)TASK_BRD_LOG_PATH_STR(task_brd), c_word_to_ipv4(this_tcid), this_rank);
+#endif
+#if 1
+    cstring_format(log_file_name, "%s/xcache_rank", (char *)TASK_BRD_LOG_PATH_STR(task_brd));
+#endif
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+
+#if (SWITCH_OFF == NGX_BGN_SWITCH)
+    cstring_format(log_file_name, "%s/rank_%s_%ld", (char *)TASK_BRD_LOG_PATH_STR(task_brd), c_word_to_ipv4(this_tcid), this_rank);
+#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
     log = log_file_open((char *)cstring_get_str(log_file_name), "a+",
                         this_tcid, this_rank,
-                        LOGD_FILE_RECORD_LIMIT_ENABLED, (UINT32)FILE_LOG_NAME_WITH_DATE_SWITCH,
+                        LOGD_FILE_RECORD_LIMIT_ENABLED,
                         LOGD_SWITCH_OFF_ENABLE, LOGD_PID_INFO_ENABLE);
     if(NULL_PTR == log)
     {
@@ -8109,10 +8181,15 @@ LOG * task_brd_default_init(int argc, char **argv)
 #if (SWITCH_ON == NGX_BGN_SWITCH)
     /*open log and redirect LOGUSER07 log to it*/
     log_file_name = cstring_new(NULL_PTR, LOC_TASK_0134);
+#if 0
     cstring_format(log_file_name, "%s/orig_%s_%ld", (char *)TASK_BRD_LOG_PATH_STR(task_brd), c_word_to_ipv4(this_tcid), this_rank);
+#endif
+#if 1
+    cstring_format(log_file_name, "%s/xcache_orig", (char *)TASK_BRD_LOG_PATH_STR(task_brd));
+#endif
     log = log_file_open((char *)cstring_get_str(log_file_name), "a+",
                         this_tcid, this_rank,
-                        LOGD_FILE_RECORD_LIMIT_ENABLED, (UINT32)FILE_LOG_NAME_WITH_DATE_SWITCH,
+                        LOGD_FILE_RECORD_LIMIT_ENABLED,
                         LOGD_SWITCH_OFF_DISABLE, LOGD_PID_INFO_DISABLE);
     if(NULL_PTR == log)
     {

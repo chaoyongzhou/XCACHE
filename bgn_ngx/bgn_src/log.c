@@ -43,7 +43,7 @@ UINT32 g_log_level[ SEC_NONE_END ];
 static char g_log_node_buf[ LOG_NODE_BUF_SIZE ];
 #endif/*(SWITCH_ON == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)*/
 
-#define LOG_DEFAULT_INIT(__log, type, switch_off_enable, pid_info_enable, redirect_log, fname_with_date_switch, this_fname, this_mode, this_fp, this_mutex, record_limit_enabled, max_records, cur_records, this_tcid, this_rank)     \
+#define LOG_DEFAULT_INIT(__log, type, switch_off_enable, pid_info_enable, redirect_log, this_fname, this_mode, this_fp, this_mutex, record_limit_enabled, max_records, cur_records, this_tcid, this_rank)     \
 do{                                                                       \
     LOG_DEVICE_TYPE(__log)                 = (type);                      \
     LOG_SWITCH_OFF_ENABLE(__log)           = (switch_off_enable);         \
@@ -51,7 +51,6 @@ do{                                                                       \
     LOG_PID_INFO_ENABLE(__log)             = (pid_info_enable);           \
     LOG_REDIRECT(__log)                    = (redirect_log);              \
                                                                           \
-    LOG_FILE_NAME_WITH_DATE_SWITCH(__log)  = (fname_with_date_switch);    \
                                                                           \
     LOG_FILE_NAME(__log)                   = (this_fname);                \
     LOG_FILE_MODE(__log)                   = (this_mode);                 \
@@ -70,7 +69,6 @@ do{                                                                       \
 EC_BOOL log_default_init(LOG *log,
                         UINT32 type, UINT32 switch_off_enable,
                         UINT32 pid_info_enable, LOG *redirect_log,
-                        UINT32 fname_with_date_switch,
                         CSTRING *fname, CSTRING *mode, FILE *fp,
                         pthread_mutex_t *mutex,
                         UINT32 record_limit_enabled, UINT32 max_records, UINT32 cur_records,
@@ -81,8 +79,6 @@ EC_BOOL log_default_init(LOG *log,
 
     LOG_PID_INFO_ENABLE(log)             = (pid_info_enable);
     LOG_REDIRECT(log)                    = (redirect_log);
-
-    LOG_FILE_NAME_WITH_DATE_SWITCH(log)  = (fname_with_date_switch);
 
     LOG_FILE_NAME(log)                   = (fname);
     LOG_FILE_MODE(log)                   = (mode);
@@ -102,17 +98,17 @@ EC_BOOL log_default_init(LOG *log,
 
 EC_BOOL log_default_init_all()
 {
-    LOG_DEFAULT_INIT(LOGSTDOUT , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGSTDOUT*/
-    LOG_DEFAULT_INIT(LOGSTDIN  , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_DISABLE, LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGSTDIN*/
-    LOG_DEFAULT_INIT(LOGSTDERR , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_DISABLE, LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGSTDERR*/
-    LOG_DEFAULT_INIT(LOGSTDNULL, LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGSTDNULL*/
-    LOG_DEFAULT_INIT(LOGCONSOLE, LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGCONSOLE*/
+    LOG_DEFAULT_INIT(LOGSTDOUT , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGSTDOUT*/
+    LOG_DEFAULT_INIT(LOGSTDIN  , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_DISABLE, LOGD_PID_INFO_ENABLE ,NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGSTDIN*/
+    LOG_DEFAULT_INIT(LOGSTDERR , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_DISABLE, LOGD_PID_INFO_ENABLE ,NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGSTDERR*/
+    LOG_DEFAULT_INIT(LOGSTDNULL, LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGSTDNULL*/
+    LOG_DEFAULT_INIT(LOGCONSOLE, LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGCONSOLE*/
 
-    LOG_DEFAULT_INIT(LOGUSER05 , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGUSER05*/
-    LOG_DEFAULT_INIT(LOGUSER06 , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGUSER06*/
-    LOG_DEFAULT_INIT(LOGUSER07 , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGUSER07*/
-    LOG_DEFAULT_INIT(LOGUSER08 , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGUSER08*/
-    LOG_DEFAULT_INIT(LOGUSER09 , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, SWITCH_OFF, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGUSER09*/
+    LOG_DEFAULT_INIT(LOGUSER05 , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGUSER05*/
+    LOG_DEFAULT_INIT(LOGUSER06 , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGUSER06*/
+    LOG_DEFAULT_INIT(LOGUSER07 , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGUSER07*/
+    LOG_DEFAULT_INIT(LOGUSER08 , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGUSER08*/
+    LOG_DEFAULT_INIT(LOGUSER09 , LOG_FILE_DEVICE, LOGD_SWITCH_OFF_ENABLE , LOGD_PID_INFO_ENABLE ,NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, LOGD_FILE_RECORD_LIMIT_DISABLED, LOGD_FILE_MAX_RECORDS_LIMIT, 0, CMPI_ANY_TCID, CMPI_ANY_RANK);/*LOGUSER09*/
 
     return (EC_TRUE);
 }
@@ -325,6 +321,37 @@ void log_level_print(LOG *log)
     return;
 }
 
+STATIC_CAST static char *__log_cur_tcid_str()
+{
+    static char      str[ 64 ];
+    static uint32_t  init_flag = BIT_FALSE;
+
+    if(BIT_FALSE == init_flag)
+    {
+        TASK_BRD        *task_brd;
+        UINT32           tcid;
+
+        task_brd = task_brd_default_get();
+        if(NULL_PTR == task_brd)
+        {
+            snprintf((char *)str, sizeof(str)/sizeof(str[0]), "0.0.0.0");
+            return ((char *)str);
+        }
+
+        tcid = TASK_BRD_TCID(task_brd);
+        snprintf((char *)str, sizeof(str)/sizeof(str[0]), "%s", c_word_to_ipv4(tcid));
+
+        if(CMPI_ERROR_TCID != tcid && CMPI_ANY_TCID != tcid)
+        {
+            init_flag = BIT_TRUE;
+        }
+
+        return ((char *)str);
+    }
+
+    return ((char *)str);
+}
+
 STATIC_CAST static int __log_cur_time_str(char *time_str, const int max_size)
 {
     CTM   *cur_time;
@@ -342,17 +369,10 @@ STATIC_CAST static int __log_cur_time_str(char *time_str, const int max_size)
     tv_msec = (int)(cur_timev->tv_usec / 1000);
     tv_usec = (int)(cur_timev->tv_usec % 1000);
 
-#if (SWITCH_OFF == LOG_PTHREAD_ID_SWITCH)
-    len = snprintf(time_str, max_size, "[%4d-%02d-%02d %02d:%02d:%02d.%03d.%03d] ",
-                    TIME_IN_YMDHMS(cur_time),
-                    tv_msec, tv_usec);
-#endif/*(SWITCH_OFF == LOG_PTHREAD_ID_SWITCH)*/
-#if (SWITCH_ON == LOG_PTHREAD_ID_SWITCH)
     len = snprintf(time_str, max_size, "[%4d-%02d-%02d %02d:%02d:%02d.%03d.%03d][tid %ld] ",
                     TIME_IN_YMDHMS(cur_time),
                     tv_msec, tv_usec,
                     CTHREAD_GET_TID());
-#endif/*(SWITCH_ON == LOG_PTHREAD_ID_SWITCH)*/
     return (len);
 }
 
@@ -369,23 +389,33 @@ STATIC_CAST static int __log_time_str(char *time_str, const int max_size)
     }
     else
     {
-#if (SWITCH_OFF == LOG_PTHREAD_ID_SWITCH)
-        len = snprintf(time_str, max_size, "[%s] ", log_time_str);
-#endif/*(SWITCH_OFF == LOG_PTHREAD_ID_SWITCH)*/
-#if (SWITCH_ON == LOG_PTHREAD_ID_SWITCH && SWITCH_OFF == CROUTINE_SUPPORT_COROUTINE_SWITCH)
-        len = snprintf(time_str, max_size, "[%s][tid %ld] ", log_time_str, CTHREAD_GET_TID());
-#endif/*(SWITCH_ON == LOG_PTHREAD_ID_SWITCH && SWITCH_OFF == CROUTINE_SUPPORT_COROUTINE_SWITCH)*/
+#if (SWITCH_OFF == CROUTINE_SUPPORT_COROUTINE_SWITCH)
+#if (SWITCH_ON == NGX_BGN_SWITCH)
+        len = snprintf(time_str, max_size, "[%s][tcid %s][tid %ld] ",
+                        log_time_str, __log_cur_tcid_str(), CTHREAD_GET_TID());
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+#if (SWITCH_OFF == NGX_BGN_SWITCH)
+        len = snprintf(time_str, max_size, "[%s][tid %ld] ",
+                        log_time_str, CTHREAD_GET_TID());
+#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
+#endif/*(SWITCH_OFF == CROUTINE_SUPPORT_COROUTINE_SWITCH)*/
 
-#if (SWITCH_ON == LOG_PTHREAD_ID_SWITCH && SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH)
-        len = snprintf(time_str, max_size, "[%s][tid %ld][co %p] ", log_time_str, CTHREAD_GET_TID(), coroutine_node_cur_get());
-#endif/*(SWITCH_ON == LOG_PTHREAD_ID_SWITCH && SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH)*/
+#if (SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH)
+#if (SWITCH_ON == NGX_BGN_SWITCH)
+        len = snprintf(time_str, max_size, "[%s][tcid %s][tid %ld][co %p] ",
+                        log_time_str, __log_cur_tcid_str(), CTHREAD_GET_TID(), coroutine_node_cur_get());
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+#if (SWITCH_OFF == NGX_BGN_SWITCH)
+        len = snprintf(time_str, max_size, "[%s][tid %ld][co %p] ",
+                        log_time_str, CTHREAD_GET_TID(), coroutine_node_cur_get());
+#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
+#endif/*(SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH)*/
     }
     return (len);
 #endif /*(SWITCH_OFF == LOG_ACCURATE_TIME_SWITCH)*/
 #if (SWITCH_ON == LOG_ACCURATE_TIME_SWITCH)
     return __log_cur_time_str(time_str, max_size);
 #endif/*(SWITCH_ON == LOG_ACCURATE_TIME_SWITCH)*/
-
 }
 
 STATIC_CAST static EC_BOOL __log_reg(LOG *log, FILE *fp)
@@ -1168,12 +1198,12 @@ LOG * sys_log_redirect_cancel(LOG *log)
     return (old_log);
 }
 
-LOG *log_file_new(const char *fname, const char *mode, const UINT32 tcid, const UINT32 rank, const UINT32 record_limit_enabled, const UINT32 fname_with_date_switch, const UINT32 switch_off_enable, const UINT32 pid_info_enable)
+LOG *log_file_new(const char *fname, const char *mode, const UINT32 tcid, const UINT32 rank, const UINT32 record_limit_enabled, const UINT32 switch_off_enable, const UINT32 pid_info_enable)
 {
     LOG *log;
 
     alloc_static_mem(MM_LOG, &log, LOC_LOG_0012);
-    if(EC_FALSE == log_file_init(log, fname, mode, tcid, rank, record_limit_enabled, fname_with_date_switch, switch_off_enable, pid_info_enable))
+    if(EC_FALSE == log_file_init(log, fname, mode, tcid, rank, record_limit_enabled, switch_off_enable, pid_info_enable))
     {
         dbg_log(SEC_0104_LOG, 0)(LOGSTDOUT, "error:log_file_new: log file %s init failed\n", fname);
         free_static_mem(MM_LOG, log, LOC_LOG_0013);
@@ -1182,7 +1212,7 @@ LOG *log_file_new(const char *fname, const char *mode, const UINT32 tcid, const 
     return (log);
 }
 
-EC_BOOL log_file_init(LOG *log, const char *fname, const char *mode, const UINT32 tcid, const UINT32 rank, const UINT32 record_limit_enabled, const UINT32 fname_with_date_switch, const UINT32 switch_off_enable, const UINT32 pid_info_enable)
+EC_BOOL log_file_init(LOG *log, const char *fname, const char *mode, const UINT32 tcid, const UINT32 rank, const UINT32 record_limit_enabled, const UINT32 switch_off_enable, const UINT32 pid_info_enable)
 {
     if(NULL_PTR == fname)
     {
@@ -1190,8 +1220,6 @@ EC_BOOL log_file_init(LOG *log, const char *fname, const char *mode, const UINT3
         LOG_SWITCH_OFF_ENABLE(log)   = switch_off_enable;
         LOG_PID_INFO_ENABLE(log)     = pid_info_enable;
         LOG_REDIRECT(log)            = NULL_PTR;
-
-        LOG_FILE_NAME_WITH_DATE_SWITCH(log) = fname_with_date_switch;
 
         LOG_FILE_NAME(log)           = NULL_PTR;
         LOG_FILE_MODE(log)           = NULL_PTR;
@@ -1213,8 +1241,6 @@ EC_BOOL log_file_init(LOG *log, const char *fname, const char *mode, const UINT3
 
     LOG_FILE_TCID(log) = tcid;
     LOG_FILE_RANK(log) = rank;
-
-    LOG_FILE_NAME_WITH_DATE_SWITCH(log) = fname_with_date_switch;
 
     LOG_FILE_NAME(log) = cstring_new((UINT8 *)fname, LOC_LOG_0014);
     LOG_FILE_MODE(log) = cstring_new((UINT8 *)mode, LOC_LOG_0015);
@@ -1278,11 +1304,12 @@ EC_BOOL log_file_init(LOG *log, const char *fname, const char *mode, const UINT3
 
         __log_time_str(time_str, TASK_BRD_TIME_STR_SIZE);
 
-
+#if (SWITCH_OFF == NGX_BGN_SWITCH)
         fprintf(LOG_FILE_FP(log), "%s", time_str);
         fprintf(LOG_FILE_FP(log), "my pid = %u, tcid = %s, rank = %ld\n",
                                   getpid(), c_word_to_ipv4(LOG_FILE_TCID(log)), LOG_FILE_RANK(log));
         fflush(LOG_FILE_FP(log));
+#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
     }
 
     return (EC_TRUE);
@@ -1328,19 +1355,7 @@ EC_BOOL log_file_fopen(LOG *log)
 {
     char fname[256];
 
-    if(SWITCH_ON == LOG_FILE_NAME_WITH_DATE_SWITCH(log))
-    {
-        CTM *cur_time;
-        cur_time = LOG_TM();
-
-        snprintf(fname, sizeof(fname) - 1, "%s_%4d%02d%02d_%02d%02d%02d.log",
-                (char *)LOG_FILE_NAME_STR(log),
-                TIME_IN_YMDHMS(cur_time));
-    }
-    else
-    {
-        snprintf(fname, sizeof(fname) - 1, "%s.log", (char *)LOG_FILE_NAME_STR(log));
-    }
+    snprintf(fname, sizeof(fname) - 1, "%s.log", (char *)LOG_FILE_NAME_STR(log));
 
     if(EC_FALSE == c_basedir_create(fname))
     {
@@ -1394,21 +1409,33 @@ EC_BOOL log_file_fclose(LOG *log)
     return (EC_TRUE);
 }
 
+/*close old one and then create new one*/
 EC_BOOL log_file_freopen(LOG *log)
 {
-    log_file_fclose(log);/*close old*/
+    FILE    *fp;
+
+    fp = LOG_FILE_FP(log);
+    LOG_FILE_FP(log) = NULL_PTR;
+
+    if(NULL_PTR != fp)
+    {
+        if(0 != fclose(fp))
+        {
+            dbg_log(SEC_0104_LOG, 0)(LOGCONSOLE, "error:log_file_freopen: close old file %s failed\n",
+                               (char *)LOG_FILE_MODE_STR(log));
+
+            LOG_FILE_FP(log) = fp; /*restore*/
+            return (EC_FALSE);
+        }
+    }
 
     if(EC_FALSE == log_file_fopen(log)) /*open new*/
     {
         dbg_log(SEC_0104_LOG, 0)(LOGCONSOLE, "error:log_file_freopen: failed to reopen file %s with mode %s\n",
                            (char *)LOG_FILE_NAME_STR(log),
                            (char *)LOG_FILE_MODE_STR(log));
-        return (EC_FALSE);
-    }
 
-    if(NULL_PTR != LOG_FILE_FP(log))
-    {
-        rewind(LOG_FILE_FP(log));
+        return (EC_FALSE);
     }
 
     if(LOGD_PID_INFO_ENABLE == LOG_PID_INFO_ENABLE(log)
@@ -1418,59 +1445,40 @@ EC_BOOL log_file_freopen(LOG *log)
 
         __log_time_str(time_str, TASK_BRD_TIME_STR_SIZE);
 
+#if (SWITCH_OFF == NGX_BGN_SWITCH)
 
         fprintf(LOG_FILE_FP(log), "%s", time_str);
         fprintf(LOG_FILE_FP(log), "my pid = %u, tcid = %s, rank = %ld\n",
                                   getpid(), c_word_to_ipv4(LOG_FILE_TCID(log)), LOG_FILE_RANK(log));
         fflush(LOG_FILE_FP(log));
+#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
     }
 
     return (EC_TRUE);
 }
 
+/*creat new one and then close old one*/
 EC_BOOL log_file_rotate(LOG *log)
 {
-    char fname_old[256];
-    char fname_new[256];
-    CTM *cur_time;
+    FILE *fp;
 
-    if(SWITCH_ON == LOG_FILE_NAME_WITH_DATE_SWITCH(log))
+    fp = LOG_FILE_FP(log);
+    LOG_FILE_FP(log) = NULL_PTR;
+
+    if(EC_FALSE == log_file_fopen(log))
     {
-        return log_file_freopen(log);
-    }
-
-    if(EC_TRUE == cstring_is_empty(LOG_FILE_NAME(log)))
-    {
-        return (EC_TRUE);
-    }
-
-    cur_time = LOG_TM();
-    snprintf(fname_new, sizeof(fname_new) - 1, "%s_%4d%02d%02d_%02d%02d%02d.log",
-            (char *)LOG_FILE_NAME_STR(log),
-            TIME_IN_YMDHMS(cur_time));
-
-    snprintf(fname_old, sizeof(fname_old) - 1, "%s.log",
-            (char *)LOG_FILE_NAME_STR(log));
-
-    log_file_fclose(log);/*close old*/
-
-    /*backup old log*/
-    if(0 != rename((char *)fname_old, (char *)fname_new))
-    {
-        dbg_log(SEC_0104_LOG, 0)(LOGCONSOLE, "error:log_file_rotate: rename '%s' to '%s' failed\n",
-                           (char *)fname_old,
-                           (char *)fname_new);
+        LOG_FILE_FP(log) = fp;
         return (EC_FALSE);
     }
 
-    /*keep file name unchanged !*/
-    LOG_FILE_FP(log) = fopen((char *)fname_old, (char *)LOG_FILE_MODE_STR(log));
-    if(NULL_PTR == LOG_FILE_FP(log))/*open new*/
+    if(NULL_PTR != fp)
     {
-        dbg_log(SEC_0104_LOG, 0)(LOGCONSOLE, "error:log_file_rotate: reopen file %s with mode %s failed\n",
-                           (char *)fname_old,
-                           (char *)LOG_FILE_MODE_STR(log));
-        return (EC_FALSE);
+        if(0 != fclose(fp))
+        {
+            dbg_log(SEC_0104_LOG, 0)(LOGCONSOLE, "error:log_file_rotate: close old file %s failed\n",
+                               (char *)LOG_FILE_MODE_STR(log));
+            return (EC_FALSE);
+        }
     }
 
     return (EC_TRUE);
@@ -1486,9 +1494,9 @@ void log_file_free(LOG *log)
     return;
 }
 
-LOG * log_file_open(const char *fname, const char *mode, const UINT32 tcid, const UINT32 rank, const UINT32 record_limit_enabled, const UINT32 fname_with_date_switch, const UINT32 switch_off_enable, const UINT32 pid_info_enable)
+LOG * log_file_open(const char *fname, const char *mode, const UINT32 tcid, const UINT32 rank, const UINT32 record_limit_enabled, const UINT32 switch_off_enable, const UINT32 pid_info_enable)
 {
-    return log_file_new(fname, mode, tcid, rank, record_limit_enabled, fname_with_date_switch, switch_off_enable, pid_info_enable);
+    return log_file_new(fname, mode, tcid, rank, record_limit_enabled, switch_off_enable, pid_info_enable);
 }
 
 EC_BOOL log_file_close(LOG *log)
@@ -1553,7 +1561,7 @@ EC_BOOL log_cstr_close(LOG *log)
 
 EC_BOOL log_clean(LOG *log)
 {
-    if(LOGSTDOUT == log || LOGSTDIN == log || LOGSTDERR == log)
+    if(LOGSTDOUT == log || LOGSTDIN == log || LOGSTDERR == log || LOGSTDNULL == log)
     {
         return (EC_TRUE);
     }
@@ -1608,7 +1616,7 @@ LOG *log_open(const char *fname, const char *mode)
 
     if(EC_FALSE == log_file_init(log, fname, mode,
                     task_brd_default_get_tcid(), task_brd_default_get_rank(),
-                    LOGD_FILE_RECORD_LIMIT_ENABLED, SWITCH_OFF,
+                    LOGD_FILE_RECORD_LIMIT_ENABLED,
                     LOGD_SWITCH_OFF_ENABLE, LOGD_PID_INFO_DISABLE))
     {
         dbg_log(SEC_0104_LOG, 0)(LOGSTDOUT, "error:log_open: log file %s init failed\n", fname);

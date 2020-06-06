@@ -37,6 +37,8 @@ EC_BOOL tasks_cfg_clone(const TASKS_CFG *src_tasks_cfg, TASKS_CFG *des_tasks_cfg
 
 EC_BOOL tasks_cfg_cmp(const TASKS_CFG *tasks_cfg_1st, TASKS_CFG *tasks_cfg_2nd);
 
+EC_BOOL tasks_cfg_check_duplicate(const TASKS_CFG *tasks_cfg_1st, TASKS_CFG *tasks_cfg_2nd);
+
 EC_BOOL tasks_cfg_is_matched(const TASKS_CFG *tasks_cfg, const UINT32 tcid, const UINT32 maski, const UINT32 maske, const UINT32 srvipaddr, const UINT32 srvport);
 
 EC_BOOL tasks_cfg_match_ip(const TASKS_CFG *tasks_cfg, const UINT32 srvipaddr, const UINT32 srvport);

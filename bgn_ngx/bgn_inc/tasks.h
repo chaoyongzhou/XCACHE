@@ -73,13 +73,13 @@ EC_BOOL tasks_node_cmp(const TASKS_NODE *src_tasks_node, const TASKS_NODE *des_t
 
 EC_BOOL tasks_node_check(const TASKS_NODE *tasks_node, const CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL tasks_node_irecv(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL tasks_node_irecv(TASKS_NODE **tasks_node, CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL tasks_node_isend(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL tasks_node_isend(TASKS_NODE **tasks_node, CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL tasks_node_iclose(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL tasks_node_iclose(TASKS_NODE **tasks_node, CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL tasks_node_heartbeat(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL tasks_node_heartbeat(TASKS_NODE **tasks_node, CSOCKET_CNODE *csocket_cnode);
 
 EC_BOOL tasks_node_set_epoll(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode);
 
@@ -197,17 +197,19 @@ EC_BOOL tasks_monitor_callback_when_del(TASKS_MONITOR *tasks_monitor, TASKS_NODE
 EC_BOOL tasks_monitor_add_csocket_cnode(TASKS_MONITOR *tasks_monitor, CSOCKET_CNODE *csocket_cnode);
 
 
-EC_BOOL tasks_handshake_isend_on_csocket_cnode(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL tasks_handshake_isend(CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL tasks_handshake_irecv_on_csocket_cnode(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL tasks_handshake_irecv(CSOCKET_CNODE *csocket_cnod);
 
-EC_BOOL tasks_handshake_send(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL tasks_handshake_icomplete(CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL tasks_handshake_recv(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL tasks_handshake_ichange(CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL tasks_handshake_complete(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL tasks_handshake_send(TASKS_NODE **tasks_node, CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL tasks_handshake_shutdown(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL tasks_handshake_recv(TASKS_NODE **tasks_node, CSOCKET_CNODE *csocket_cnode);
+
+EC_BOOL tasks_handshake_shutdown(TASKS_NODE **tasks_node, CSOCKET_CNODE *csocket_cnode);
 
 #endif/*_TASKS_H*/
 

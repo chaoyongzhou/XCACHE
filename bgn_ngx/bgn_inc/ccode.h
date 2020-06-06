@@ -19,17 +19,9 @@ extern "C"{
 #include "cdbgcode.h"
 #include "cbytecode.h"
 
-#if (DBG_ENCODING_RULE == TASK_ENCODING_RULE)
-#define cmpi_pack           cdbgcode_pack
-#define cmpi_pack_size      cdbgcode_pack_size
-#define cmpi_unpack         cdbgcode_unpack
-#endif /*(DBG_ENCODING_RULE == TASK_ENCODING_RULE)*/
-
-#if (BYTE_ENCODING_RULE == TASK_ENCODING_RULE)
 #define cmpi_pack           cbytecode_pack
 #define cmpi_pack_size      cbytecode_pack_size
 #define cmpi_unpack         cbytecode_unpack
-#endif /*(BYTE_ENCODING_RULE == TASK_ENCODING_RULE)*/
 
 extern UINT32 g_host_byte_order;
 

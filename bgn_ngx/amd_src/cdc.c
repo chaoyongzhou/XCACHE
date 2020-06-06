@@ -2293,13 +2293,7 @@ STATIC_CAST static EC_BOOL __cdc_reserve_hash_dn(CDC_MD *cdc_md, const CDCNP_KEY
     return (EC_TRUE);
 }
 
-
-/**
-*
-*  reserve space from dn
-*
-**/
-STATIC_CAST static EC_BOOL __cdc_reserve_dn(CDC_MD *cdc_md, const UINT32 data_len, CDCNP_FNODE *cdcnp_fnode)
+STATIC_CAST static EC_BOOL __cdc_reserve_no_hash_dn(CDC_MD *cdc_md, const UINT32 data_len, CDCNP_FNODE *cdcnp_fnode)
 {
     CDCNP_INODE *cdcnp_inode;
     CDCPGV      *cdcpgv;
@@ -2315,7 +2309,7 @@ STATIC_CAST static EC_BOOL __cdc_reserve_dn(CDC_MD *cdc_md, const UINT32 data_le
 
     if(CDCPGB_SIZE_NBYTES <= data_len)
     {
-        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:__cdc_reserve_hash_dn: "
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:__cdc_reserve_no_hash_dn: "
                                             "data_len %ld overflow\n",
                                             data_len);
         return (EC_FALSE);
@@ -2323,26 +2317,26 @@ STATIC_CAST static EC_BOOL __cdc_reserve_dn(CDC_MD *cdc_md, const UINT32 data_le
 
     if(NULL_PTR == CDC_MD_DN(cdc_md))
     {
-        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:__cdc_reserve_hash_dn: no dn was open\n");
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:__cdc_reserve_no_hash_dn: no dn was open\n");
         return (EC_FALSE);
     }
 
     if(NULL_PTR == CDCDN_CDCPGV(CDC_MD_DN(cdc_md)))
     {
-        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:__cdc_reserve_hash_dn: no pgv exist\n");
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:__cdc_reserve_no_hash_dn: no pgv exist\n");
         return (EC_FALSE);
     }
 
     cdcpgv = CDCDN_CDCPGV(CDC_MD_DN(cdc_md));
     if(NULL_PTR == CDCPGV_HEADER(cdcpgv))
     {
-        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:__cdc_reserve_hash_dn: pgv header is null\n");
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:__cdc_reserve_no_hash_dn: pgv header is null\n");
         return (EC_FALSE);
     }
 
     if(0 == CDCPGV_PAGE_DISK_NUM(cdcpgv))
     {
-        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:__cdc_reserve_hash_dn: pgv has no disk yet\n");
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:__cdc_reserve_no_hash_dn: pgv has no disk yet\n");
         return (EC_FALSE);
     }
 
@@ -2376,6 +2370,11 @@ STATIC_CAST static EC_BOOL __cdc_reserve_dn(CDC_MD *cdc_md, const UINT32 data_le
             CDCNP_INODE_BLOCK_NO(cdcnp_inode)   = block_no;
             CDCNP_INODE_PAGE_NO(cdcnp_inode)    = page_no;
 
+            dbg_log(SEC_0182_CDC, 3)(LOGSTDOUT, "[DEBUG] __cdc_reserve_no_hash_dn: "
+                                                "size %u => (disk %u, block %u, page %u), page num %u\n",
+                                                size, disk_no, block_no, page_no,
+                                                CDCNP_FNODE_PAGENUM(cdcnp_fnode));
+
             return (EC_TRUE);
         }
 
@@ -2384,7 +2383,7 @@ STATIC_CAST static EC_BOOL __cdc_reserve_dn(CDC_MD *cdc_md, const UINT32 data_le
         CDC_MD_CUR_DISK_NO(cdc_md) = disk_no;
 
         /*try to retire & recycle some files*/
-        dbg_log(SEC_0182_CDC, 7)(LOGSTDOUT, "warn:__cdc_reserve_hash_dn: "
+        dbg_log(SEC_0182_CDC, 7)(LOGSTDOUT, "warn:__cdc_reserve_no_hash_dn: "
                                             "no %ld bytes space, try to retire & recycle\n",
                                             data_len);
 
@@ -2392,7 +2391,7 @@ STATIC_CAST static EC_BOOL __cdc_reserve_dn(CDC_MD *cdc_md, const UINT32 data_le
         cdc_recycle(cdc_md, (UINT32)CDC_TRY_RECYCLE_MAX_NUM, NULL_PTR);
     }
 
-    dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error::__cdc_reserve_hash_dn: "
+    dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error::__cdc_reserve_no_hash_dn: "
                                         "no %ld bytes space\n",
                                         data_len);
     return (EC_FALSE);
@@ -3316,7 +3315,7 @@ EC_BOOL cdc_page_reserve(CDC_MD *cdc_md, CDC_PAGE *cdc_page, const CDCNP_KEY *cd
             }
 
             if(SWITCH_ON == CDC_FIFO_MODEL_SWITCH
-            && EC_FALSE == __cdc_reserve_dn(cdc_md, data_len, cdcnp_fnode))
+            && EC_FALSE == __cdc_reserve_no_hash_dn(cdc_md, data_len, cdcnp_fnode))
             {
                 dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_page_reserve: [fifo] reserve dn %ld bytes failed\n",
                                 data_len);
@@ -3631,7 +3630,7 @@ EC_BOOL cdc_page_write(CDC_MD *cdc_md, const CDCNP_KEY *cdcnp_key, const CBYTES 
         }
 
         if(SWITCH_ON == CDC_FIFO_MODEL_SWITCH
-        && EC_FALSE == __cdc_reserve_dn(cdc_md, data_len, cdcnp_fnode))
+        && EC_FALSE == __cdc_reserve_no_hash_dn(cdc_md, data_len, cdcnp_fnode))
         {
             dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_page_write: [fifo] reserve dn %ld bytes failed\n",
                             data_len);
@@ -7640,10 +7639,19 @@ void cdc_process_degrades(CDC_MD *cdc_md, const uint64_t degrade_traffic_bps,
         time_msec_cur = c_get_cur_time_msec();
 
         /*flow control: degrade 20MB/s at most to sata*/
-        while(time_msec_cur >= time_msec_next)
+        while(SWITCH_OFF == CDC_FLOW_CONTROL_SWITCH || time_msec_cur >= time_msec_next)
         {
             uint64_t    time_msec_cost; /*msec cost for degrading from ssd to sata*/
 
+            /*degrade 4MB at most once time*/
+            cdcnp_degrade(CDC_MD_NP(cdc_md), scan_max_num, expect_degrade_num, &complete_degrade_num_t);
+
+            if(0 == complete_degrade_num_t)
+            {
+                break; /*fall through*/
+            }
+#if 0
+            /*punishment: when traffic is very slow, give up degrade*/
             if(degrade_traffic_bps >= CDC_DEGRADE_TRAFFIC_02MB)
             {
                 /*degrade 2MB at most once time*/
@@ -7654,7 +7662,7 @@ void cdc_process_degrades(CDC_MD *cdc_md, const uint64_t degrade_traffic_bps,
                     break; /*fall through*/
                 }
             }
-
+#endif
             if(degrade_traffic_bps <= CDC_DEGRADE_TRAFFIC_02MB) /*2MB/s*/
             {
                 /*

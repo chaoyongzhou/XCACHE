@@ -239,7 +239,6 @@ EC_BOOL camd_page_init(CAMD_PAGE *camd_page)
     CAMD_PAGE_MEM_CACHE_FLAG(camd_page)     = BIT_FALSE;
 
     CAMD_PAGE_M_CACHE(camd_page)            = NULL_PTR;
-    CAMD_PAGE_M_TMP_CACHE(camd_page)        = NULL_PTR;
 
     CAMD_PAGE_CAMD_MD(camd_page)            = NULL_PTR;
     CAMD_PAGE_MOUNTED_PAGES(camd_page)      = NULL_PTR;
@@ -265,12 +264,6 @@ EC_BOOL camd_page_clean(CAMD_PAGE *camd_page)
             }
 
             CAMD_PAGE_M_CACHE(camd_page) = NULL_PTR;
-        }
-
-        if(NULL_PTR != CAMD_PAGE_M_TMP_CACHE(camd_page))
-        {
-            __camd_mem_cache_free(CAMD_PAGE_M_TMP_CACHE(camd_page));
-            CAMD_PAGE_M_TMP_CACHE(camd_page) = NULL_PTR;
         }
 
         if(NULL_PTR != CAMD_PAGE_MOUNTED_PAGES(camd_page)
@@ -848,16 +841,6 @@ EC_BOOL camd_page_load_sata_aio_complete(CAMD_PAGE *camd_page)
         camd_del_page(camd_md, CAMD_PAGE_MOUNTED_TREE_IDX(camd_page), camd_page);
     }
 
-    if(NULL_PTR != CAMD_PAGE_M_TMP_CACHE(camd_page))
-    {
-        if(BIT_TRUE != CAMD_PAGE_SATA_LOADED_FLAG(camd_page))
-        {
-            BCOPY(CAMD_PAGE_M_TMP_CACHE(camd_page), CAMD_PAGE_M_CACHE(camd_page), CMCPGB_PAGE_SIZE_NBYTES);
-        }
-        __camd_mem_cache_free(CAMD_PAGE_M_TMP_CACHE(camd_page));
-        CAMD_PAGE_M_TMP_CACHE(camd_page) = NULL_PTR;
-    }
-
     CAMD_PAGE_SATA_LOADED_FLAG(camd_page)  = BIT_TRUE;  /*set sata loaded*/
     CAMD_PAGE_SATA_LOADING_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
     CAMD_PAGE_SATA_DIRTY_FLAG(camd_page)   = BIT_FALSE; /*clear flag*/
@@ -869,13 +852,11 @@ EC_BOOL camd_page_load_sata_aio_complete(CAMD_PAGE *camd_page)
 }
 
 /*load page from sata to mem cache*/
-EC_BOOL camd_page_load_sata_aio(CAMD_PAGE *camd_page, UINT32 is_for_write)
+EC_BOOL camd_page_load_sata_aio(CAMD_PAGE *camd_page)
 {
     CAMD_MD         *camd_md;
     CAIO_MD         *caio_md;
     CAIO_CB          caio_cb;
-
-    UINT8           *buf;
 
     camd_md = CAMD_PAGE_CAMD_MD(camd_page);
     CAMD_ASSERT(NULL_PTR != CAMD_MD_CAIO_MD(camd_md));
@@ -895,19 +876,11 @@ EC_BOOL camd_page_load_sata_aio(CAMD_PAGE *camd_page, UINT32 is_for_write)
 
     CAMD_ASSERT(CAMD_PAGE_F_S_OFFSET(camd_page) + CMCPGB_PAGE_SIZE_NBYTES == CAMD_PAGE_F_E_OFFSET(camd_page));
 
-    if( BIT_TRUE == is_for_write )
-    {
-        CAMD_PAGE_M_TMP_CACHE(camd_page) = __camd_mem_cache_new(CMCPGB_PAGE_SIZE_NBYTES, CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES);
-        buf = CAMD_PAGE_M_TMP_CACHE(camd_page);
-    }else
-    {
-        buf = CAMD_PAGE_M_CACHE(camd_page);
-    }
     if(EC_TRUE == caio_file_read(caio_md,
                     CAMD_PAGE_FD(camd_page),
                     &CAMD_PAGE_F_T_OFFSET(camd_page),
                     CAMD_PAGE_F_E_OFFSET(camd_page) - CAMD_PAGE_F_S_OFFSET(camd_page),
-                    buf,
+                    CAMD_PAGE_M_CACHE(camd_page),
                     &caio_cb))
     {
         return (EC_TRUE);
@@ -6083,31 +6056,18 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
             return;
         }
 
-        /*if write new whole page , do not neet load sata*/
-        if(1)
+        /*load page from sata to mem cache*/
+        if(EC_FALSE == camd_page_load_sata_aio(camd_page))
         {
-
-            UINT32 is_for_write;
-
-            if((CAMD_OP_WR == CAMD_PAGE_OP(camd_page)))
-            {
-                is_for_write = BIT_TRUE;
-            }
-
-            /*load page from sata to mem cache*/
-            if(EC_FALSE == camd_page_load_sata_aio(camd_page, is_for_write))
-            {
-                /*page cannot be accessed again => do not output log*/
-                return;
-            }
-
-            /*add page to standby page tree temporarily*/
-            camd_add_page(camd_md, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md), camd_page);
-            CAMD_PAGE_SATA_LOADING_FLAG(camd_page)  = BIT_TRUE; /*set flag*/
-
-            cfc_inc_traffic(CAMD_MD_SATA_READ_FC(camd_md), CMCPGB_PAGE_SIZE_NBYTES);
-
+            /*page cannot be accessed again => do not output log*/
+            return;
         }
+
+        cfc_inc_traffic(CAMD_MD_SATA_READ_FC(camd_md), CMCPGB_PAGE_SIZE_NBYTES);
+
+        /*add page to standby page tree temporarily*/
+        camd_add_page(camd_md, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md), camd_page);
+        CAMD_PAGE_SATA_LOADING_FLAG(camd_page)  = BIT_TRUE; /*set flag*/
 
         dbg_log(SEC_0125_CAMD, 5)(LOGSTDOUT, "[DEBUG] camd_process_page: "
                                              "submit sata loading page [%ld, %ld) done\n",

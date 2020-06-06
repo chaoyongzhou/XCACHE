@@ -194,14 +194,32 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
         return (CMPI_ERROR_MODI);
     }
 
-    sata_disk_fd = c_file_open((char *)cstring_get_str(sata_disk_path), O_RDWR | O_DIRECT /*| O_SYNC*/, 0666);
-    if(ERR_FD == sata_disk_fd)
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: open sata '%s' failed\n",
-                                             (char *)cstring_get_str(sata_disk_path));
+    sata_disk_fd = ERR_FD; /*avoid gcc complain*/
 
-        cbc_md_free(MD_CXFS, cxfs_md_id);
-        return (CMPI_ERROR_MODI);
+    if(SWITCH_ON == CXFSDN_CAMD_SWITCH)
+    {
+        sata_disk_fd = c_file_open((char *)cstring_get_str(sata_disk_path), O_RDWR | O_DIRECT, 0666);
+        if(ERR_FD == sata_disk_fd)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: open sata '%s' failed\n",
+                                                 (char *)cstring_get_str(sata_disk_path));
+
+            cbc_md_free(MD_CXFS, cxfs_md_id);
+            return (CMPI_ERROR_MODI);
+        }
+    }
+
+    if(SWITCH_OFF == CXFSDN_CAMD_SWITCH)
+    {
+        sata_disk_fd = c_file_open((char *)cstring_get_str(sata_disk_path), O_RDWR, 0666);
+        if(ERR_FD == sata_disk_fd)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: open sata '%s' failed\n",
+                                                 (char *)cstring_get_str(sata_disk_path));
+
+            cbc_md_free(MD_CXFS, cxfs_md_id);
+            return (CMPI_ERROR_MODI);
+        }
     }
 
     if(EC_FALSE == c_file_size(sata_disk_fd, &sata_disk_size))
@@ -231,16 +249,35 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_start: ssd path: %s\n",
                                      (char *)cstring_get_str(ssd_disk_path));
 
+        ssd_disk_fd = ERR_FD; /*avoid gcc complain*/
 
-        ssd_disk_fd = c_file_open((char *)cstring_get_str(ssd_disk_path), O_RDWR | O_DIRECT /*| O_SYNC*/, 0666);
-        if(ERR_FD == ssd_disk_fd)
+        if(SWITCH_ON == CXFSDN_CAMD_SWITCH)
         {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: open ssd '%s' failed\n",
-                                                 (char *)cstring_get_str(ssd_disk_path));
+            ssd_disk_fd = c_file_open((char *)cstring_get_str(ssd_disk_path), O_RDWR | O_DIRECT, 0666);
+            if(ERR_FD == ssd_disk_fd)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: open ssd '%s' failed\n",
+                                                     (char *)cstring_get_str(ssd_disk_path));
 
-            cbc_md_free(MD_CXFS, cxfs_md_id);
-            c_file_close(sata_disk_fd);
-            return (CMPI_ERROR_MODI);
+                cbc_md_free(MD_CXFS, cxfs_md_id);
+                c_file_close(sata_disk_fd);
+                return (CMPI_ERROR_MODI);
+            }
+        }
+
+        if(SWITCH_OFF == CXFSDN_CAMD_SWITCH)
+        {
+            ssd_disk_fd = c_file_open((char *)cstring_get_str(ssd_disk_path), O_RDWR, 0666);
+            if(ERR_FD == ssd_disk_fd)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: open ssd '%s' failed\n",
+                                                     (char *)cstring_get_str(ssd_disk_path));
+
+                cbc_md_free(MD_CXFS, cxfs_md_id);
+                c_file_close(sata_disk_fd);
+                return (CMPI_ERROR_MODI);
+            }
+
         }
 
         if(EC_FALSE == c_file_size(ssd_disk_fd, &ssd_disk_size))
@@ -664,14 +701,32 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
         return (CMPI_ERROR_MODI);
     }
 
-    sata_disk_fd = c_file_open((char *)cstring_get_str(sata_disk_path), O_RDWR | O_DIRECT /*| O_SYNC*/, 0666);
-    if(ERR_FD == sata_disk_fd)
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: open sata '%s' failed\n",
-                                             (char *)cstring_get_str(sata_disk_path));
+    sata_disk_fd = ERR_FD; /*avoid gcc complain*/
 
-        cbc_md_free(MD_CXFS, cxfs_md_id);
-        return (CMPI_ERROR_MODI);
+    if(SWITCH_ON == CXFSDN_CAMD_SWITCH)
+    {
+        sata_disk_fd = c_file_open((char *)cstring_get_str(sata_disk_path), O_RDWR | O_DIRECT, 0666);
+        if(ERR_FD == sata_disk_fd)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: open sata '%s' failed\n",
+                                                 (char *)cstring_get_str(sata_disk_path));
+
+            cbc_md_free(MD_CXFS, cxfs_md_id);
+            return (CMPI_ERROR_MODI);
+        }
+    }
+
+    if(SWITCH_OFF == CXFSDN_CAMD_SWITCH)
+    {
+        sata_disk_fd = c_file_open((char *)cstring_get_str(sata_disk_path), O_RDWR, 0666);
+        if(ERR_FD == sata_disk_fd)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: open sata '%s' failed\n",
+                                                 (char *)cstring_get_str(sata_disk_path));
+
+            cbc_md_free(MD_CXFS, cxfs_md_id);
+            return (CMPI_ERROR_MODI);
+        }
     }
 
     if(EC_FALSE == c_file_size(sata_disk_fd, &sata_disk_size))
@@ -701,15 +756,35 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_retrieve: ssd path: %s\n",
                                              (char *)cstring_get_str(ssd_disk_path));
 
-        ssd_disk_fd = c_file_open((char *)cstring_get_str(ssd_disk_path), O_RDWR | O_DIRECT /*| O_SYNC*/, 0666);
-        if(ERR_FD == ssd_disk_fd)
-        {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: open ssd '%s' failed\n",
-                                                 (char *)cstring_get_str(ssd_disk_path));
+        ssd_disk_fd = ERR_FD; /*avoid gcc complain*/
 
-            cbc_md_free(MD_CXFS, cxfs_md_id);
-            c_file_close(sata_disk_fd);
-            return (CMPI_ERROR_MODI);
+        if(SWITCH_ON == CXFSDN_CAMD_SWITCH)
+        {
+            ssd_disk_fd = c_file_open((char *)cstring_get_str(ssd_disk_path), O_RDWR | O_DIRECT, 0666);
+            if(ERR_FD == ssd_disk_fd)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: open ssd '%s' failed\n",
+                                                     (char *)cstring_get_str(ssd_disk_path));
+
+                cbc_md_free(MD_CXFS, cxfs_md_id);
+                c_file_close(sata_disk_fd);
+                return (CMPI_ERROR_MODI);
+            }
+
+        }
+
+        if(SWITCH_OFF == CXFSDN_CAMD_SWITCH)
+        {
+            ssd_disk_fd = c_file_open((char *)cstring_get_str(ssd_disk_path), O_RDWR, 0666);
+            if(ERR_FD == ssd_disk_fd)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: open ssd '%s' failed\n",
+                                                     (char *)cstring_get_str(ssd_disk_path));
+
+                cbc_md_free(MD_CXFS, cxfs_md_id);
+                c_file_close(sata_disk_fd);
+                return (CMPI_ERROR_MODI);
+            }
         }
 
         if(EC_FALSE == c_file_size(ssd_disk_fd, &ssd_disk_size))
@@ -3277,7 +3352,7 @@ STATIC_CAST static EC_BOOL __cxfs_reserve_hash_dn(const UINT32 cxfs_md_id, const
         }
 
         /*try to retire & recycle some files*/
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "warn:__cxfs_reserve_hash_dn: "
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:__cxfs_reserve_hash_dn: "
                                              "no %ld bytes space, try to retire & recycle\n",
                                              data_len);
         cxfs_retire(cxfs_md_id, (UINT32)CXFSNP_TRY_RETIRE_MAX_NUM, NULL_PTR);
@@ -3386,6 +3461,10 @@ STATIC_CAST static EC_BOOL __cxfs_reserve_no_hash_dn(const UINT32 cxfs_md_id, co
                 CXFSNP_INODE_BLOCK_NO(cxfsnp_inode)   = block_no;
                 CXFSNP_INODE_PAGE_NO(cxfsnp_inode)    = page_no;
 
+                dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "[DEBUG] __cxfs_reserve_no_hash_dn: "
+                                                     "size %u => (disk %u, block %u, page %u)\n",
+                                                     size, disk_no, block_no, page_no);
+
                 return (EC_TRUE);
             }
 
@@ -3401,7 +3480,7 @@ STATIC_CAST static EC_BOOL __cxfs_reserve_no_hash_dn(const UINT32 cxfs_md_id, co
         CXFS_MD_CUR_DISK_NO(cxfs_md) = disk_no;
 
         /*try to retire & recycle some files*/
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "warn:__cxfs_reserve_no_hash_dn: "
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:__cxfs_reserve_no_hash_dn: "
                                              "no %ld bytes space, try to retire & recycle\n",
                                              data_len);
         cxfs_retire(cxfs_md_id, (UINT32)CXFSNP_TRY_RETIRE_MAX_NUM, NULL_PTR);
@@ -3480,7 +3559,7 @@ EC_BOOL cxfs_reserve_dn(const UINT32 cxfs_md_id, const UINT32 data_len, CXFSNP_F
             break;
         }
 
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_reserve_dn: (disk %u, block %u, page %u), size %u cover bad page\n",
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_reserve_dn: (disk %u, block %u, page %u), size %u cover bad page\n",
                                              disk_no, block_no, page_no, size);
 
         cxfsdn_discard_sata_bad_page(CXFS_MD_DN(cxfs_md), size, disk_no, block_no, page_no);

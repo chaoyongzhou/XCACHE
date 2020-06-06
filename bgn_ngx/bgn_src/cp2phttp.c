@@ -153,7 +153,7 @@ EC_BOOL cp2phttp_log_start()
                         TASK_BRD_RANK(task_brd));
         log = log_file_open((char *)cstring_get_str(log_file_name), "a+",
                             TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd),
-                            LOGD_FILE_RECORD_LIMIT_ENABLED, SWITCH_OFF,
+                            LOGD_FILE_RECORD_LIMIT_ENABLED,
                             LOGD_SWITCH_OFF_ENABLE, LOGD_PID_INFO_ENABLE);
         if(NULL_PTR == log)
         {
@@ -186,7 +186,7 @@ EC_BOOL cp2phttp_log_start()
                         TASK_BRD_RANK(task_brd));
         log = log_file_open((char *)cstring_get_str(log_file_name), "a+",
                             TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd),
-                            LOGD_FILE_RECORD_LIMIT_ENABLED, SWITCH_OFF,
+                            LOGD_FILE_RECORD_LIMIT_ENABLED,
                             LOGD_SWITCH_OFF_ENABLE, LOGD_PID_INFO_ENABLE);
         if(NULL_PTR == log)
         {

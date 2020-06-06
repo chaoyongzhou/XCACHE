@@ -671,6 +671,7 @@ UINT32 super_incl_taskc_node(const UINT32 super_md_id, const UINT32 ipaddr, cons
     CSOCKET_CNODE_SRVPORT(csocket_cnode)= port;
     CSOCKET_CNODE_COMM(csocket_cnode)   = taskc_comm;
     CSOCKET_CNODE_SIZE(csocket_cnode)   = taskc_size;
+    CSOCKET_CNODE_STATUS(csocket_cnode) = CSOCKET_CNODE_XCHG_TASKC_NODE; /*trick*/
 
     tasks_worker_add_csocket_cnode(TASKS_CFG_WORKER(tasks_cfg), csocket_cnode);
 
@@ -2918,7 +2919,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
     if(BIT_TRUE == need_log_flag)
     {
         /*trick: unset need log flag*/
-        CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_FALSE;
+        CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_FALSE;
 
         CHTTP_STAT_LOG_ORIG_TIME_WHEN_START(s_msec);
     }
@@ -2929,7 +2930,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         CHTTP_STAT_REQ_S_MSEC(chttp_stat) = s_msec;
     }
 
-    if(EC_FALSE == chttp_request(chttp_req, (CHTTP_STORE *)chttp_store, chttp_rsp, chttp_stat))
+    if(EC_FALSE == chttp_request(chttp_req, chttp_store, chttp_rsp, chttp_stat))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_http_request: trigger request %p failed\n", chttp_req);
 
@@ -2937,7 +2938,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         && NULL_PTR != chttp_stat)
         {
             /*trick: restore need log flag*/
-            CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
+            CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 
             CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
 
@@ -2969,7 +2970,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         && NULL_PTR == chttp_stat)
         {
             /*trick: restore need log flag*/
-            CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
+            CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 
             CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
             s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
@@ -3062,7 +3063,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
             && NULL_PTR != chttp_stat)
             {
                 /*trick: restore need log flag*/
-                CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
+                CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 
                 CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
 
@@ -3094,7 +3095,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
             && NULL_PTR == chttp_stat)
             {
                 /*trick: restore need log flag*/
-                CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
+                CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 
                 CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
                 s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
@@ -3127,7 +3128,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
             chttp_store_print(LOGSTDOUT, chttp_store);
         }
 
-        if(EC_FALSE == chttp_request(&chttp_req_t, (CHTTP_STORE *)chttp_store, chttp_rsp, chttp_stat))
+        if(EC_FALSE == chttp_request(&chttp_req_t, chttp_store, chttp_rsp, chttp_stat))
         {
             dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_http_request: redirect request failed\n");
             chttp_req_print(LOGSTDOUT, &chttp_req_t);
@@ -3138,7 +3139,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
             && NULL_PTR != chttp_stat)
             {
                 /*trick: restore need log flag*/
-                CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
+                CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 
                 CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
 
@@ -3170,7 +3171,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
             && NULL_PTR == chttp_stat)
             {
                 /*trick: restore need log flag*/
-                CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
+                CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 
                 CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
                 s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
@@ -3209,7 +3210,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
     && NULL_PTR != chttp_stat)
     {
         /*trick: restore need log flag*/
-        CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
+        CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 
         CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
 
@@ -3241,7 +3242,7 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
     && NULL_PTR == chttp_stat)
     {
         /*trick: restore need log flag*/
-        CHTTP_STORE_NEED_LOG_FLAG((CHTTP_STORE *)chttp_store) = BIT_TRUE;
+        CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 
         CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
         s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
@@ -9449,6 +9450,127 @@ EC_BOOL super_set_sata_aio_req_max_num(const UINT32 super_md_id, const UINT32 ai
 
     return (EC_FALSE);
 }
+
+/**
+*
+* set cmc:fc:switch:<on|off>
+*
+**/
+EC_BOOL super_cmc_flow_control_switch_on(const UINT32 super_md_id)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_cmc_flow_control_switch_on: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    if(NULL_PTR != cparacfg)
+    {
+        CPARACFG_CMC_FLOW_CONTROL_SWITCH(cparacfg) = SWITCH_ON;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+/**
+*
+* set cmc:fc:switch:<on|off>
+*
+**/
+EC_BOOL super_cmc_flow_control_switch_off(const UINT32 super_md_id)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_cmc_flow_control_switch_off: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    if(NULL_PTR != cparacfg)
+    {
+        CPARACFG_CMC_FLOW_CONTROL_SWITCH(cparacfg) = SWITCH_OFF;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+/**
+*
+* set cdc:fc:switch:<on|off>
+*
+**/
+EC_BOOL super_cdc_flow_control_switch_on(const UINT32 super_md_id)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_cdc_flow_control_switch_on: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    if(NULL_PTR != cparacfg)
+    {
+        CPARACFG_CDC_FLOW_CONTROL_SWITCH(cparacfg) = SWITCH_ON;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+/**
+*
+* set cdc:fc:switch:<on|off>
+*
+**/
+EC_BOOL super_cdc_flow_control_switch_off(const UINT32 super_md_id)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_cdc_flow_control_switch_off: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    if(NULL_PTR != cparacfg)
+    {
+        CPARACFG_CDC_FLOW_CONTROL_SWITCH(cparacfg) = SWITCH_OFF;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
 
 #ifdef __cplusplus
 }

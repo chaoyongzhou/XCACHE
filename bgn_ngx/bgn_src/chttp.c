@@ -1606,20 +1606,17 @@ void chttp_stat_log(const CHTTP_STAT *chttp_stat, LOG *log)
         if(CHTTP_STAT_LOG_002_ORIG_S_TIMESTAMP & log_bitmap)
         {
             buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t",
-                                    c_http_time_msec(CHTTP_STAT_REQ_S_MSEC(chttp_stat)));
+                                    c_http_log_time_msec(CHTTP_STAT_REQ_S_MSEC(chttp_stat)));
         }
 
-        if(CHTTP_STAT_LOG_003_ORIG_E_TIME_MSEC & log_bitmap)
+        if(CHTTP_STAT_LOG_003_CLIENT_IPADDR & log_bitmap)
         {
-            uint32_t    msec;
-
-            msec = (uint32_t)(CHTTP_STAT_REQ_E_MSEC(chttp_stat) - CHTTP_STAT_REQ_S_MSEC(chttp_stat));
-            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%u\t", msec);
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "127.0.0.1");
         }
 
         if(CHTTP_STAT_LOG_004_CACHE_STATUS & log_bitmap)
         {
-            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "MISS");
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "TCP_MISS");
         }
 
         if(CHTTP_STAT_LOG_005_ORIG_RSP_STATUS & log_bitmap)
@@ -1641,13 +1638,12 @@ void chttp_stat_log(const CHTTP_STAT *chttp_stat, LOG *log)
 
         if(CHTTP_STAT_LOG_008_ORIG_REQ_LEN & log_bitmap)
         {
-            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%u\t",
-                                    CHTTP_STAT_S_SEND_LEN(chttp_stat));
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%u\t", (uint32_t)0);
         }
 
         if(CHTTP_STAT_LOG_009_LOCAL_IPADDR & log_bitmap)
         {
-            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "-");
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "127.0.0.1");
         }
 
         if(CHTTP_STAT_LOG_010_ORIG_RSP_TIME_MSEC & log_bitmap)
@@ -1671,12 +1667,12 @@ void chttp_stat_log(const CHTTP_STAT *chttp_stat, LOG *log)
 
         if(CHTTP_STAT_LOG_013_LOCAL_PORT & log_bitmap)
         {
-            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "-");
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "18080");
         }
 
         if(CHTTP_STAT_LOG_014_SERVICE_TYPE & log_bitmap)
         {
-            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "-");
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "video");
         }
 
         if(CHTTP_STAT_LOG_015_ORIG_IPADDR & log_bitmap)
@@ -1685,12 +1681,13 @@ void chttp_stat_log(const CHTTP_STAT *chttp_stat, LOG *log)
                                     (char *)CHTTP_STAT_REQ_IPADDR_STR(chttp_stat));
         }
 
-        if(CHTTP_STAT_LOG_016_ORIG_C_TIME_MSEC & log_bitmap)
+        if(CHTTP_STAT_LOG_016_ORIG_C_TIME_NSEC & log_bitmap)
         {
             uint32_t    msec;
 
             msec = (uint32_t)(CHTTP_STAT_REQ_C_MSEC(chttp_stat) - CHTTP_STAT_REQ_S_MSEC(chttp_stat));
-            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%u\t", msec);
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%.03f\t",
+                                    (double)((msec + 0.0)/ 1000.0));
         }
 
         if(CHTTP_STAT_LOG_017_ORIG_SENT_NBYTES & log_bitmap)
@@ -1700,7 +1697,7 @@ void chttp_stat_log(const CHTTP_STAT *chttp_stat, LOG *log)
 
         if(CHTTP_STAT_LOG_018_SSL_HANDSHAKE_MSEC & log_bitmap)
         {
-            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "-");
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%u\t", (uint32_t)0);
         }
 
         if(CHTTP_STAT_LOG_019_SSL_SENT_NBYTES & log_bitmap)
@@ -1710,7 +1707,7 @@ void chttp_stat_log(const CHTTP_STAT *chttp_stat, LOG *log)
 
         if(CHTTP_STAT_LOG_020_CLIENT_RTT & log_bitmap)
         {
-            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%s\t", "-");
+            buff_len += snprintf(buff + buff_len, buff_max_len - buff_len, "%u\t", (uint32_t)0);
         }
 
         if(CHTTP_STAT_LOG_021_ORIG_RECV_NBYTES & log_bitmap)
@@ -11324,7 +11321,8 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
             CHTTP_STAT_REQ_S_MSEC(chttp_stat) = s_msec;
         }
 
-        if(EC_FALSE == chttp_request_basic(chttp_req, chttp_store, chttp_rsp, chttp_stat)) /*need store or not need store (e.g. direct procedure)*/
+        /*need store or not need store (e.g. direct procedure)*/
+        if(EC_FALSE == chttp_request_basic(chttp_req, chttp_store, chttp_rsp, chttp_stat))
         {
             if(BIT_TRUE == need_log_flag
             && NULL_PTR != chttp_stat)

@@ -209,6 +209,8 @@ EC_BOOL csocket_cnode_init(CSOCKET_CNODE *csocket_cnode)
     CSOCKET_CNODE_IPADDR(csocket_cnode )            = CMPI_ERROR_IPADDR;
     CSOCKET_CNODE_SRVPORT(csocket_cnode)            = CMPI_ERROR_SRVPORT;
 
+    CSOCKET_CNODE_MOUNTED_POINT(csocket_cnode)      = NULL_PTR;
+
     CSOCKET_CNODE_LOAD(csocket_cnode)               = 0;
     CSOCKET_CNODE_PKT_POS(csocket_cnode)            = 0;
 
@@ -299,16 +301,9 @@ EC_BOOL csocket_cnode_clean(CSOCKET_CNODE *csocket_cnode)
     CSOCKET_CNODE_LOAD(csocket_cnode)               = 0;
     CSOCKET_CNODE_PKT_POS(csocket_cnode)            = 0;
 
+    CSOCKET_CNODE_MOUNTED_POINT(csocket_cnode)      = NULL_PTR;
+
     return (EC_TRUE);
-}
-
-void csocket_cnode_clear(CSOCKET_CNODE *csocket_cnode)
-{
-    csocket_cnode_callback_when_close(csocket_cnode);
-
-    CSOCKET_CNODE_PKT_POS(csocket_cnode)            = 0;
-
-    return;
 }
 
 CSOCKET_CNODE * csocket_cnode_new(const UINT32 location)
@@ -328,6 +323,8 @@ CSOCKET_CNODE * csocket_cnode_new(const UINT32 location)
 
     CSOCKET_CNODE_SET_CONNECTED(csocket_cnode);
 
+    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "[DEBUG] csocket_cnode_new: %p\n", csocket_cnode);
+
     return (csocket_cnode);
 }
 
@@ -335,6 +332,8 @@ EC_BOOL csocket_cnode_free(CSOCKET_CNODE *csocket_cnode)
 {
     if(NULL_PTR != csocket_cnode)
     {
+        dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "[DEBUGX] csocket_cnode_free: %p\n", csocket_cnode);
+
         if(BIT_TRUE == CSOCKET_CNODE_IS_USED(csocket_cnode))
         {
             csocket_cnode_clean(csocket_cnode);

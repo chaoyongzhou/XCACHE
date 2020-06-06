@@ -1026,7 +1026,7 @@ UINT32 cmpi_decode_log(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_
 
         log_file_init(log, NULL_PTR, NULL_PTR,
                         CMPI_ERROR_TCID, CMPI_ERROR_RANK,
-                        LOGD_FILE_RECORD_LIMIT_DISABLED, (UINT32)SWITCH_OFF,
+                        LOGD_FILE_RECORD_LIMIT_DISABLED,
                         LOGD_SWITCH_OFF_DISABLE, LOGD_PID_INFO_ENABLE);
 
         if(DEFAULT_STDOUT_LOG_INDEX == fd)
