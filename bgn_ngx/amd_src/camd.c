@@ -566,8 +566,12 @@ EC_BOOL camd_page_complete(CAMD_PAGE *camd_page)
 
 EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx)
 {
+    CAMD_MD         *camd_md;
     CAMD_NODE       *camd_node;
     uint32_t         page_dirty_flag;
+
+    CAMD_ASSERT(NULL_PTR != CAMD_PAGE_CAMD_MD(camd_page));
+    camd_md = CAMD_PAGE_CAMD_MD(camd_page);
 
     page_dirty_flag = BIT_FALSE;/*init*/
 
@@ -662,19 +666,61 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
         }
     }
 
-    if(BIT_TRUE == page_dirty_flag)
+    /*ssd read cache is off or ssd read cache is on but no ssd*/
+    if(SWITCH_OFF == CDC_READ_CACHE_SWITCH || NULL_PTR == CAMD_MD_CDC_MD(camd_md))
     {
-        CAMD_PAGE_SSD_DIRTY_FLAG(camd_page)  = BIT_TRUE;
-        CAMD_PAGE_SATA_DIRTY_FLAG(camd_page) = BIT_TRUE;
+        if(BIT_TRUE == page_dirty_flag)
+        {
+            CAMD_PAGE_SSD_DIRTY_FLAG(camd_page)  = BIT_TRUE;
+            CAMD_PAGE_SATA_DIRTY_FLAG(camd_page) = BIT_TRUE;
+        }
+        else
+        {
+            if(SWITCH_ON == CAMD_SATA_UPGRADE_MEM_SWITCH
+            && SWITCH_ON == CAMD_SATA_DEGRADE_SSD_SWITCH
+            && BIT_TRUE == CAMD_PAGE_SATA_LOADED_FLAG(camd_page))
+            {
+                /*if loaded from sata, then flush to ssd*/
+                CAMD_PAGE_SSD_DIRTY_FLAG(camd_page)  = BIT_TRUE;
+            }
+        }
     }
+    /*ssd read cache is on and has ssd*/
     else
     {
-        if(SWITCH_ON == CAMD_SATA_UPGRADE_MEM_SWITCH
-        && SWITCH_ON == CAMD_SATA_DEGRADE_SSD_SWITCH
-        && BIT_TRUE == CAMD_PAGE_SATA_LOADED_FLAG(camd_page))
+        if(BIT_TRUE == page_dirty_flag)
         {
-            /*if loaded from sata, then flush to ssd*/
-            CAMD_PAGE_SSD_DIRTY_FLAG(camd_page)  = BIT_TRUE;
+            if(BIT_TRUE == CAMD_PAGE_SSD_LOADED_FLAG(camd_page))
+            {
+                /*if loaded from ssd and changed, then flush to sata and purge ssd*/
+                camd_page_purge_ssd(camd_page); /*purge from ssd*/
+                CAMD_PAGE_SSD_LOADED_FLAG(camd_page) = BIT_FALSE;  /*clear*/
+
+                CAMD_PAGE_SATA_DIRTY_FLAG(camd_page) = BIT_TRUE;
+            }
+            else
+            {
+                /*if page has degraded to ssd and then changed, here need purge ssd and then flush to sata*/
+                /*
+                 * scenario e.g., sata upgrade to mem => mem degrade to ssd => page changed
+                 * here ssd loaded flag is false
+                 *
+                 */
+                camd_page_purge_ssd(camd_page); /*purge from ssd*/
+
+                /*if loaded from sata and changed or new page, then flush to sata*/
+                CAMD_PAGE_SATA_DIRTY_FLAG(camd_page) = BIT_TRUE;
+            }
+        }
+        else
+        {
+            if(SWITCH_ON == CAMD_SATA_UPGRADE_MEM_SWITCH
+            && SWITCH_ON == CAMD_SATA_DEGRADE_SSD_SWITCH
+            && BIT_TRUE == CAMD_PAGE_SATA_LOADED_FLAG(camd_page))
+            {
+                /*if loaded from sata and not changed, then flush to ssd*/
+                CAMD_PAGE_SSD_DIRTY_FLAG(camd_page)  = BIT_TRUE;
+            }
         }
     }
 
@@ -696,11 +742,6 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
     && ((SWITCH_ON == CAMD_SATA_UPGRADE_MEM_SWITCH && BIT_TRUE == CAMD_PAGE_SATA_LOADED_FLAG(camd_page))
     ||  (SWITCH_ON == CAMD_SSD_UPGRADE_MEM_SWITCH  && BIT_TRUE == CAMD_PAGE_SSD_LOADED_FLAG(camd_page)))))
     {
-        CAMD_MD     *camd_md;
-
-        CAMD_ASSERT(NULL_PTR != CAMD_PAGE_CAMD_MD(camd_page));
-        camd_md = CAMD_PAGE_CAMD_MD(camd_page);
-
         /*do not flush page to mem cache under read-only mode*/
         if(EC_TRUE == camd_is_read_only(camd_md))
         {
@@ -1383,7 +1424,9 @@ EC_BOOL camd_page_flush_mem(CAMD_PAGE *camd_page)
         CMCNP_KEY_E_PAGE(&cmcnp_key) = (uint32_t)(CAMD_PAGE_F_E_OFFSET(camd_page) >> CMCPGB_PAGE_SIZE_NBITS);
 
         cmcnp_item = cmc_find(cmc_md, &cmcnp_key);
-        if(NULL_PTR != cmcnp_item)
+
+        if(NULL_PTR != cmcnp_item
+        && (SWITCH_OFF == CDC_READ_CACHE_SWITCH || NULL_PTR == CAMD_MD_CDC_MD(camd_md)))
         {
             if(BIT_TRUE == CAMD_PAGE_SSD_DIRTY_FLAG(camd_page))
             {
@@ -1395,6 +1438,31 @@ EC_BOOL camd_page_flush_mem(CAMD_PAGE *camd_page)
             {
                 CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item) = BIT_TRUE;
                 CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item)  = BIT_TRUE;
+            }
+            /*else, do not change sata dirty flag of item*/
+
+            dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_page_flush_mem: "
+                             "page [%ld, %ld) set ssd dirty %u, sata dirty %u done\n",
+                             CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page),
+                             CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item),
+                             CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item));
+        }
+
+        if(NULL_PTR != cmcnp_item
+        && (SWITCH_ON == CDC_READ_CACHE_SWITCH && NULL_PTR != CAMD_MD_CDC_MD(camd_md)))
+        {
+            if(BIT_TRUE == CAMD_PAGE_SSD_DIRTY_FLAG(camd_page))
+            {
+                /*flush to ssd*/
+                CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item)  = BIT_TRUE;
+            }
+            /*else, do not change ssd dirty flag of item*/
+
+            if(BIT_TRUE == CAMD_PAGE_SATA_DIRTY_FLAG(camd_page))
+            {
+                /*flush to sata only*/
+                CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item)  = BIT_FALSE;
+                CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item) = BIT_TRUE;
             }
             /*else, do not change sata dirty flag of item*/
 
@@ -2881,7 +2949,7 @@ CAMD_MD *camd_start(const char *camd_shm_root_dir,
 
     if(ERR_FD != sata_disk_fd && 0 != sata_disk_size)
     {
-        caio_add_disk(CAMD_MD_CAIO_MD(camd_md), sata_disk_fd, &CAMD_SATA_AIO_REQ_MAX_NUM_RAW);
+        caio_add_disk(CAMD_MD_CAIO_MD(camd_md), sata_disk_fd, (const char *)"sata", &CAMD_SATA_AIO_REQ_MAX_NUM_RAW);
     }
 
     if(0 != mem_disk_size)
@@ -2902,11 +2970,23 @@ CAMD_MD *camd_start(const char *camd_shm_root_dir,
                                              "ssd_disk_fd = %d, ssd_disk_size = %ld\n",
                                              ssd_disk_fd, ssd_disk_size);
 
-        if(NULL_PTR != CAMD_MD_CMC_MD(camd_md))
+        if(SWITCH_OFF == CDC_READ_CACHE_SWITCH && NULL_PTR != CAMD_MD_CMC_MD(camd_md))
         {
+            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_start: "
+                                                 "ssd read cache: off\n");
             /*set degrade callback*/
             cmc_set_degrade_callback(CAMD_MD_CMC_MD(camd_md), CMC_DEGRADE_SSD,
                                     (CMCNP_DEGRADE_CALLBACK)camd_ssd_flush, (void *)camd_md);
+        }
+
+        if(SWITCH_ON == CDC_READ_CACHE_SWITCH && NULL_PTR != CAMD_MD_CMC_MD(camd_md))
+        {
+            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_start: "
+                                                 "ssd read cache: on\n");
+
+            /*set degrade callback*/
+            cmc_set_degrade_callback(CAMD_MD_CMC_MD(camd_md), CMC_DEGRADE_MEM,
+                                    (CMCNP_DEGRADE_CALLBACK)camd_mem_degrade, (void *)camd_md);
         }
 
         if(SWITCH_ON == CAMD_SYNC_CDC_SWITCH)
@@ -2943,7 +3023,7 @@ CAMD_MD *camd_start(const char *camd_shm_root_dir,
                 return (NULL_PTR);
             }
 
-            caio_add_disk(CAMD_MD_CAIO_MD(camd_md), ssd_disk_fd, &CAMD_SSD_AIO_REQ_MAX_NUM_RAW);
+            caio_add_disk(CAMD_MD_CAIO_MD(camd_md), ssd_disk_fd, (const char *)"ssd", &CAMD_SSD_AIO_REQ_MAX_NUM_RAW);
 
             if(SWITCH_ON == CDC_BIND_AIO_SWITCH)
             {
@@ -4936,7 +5016,7 @@ EC_BOOL camd_retrieve_shm(CAMD_MD *camd_md)
     return (EC_TRUE);
 }
 
-EC_BOOL camd_enable_dio(CAMD_MD *camd_md, const int disk_fd, const UINT32 disk_offset, const UINT32 disk_size)
+EC_BOOL camd_enable_dio(CAMD_MD *camd_md, const int disk_fd, const char *disk_tag, const UINT32 disk_offset, const UINT32 disk_size)
 {
     if(NULL_PTR != CAMD_MD_CDIO_MD(camd_md))
     {
@@ -4944,18 +5024,18 @@ EC_BOOL camd_enable_dio(CAMD_MD *camd_md, const int disk_fd, const UINT32 disk_o
         return (EC_FALSE);
     }
 
-    CAMD_MD_CDIO_MD(camd_md) = cdio_start(disk_fd, disk_offset, disk_size);
+    CAMD_MD_CDIO_MD(camd_md) = cdio_start(disk_fd, disk_tag, disk_offset, disk_size);
     if(NULL_PTR == CAMD_MD_CDIO_MD(camd_md))
     {
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_enable_dio: "
-                                             "enable dio of disk fd %d, offset %ld, size %ld failed\n",
-                                             disk_fd, disk_offset, disk_size);
+                                             "enable dio of disk fd %d, tag %s, offset %ld, size %ld failed\n",
+                                             disk_fd, disk_tag, disk_offset, disk_size);
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_enable_dio: "
-                                         "enable dio of disk fd %d, offset %ld, size %ld done\n",
-                                         disk_fd, disk_offset, disk_size);
+                                         "enable dio of disk fd %d, tag %s, offset %ld, size %ld done\n",
+                                         disk_fd, disk_tag, disk_offset, disk_size);
     return (EC_TRUE);
 }
 
@@ -7871,6 +7951,27 @@ EC_BOOL camd_sata_degrade(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key, const CM
     }
 
     return (EC_TRUE);
+}
+
+/*flush one page in mem to ssd or sata determined by dirty flag*/
+EC_BOOL camd_mem_degrade(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key, const CMCNP_ITEM *cmcnp_item,
+                            const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no)
+{
+    if(BIT_TRUE == CMCNP_ITEM_SSD_DIRTY_FLAG(cmcnp_item))
+    {
+        dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_mem_degrade: ssd dirty\n");
+        return camd_ssd_flush(camd_md, cmcnp_key, cmcnp_item, disk_no, block_no, page_no);
+    }
+
+    if(BIT_TRUE == CMCNP_ITEM_SATA_DIRTY_FLAG(cmcnp_item))
+    {
+        dbg_log(SEC_0125_CAMD, 6)(LOGSTDOUT, "[DEBUG] camd_mem_degrade: sata dirty\n");
+        return camd_sata_degrade(camd_md, cmcnp_key, cmcnp_item, disk_no, block_no, page_no);
+    }
+
+    /*never reach here*/
+    dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_mem_degrade: ssd and sata not dirty\n");
+    return (EC_FALSE);
 }
 
 /*----------------------------------- camd file req interface -----------------------------------*/

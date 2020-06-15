@@ -112,6 +112,8 @@ uint64_t c_str_to_uint64_t(const char *str);
 
 char *c_uint64_t_to_space_size_str(const uint64_t num);
 
+uint64_t c_space_size_str_to_uint64_t(const char *space_size_str);
+
 int c_long_to_str_buf(const long num, char *buf);
 
 EC_BOOL c_str_fetch_uint32_t(const char *str, const char *prefix, const char *delim, uint32_t *val);

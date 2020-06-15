@@ -9657,6 +9657,198 @@ EC_BOOL super_cdc_flow_control_switch_off(const UINT32 super_md_id)
     return (EC_FALSE);
 }
 
+/**
+*
+* set cxfs:lru:switch:on
+* set cxfs:fifo:switch:off
+*
+**/
+EC_BOOL super_cxfs_lru_model_switch_on(const UINT32 super_md_id)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_cxfs_lru_model_switch_on: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    if(NULL_PTR != cparacfg)
+    {
+        CPARACFG_CXFS_LRU_MODEL_SWITCH(cparacfg)  = SWITCH_ON;
+        CPARACFG_CXFS_FIFO_MODEL_SWITCH(cparacfg) = SWITCH_OFF;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+/**
+*
+* set cxfs:lru:switch:off
+* set cxfs:fifo:switch:on
+*
+**/
+EC_BOOL super_cxfs_fifo_model_switch_on(const UINT32 super_md_id)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_cxfs_fifo_model_switch_on: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    if(NULL_PTR != cparacfg)
+    {
+        CPARACFG_CXFS_LRU_MODEL_SWITCH(cparacfg)  = SWITCH_OFF;
+        CPARACFG_CXFS_FIFO_MODEL_SWITCH(cparacfg) = SWITCH_ON;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+/**
+*
+* set cmc:lru:switch:on
+* set cmc:fifo:switch:off
+*
+**/
+EC_BOOL super_cmc_lru_model_switch_on(const UINT32 super_md_id)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_cmc_lru_model_switch_on: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    if(NULL_PTR != cparacfg)
+    {
+        CPARACFG_CMC_LRU_MODEL_SWITCH(cparacfg)  = SWITCH_ON;
+        CPARACFG_CMC_FIFO_MODEL_SWITCH(cparacfg) = SWITCH_OFF;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+/**
+*
+* set cmc:lru:switch:off
+* set cmc:fifo:switch:on
+*
+**/
+EC_BOOL super_cmc_fifo_model_switch_on(const UINT32 super_md_id)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_cmc_fifo_model_switch_on: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    if(NULL_PTR != cparacfg)
+    {
+        CPARACFG_CMC_LRU_MODEL_SWITCH(cparacfg)  = SWITCH_OFF;
+        CPARACFG_CMC_FIFO_MODEL_SWITCH(cparacfg) = SWITCH_ON;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+/**
+*
+* set cdc:lru:switch:on
+* set cdc:fifo:switch:off
+*
+**/
+EC_BOOL super_cdc_lru_model_switch_on(const UINT32 super_md_id)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_cdc_lru_model_switch_on: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    if(NULL_PTR != cparacfg)
+    {
+        CPARACFG_CDC_LRU_MODEL_SWITCH(cparacfg)  = SWITCH_ON;
+        CPARACFG_CDC_FIFO_MODEL_SWITCH(cparacfg) = SWITCH_OFF;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+/**
+*
+* set cdc:lru:switch:off
+* set cdc:fifo:switch:on
+*
+**/
+EC_BOOL super_cdc_fifo_model_switch_on(const UINT32 super_md_id)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_cdc_fifo_model_switch_on: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    if(NULL_PTR != cparacfg)
+    {
+        CPARACFG_CDC_LRU_MODEL_SWITCH(cparacfg)  = SWITCH_OFF;
+        CPARACFG_CDC_FIFO_MODEL_SWITCH(cparacfg) = SWITCH_ON;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
 
 #ifdef __cplusplus
 }

@@ -200,6 +200,12 @@ EC_BOOL crfshttps_handle_locked_file_retire_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttps_make_locked_file_retire_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttps_commit_locked_file_retire_get_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL crfshttps_is_http_get_paracfg(const CHTTP_NODE *chttp_node);
+EC_BOOL crfshttps_commit_paracfg_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttps_handle_paracfg_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttps_make_paracfg_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttps_commit_paracfg_get_response(CHTTP_NODE *chttp_node);
+
 #endif /*_CRFSHTTPS_H*/
 
 #ifdef __cplusplus

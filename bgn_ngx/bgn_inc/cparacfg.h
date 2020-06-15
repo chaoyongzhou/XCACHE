@@ -21,7 +21,10 @@ extern "C"{
 
 #include "cparacfg.inc"
 #include "cxml.h"
+
 #include "task.h"
+
+#include "json.h"
 
 CPARACFG *cparacfg_new(const UINT32 this_tcid, const UINT32 this_rank);
 
@@ -38,6 +41,8 @@ EC_BOOL cparacfg_validity_check(const CPARACFG *cparacfg);
 EC_BOOL cparacfg_cmp(const CPARACFG *cparacfg_1st, const CPARACFG *cparacfg_2nd);
 
 void cparacfg_print(LOG *log, const CPARACFG *cparacfg);
+
+void cparacfg_json(json_object *obj, const CPARACFG *cparacfg);
 
 
 #endif/*_CPARACFG_H*/

@@ -1074,6 +1074,65 @@ char *c_uint64_t_to_space_size_str(const uint64_t num)
     return (str_cache);
 }
 
+uint64_t c_space_size_str_to_uint64_t(const char *space_size_str)
+{
+    uint64_t  size;
+    uint64_t  scale;
+    uint32_t  len;
+    uint8_t   unit;
+
+    if(NULL_PTR == space_size_str)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_space_size_str_to_uint64_t:"
+                                              "null string\n");
+        return ((uint64_t)0);
+    }
+
+    len = strlen(space_size_str);
+    if(0 == len)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_space_size_str_to_uint64_t:"
+                                              "empty string\n");
+        return ((uint64_t)0);
+    }
+
+    unit = space_size_str[ len - 1 ];
+
+    switch (unit)
+    {
+        case 'K':
+        case 'k':
+        {
+            len --;
+            scale = 1024;
+            break;
+        }
+        case 'M':
+        case 'm':
+        {
+            len --;
+            scale = 1024 * 1024;
+            break;
+        }
+        case 'G':
+        case 'g':
+        {
+            len --;
+            scale = 1024 * 1024 * 1024;
+            break;
+        }
+        default:
+        {
+            scale = 1;
+        }
+    }
+
+    size = c_chars_to_uint64_t(space_size_str, len);
+    size *= scale;
+
+    return (size);
+}
+
 /*long to string*/
 int c_long_to_str_buf(const long num, char *buf)
 {

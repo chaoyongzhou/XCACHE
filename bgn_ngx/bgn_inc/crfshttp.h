@@ -224,6 +224,12 @@ EC_BOOL crfshttp_handle_locked_file_retire_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_make_locked_file_retire_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL crfshttp_commit_locked_file_retire_get_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL crfshttp_is_http_get_paracfg(const CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_commit_paracfg_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_handle_paracfg_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_make_paracfg_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL crfshttp_commit_paracfg_get_response(CHTTP_NODE *chttp_node);
+
 #endif /*_CRFSHTTP_H*/
 
 #ifdef __cplusplus

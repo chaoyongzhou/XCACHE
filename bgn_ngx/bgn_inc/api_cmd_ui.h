@@ -148,6 +148,21 @@ EC_BOOL api_cmd_ui_cdc_flow_control_switch_on_all(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cdc_flow_control_switch_off(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cdc_flow_control_switch_off_all(CMD_PARA_VEC * param);
 
+EC_BOOL api_cmd_ui_cxfs_lru_model_switch_on(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_lru_model_switch_on_all(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_fifo_model_switch_on(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_fifo_model_switch_on_all(CMD_PARA_VEC * param);
+
+EC_BOOL api_cmd_ui_cmc_lru_model_switch_on(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cmc_lru_model_switch_on_all(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cmc_fifo_model_switch_on(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cmc_fifo_model_switch_on_all(CMD_PARA_VEC * param);
+
+EC_BOOL api_cmd_ui_cdc_lru_model_switch_on(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cdc_lru_model_switch_on_all(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cdc_fifo_model_switch_on(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cdc_fifo_model_switch_on_all(CMD_PARA_VEC * param);
+
 EC_BOOL api_cmd_ui_show_client(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_show_client_all(CMD_PARA_VEC * param);
 

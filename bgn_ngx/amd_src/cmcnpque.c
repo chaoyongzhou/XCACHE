@@ -14,7 +14,7 @@ extern "C"{
 #include "log.h"
 
 #include "cmisc.h"
-
+#include "task.h"
 #include "cmcnpque.h"
 #include "cmcnp.h"
 

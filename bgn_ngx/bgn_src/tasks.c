@@ -563,13 +563,18 @@ EC_BOOL tasks_node_check(const TASKS_NODE *tasks_node, const CSOCKET_CNODE *csoc
         return (EC_FALSE);
     }
 
-    if(TASKS_NODE_SRVIPADDR(tasks_node) != CSOCKET_CNODE_IPADDR(csocket_cnode))
+    /*warning: tasks_node ip 10.63.101.59, csocket_cnode ip 127.0.0.1, but all local ip*/
+    if(EC_FALSE == c_ipv4_is_local(TASKS_NODE_SRVIPADDR(tasks_node))
+    || EC_FALSE == c_ipv4_is_local(CSOCKET_CNODE_IPADDR(csocket_cnode)))
     {
-        dbg_log(SEC_0121_TASKS, 1)(LOGSTDOUT, "warn:tasks_node_check: "
-                                              "ipaddr mismatched: %s <---> %s\n",
-                                              TASKS_NODE_SRVIPADDR_STR(tasks_node),
-                                              CSOCKET_CNODE_IPADDR_STR(csocket_cnode));
-        return (EC_FALSE);
+        if(TASKS_NODE_SRVIPADDR(tasks_node) != CSOCKET_CNODE_IPADDR(csocket_cnode))
+        {
+            dbg_log(SEC_0121_TASKS, 1)(LOGSTDOUT, "warn:tasks_node_check: "
+                                                  "ipaddr mismatched: %s <---> %s\n",
+                                                  TASKS_NODE_SRVIPADDR_STR(tasks_node),
+                                                  CSOCKET_CNODE_IPADDR_STR(csocket_cnode));
+            return (EC_FALSE);
+        }
     }
 
     if(TASKS_NODE_SRVPORT(tasks_node) != CSOCKET_CNODE_SRVPORT(csocket_cnode))
@@ -949,6 +954,11 @@ EC_BOOL tasks_node_set_callback(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_c
 
         CSOCKET_CNODE_MOUNTED_POINT(csocket_cnode) = tasks_node;
 
+        dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_set_callback: "
+                                              "[XCHG] sockfd %d (tasks_node %p), reset recv callback\n",
+                                              CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                                              CSOCKET_CNODE_MOUNTED_POINT(csocket_cnode));
+
         csocket_cnode_push_recv_callback(csocket_cnode,
                                          (const char *)"tasks_node_irecv",
                                          (UINT32)&(CSOCKET_CNODE_MOUNTED_POINT(csocket_cnode)),
@@ -987,6 +997,11 @@ EC_BOOL tasks_node_set_callback(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_c
 
         /*node: csocket_cnode point to tasks_node which may be changed after handshake*/
         CSOCKET_CNODE_MOUNTED_POINT(csocket_cnode) = tasks_node;
+
+        dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_node_set_callback: "
+                                              "[not XCHG] sockfd %d (tasks_node %p)\n",
+                                              CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                                              CSOCKET_CNODE_MOUNTED_POINT(csocket_cnode));
 
         csocket_cnode_push_recv_callback(csocket_cnode,
                                          (const char *)"tasks_handshake_recv",
@@ -1908,7 +1923,7 @@ EC_BOOL tasks_worker_add_csocket_cnode(TASKS_WORKER *tasks_worker, CSOCKET_CNODE
     if(NULL_PTR != tasks_node)
     {
         /*debug only*/
-        if(EC_FALSE == tasks_node_check(tasks_node, csocket_cnode))
+        if(0 && EC_FALSE == tasks_node_check(tasks_node, csocket_cnode))
         {
             dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_worker_add_csocket_cnode: "
                                 "tasks_node and csocket_cnode does not match\n");
@@ -3187,7 +3202,7 @@ EC_BOOL tasks_handshake_recv(TASKS_NODE **tasks_node_t, CSOCKET_CNODE *csocket_c
 
     if(EC_FALSE == tasks_handshake_irecv(csocket_cnode))
     {
-        dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_monitor_node_handshake_recv: "
+        dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_handshake_recv: "
                                               "sockfd %d irecv task_node failed\n",
                                               CSOCKET_CNODE_SOCKFD(csocket_cnode));
         return (EC_FALSE);
@@ -3198,9 +3213,10 @@ EC_BOOL tasks_handshake_recv(TASKS_NODE **tasks_node_t, CSOCKET_CNODE *csocket_c
         cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_RD_EVENT);
         CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
 
-        dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_monitor_node_handshake_recv: "
-                                              "sockfd %d del RD event done\n",
-                                              CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        dbg_log(SEC_0121_TASKS, 9)(LOGSTDOUT, "[DEBUG] tasks_handshake_recv: "
+                                              "sockfd %d del RD event done (tasks_node %p)\n",
+                                              CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                                              CSOCKET_CNODE_MOUNTED_POINT(csocket_cnode));
 
         /*check if handshake complete*/
         return tasks_handshake_icomplete(csocket_cnode);

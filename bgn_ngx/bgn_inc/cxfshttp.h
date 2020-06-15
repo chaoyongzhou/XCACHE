@@ -260,6 +260,12 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_make_stat_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_commit_stat_get_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL cxfshttp_is_http_get_paracfg(const CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_paracfg_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_handle_paracfg_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_make_paracfg_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_paracfg_get_response(CHTTP_NODE *chttp_node);
+
 EC_BOOL cxfshttp_is_http_get_activate_ngx(const CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_commit_activate_ngx_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_handle_activate_ngx_get_request(CHTTP_NODE *chttp_node);

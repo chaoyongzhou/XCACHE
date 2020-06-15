@@ -381,6 +381,10 @@ EC_BOOL cxfshttp_commit_http_get(CHTTP_NODE *chttp_node)
     {
         ret = cxfshttp_commit_stat_get_request(chttp_node);
     }
+    else if (EC_TRUE == cxfshttp_is_http_get_paracfg(chttp_node))
+    {
+        ret = cxfshttp_commit_paracfg_get_request(chttp_node);
+    }
     else if (EC_TRUE == cxfshttp_is_http_get_file_notify(chttp_node))
     {
         ret = cxfshttp_commit_file_notify_get_request(chttp_node);
@@ -5073,7 +5077,7 @@ EC_BOOL cxfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
         }
 
         rsp_body_str = json_object_to_json_string_ext(rsp_body_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
-        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str) + 1);
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str)/* + 1*/);
 
         /*free json obj*/
         json_object_put(files_obj);
@@ -5432,7 +5436,7 @@ EC_BOOL cxfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
         }
 
         rsp_body_str = json_object_to_json_string_ext(rsp_body_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
-        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str) + 1);
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str)/* + 1*/);
 
         /*free json obj*/
         json_object_put(files_obj);
@@ -5793,7 +5797,7 @@ EC_BOOL cxfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
         }
 
         rsp_body_str = json_object_to_json_string_ext(rsp_body_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
-        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str) + 1));
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str)/* + 1*/));
 
         /*free json obj*/
         json_object_put(files_obj);
@@ -6453,8 +6457,7 @@ EC_BOOL cxfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
         }
 
         rsp_body_str = json_object_to_json_string_ext(rsp_body_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
-
-        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str) + 1);
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str)/* + 1*/);
 
         dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_qtree_get_request done\n");
 
@@ -6673,7 +6676,7 @@ EC_BOOL cxfshttp_handle_statusnp_get_request(CHTTP_NODE *chttp_node)
          }
 
         rsp_body_str = json_object_to_json_string_ext(cxfsnp_mgr_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
-        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str) + 1));
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str)/* + 1*/));
 
         json_object_put(cxfsnp_mgr_obj);
     }
@@ -6890,7 +6893,7 @@ EC_BOOL cxfshttp_handle_statusdn_get_request(CHTTP_NODE *chttp_node)
         }
 
         rsp_body_str = json_object_to_json_string_ext(cxfspgv_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
-        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str) + 1));
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str)/* + 1*/));
 
         json_object_put(cxfspgv_obj);
     }
@@ -8504,15 +8507,25 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
         json_object_add_obj(cxfs_obj, "access_stat", cxfs_stat_obj);
 
         /*read*/
-        json_object_add_k_int64(cxfs_stat_obj, "ac_read_counter", (int64_t)CXFS_STAT_READ_TIMES_COUNTER(cxfs_stat));
-        json_object_add_k_int64(cxfs_stat_obj, "ac_read_nbytes" , (int64_t)CXFS_STAT_READ_NBYTES_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_read_counter"         , (int64_t)CXFS_STAT_READ_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_read_np_succ_counter" , (int64_t)CXFS_STAT_READ_NP_SUCC_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_read_np_fail_counter" , (int64_t)CXFS_STAT_READ_NP_FAIL_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_read_dn_succ_counter" , (int64_t)CXFS_STAT_READ_DN_SUCC_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_read_dn_fail_counter" , (int64_t)CXFS_STAT_READ_DN_FAIL_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_read_nbytes"          , (int64_t)CXFS_STAT_READ_NBYTES(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_read_cost_msec"       , (int64_t)CXFS_STAT_READ_COST_MSEC(cxfs_stat));
 
         /*write*/
-        json_object_add_k_int64(cxfs_stat_obj, "ac_write_counter", (int64_t)CXFS_STAT_WRITE_TIMES_COUNTER(cxfs_stat));
-        json_object_add_k_int64(cxfs_stat_obj, "ac_write_nbytes" , (int64_t)CXFS_STAT_WRITE_NBYTES_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_write_counter"         , (int64_t)CXFS_STAT_WRITE_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_write_np_succ_counter" , (int64_t)CXFS_STAT_WRITE_NP_SUCC_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_write_np_fail_counter" , (int64_t)CXFS_STAT_WRITE_NP_FAIL_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_write_dn_succ_counter" , (int64_t)CXFS_STAT_WRITE_DN_SUCC_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_write_dn_fail_counter" , (int64_t)CXFS_STAT_WRITE_DN_FAIL_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_write_nbytes"          , (int64_t)CXFS_STAT_WRITE_NBYTES(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_write_cost_msec"       , (int64_t)CXFS_STAT_WRITE_COST_MSEC(cxfs_stat));
 
         /*delete*/
-        json_object_add_k_int64(cxfs_stat_obj, "ac_delete_counter", (int64_t)CXFS_STAT_DELETE_TIMES_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_delete_counter", (int64_t)CXFS_STAT_DELETE_COUNTER(cxfs_stat));
         if(NULL_PTR != cxfsnp_mgr)
         {
             uint64_t       total_size;
@@ -8522,14 +8535,26 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
         }
 
         /*update*/
-        json_object_add_k_int64(cxfs_stat_obj, "ac_update_counter", (int64_t)CXFS_STAT_UPDATE_TIMES_COUNTER(cxfs_stat));
-        json_object_add_k_int64(cxfs_stat_obj, "ac_update_nbytes" , (int64_t)CXFS_STAT_UPDATE_NBYTES_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_update_counter"        , (int64_t)CXFS_STAT_UPDATE_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_update_succ_counter"   , (int64_t)CXFS_STAT_UPDATE_SUCC_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_update_fail_counter"   , (int64_t)CXFS_STAT_UPDATE_FAIL_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_update_nbytes"         , (int64_t)CXFS_STAT_UPDATE_NBYTES(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_update_cost_msec"      , (int64_t)CXFS_STAT_UPDATE_COST_MSEC(cxfs_stat));
+
+        /*renew*/
+        json_object_add_k_int64(cxfs_stat_obj, "ac_renew_counter"         , (int64_t)CXFS_STAT_RENEW_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_renew_succ_counter"    , (int64_t)CXFS_STAT_RENEW_SUCC_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_renew_fail_counter"    , (int64_t)CXFS_STAT_RENEW_FAIL_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_renew_nbytes"          , (int64_t)CXFS_STAT_RENEW_NBYTES(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_renew_cost_msec"       , (int64_t)CXFS_STAT_RENEW_COST_MSEC(cxfs_stat));
 
         /*retire*/
-        //json_object_add_k_int64(cxfs_stat_obj, "retire_counter" , (int64_t)CXFS_STAT_RETIRE_TIMES_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_retire_counter" , (int64_t)CXFS_STAT_RETIRE_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_retire_complete", (int64_t)CXFS_STAT_RETIRE_COMPLETE(cxfs_stat));
 
         /*recycle*/
-        json_object_add_k_int64(cxfs_stat_obj, "ac_recycle_counter", (int64_t)CXFS_STAT_RECYCLE_TIMES_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_recycle_counter" , (int64_t)CXFS_STAT_RECYCLE_COUNTER(cxfs_stat));
+        json_object_add_k_int64(cxfs_stat_obj, "ac_recycle_complete", (int64_t)CXFS_STAT_RECYCLE_COMPLETE(cxfs_stat));
         if(NULL_PTR != cxfsnp_mgr)
         {
             uint64_t       total_size;
@@ -8537,6 +8562,20 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
             total_size = cxfsnp_mgr_count_recycle_size(cxfsnp_mgr);
             json_object_add_k_int64(cxfs_stat_obj, "ac_recycle_nbytes", (int64_t)total_size);
         }
+    }
+
+    if(NULL_PTR != cxfsnp_mgr && NULL_PTR != cxfsdn && NULL_PTR != cxfspgv)
+    {
+        json_object   *cxfs_comm_obj;
+
+        cxfs_comm_obj = json_object_new_object();
+        json_object_add_obj(cxfs_obj, "xfs_model", cxfs_comm_obj);
+
+        json_object_add_kv(cxfs_comm_obj      , "cxfs_lru_model_switch_desc", c_switch_to_str(CXFS_LRU_MODEL_SWITCH));
+        json_object_add_k_int32(cxfs_comm_obj , "cxfs_lru_model_switch"   , SWITCH_ON == CXFS_LRU_MODEL_SWITCH?1:0);
+
+        json_object_add_kv(cxfs_comm_obj      , "cxfs_fifo_model_switch_desc", c_switch_to_str(CXFS_FIFO_MODEL_SWITCH));
+        json_object_add_k_int32(cxfs_comm_obj , "cxfs_fifo_model_switch"   , SWITCH_ON == CXFS_FIFO_MODEL_SWITCH?1:0);
     }
 
     if(NULL_PTR != cxfsnp_mgr)
@@ -8576,9 +8615,15 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
         json_object_add_obj(cxfs_obj, "datanode", cxfs_dn_obj);
 
 
-        json_object_add_kv(cxfs_dn_obj     , "dn_pgd_disk_choice" , CXFSPGD_DISK_DESC);
-        json_object_add_kv(cxfs_dn_obj     , "dn_pgb_page_choice" , CXFSPGB_PAGE_DESC);
-        json_object_add_kv(cxfs_dn_obj     , "dn_bad_page_choice" , CXFSDN_BAD_PAGE_DESC);
+        json_object_add_kv(cxfs_dn_obj     , "dn_pgd_disk_choice_desc", CXFSPGD_DISK_DESC);
+        json_object_add_k_int64(cxfs_dn_obj, "dn_pgd_disk_choice"     , (int64_t)(((uint64_t)1) << CXFSPGD_SIZE_NBITS));
+
+        json_object_add_kv(cxfs_dn_obj     , "dn_pgb_page_choice_desc", CXFSPGB_PAGE_DESC);
+        json_object_add_k_int64(cxfs_dn_obj, "dn_pgb_page_choice"     , (int64_t)CXFSPGB_PAGE_BYTE_SIZE);
+
+        json_object_add_kv(cxfs_dn_obj     , "dn_bad_page_choice_desc", CXFSDN_BAD_PAGE_DESC);
+        json_object_add_k_int64(cxfs_dn_obj, "dn_bad_page_choice"     , (int64_t)CXFSDN_BAD_PAGE_SIZE_NBYTES);
+
         json_object_add_k_int64(cxfs_dn_obj, "dn_offset"          , (int64_t)CXFSPGV_OFFSET(cxfspgv));
         json_object_add_k_int64(cxfs_dn_obj, "dn_fsize_nbytes"    , (int64_t)CXFSPGV_FSIZE(cxfspgv));
         json_object_add_k_int32(cxfs_dn_obj, "dn_disk_num"        , (int32_t)CXFSPGV_DISK_NUM(cxfspgv));
@@ -8587,7 +8632,8 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
         json_object_add_k_int64(cxfs_dn_obj, "dn_page_used_num"   , (int64_t)CXFSPGV_PAGE_USED_NUM(cxfspgv));
         json_object_add_k_double(cxfs_dn_obj,"dn_page_used_ratio" , (double)page_used_ratio);
         json_object_add_k_int64(cxfs_dn_obj, "dn_used_size_nbytes", (int64_t)CXFSPGV_PAGE_ACTUAL_USED_SIZE(cxfspgv));
-        json_object_add_kv(cxfs_dn_obj     , "dn_assign_bitmap"   , c_uint16_t_to_bin_str(CXFSPGV_PAGE_MODEL_ASSIGN_BITMAP(cxfspgv)));
+        json_object_add_kv(cxfs_dn_obj     , "dn_assign_bitmap_desc", c_uint16_t_to_bin_str(CXFSPGV_PAGE_MODEL_ASSIGN_BITMAP(cxfspgv)));
+        json_object_add_k_int32(cxfs_dn_obj, "dn_assign_bitmap"     , (int32_t)CXFSPGV_PAGE_MODEL_ASSIGN_BITMAP(cxfspgv));
     }
 
     if(NULL_PTR != cdc_stat)
@@ -8597,11 +8643,20 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
         cdc_stat_obj = json_object_new_object();
         json_object_add_obj(cxfs_obj, "cdc_stat", cdc_stat_obj);
 
-        json_object_add_kv(cdc_stat_obj      , "cdc_pgd_disk_choice"    , CDCPGD_DISK_DESC);
-        json_object_add_kv(cdc_stat_obj      , "cdc_pgb_page_choice"    , CDCPGB_PAGE_DESC);
+        json_object_add_kv(cdc_stat_obj      , "cdc_pgd_disk_choice_desc", CDCPGD_DISK_DESC);
+        json_object_add_k_int64(cdc_stat_obj, "cdc_pgd_disk_choice"    , (int64_t)(((uint64_t)1) << CDCPGD_SIZE_NBITS));
+
+        json_object_add_kv(cdc_stat_obj      , "cdc_pgb_page_choice_desc", CDCPGB_PAGE_DESC);
+        json_object_add_k_int64(cdc_stat_obj , "cdc_pgb_page_choice"    , (int64_t)CDCPGB_PAGE_SIZE_NBYTES);
+
         json_object_add_kv(cdc_stat_obj      , "cdc_dn_node_choice"     , CDCDN_NODE_DESC);
-        json_object_add_kv(cdc_stat_obj      , "cdc_lru_model_switch"   , c_switch_to_str(CDC_LRU_MODEL_SWITCH));
-        json_object_add_kv(cdc_stat_obj      , "cdc_fifo_model_switch"  , c_switch_to_str(CDC_FIFO_MODEL_SWITCH));
+        json_object_add_k_int64(cdc_stat_obj , "cdc_dn_node_choice"     , (int64_t)(((uint64_t)1) << CDCDN_NODE_SIZE_NBITS));
+
+        json_object_add_kv(cdc_stat_obj      , "cdc_lru_model_switch_desc", c_switch_to_str(CDC_LRU_MODEL_SWITCH));
+        json_object_add_k_int32(cdc_stat_obj , "cdc_lru_model_switch"   , SWITCH_ON == CDC_LRU_MODEL_SWITCH?1:0);
+
+        json_object_add_kv(cdc_stat_obj      , "cdc_fifo_model_switch_desc", c_switch_to_str(CDC_FIFO_MODEL_SWITCH));
+        json_object_add_k_int32(cdc_stat_obj , "cdc_fifo_model_switch"   , SWITCH_ON == CDC_FIFO_MODEL_SWITCH?1:0);
 
         json_object_add_k_double(cdc_stat_obj, "cdc_used_ratio"         , (double )CDC_STAT_SSD_USED_RATIO(cdc_stat));
         json_object_add_k_double(cdc_stat_obj, "cdc_hit_ratio"          , (double )CDC_STAT_SSD_HIT_RATIO(cdc_stat));
@@ -8619,11 +8674,20 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
         cmc_stat_obj = json_object_new_object();
         json_object_add_obj(cxfs_obj, "cmc_stat", cmc_stat_obj);
 
-        json_object_add_kv(cmc_stat_obj      , "cmc_pgd_disk_choice"    , CMCPGD_DISK_DESC);
-        json_object_add_kv(cmc_stat_obj      , "cmc_pgb_page_choice"    , CMCPGB_PAGE_DESC);
-        json_object_add_kv(cmc_stat_obj      , "cmc_dn_node_choice"     , CMCDN_NODE_DESC);
-        json_object_add_kv(cmc_stat_obj      , "cmc_lru_model_switch"   , c_switch_to_str(CMC_LRU_MODEL_SWITCH));
-        json_object_add_kv(cmc_stat_obj      , "cmc_fifo_model_switch"  , c_switch_to_str(CMC_FIFO_MODEL_SWITCH));
+        json_object_add_kv(cmc_stat_obj      , "cmc_pgd_disk_choice_desc", CMCPGD_DISK_DESC);
+        json_object_add_k_int64(cmc_stat_obj , "cmc_pgd_disk_choice"    , (int64_t)(((uint64_t)1) << CMCPGD_SIZE_NBITS));
+
+        json_object_add_kv(cmc_stat_obj      , "cmc_pgb_page_choice_desc", CMCPGB_PAGE_DESC);
+        json_object_add_k_int64(cmc_stat_obj , "cmc_pgb_page_choice"    , (int64_t)CMCPGB_PAGE_SIZE_NBYTES);
+
+        json_object_add_kv(cmc_stat_obj      , "cmc_dn_node_choice_desc", CMCDN_NODE_DESC);
+        json_object_add_k_int64(cmc_stat_obj , "cmc_dn_node_choice"    , (int64_t)(((uint64_t)1) << CMCDN_NODE_SIZE_NBITS));
+
+        json_object_add_kv(cmc_stat_obj      , "cmc_lru_model_switch_desc", c_switch_to_str(CMC_LRU_MODEL_SWITCH));
+        json_object_add_k_int32(cmc_stat_obj , "cmc_lru_model_switch"     , SWITCH_ON == CMC_LRU_MODEL_SWITCH?1:0);
+
+        json_object_add_kv(cmc_stat_obj      , "cmc_fifo_model_switch_desc", c_switch_to_str(CMC_FIFO_MODEL_SWITCH));
+        json_object_add_k_int32(cmc_stat_obj , "cmc_fifo_model_switch"     , SWITCH_ON == CMC_FIFO_MODEL_SWITCH?1:0);
 
         json_object_add_k_double(cmc_stat_obj, "cmc_used_ratio"         , (double )CMC_STAT_MEM_USED_RATIO(cmc_stat));
         json_object_add_k_double(cmc_stat_obj, "cmc_hit_ratio"          , (double )CMC_STAT_MEM_HIT_RATIO(cmc_stat));
@@ -8636,22 +8700,18 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
 
     if(NULL_PTR != caio_md)
     {
-        CLIST_DATA  *clist_data;
+        CLIST_DATA    *clist_data;
 
         json_object   *caio_stat_obj;
-        json_object   *caio_disk_list_obj;
+        char           k[ 64 ];
 
         caio_stat_obj = json_object_new_object();
         json_object_add_obj(cxfs_obj, "caio_stat", caio_stat_obj);
 
-        caio_disk_list_obj = json_object_new_array();
-        json_object_add_obj(caio_stat_obj, "disk_list", caio_disk_list_obj);
-
         CLIST_LOOP_NEXT(CAIO_MD_DISK_LIST(caio_md), clist_data)
         {
             CAIO_DISK       *caio_disk;
-            json_object     *caio_disk_obj;
-            CAIO_STAT        caio_stat;
+            CAIO_STAT       *caio_stat;
 
             caio_disk = CLIST_DATA_DATA(clist_data);
             if(NULL_PTR == caio_disk)
@@ -8659,46 +8719,28 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
                 continue;
             }
 
-            BCOPY(CAIO_DISK_STAT(caio_disk), &caio_stat, sizeof(CAIO_STAT));
+            caio_stat = CAIO_DISK_STAT(caio_disk);
 
-            caio_disk_obj = json_object_new_object();
-            json_object_array_add(caio_disk_list_obj, caio_disk_obj);
+            snprintf((char *)k, sizeof(k), "%s_disk_fd", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int32(caio_stat_obj, (char *)k , (int32_t)CAIO_DISK_FD(caio_disk));
 
-            json_object_add_k_int32(caio_disk_obj, "disk_fd", (int32_t)CAIO_DISK_FD(caio_disk));
+            snprintf((char *)k, sizeof(k), "%s_disk_read_counter", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_RD));
 
-            if(0 < CAIO_STAT_OP_COUNTER(&caio_stat, CAIO_OP_RD))
-            {
-                CAIO_STAT_AVG_MSEC(&caio_stat, CAIO_OP_RD) =
-                            CAIO_STAT_COST_MSEC(&caio_stat, CAIO_OP_RD) /
-                            CAIO_STAT_OP_COUNTER(&caio_stat, CAIO_OP_RD);
-            }
-            else
-            {
-                CAIO_STAT_MIN_MSEC(&caio_stat, CAIO_OP_RD) = 0;
-            }
+            snprintf((char *)k, sizeof(k), "%s_disk_read_nbytes", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_OP_NBYTES(caio_stat, CAIO_OP_RD));
 
-            if(0 < CAIO_STAT_OP_COUNTER(&caio_stat, CAIO_OP_WR))
-            {
-                CAIO_STAT_AVG_MSEC(&caio_stat, CAIO_OP_WR) =
-                            CAIO_STAT_COST_MSEC(&caio_stat, CAIO_OP_WR) /
-                            CAIO_STAT_OP_COUNTER(&caio_stat, CAIO_OP_WR);
-            }
-            else
-            {
-                CAIO_STAT_MIN_MSEC(&caio_stat, CAIO_OP_WR) = 0;
-            }
+            snprintf((char *)k, sizeof(k), "%s_disk_read_cost_msec", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_RD));
 
-            json_object_add_k_int64(caio_disk_obj, "disk_read_counter"   , (int64_t)CAIO_STAT_OP_COUNTER(&caio_stat, CAIO_OP_RD));
-            json_object_add_k_int64(caio_disk_obj, "disk_read_cost_msec" , (int64_t)CAIO_STAT_COST_MSEC(&caio_stat, CAIO_OP_RD));
-            json_object_add_k_int64(caio_disk_obj, "disk_read_max_msec"  , (int64_t)CAIO_STAT_MAX_MSEC(&caio_stat, CAIO_OP_RD));
-            json_object_add_k_int64(caio_disk_obj, "disk_read_min_msec"  , (int64_t)CAIO_STAT_MIN_MSEC(&caio_stat, CAIO_OP_RD));
-            json_object_add_k_int64(caio_disk_obj, "disk_read_avg_msec"  , (int64_t)CAIO_STAT_AVG_MSEC(&caio_stat, CAIO_OP_RD));
+            snprintf((char *)k, sizeof(k), "%s_disk_write_counter", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_WR));
 
-            json_object_add_k_int64(caio_disk_obj, "disk_write_counter"  , (int64_t)CAIO_STAT_OP_COUNTER(&caio_stat, CAIO_OP_WR));
-            json_object_add_k_int64(caio_disk_obj, "disk_write_cost_msec", (int64_t)CAIO_STAT_COST_MSEC(&caio_stat, CAIO_OP_WR));
-            json_object_add_k_int64(caio_disk_obj, "disk_write_max_msec" , (int64_t)CAIO_STAT_MAX_MSEC(&caio_stat, CAIO_OP_WR));
-            json_object_add_k_int64(caio_disk_obj, "disk_write_min_msec" , (int64_t)CAIO_STAT_MIN_MSEC(&caio_stat, CAIO_OP_WR));
-            json_object_add_k_int64(caio_disk_obj, "disk_write_avg_msec" , (int64_t)CAIO_STAT_AVG_MSEC(&caio_stat, CAIO_OP_WR));
+            snprintf((char *)k, sizeof(k), "%s_disk_write_nbytes", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_OP_NBYTES(caio_stat, CAIO_OP_WR));
+
+            snprintf((char *)k, sizeof(k), "%s_disk_write_cost_msec", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_WR));
         }
     }
 
@@ -8746,7 +8788,7 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
     }
 
     rsp_body_str = json_object_to_json_string_ext(cxfs_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
-    cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str) + 1));
+    cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str)/* + 1*/));
 
     json_object_put(cxfs_obj);
 
@@ -9154,6 +9196,167 @@ EC_BOOL cxfshttp_commit_deactivate_ngx_get_response(CHTTP_NODE *chttp_node)
     if(NULL_PTR == csocket_cnode)
     {
         dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_deactivate_ngx_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return cxfshttp_commit_response(chttp_node);
+}
+#endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: paracfg ----------------------------------------*/
+STATIC_CAST static EC_BOOL __cxfshttp_uri_is_paracfg_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/paracfg") == uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/paracfg")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttp_is_http_get_paracfg(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_paracfg: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __cxfshttp_uri_is_paracfg_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttp_commit_paracfg_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == cxfshttp_handle_paracfg_get_request(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_paracfg_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfshttp_make_paracfg_get_response(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_paracfg_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = cxfshttp_commit_paracfg_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_paracfg_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL cxfshttp_handle_paracfg_get_request(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *rsp_content_cbytes;
+    const char    *rsp_body_str;
+
+    TASK_BRD      *task_brd;
+
+    rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    cbytes_clean(rsp_content_cbytes);
+
+    task_brd = task_brd_default_get();
+    if(NULL_PTR != task_brd && NULL_PTR != TASK_BRD_CPARACFG(task_brd))
+    {
+        json_object   *cparacfg_obj;
+
+        cparacfg_obj = json_object_new_object();
+
+        if(NULL_PTR != cparacfg_obj)
+        {
+            cparacfg_json(cparacfg_obj, TASK_BRD_CPARACFG(task_brd));
+        }
+
+        rsp_body_str = json_object_to_json_string_ext(cparacfg_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str)/* + 1*/));
+
+        json_object_put(cparacfg_obj);
+
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_paracfg_get_request: done\n");
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(rsp_content_cbytes));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_paracfg_get_request: done");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_make_paracfg_get_response(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *content_cbytes;
+    uint64_t       content_len;
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    content_len    = CBYTES_LEN(content_cbytes);
+
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_paracfg_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_paracfg_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_paracfg_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    /*no data copying but data transfering*/
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
+                                              CBYTES_BUF(content_cbytes),
+                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_paracfg_get_response: make body with len %d failed\n",
+                           (uint32_t)CBYTES_LEN(content_cbytes));
+        return (EC_FALSE);
+    }
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_commit_paracfg_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_paracfg_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 

@@ -176,7 +176,12 @@
 #define      FI_super_cmc_flow_control_switch_off  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 157))
 #define       FI_super_cdc_flow_control_switch_on  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 158))
 #define      FI_super_cdc_flow_control_switch_off  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 159))
-
+#define         FI_super_cxfs_lru_model_switch_on  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 160))
+#define        FI_super_cxfs_fifo_model_switch_on  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 161))
+#define          FI_super_cmc_lru_model_switch_on  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 162))
+#define         FI_super_cmc_fifo_model_switch_on  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 163))
+#define          FI_super_cdc_lru_model_switch_on  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 164))
+#define         FI_super_cdc_fifo_model_switch_on  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 165))
 
 #define           FI_csession_print_module_status  ((UINT32) ((MD_CSESSION << (WORDSIZE/2)) +  0))
 #define        FI_csession_free_module_static_mem  ((UINT32) ((MD_CSESSION << (WORDSIZE/2)) +  1))
@@ -426,6 +431,7 @@
 #define                  FI_cxfs_wait_files_print  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 114))
 #define                      FI_cxfs_activate_ngx  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 115))
 #define                    FI_cxfs_deactivate_ngx  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 116))
+#define                      FI_cxfs_process_stat  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 117))
 
 #define               FI_cmon_print_module_status  ((UINT32) ((MD_CMON << (WORDSIZE/2)) +  0))
 #define            FI_cmon_free_module_static_mem  ((UINT32) ((MD_CMON << (WORDSIZE/2)) +  1))

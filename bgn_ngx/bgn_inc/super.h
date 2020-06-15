@@ -885,6 +885,55 @@ EC_BOOL super_cdc_flow_control_switch_on(const UINT32 super_md_id);
 EC_BOOL super_cdc_flow_control_switch_off(const UINT32 super_md_id);
 
 
+/**
+*
+* set cxfs:lru:switch:on
+* set cxfs:fifo:switch:off
+*
+**/
+EC_BOOL super_cxfs_lru_model_switch_on(const UINT32 super_md_id);
+
+/**
+*
+* set cxfs:lru:switch:off
+* set cxfs:fifo:switch:on
+*
+**/
+EC_BOOL super_cxfs_fifo_model_switch_on(const UINT32 super_md_id);
+
+/**
+*
+* set cmc:lru:switch:on
+* set cmc:fifo:switch:off
+*
+**/
+EC_BOOL super_cmc_lru_model_switch_on(const UINT32 super_md_id);
+
+/**
+*
+* set cmc:lru:switch:off
+* set cmc:fifo:switch:on
+*
+**/
+EC_BOOL super_cmc_fifo_model_switch_on(const UINT32 super_md_id);
+
+/**
+*
+* set cdc:lru:switch:on
+* set cdc:fifo:switch:off
+*
+**/
+EC_BOOL super_cdc_lru_model_switch_on(const UINT32 super_md_id);
+
+/**
+*
+* set cdc:lru:switch:off
+* set cdc:fifo:switch:on
+*
+**/
+EC_BOOL super_cdc_fifo_model_switch_on(const UINT32 super_md_id);
+
+
 /*------------------------------------------------------ test for ict -----------------------------------------------------------------------*/
 EC_BOOL super_set_zone_size(const UINT32 super_md_id, const UINT32 obj_zone_size);
 EC_BOOL super_load_data(const UINT32 super_md_id);

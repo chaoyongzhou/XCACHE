@@ -157,23 +157,21 @@ typedef struct
 {
     uint64_t                 next_time_msec;  /*next time calculating statistics*/
     uint64_t                 op_counter[ 2 ]; /*RD, WR*/
+    uint64_t                 op_nbytes [ 2 ]; /*RD, WR*/
     uint64_t                 cost_msec [ 2 ]; /*RD, WR*/
-    uint64_t                 max_msec  [ 2 ]; /*RD, WR*/
-    uint64_t                 min_msec  [ 2 ]; /*RD, WR*/
-    uint64_t                 avg_msec  [ 2 ]; /*RD, WR*/
 }CAIO_STAT;
 
 #define CAIO_STAT_NEXT_TIME_MSEC(caio_stat)        ((caio_stat)->next_time_msec)
 #define CAIO_STAT_OP_COUNTER(caio_stat, op)        ((caio_stat)->op_counter[ (op) ])
+#define CAIO_STAT_OP_NBYTES(caio_stat, op)         ((caio_stat)->op_nbytes[ (op) ])
 #define CAIO_STAT_COST_MSEC(caio_stat, op)         ((caio_stat)->cost_msec[ (op) ])
-#define CAIO_STAT_MAX_MSEC(caio_stat, op)          ((caio_stat)->max_msec[ (op) ])
-#define CAIO_STAT_MIN_MSEC(caio_stat, op)          ((caio_stat)->min_msec[ (op) ])
-#define CAIO_STAT_AVG_MSEC(caio_stat, op)          ((caio_stat)->avg_msec[ (op) ])
 
 typedef struct
 {
     int                      fd;
     int                      rsvd;
+
+    const char              *tag;
 
     UINT32                  *max_req_num;
     UINT32                   cur_req_num;
@@ -183,21 +181,17 @@ typedef struct
 
     /*statistics*/
     CAIO_STAT                caio_stat;
+    CAIO_STAT                caio_stat_saved;
 }CAIO_DISK;
 
 #define CAIO_DISK_FD(caio_disk)                         ((caio_disk)->fd)
+#define CAIO_DISK_TAG(caio_disk)                        ((caio_disk)->tag)
 #define CAIO_DISK_MAX_REQ_NUM(caio_disk)                ((caio_disk)->max_req_num)
 #define CAIO_DISK_CUR_REQ_NUM(caio_disk)                ((caio_disk)->cur_req_num)
 #define CAIO_DISK_SUBMIT_REQ_NUM(caio_disk)             ((caio_disk)->submit_req_num)
 #define CAIO_DISK_BAD_BITMAP(caio_disk)                 ((caio_disk)->bad_bitmap)
-
 #define CAIO_DISK_STAT(caio_disk)                       (&((caio_disk)->caio_stat))
-#define CAIO_DISK_STAT_NEXT_TIME_MSEC(caio_disk)        (CAIO_STAT_NEXT_TIME_MSEC(CAIO_DISK_STAT(caio_disk)))
-#define CAIO_DISK_STAT_OP_COUNTER(caio_disk, op)        (CAIO_STAT_OP_COUNTER(CAIO_DISK_STAT(caio_disk), op))
-#define CAIO_DISK_STAT_COST_MSEC(caio_disk, op)         (CAIO_STAT_COST_MSEC(CAIO_DISK_STAT(caio_disk), op))
-#define CAIO_DISK_STAT_MAX_MSEC(caio_disk, op)          (CAIO_STAT_MAX_MSEC(CAIO_DISK_STAT(caio_disk), op))
-#define CAIO_DISK_STAT_MIN_MSEC(caio_disk, op)          (CAIO_STAT_MIN_MSEC(CAIO_DISK_STAT(caio_disk), op))
-#define CAIO_DISK_STAT_AVG_MSEC(caio_disk, op)          (CAIO_STAT_AVG_MSEC(CAIO_DISK_STAT(caio_disk), op))
+#define CAIO_DISK_STAT_SAVED(caio_disk)                 (&((caio_disk)->caio_stat_saved))
 
 typedef void (*CAIO_EVENT_HANDLER)(void *);
 
@@ -697,7 +691,7 @@ EC_BOOL caio_cleanup_post_event_reqs(CAIO_MD *caio_md);
 
 CAIO_REQ *caio_search_req(CAIO_MD *caio_md, const UINT32 seq_no);
 
-EC_BOOL caio_add_disk(CAIO_MD *caio_md, const int fd, UINT32 *max_req_num);
+EC_BOOL caio_add_disk(CAIO_MD *caio_md, const int fd, const char *tag, UINT32 *max_req_num);
 
 EC_BOOL caio_del_disk(CAIO_MD *caio_md, const int fd);
 

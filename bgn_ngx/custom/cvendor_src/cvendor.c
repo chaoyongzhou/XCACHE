@@ -580,7 +580,7 @@ EC_BOOL cvendor_get_cache_seg(const UINT32 cvendor_md_id, const UINT32 seg_no, C
                                     CHTTP_SEG_ERR_OFFSET, CHTTP_SEG_ERR_OFFSET, /*whole seg file*/
                                     seg_cbytes))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_get_cache_seg: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_get_cache_seg: "
                                                 "read '%s' from cache failed\n",
                                                 (char *)cstring_get_str(&cache_uri_cstr));
 
@@ -732,7 +732,7 @@ EC_BOOL cvendor_wait_cache_seg_n(const UINT32 cvendor_md_id, const CRANGE_SEG *r
                                              CRANGE_SEG_E_OFFSET(range_seg),
                                              seg_cbytes))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_wait_cache_seg_n: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_wait_cache_seg_n: "
                                                 "read '%s' from cache failed\n",
                                                 (char *)cstring_get_str(&cache_uri_cstr));
 
@@ -1933,7 +1933,7 @@ EC_BOOL cvendor_renew_header_cache(const UINT32 cvendor_md_id, const char *k, co
     if(EC_FALSE == ccache_renew_headers(cache_srv_tcid, cache_srv_ipaddr, cache_srv_port,
                                          &cache_uri_cstr, cstrkv_mgr, NULL_PTR))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_renew_header_cache: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_renew_header_cache: "
                                                 "renew header '%s':'%s' in cache '%s' failed\n",
                                                 k, v,
                                                 (char *)cstring_get_str(&cache_uri_cstr));
@@ -3329,7 +3329,7 @@ EC_BOOL cvendor_content_head_send_response(const UINT32 cvendor_md_id)
 
         if(EC_FALSE == cngx_send_header(r, &(CVENDOR_MD_NGX_RC(cvendor_md))))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_send_response: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_head_send_response: "
                                                     "send header failed\n");
             return (EC_FALSE);
         }
@@ -4947,7 +4947,7 @@ EC_BOOL cvendor_content_direct_send_seg_n(const UINT32 cvendor_md_id, const CRAN
 
         if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_seg_n: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_direct_send_seg_n: "
                                                     "send body seg %ld failed\n",
                                                     CRANGE_SEG_NO(crange_seg));
 
@@ -5029,7 +5029,7 @@ EC_BOOL cvendor_content_direct_send_node(const UINT32 cvendor_md_id, CRANGE_NODE
 
         if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_node: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_direct_send_node: "
                                                     "send body boundary failed\n");
 
             return (EC_FALSE);
@@ -5053,7 +5053,7 @@ EC_BOOL cvendor_content_direct_send_node(const UINT32 cvendor_md_id, CRANGE_NODE
 
         if(EC_FALSE == cvendor_content_direct_send_seg_n(cvendor_md_id, crange_seg))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_node: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_direct_send_node: "
                                                     "send direct seg %ld failed\n",
                                                     seg_no);
 
@@ -5160,7 +5160,7 @@ EC_BOOL cvendor_content_direct_send_header(const UINT32 cvendor_md_id)
 
         if(EC_FALSE == cngx_send_header(r, &(CVENDOR_MD_NGX_RC(cvendor_md))))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_header: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_direct_send_header: "
                                                     "send header failed\n");
 
             return (EC_FALSE);
@@ -5217,7 +5217,7 @@ EC_BOOL cvendor_content_direct_send_body(const UINT32 cvendor_md_id, const UINT3
 
     if(EC_FALSE == cngx_send_body(r, data, (uint32_t)len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_body: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_direct_send_body: "
                                                 "send body %ld bytes failed\n",
                                                 len);
 
@@ -5268,7 +5268,7 @@ EC_BOOL cvendor_content_direct_send_end(const UINT32 cvendor_md_id)
 
     if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_end: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_direct_send_end: "
                                                 "send body end failed\n");
 
         return (EC_FALSE);
@@ -5329,7 +5329,7 @@ EC_BOOL cvendor_content_direct_send_response(const UINT32 cvendor_md_id)
 
             if(EC_FALSE == cngx_send_header(r, &(CVENDOR_MD_NGX_RC(cvendor_md))))
             {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_response: "
+                dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_direct_send_response: "
                                                         "send header failed\n");
                 return (EC_FALSE);
             }
@@ -5367,7 +5367,7 @@ EC_BOOL cvendor_content_direct_send_response(const UINT32 cvendor_md_id)
 
         if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_response: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_direct_send_response: "
                                                     "send body failed\n");
 
             return (EC_FALSE);
@@ -5412,7 +5412,7 @@ EC_BOOL cvendor_content_direct_send_response(const UINT32 cvendor_md_id)
         {
             if(EC_FALSE == cvendor_content_direct_send_node(cvendor_md_id, crange_node))
             {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_response: "
+                dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_direct_send_response: "
                                                         "send node (%ld:%s, %ld:%s) failed\n",
                                                         CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
                                                         CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
@@ -5457,7 +5457,7 @@ EC_BOOL cvendor_content_direct_send_response(const UINT32 cvendor_md_id)
 
             if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
             {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_send_response: "
+                dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_direct_send_response: "
                                                         "send body boundary failed\n");
 
                 return (EC_FALSE);
@@ -5551,7 +5551,7 @@ EC_BOOL cvendor_content_direct_procedure(const UINT32 cvendor_md_id)
 
     if(EC_FALSE == cvendor_content_direct_send_response(cvendor_md_id))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_procedure: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_direct_procedure: "
                                                 "send response failed\n");
         return (EC_FALSE);
     }
@@ -6956,7 +6956,7 @@ EC_BOOL cvendor_content_repair_send_seg_n(const UINT32 cvendor_md_id, const CRAN
 
         if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_send_seg_n: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_repair_send_seg_n: "
                                                     "send body seg %ld failed\n",
                                                     CRANGE_SEG_NO(crange_seg));
 
@@ -7038,7 +7038,7 @@ EC_BOOL cvendor_content_repair_send_node(const UINT32 cvendor_md_id, CRANGE_NODE
 
         if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_send_node: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_repair_send_node: "
                                                     "send body boundary failed\n");
 
             return (EC_FALSE);
@@ -7062,7 +7062,7 @@ EC_BOOL cvendor_content_repair_send_node(const UINT32 cvendor_md_id, CRANGE_NODE
 
         if(EC_FALSE == cvendor_content_repair_send_seg_n(cvendor_md_id, crange_seg))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_send_node: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_repair_send_node: "
                                                     "send direct seg %ld failed\n",
                                                     seg_no);
 
@@ -7118,7 +7118,7 @@ EC_BOOL cvendor_content_repair_send_end(const UINT32 cvendor_md_id)
 
     if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_send_end: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_repair_send_end: "
                                                 "send body end failed\n");
 
         return (EC_FALSE);
@@ -7179,7 +7179,7 @@ EC_BOOL cvendor_content_repair_send_response(const UINT32 cvendor_md_id)
 
             if(EC_FALSE == cngx_send_header(r, &(CVENDOR_MD_NGX_RC(cvendor_md))))
             {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_send_response: "
+                dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_repair_send_response: "
                                                         "send header failed\n");
                 return (EC_FALSE);
             }
@@ -7217,7 +7217,7 @@ EC_BOOL cvendor_content_repair_send_response(const UINT32 cvendor_md_id)
 
         if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_send_response: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_repair_send_response: "
                                                     "send body failed\n");
 
             return (EC_FALSE);
@@ -7262,7 +7262,7 @@ EC_BOOL cvendor_content_repair_send_response(const UINT32 cvendor_md_id)
         {
             if(EC_FALSE == cvendor_content_repair_send_node(cvendor_md_id, crange_node))
             {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_send_response: "
+                dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_repair_send_response: "
                                                         "send node (%ld:%s, %ld:%s) failed\n",
                                                         CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
                                                         CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
@@ -7307,7 +7307,7 @@ EC_BOOL cvendor_content_repair_send_response(const UINT32 cvendor_md_id)
 
             if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
             {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_send_response: "
+                dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_repair_send_response: "
                                                         "send body boundary failed\n");
 
                 return (EC_FALSE);
@@ -7618,7 +7618,7 @@ EC_BOOL cvendor_content_chunk_send_seg_n(const UINT32 cvendor_md_id, const CRANG
 
     if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_chunk_send_seg_n: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_chunk_send_seg_n: "
                                                 "send body seg %ld failed\n",
                                                 CRANGE_SEG_NO(crange_seg));
 
@@ -7671,7 +7671,7 @@ EC_BOOL cvendor_content_chunk_send_end(const UINT32 cvendor_md_id)
 
     if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_chunk_send_end: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_chunk_send_end: "
                                                 "send body chunk-end failed\n");
 
         return (EC_FALSE);
@@ -7734,7 +7734,7 @@ EC_BOOL cvendor_content_chunk_send_response(const UINT32 cvendor_md_id)
 
             if(EC_FALSE == cngx_send_header(r, &(CVENDOR_MD_NGX_RC(cvendor_md))))
             {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_chunk_send_response: "
+                dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_chunk_send_response: "
                                                         "send header failed\n");
 
                 return (EC_FALSE);
@@ -7773,7 +7773,7 @@ EC_BOOL cvendor_content_chunk_send_response(const UINT32 cvendor_md_id)
 
             if(EC_FALSE == cvendor_content_chunk_send_seg_n(cvendor_md_id, crange_seg))
             {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_chunk_send_response: "
+                dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_chunk_send_response: "
                                                         "chunk [Y], send cache seg %ld failed\n",
                                                         seg_no);
 
@@ -9749,7 +9749,7 @@ EC_BOOL cvendor_content_orig_send_seg_n(const UINT32 cvendor_md_id, const CRANGE
 
     if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_seg_n: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_orig_send_seg_n: "
                                                 "send body seg %ld failed\n",
                                                 CRANGE_SEG_NO(crange_seg));
 
@@ -9880,7 +9880,7 @@ EC_BOOL cvendor_content_orig_send_response(const UINT32 cvendor_md_id)
 
             if(EC_FALSE == cngx_send_header(r, &(CVENDOR_MD_NGX_RC(cvendor_md))))
             {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_response: "
+                dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_orig_send_response: "
                                                         "send header failed\n");
 
                 return (EC_FALSE);
@@ -9918,7 +9918,7 @@ EC_BOOL cvendor_content_orig_send_response(const UINT32 cvendor_md_id)
 
         if(seg_no != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "warn:cvendor_content_orig_send_response: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "warn:cvendor_content_orig_send_response: "
                                                     "seg_no %ld != absent_seg_no %ld => return\n",
                                                     seg_no, CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
 
@@ -9928,7 +9928,7 @@ EC_BOOL cvendor_content_orig_send_response(const UINT32 cvendor_md_id)
 
         if(EC_FALSE == cvendor_content_orig_send_seg_n(cvendor_md_id, crange_seg))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_response: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_orig_send_response: "
                                                     "get cache seg %ld failed\n",
                                                     seg_no);
 
@@ -10075,7 +10075,7 @@ EC_BOOL cvendor_content_orig_procedure(const UINT32 cvendor_md_id)
 
     if(EC_FALSE == cvendor_content_orig_send_response(cvendor_md_id))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_procedure: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_orig_procedure: "
                                                 "send response failed\n");
         return (EC_FALSE);
     }
@@ -12028,7 +12028,7 @@ EC_BOOL cvendor_content_ms_send_seg_n(const UINT32 cvendor_md_id, const CRANGE_S
 
     if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ms_send_seg_n: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_ms_send_seg_n: "
                                                 "send body seg %ld failed\n",
                                                 CRANGE_SEG_NO(crange_seg));
 
@@ -12188,7 +12188,7 @@ EC_BOOL cvendor_content_ms_send_header(const UINT32 cvendor_md_id)
 
     if(EC_FALSE == cngx_send_header(r, &(CVENDOR_MD_NGX_RC(cvendor_md))))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ms_send_header: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_ms_send_header: "
                                                 "send header failed\n");
 
         return (EC_FALSE);
@@ -12246,7 +12246,7 @@ EC_BOOL cvendor_content_ms_send_body(const UINT32 cvendor_md_id, const UINT32 se
 
     if(seg_no != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "warn:cvendor_content_ms_send_body: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "warn:cvendor_content_ms_send_body: "
                                                 "seg_no %ld != absent_seg_no %ld => return\n",
                                                 seg_no, CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
         return (EC_TRUE);
@@ -12288,7 +12288,7 @@ EC_BOOL cvendor_content_ms_send_body(const UINT32 cvendor_md_id, const UINT32 se
 
         if(EC_FALSE == cngx_send_body(r, data, (uint32_t)len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ms_send_body: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_ms_send_body: "
                                                     "send body seg %ld failed\n",
                                                     CRANGE_SEG_NO(crange_seg));
 
@@ -12462,7 +12462,7 @@ EC_BOOL cvendor_content_ms_send_response(const UINT32 cvendor_md_id)
 
         if(EC_FALSE == cngx_send_header(r, &(CVENDOR_MD_NGX_RC(cvendor_md))))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_ms_send_response: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_ms_send_response: "
                                                     "send header failed\n");
 
             return (EC_FALSE);
@@ -12506,7 +12506,7 @@ EC_BOOL cvendor_content_ms_send_response(const UINT32 cvendor_md_id)
 
         if(seg_no != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "warn:cvendor_content_ms_send_response: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "warn:cvendor_content_ms_send_response: "
                                                     "seg_no %ld != absent_seg_no %ld => return\n",
                                                     seg_no, CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
 
@@ -13050,7 +13050,7 @@ EC_BOOL cvendor_content_preload_send_response(const UINT32 cvendor_md_id)
 
         if(EC_FALSE == cngx_send_header(r, &(CVENDOR_MD_NGX_RC(cvendor_md))))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_preload_send_response: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_preload_send_response: "
                                                     "send header failed\n");
 
             return (EC_FALSE);
@@ -13109,15 +13109,11 @@ EC_BOOL cvendor_content_preload_procedure(const UINT32 cvendor_md_id)
         /*here seg_no is 0*/
         if(EC_FALSE == cvendor_get_cache_seg(cvendor_md_id, seg_no, &seg_cbytes))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_preload_procedure: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_preload_procedure: "
                                                     "fetch seg %ld from cache failed\n",
                                                     seg_no);
 
             cbytes_clean(&seg_cbytes);
-
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_preload_procedure: "
-                                                    "not found seg_no %ld\n",
-                                                    seg_no);
 
             return (EC_FALSE);
         }
@@ -13186,7 +13182,7 @@ EC_BOOL cvendor_content_preload_procedure(const UINT32 cvendor_md_id)
     /*send header and body*/
     if(EC_FALSE == cvendor_content_preload_send_response(cvendor_md_id))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_preload_procedure: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_preload_procedure: "
                                                 "send response failed\n");
 
         return (EC_FALSE);
@@ -15607,7 +15603,7 @@ EC_BOOL cvendor_content_expired_send_seg_n(const UINT32 cvendor_md_id, const CRA
 
     if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_seg_n: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_expired_send_seg_n: "
                                                 "send body seg %ld failed\n",
                                                 CRANGE_SEG_NO(crange_seg));
 
@@ -15667,7 +15663,7 @@ EC_BOOL cvendor_content_expired_send_node(const UINT32 cvendor_md_id, CRANGE_NOD
 
         if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_node: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_expired_send_node: "
                                                     "send body boundary failed\n");
 
             return (EC_FALSE);
@@ -15691,7 +15687,7 @@ EC_BOOL cvendor_content_expired_send_node(const UINT32 cvendor_md_id, CRANGE_NOD
 
         if(EC_FALSE == cvendor_content_expired_send_seg_n(cvendor_md_id, crange_seg))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_node: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_expired_send_node: "
                                                     "send expired seg %ld failed\n",
                                                     seg_no);
 
@@ -15747,7 +15743,7 @@ EC_BOOL cvendor_content_expired_send_end(const UINT32 cvendor_md_id)
 
     if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_end: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_expired_send_end: "
                                                 "send body end failed\n");
 
         return (EC_FALSE);
@@ -15833,7 +15829,7 @@ EC_BOOL cvendor_content_expired_send_response(const UINT32 cvendor_md_id)
 
             if(EC_FALSE == cngx_send_header(r, &(CVENDOR_MD_NGX_RC(cvendor_md))))
             {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_response: "
+                dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_expired_send_response: "
                                                         "send header failed\n");
 
                 return (EC_FALSE);
@@ -15869,7 +15865,7 @@ EC_BOOL cvendor_content_expired_send_response(const UINT32 cvendor_md_id)
     {
         if(EC_FALSE == cvendor_content_expired_send_node(cvendor_md_id, crange_node))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_response: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_expired_send_response: "
                                                     "send node (%ld:%s, %ld:%s) failed\n",
                                                     CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
                                                     CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
@@ -15915,7 +15911,7 @@ EC_BOOL cvendor_content_expired_send_response(const UINT32 cvendor_md_id)
 
         if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_expired_send_response: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_expired_send_response: "
                                                     "send body boundary failed\n");
 
             return (EC_FALSE);
@@ -17285,7 +17281,8 @@ EC_BOOL cvendor_content_cache_send_seg_n(const UINT32 cvendor_md_id, const CRANG
         if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md)
         && CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md) < CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_seg_n: seg no %ld overflow!\n",
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_seg_n: "
+                                                    "seg no %ld overflow!\n",
                                                     CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
             return (EC_FALSE);
         }
@@ -17311,7 +17308,8 @@ EC_BOOL cvendor_content_cache_send_seg_n(const UINT32 cvendor_md_id, const CRANG
         if(CVENDOR_ERR_SEG_NO != CVENDOR_MD_ABSENT_SEG_NO(cvendor_md)
         && CVENDOR_MD_CACHE_SEG_MAX_NUM(cvendor_md) < CVENDOR_MD_ABSENT_SEG_NO(cvendor_md))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_seg_n: seg no %ld overflow!\n",
+            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_seg_n: "
+                                                    "seg no %ld overflow!\n",
                                                     CVENDOR_MD_ABSENT_SEG_NO(cvendor_md));
             return (EC_FALSE);
         }
@@ -17371,7 +17369,7 @@ EC_BOOL cvendor_content_cache_send_seg_n(const UINT32 cvendor_md_id, const CRANG
 
     if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_seg_n: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_cache_send_seg_n: "
                                                 "send body seg %ld failed\n",
                                                 CRANGE_SEG_NO(crange_seg));
 
@@ -17429,7 +17427,7 @@ EC_BOOL cvendor_content_cache_send_node(const UINT32 cvendor_md_id, CRANGE_NODE 
 
         if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_node: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_cache_send_node: "
                                                     "send body boundary failed\n");
 
             return (EC_FALSE);
@@ -17453,7 +17451,7 @@ EC_BOOL cvendor_content_cache_send_node(const UINT32 cvendor_md_id, CRANGE_NODE 
 
         if(EC_FALSE == cvendor_content_cache_send_seg_n(cvendor_md_id, crange_seg))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_node: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_cache_send_node: "
                                                     "send cache seg %ld failed\n",
                                                     seg_no);
 
@@ -17509,7 +17507,7 @@ EC_BOOL cvendor_content_cache_send_end(const UINT32 cvendor_md_id)
 
     if(EC_FALSE == cngx_send_body(r, NULL_PTR, (uint32_t)0, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_end: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_cache_send_end: "
                                                 "send body end failed\n");
 
         return (EC_FALSE);
@@ -17603,7 +17601,7 @@ EC_BOOL cvendor_content_cache_send_response(const UINT32 cvendor_md_id)
 
                 if(EC_FALSE == cngx_send_header(r, &(CVENDOR_MD_NGX_RC(cvendor_md))))
                 {
-                    dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_response: "
+                    dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_cache_send_response: "
                                                             "[HEAD] send header failed\n");
 
                     return (EC_FALSE);
@@ -17622,7 +17620,7 @@ EC_BOOL cvendor_content_cache_send_response(const UINT32 cvendor_md_id)
 
             if(EC_FALSE == cngx_send_header(r, &(CVENDOR_MD_NGX_RC(cvendor_md))))
             {
-                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_response: "
+                dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_cache_send_response: "
                                                         "send header failed\n");
 
                 return (EC_FALSE);
@@ -17666,7 +17664,7 @@ EC_BOOL cvendor_content_cache_send_response(const UINT32 cvendor_md_id)
     {
         if(EC_FALSE == cvendor_content_cache_send_node(cvendor_md_id, crange_node))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_response: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_cache_send_response: "
                                                     "send node (%ld:%s, %ld:%s) failed\n",
                                                     CRANGE_NODE_RANGE_START(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_START(crange_node)),
                                                     CRANGE_NODE_RANGE_END(crange_node), c_bool_str(CRANGE_NODE_SUFFIX_END(crange_node)));
@@ -17710,7 +17708,7 @@ EC_BOOL cvendor_content_cache_send_response(const UINT32 cvendor_md_id)
 
         if(EC_FALSE == cngx_send_body(r, data, len, flags, &(CVENDOR_MD_NGX_RC(cvendor_md))))
         {
-            dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_send_response: "
+            dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_cache_send_response: "
                                                     "send body boundary failed\n");
 
             return (EC_FALSE);
@@ -17912,7 +17910,7 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
                 /*preload does not need send data to client. so choose orig procedure but not ms procedure*/
                 if(EC_FALSE == cvendor_content_orig_procedure(cvendor_md_id))
                 {
-                    dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
+                    dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
                                                             "orig send absent seg %ld failed\n",
                                                             seg_no);
                     return (EC_FALSE);
@@ -18026,7 +18024,7 @@ EC_BOOL cvendor_content_cache_procedure(const UINT32 cvendor_md_id)
     /*send header and body*/
     if(EC_FALSE == cvendor_content_cache_send_response(cvendor_md_id))
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
+        dbg_log(SEC_0175_CVENDOR, 1)(LOGSTDOUT, "error:cvendor_content_cache_procedure: "
                                                 "send response failed\n");
 
         return (EC_FALSE);

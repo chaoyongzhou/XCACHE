@@ -127,6 +127,12 @@ EC_BOOL cngx_https_handle_rfs_list_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cngx_https_make_rfs_list_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL cngx_https_commit_rfs_list_get_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL cngx_https_is_http_get_paracfg(const CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_paracfg_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_handle_paracfg_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_make_paracfg_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_paracfg_get_response(CHTTP_NODE *chttp_node);
+
 #endif /*_CNGX_HTTPS_H*/
 
 #ifdef __cplusplus

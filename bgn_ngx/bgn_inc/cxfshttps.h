@@ -206,6 +206,12 @@ EC_BOOL cxfshttps_handle_stat_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttps_make_stat_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttps_commit_stat_get_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL cxfshttps_is_http_get_paracfg(const CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttps_commit_paracfg_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttps_handle_paracfg_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttps_make_paracfg_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttps_commit_paracfg_get_response(CHTTP_NODE *chttp_node);
+
 EC_BOOL cxfshttps_is_http_get_activate_ngx(const CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttps_commit_activate_ngx_get_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttps_handle_activate_ngx_get_request(CHTTP_NODE *chttp_node);

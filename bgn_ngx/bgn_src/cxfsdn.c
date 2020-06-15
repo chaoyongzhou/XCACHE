@@ -425,7 +425,8 @@ CXFSDN *cxfsdn_create(const CXFSCFG *cxfscfg,
         }
         dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_create: create cdc done\n");
 
-        if(EC_FALSE == camd_enable_dio(camd_md, cxfsdn_sata_fd, 0/*offset*/, cxfsdn_sata_offset/*size*/))
+        if(EC_FALSE == camd_enable_dio(camd_md, cxfsdn_sata_fd, (const char *)"sata",
+                                        0/*offset*/, cxfsdn_sata_offset/*size*/))
         {
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_create: enable dio failed\n");
             camd_end(camd_md);
@@ -1106,7 +1107,8 @@ EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg,
 
         dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_load: load camd done\n");
 
-        if(EC_FALSE == camd_enable_dio(camd_md, cxfsdn_sata_fd, 0/*offset*/, CXFSCFG_SATA_DISK_OFFSET(cxfscfg)/*size*/))
+        if(EC_FALSE == camd_enable_dio(camd_md, cxfsdn_sata_fd, (const char *)"sata",
+                                        0/*offset*/, CXFSCFG_SATA_DISK_OFFSET(cxfscfg)/*size*/))
         {
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_load: enable dio failed\n");
             camd_end(camd_md);

@@ -3096,8 +3096,7 @@ EC_BOOL ctdnshttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
         }
 
         rsp_body_str = json_object_to_json_string_ext(rsp_body_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
-
-        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str) + 1);
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str)/* + 1*/);
 
         /* free json obj */
         json_object_put(rsp_body_obj);
@@ -3432,8 +3431,7 @@ EC_BOOL ctdnshttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
         }
 
         rsp_body_str = json_object_to_json_string_ext(rsp_body_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
-
-        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str) + 1);
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str)/* + 1*/);
 
         /* free json obj */
         json_object_put(rsp_body_obj);

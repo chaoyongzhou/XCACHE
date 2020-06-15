@@ -64,6 +64,8 @@ typedef EC_BOOL (*CVECTOR_DATA_HANDLER)(void *);
 typedef void (*CVECTOR_DATA_PRINT)(LOG *, const void *);
 typedef void (*CVECTOR_DATA_LEVEL_PRINT)(LOG *, const void *, const UINT32);
 
+typedef int (*CVECTOR_DATA_ICMP)(const void *, const void *);
+
 typedef UINT32 (*CVECTOR_DATA_ENCODER)(const UINT32, const void *, UINT8 *, const UINT32, UINT32 *);
 typedef UINT32 (*CVECTOR_DATA_ENCODER_SIZE)(const UINT32, const void *, UINT32 *);
 typedef UINT32 (*CVECTOR_DATA_DECODER)(const UINT32, const UINT8 *, const UINT32, UINT32 *, void *);
@@ -147,9 +149,21 @@ UINT32 cvector_search_front(const CVECTOR *cvector, const void *data, EC_BOOL (*
 
 UINT32 cvector_search_back(const CVECTOR *cvector, const void *data, EC_BOOL (*cmp)(const void *, const void *));
 
+UINT32 cvector_bsearch(const CVECTOR *cvector, const void *data, int (*cmp)(const void *, const void *));
+
+UINT32 cvector_bsearch_no_lock(const CVECTOR *cvector, const void *data, int (*cmp)(const void *, const void *));
+
+EC_BOOL cvector_qsort(const CVECTOR *cvector, int (*cmp)(const void *, const void *));
+
+EC_BOOL cvector_qsort_no_lock(const CVECTOR *cvector, int (*cmp)(const void *, const void *));
+
 UINT32 cvector_insert_front(CVECTOR *cvector, const void *data);
 
 UINT32 cvector_insert_back(CVECTOR *cvector, const void *data);
+
+UINT32 cvector_insert_pos(CVECTOR *cvector, const UINT32 pos, const void *data);
+
+UINT32 cvector_insert_pos_no_lock(CVECTOR *cvector, const UINT32 pos, const void *data);
 
 EC_BOOL cvector_runthrough_front(const CVECTOR *cvector, const void *pvoid, EC_BOOL (*handle)(const void *, const void *));
 

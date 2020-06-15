@@ -633,7 +633,7 @@ EC_BOOL camd_restore_shm(CAMD_MD *camd_md);
 
 EC_BOOL camd_retrieve_shm(CAMD_MD *camd_md);
 
-EC_BOOL camd_enable_dio(CAMD_MD *camd_md, const int disk_fd, const UINT32 disk_offset, const UINT32 disk_size);
+EC_BOOL camd_enable_dio(CAMD_MD *camd_md, const int disk_fd, const char *disk_tag, const UINT32 disk_offset, const UINT32 disk_size);
 
 EC_BOOL camd_disable_dio(CAMD_MD *camd_md);
 
@@ -758,6 +758,11 @@ EC_BOOL camd_ssd_flush_complete(CAMD_SSD *camd_ssd);
 
 /*flush one page when cmc retire it*/
 EC_BOOL camd_ssd_flush(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key, const CMCNP_ITEM *cmcnp_item,
+                            const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no);
+
+
+/*flush one page in mem to ssd or sata determined by dirty flag*/
+EC_BOOL camd_mem_degrade(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key, const CMCNP_ITEM *cmcnp_item,
                             const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no);
 
 CAMD_SATA *camd_sata_new();

@@ -999,7 +999,6 @@ EC_BOOL crb_tree_delete_data(CRB_TREE *crbtree, const void *data)
     return crb_tree_delete(crbtree, node);
 }
 
-
 /*postorder: left -> right -> root*/
 STATIC_CAST static void __crb_tree_free(CRB_TREE *crbtree, CRB_NODE *node)
 {

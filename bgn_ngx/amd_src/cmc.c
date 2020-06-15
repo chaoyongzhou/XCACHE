@@ -3883,6 +3883,11 @@ EC_BOOL cmc_set_degrade_callback(CMC_MD *cmc_md, const uint32_t flags, CMCNP_DEG
             cmcnp_flags |= CMCNP_DEGRADE_SATA;
         }
 
+        if(CMC_DEGRADE_MEM & flags)
+        {
+            cmcnp_flags |= CMCNP_DEGRADE_MEM;
+        }
+
         cmcnp_degrade_cb_set(CMC_MD_NP_DEGRADE_CB(cmc_md), cmcnp_flags, func, arg);
         return (EC_TRUE);
     }

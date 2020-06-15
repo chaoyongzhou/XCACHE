@@ -811,6 +811,72 @@ UINT32 cvector_search_back(const CVECTOR *cvector, const void *data, EC_BOOL (*c
     return CVECTOR_ERR_POS;
 }
 
+/*binary search, refer glibc bsearch*/
+/*cvector: data[0] > data[1] > ....*/
+UINT32 cvector_bsearch(const CVECTOR *cvector, const void *data, int (*cmp)(const void *, const void *))
+{
+    UINT32  pos;
+
+    CVECTOR_LOCK(cvector, LOC_CVECTOR_0050);
+    pos = cvector_bsearch_no_lock(cvector, data, cmp);
+    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0052);
+
+    return pos;
+}
+
+/*cvector: data[0] > data[1] > ....*/
+UINT32 cvector_bsearch_no_lock(const CVECTOR *cvector, const void *data, int (*cmp)(const void *, const void *))
+{
+    UINT32 lo;
+    UINT32 hi;
+    UINT32 pos;
+    int    ret;
+
+    lo = 0;
+    hi = (UINT32)cvector->size;
+
+    while (lo < hi)
+    {
+        pos = (lo + hi) / 2;
+
+        ret = cmp(cvector->data[ pos ], data);
+        if(ret == 0)
+        {
+            return pos;
+        }
+
+        if(ret < 0)/*data < [pos]*/
+        {
+            lo = pos + 1;
+        }
+        else /*data > [pos]*/
+        {
+      	    hi = pos;
+  	    }
+    }
+
+    return CVECTOR_ERR_POS;
+}
+
+EC_BOOL cvector_qsort(const CVECTOR *cvector, int (*cmp)(const void *, const void *))
+{
+    EC_BOOL     ret;
+
+    CVECTOR_LOCK(cvector, LOC_CVECTOR_0050);
+    /*result cvector: data[0] > data[1] > ....*/
+    ret = cvector_qsort_no_lock(cvector, cmp);
+    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0050);
+
+    return ret;
+}
+
+EC_BOOL cvector_qsort_no_lock(const CVECTOR *cvector, int (*cmp)(const void *, const void *))
+{
+    /*result cvector: data[0] > data[1] > ....*/
+    qsort((void *)cvector->data, cvector->size, sizeof(void *), cmp);
+    return (EC_TRUE);
+}
+
 UINT32 cvector_insert_front(CVECTOR *cvector, const void *data)
 {
     UINT32 pos;
@@ -849,6 +915,53 @@ UINT32 cvector_insert_back(CVECTOR *cvector, const void *data)
     pos = cvector_push_no_lock(cvector, data);
     CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0058);
     return (pos);
+}
+
+UINT32 cvector_insert_pos(CVECTOR *cvector, const UINT32 pos, const void *data)
+{
+    UINT32 idx;
+    if( cvector->size == cvector->capacity )
+    {
+        /*if failed to expand, return error code*/
+        if( EC_FALSE == cvector_expand(cvector) )
+        {
+            return CVECTOR_ERR_POS;
+        }
+    }
+
+    CVECTOR_LOCK(cvector, LOC_CVECTOR_0023);
+    for(idx = cvector->size; idx > pos; idx --)
+    {
+        cvector->data[ idx ] = cvector->data[ idx - 1];
+    }
+    cvector->data[ idx ] = (void *)data;
+    cvector->size ++;
+
+    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0024);
+
+    return (idx);
+}
+
+UINT32 cvector_insert_pos_no_lock(CVECTOR *cvector, const UINT32 pos, const void *data)
+{
+    UINT32 idx;
+    if( cvector->size == cvector->capacity )
+    {
+        /*if failed to expand, return error code*/
+        if( EC_FALSE == cvector_expand_no_lock(cvector) )
+        {
+            return CVECTOR_ERR_POS;
+        }
+    }
+
+    for(idx = cvector->size; idx > pos; idx --)
+    {
+        cvector->data[ idx ] = cvector->data[ idx - 1];
+    }
+    cvector->data[ idx ] = (void *)data;
+    cvector->size ++;
+
+    return (idx);
 }
 
 EC_BOOL cvector_runthrough_front(const CVECTOR *cvector, const void *pvoid, EC_BOOL (*handle)(const void *, const void *))

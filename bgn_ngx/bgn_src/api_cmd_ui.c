@@ -167,6 +167,10 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "flow control" , "cmc switch <on|off> flow control on {all | tcid <tcid> rank <rank>} at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "flow control" , "cdc switch <on|off> flow control on {all | tcid <tcid> rank <rank>} at <console|log>");
 
+    api_cmd_help_vec_create(cmd_help_vec, "cxfs model"   , "cxfs set <lru|fifo> model on {all | tcid <tcid> rank <rank>} at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "cmc model"    , "cmc set <lru|fifo> model on {all | tcid <tcid> rank <rank>} at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "cdc model"    , "cdc set <lru|fifo> model on {all | tcid <tcid> rank <rank>} at <console|log>");
+
     api_cmd_help_vec_create(cmd_help_vec, "show thread"  , "show thread on {all | tcid <tcid> rank <rank>} at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "show route"   , "show route on {all | tcid <tcid>} at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "show taskcomm", "show taskcomm on {all | tcid <tcid>} at <console|log>");
@@ -435,6 +439,21 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cdc_flow_control_switch_off_all, "cdc switch off flow control on all at %s"             , where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cdc_flow_control_switch_off    , "cdc switch off flow control on tcid %t rank %n at %s" , tcid, rank, where);
+
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_lru_model_switch_on_all , "cxfs set lru model on all at %s"             , where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_lru_model_switch_on     , "cxfs set lru model on tcid %t rank %n at %s" , tcid, rank, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_fifo_model_switch_on_all, "cxfs set fifo model on all at %s"             , where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_fifo_model_switch_on    , "cxfs set fifo model on tcid %t rank %n at %s" , tcid, rank, where);
+
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cmc_lru_model_switch_on_all , "cmc set lru model on all at %s"             , where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cmc_lru_model_switch_on     , "cmc set lru model on tcid %t rank %n at %s" , tcid, rank, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cmc_fifo_model_switch_on_all, "cmc set fifo model on all at %s"             , where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cmc_fifo_model_switch_on    , "cmc set fifo model on tcid %t rank %n at %s" , tcid, rank, where);
+
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cdc_lru_model_switch_on_all , "cdc set lru model on all at %s"             , where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cdc_lru_model_switch_on     , "cdc set lru model on tcid %t rank %n at %s" , tcid, rank, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cdc_fifo_model_switch_on_all, "cdc set fifo model on all at %s"             , where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cdc_fifo_model_switch_on    , "cdc set fifo model on tcid %t rank %n at %s" , tcid, rank, where);
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_show_thread_all             , "show thread on all at %s"                           , where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_show_thread                 , "show thread on tcid %t rank %n at %s"               , tcid, rank, where);
@@ -4704,9 +4723,9 @@ EC_BOOL api_cmd_ui_cmc_flow_control_switch_on(CMD_PARA_VEC * param)
     CVECTOR *report_vec;
     LOG   *des_log;
 
-    api_cmd_para_vec_get_tcid(param, 1, &tcid);
-    api_cmd_para_vec_get_uint32(param, 2, &rank);
-    api_cmd_para_vec_get_cstring(param, 3, &where);
+    api_cmd_para_vec_get_tcid(param, 0, &tcid);
+    api_cmd_para_vec_get_uint32(param, 1, &rank);
+    api_cmd_para_vec_get_cstring(param, 2, &where);
 
     dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cmc switch on flow control on tcid %s, rank %ld at %s\n",
                         c_word_to_ipv4(tcid),
@@ -4849,9 +4868,9 @@ EC_BOOL api_cmd_ui_cmc_flow_control_switch_off(CMD_PARA_VEC * param)
     CVECTOR *report_vec;
     LOG   *des_log;
 
-    api_cmd_para_vec_get_tcid(param, 1, &tcid);
-    api_cmd_para_vec_get_uint32(param, 2, &rank);
-    api_cmd_para_vec_get_cstring(param, 3, &where);
+    api_cmd_para_vec_get_tcid(param, 0, &tcid);
+    api_cmd_para_vec_get_uint32(param, 1, &rank);
+    api_cmd_para_vec_get_cstring(param, 2, &where);
 
     dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cmc switch off flow control on tcid %s, rank %ld at %s\n",
                         c_word_to_ipv4(tcid),
@@ -4994,9 +5013,9 @@ EC_BOOL api_cmd_ui_cdc_flow_control_switch_on(CMD_PARA_VEC * param)
     CVECTOR *report_vec;
     LOG   *des_log;
 
-    api_cmd_para_vec_get_tcid(param, 1, &tcid);
-    api_cmd_para_vec_get_uint32(param, 2, &rank);
-    api_cmd_para_vec_get_cstring(param, 3, &where);
+    api_cmd_para_vec_get_tcid(param, 0, &tcid);
+    api_cmd_para_vec_get_uint32(param, 1, &rank);
+    api_cmd_para_vec_get_cstring(param, 2, &where);
 
     dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cdc switch on flow control on tcid %s, rank %ld at %s\n",
                         c_word_to_ipv4(tcid),
@@ -5139,9 +5158,9 @@ EC_BOOL api_cmd_ui_cdc_flow_control_switch_off(CMD_PARA_VEC * param)
     CVECTOR *report_vec;
     LOG   *des_log;
 
-    api_cmd_para_vec_get_tcid(param, 1, &tcid);
-    api_cmd_para_vec_get_uint32(param, 2, &rank);
-    api_cmd_para_vec_get_cstring(param, 3, &where);
+    api_cmd_para_vec_get_tcid(param, 0, &tcid);
+    api_cmd_para_vec_get_uint32(param, 1, &rank);
+    api_cmd_para_vec_get_cstring(param, 2, &where);
 
     dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cdc switch off flow control on tcid %s, rank %ld at %s\n",
                         c_word_to_ipv4(tcid),
@@ -5241,6 +5260,878 @@ EC_BOOL api_cmd_ui_cdc_flow_control_switch_off_all(CMD_PARA_VEC * param)
 
         task_pos_inc(task_mgr, remote_mod_node_idx, ret,
                     FI_super_cdc_flow_control_switch_off, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        EC_BOOL *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (EC_BOOL *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),
+                        EC_TRUE == (*ret) ? "SUCC":"FAIL");
+
+        cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0183);
+    }
+
+    cvector_free(report_vec, LOC_API_0113);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+#if 1
+/*cxfs set lru model on {all | tcid <tcid> rank <rank>} at <console|log>*/
+EC_BOOL api_cmd_ui_cxfs_lru_model_switch_on(CMD_PARA_VEC * param)
+{
+    UINT32 tcid;
+    UINT32 rank;
+
+    CSTRING *where;
+
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_tcid(param, 0, &tcid);
+    api_cmd_para_vec_get_uint32(param, 1, &rank);
+    api_cmd_para_vec_get_cstring(param, 2, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cxfs set lru model on tcid %s, rank %ld at %s\n",
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(tcid, rank, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_lru_model_switch_on beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_lru_model_switch_on end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0110);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        EC_BOOL *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0182);
+        cvector_push_no_lock(report_vec, (void *)ret);
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret,
+                    FI_super_cxfs_lru_model_switch_on, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        EC_BOOL *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (EC_BOOL *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),
+                         EC_TRUE == (*ret) ? "SUCC":"FAIL");
+
+        cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0183);
+    }
+
+    cvector_free(report_vec, LOC_API_0111);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+/*cxfs set lru model on {all | tcid <tcid> rank <rank>} at <console|log>*/
+EC_BOOL api_cmd_ui_cxfs_lru_model_switch_on_all(CMD_PARA_VEC * param)
+{
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    CSTRING *where;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_cstring(param, 0, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cxfs set lru model on all at %s\n",
+                                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_lru_model_switch_on_all beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_lru_model_switch_on_all end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0112);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        EC_BOOL *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0182);
+        cvector_push_no_lock(report_vec, (void *)ret);
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret,
+                    FI_super_cxfs_lru_model_switch_on, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        EC_BOOL *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (EC_BOOL *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),
+                        EC_TRUE == (*ret) ? "SUCC":"FAIL");
+
+        cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0183);
+    }
+
+    cvector_free(report_vec, LOC_API_0113);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+/*cxfs set fifo model on {all | tcid <tcid> rank <rank>} at <console|log>*/
+EC_BOOL api_cmd_ui_cxfs_fifo_model_switch_on(CMD_PARA_VEC * param)
+{
+    UINT32 tcid;
+    UINT32 rank;
+
+    CSTRING *where;
+
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_tcid(param, 0, &tcid);
+    api_cmd_para_vec_get_uint32(param, 1, &rank);
+    api_cmd_para_vec_get_cstring(param, 2, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cxfs set fifo model on tcid %s, rank %ld at %s\n",
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(tcid, rank, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_fifo_model_switch_on beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_fifo_model_switch_on end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0110);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        EC_BOOL *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0182);
+        cvector_push_no_lock(report_vec, (void *)ret);
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret,
+                    FI_super_cxfs_fifo_model_switch_on, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        EC_BOOL *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (EC_BOOL *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),
+                         EC_TRUE == (*ret) ? "SUCC":"FAIL");
+
+        cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0183);
+    }
+
+    cvector_free(report_vec, LOC_API_0111);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+/*cxfs set fifo model on {all | tcid <tcid> rank <rank>} at <console|log>*/
+EC_BOOL api_cmd_ui_cxfs_fifo_model_switch_on_all(CMD_PARA_VEC * param)
+{
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    CSTRING *where;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_cstring(param, 0, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cxfs set fifo model on all at %s\n",
+                                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_fifo_model_switch_on_all beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_fifo_model_switch_on_all end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0112);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        EC_BOOL *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0182);
+        cvector_push_no_lock(report_vec, (void *)ret);
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret,
+                    FI_super_cxfs_fifo_model_switch_on, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        EC_BOOL *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (EC_BOOL *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),
+                        EC_TRUE == (*ret) ? "SUCC":"FAIL");
+
+        cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0183);
+    }
+
+    cvector_free(report_vec, LOC_API_0113);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+#endif
+
+/*cmc set lru model on {all | tcid <tcid> rank <rank>} at <console|log>*/
+EC_BOOL api_cmd_ui_cmc_lru_model_switch_on(CMD_PARA_VEC * param)
+{
+    UINT32 tcid;
+    UINT32 rank;
+
+    CSTRING *where;
+
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_tcid(param, 0, &tcid);
+    api_cmd_para_vec_get_uint32(param, 1, &rank);
+    api_cmd_para_vec_get_cstring(param, 2, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cmc set lru model on tcid %s, rank %ld at %s\n",
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(tcid, rank, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cmc_lru_model_switch_on beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cmc_lru_model_switch_on end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0110);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        EC_BOOL *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0182);
+        cvector_push_no_lock(report_vec, (void *)ret);
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret,
+                    FI_super_cmc_lru_model_switch_on, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        EC_BOOL *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (EC_BOOL *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),
+                         EC_TRUE == (*ret) ? "SUCC":"FAIL");
+
+        cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0183);
+    }
+
+    cvector_free(report_vec, LOC_API_0111);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+/*cmc set lru model on {all | tcid <tcid> rank <rank>} at <console|log>*/
+EC_BOOL api_cmd_ui_cmc_lru_model_switch_on_all(CMD_PARA_VEC * param)
+{
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    CSTRING *where;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_cstring(param, 0, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cmc set lru model on all at %s\n",
+                                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cmc_lru_model_switch_on_all beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cmc_lru_model_switch_on_all end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0112);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        EC_BOOL *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0182);
+        cvector_push_no_lock(report_vec, (void *)ret);
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret,
+                    FI_super_cmc_lru_model_switch_on, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        EC_BOOL *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (EC_BOOL *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),
+                        EC_TRUE == (*ret) ? "SUCC":"FAIL");
+
+        cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0183);
+    }
+
+    cvector_free(report_vec, LOC_API_0113);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+/*cmc set fifo model on {all | tcid <tcid> rank <rank>} at <console|log>*/
+EC_BOOL api_cmd_ui_cmc_fifo_model_switch_on(CMD_PARA_VEC * param)
+{
+    UINT32 tcid;
+    UINT32 rank;
+
+    CSTRING *where;
+
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_tcid(param, 0, &tcid);
+    api_cmd_para_vec_get_uint32(param, 1, &rank);
+    api_cmd_para_vec_get_cstring(param, 2, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cmc set fifo model on tcid %s, rank %ld at %s\n",
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(tcid, rank, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cmc_fifo_model_switch_on beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cmc_fifo_model_switch_on end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0110);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        EC_BOOL *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0182);
+        cvector_push_no_lock(report_vec, (void *)ret);
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret,
+                    FI_super_cmc_fifo_model_switch_on, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        EC_BOOL *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (EC_BOOL *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),
+                         EC_TRUE == (*ret) ? "SUCC":"FAIL");
+
+        cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0183);
+    }
+
+    cvector_free(report_vec, LOC_API_0111);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+/*cmc set fifo model on {all | tcid <tcid> rank <rank>} at <console|log>*/
+EC_BOOL api_cmd_ui_cmc_fifo_model_switch_on_all(CMD_PARA_VEC * param)
+{
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    CSTRING *where;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_cstring(param, 0, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cmc set fifo model on all at %s\n",
+                                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cmc_fifo_model_switch_on_all beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cmc_fifo_model_switch_on_all end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0112);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        EC_BOOL *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0182);
+        cvector_push_no_lock(report_vec, (void *)ret);
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret,
+                    FI_super_cmc_fifo_model_switch_on, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        EC_BOOL *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (EC_BOOL *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),
+                        EC_TRUE == (*ret) ? "SUCC":"FAIL");
+
+        cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0183);
+    }
+
+    cvector_free(report_vec, LOC_API_0113);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+/*cdc set lru model on {all | tcid <tcid> rank <rank>} at <console|log>*/
+EC_BOOL api_cmd_ui_cdc_lru_model_switch_on(CMD_PARA_VEC * param)
+{
+    UINT32 tcid;
+    UINT32 rank;
+
+    CSTRING *where;
+
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_tcid(param, 0, &tcid);
+    api_cmd_para_vec_get_uint32(param, 1, &rank);
+    api_cmd_para_vec_get_cstring(param, 2, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cdc set lru model on tcid %s, rank %ld at %s\n",
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(tcid, rank, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cdc_lru_model_switch_on beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cdc_lru_model_switch_on end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0110);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        EC_BOOL *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0182);
+        cvector_push_no_lock(report_vec, (void *)ret);
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret,
+                    FI_super_cdc_lru_model_switch_on, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        EC_BOOL *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (EC_BOOL *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),
+                         EC_TRUE == (*ret) ? "SUCC":"FAIL");
+
+        cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0183);
+    }
+
+    cvector_free(report_vec, LOC_API_0111);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+/*cdc set lru model on {all | tcid <tcid> rank <rank>} at <console|log>*/
+EC_BOOL api_cmd_ui_cdc_lru_model_switch_on_all(CMD_PARA_VEC * param)
+{
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    CSTRING *where;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_cstring(param, 0, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cdc set lru model on all at %s\n",
+                                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cdc_lru_model_switch_on_all beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cdc_lru_model_switch_on_all end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0112);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        EC_BOOL *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0182);
+        cvector_push_no_lock(report_vec, (void *)ret);
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret,
+                    FI_super_cdc_lru_model_switch_on, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        EC_BOOL *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (EC_BOOL *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),
+                        EC_TRUE == (*ret) ? "SUCC":"FAIL");
+
+        cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0183);
+    }
+
+    cvector_free(report_vec, LOC_API_0113);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+/*cdc set fifo model on {all | tcid <tcid> rank <rank>} at <console|log>*/
+EC_BOOL api_cmd_ui_cdc_fifo_model_switch_on(CMD_PARA_VEC * param)
+{
+    UINT32 tcid;
+    UINT32 rank;
+
+    CSTRING *where;
+
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_tcid(param, 0, &tcid);
+    api_cmd_para_vec_get_uint32(param, 1, &rank);
+    api_cmd_para_vec_get_cstring(param, 2, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cdc set fifo model on tcid %s, rank %ld at %s\n",
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(tcid, rank, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cdc_fifo_model_switch_on beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cdc_fifo_model_switch_on end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0110);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        EC_BOOL *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0182);
+        cvector_push_no_lock(report_vec, (void *)ret);
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret,
+                    FI_super_cdc_fifo_model_switch_on, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        EC_BOOL *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (EC_BOOL *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),
+                         EC_TRUE == (*ret) ? "SUCC":"FAIL");
+
+        cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0183);
+    }
+
+    cvector_free(report_vec, LOC_API_0111);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+/*cdc set fifo model on {all | tcid <tcid> rank <rank>} at <console|log>*/
+EC_BOOL api_cmd_ui_cdc_fifo_model_switch_on_all(CMD_PARA_VEC * param)
+{
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    CSTRING *where;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_cstring(param, 0, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "cdc set fifo model on all at %s\n",
+                                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cdc_fifo_model_switch_on_all beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cdc_fifo_model_switch_on_all end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0112);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        EC_BOOL *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0182);
+        cvector_push_no_lock(report_vec, (void *)ret);
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret,
+                    FI_super_cdc_fifo_model_switch_on, CMPI_ERROR_MODI);
     }
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 

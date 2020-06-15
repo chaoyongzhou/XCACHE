@@ -1129,6 +1129,9 @@ void cparacfg_xfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
         sys_print(log, " xfsDnAmdSsdDiskOffset=\"%ld\""  , CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg));
         //sys_print(log, " xfsDnAmdSsdDiskSize=\"%ld\""    , CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
 
+        sys_print(log, " xfsLRUSwitch=\"%s\""            , CPARACFG_CXFS_LRU_MODEL_SWITCH_STR(cparacfg));
+        sys_print(log, " xfsFIFOSwitch=\"%s\""           , CPARACFG_CXFS_FIFO_MODEL_SWITCH_STR(cparacfg));
+
         sys_print(log, " httpReqNumPerLoop=\"%u\""       , CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
         sys_print(log, "/>\n");
     }
@@ -1173,6 +1176,8 @@ void cparacfg_amd_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
         sys_print(log, " cmcDegradeHiRatio=\"%.2f\""     , CPARACFG_CMC_DEGRADE_HI_RATIO(cparacfg));
         sys_print(log, " cmcDegradeMdRatio=\"%.2f\""     , CPARACFG_CMC_DEGRADE_MD_RATIO(cparacfg));
         sys_print(log, " cmcDegradeLoRatio=\"%.2f\""     , CPARACFG_CMC_DEGRADE_LO_RATIO(cparacfg));
+        sys_print(log, " cmcLRUSwitch=\"%s\""            , CPARACFG_CMC_LRU_MODEL_SWITCH_STR(cparacfg));
+        sys_print(log, " cmcFIFOSwitch=\"%s\""           , CPARACFG_CMC_FIFO_MODEL_SWITCH_STR(cparacfg));
 
         sys_print(log, " cdcTryRetireMaxNum=\"%ld\""     , CPARACFG_CDC_TRY_RETIRE_MAX_NUM(cparacfg));
         sys_print(log, " cdcTryRecycleMaxNum=\"%ld\""    , CPARACFG_CDC_TRY_RECYCLE_MAX_NUM(cparacfg));
@@ -1182,7 +1187,8 @@ void cparacfg_amd_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
         sys_print(log, " cdcDegradeHiRatio=\"%.2f\""     , CPARACFG_CDC_DEGRADE_HI_RATIO(cparacfg));
         sys_print(log, " cdcDegradeMdRatio=\"%.2f\""     , CPARACFG_CDC_DEGRADE_MD_RATIO(cparacfg));
         sys_print(log, " cdcDegradeLoRatio=\"%.2f\""     , CPARACFG_CDC_DEGRADE_LO_RATIO(cparacfg));
-
+        sys_print(log, " cdcLRUSwitch=\"%s\""            , CPARACFG_CDC_LRU_MODEL_SWITCH_STR(cparacfg));
+        sys_print(log, " cdcFIFOSwitch=\"%s\""           , CPARACFG_CDC_FIFO_MODEL_SWITCH_STR(cparacfg));
         sys_print(log, "/>\n");
     }
     return;

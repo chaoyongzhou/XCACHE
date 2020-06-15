@@ -169,6 +169,12 @@ EC_BOOL cngx_http_handle_ngx_show_cmon_nodes_get_request(CHTTP_NODE *chttp_node)
 EC_BOOL cngx_http_make_ngx_show_cmon_nodes_get_response(CHTTP_NODE *chttp_node);
 EC_BOOL cngx_http_commit_ngx_show_cmon_nodes_get_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL cngx_http_is_http_get_paracfg(const CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_commit_paracfg_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_handle_paracfg_get_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_make_paracfg_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_http_commit_paracfg_get_response(CHTTP_NODE *chttp_node);
+
 #endif /*_CNGX_HTTP_H*/
 
 #ifdef __cplusplus

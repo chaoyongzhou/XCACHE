@@ -61,7 +61,7 @@ STATIC_CAST const char *__cdio_file_req_op_str(const UINT32 op)
 * start CDIO module
 *
 **/
-CDIO_MD *cdio_start(const int disk_fd, const UINT32 disk_offset, const UINT32 disk_size/*in byte*/)
+CDIO_MD *cdio_start(const int disk_fd, const char *disk_tag, const UINT32 disk_offset, const UINT32 disk_size/*in byte*/)
 {
     CDIO_MD  *cdio_md;
 
@@ -137,12 +137,12 @@ CDIO_MD *cdio_start(const int disk_fd, const UINT32 disk_offset, const UINT32 di
 
     if(0 != disk_size)
     {
-        caio_add_disk(CDIO_MD_CAIO_MD(cdio_md), disk_fd, &CDIO_MD_AIO_REQ_MAX_NUM(cdio_md));
+        caio_add_disk(CDIO_MD_CAIO_MD(cdio_md), disk_fd, disk_tag, &CDIO_MD_AIO_REQ_MAX_NUM(cdio_md));
     }
 
     dbg_log(SEC_0211_CDIO, 0)(LOGSTDOUT, "[DEBUG] cdio_start: "
-                                         "disk fd %d, offset %ld, size %ld\n",
-                                         disk_fd, disk_offset, disk_size);
+                                         "disk fd %d, tag %s, offset %ld, size %ld\n",
+                                         disk_fd, disk_tag, disk_offset, disk_size);
 
     dbg_log(SEC_0211_CDIO, 0)(LOGSTDOUT, "[DEBUG] cdio_start: start cdio done\n");
 

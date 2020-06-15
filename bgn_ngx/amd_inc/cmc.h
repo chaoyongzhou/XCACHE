@@ -77,6 +77,7 @@ extern "C"{
 
 #define CMC_DEGRADE_SSD                    ((uint32_t)0x0001)
 #define CMC_DEGRADE_SATA                   ((uint32_t)0x0010)
+#define CMC_DEGRADE_MEM                    ((uint32_t)0x0100)
 
 typedef struct
 {

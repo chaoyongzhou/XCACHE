@@ -73,7 +73,7 @@ typedef struct
 * start CDIO module
 *
 **/
-CDIO_MD *cdio_start(const int disk_fd, const UINT32 disk_offset, const UINT32 disk_size/*in byte*/);
+CDIO_MD *cdio_start(const int disk_fd, const char *disk_tag, const UINT32 disk_offset, const UINT32 disk_size/*in byte*/);
 
 /**
 *

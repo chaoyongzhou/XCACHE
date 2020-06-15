@@ -47,6 +47,8 @@ extern "C"{
 #define CXFS_SATA_BAD_BITMAP_SIZE_NBITS     ((CXFS_SATA_BAD_BITMAP_SIZE_NBYTES - 4 - 4) << 3)
 #define CXFS_SATA_BAD_BITMAP_MEM_ALIGN      (1 << 20) /*align to 1MB*/
 
+#define CXFS_STAT_INTERVAL_NSEC             ((uint64_t)1)
+
 #if 0
 /*100GB <==> 2 ops/ms suggest op size is 512B and last for one day*/
 #define CXFS_OP_TABLE_DISK_MAX_SIZE_NBYTES  (((uint64_t)100) << 30)/*100GB*/
@@ -82,36 +84,78 @@ extern "C"{
 /*statistics*/
 typedef struct
 {
-    uint64_t            read_times_counter;
-    uint64_t            read_nbytes_count;
+    uint64_t            read_counter;
+    uint64_t            read_np_succ_counter;
+    uint64_t            read_np_fail_counter;
+    uint64_t            read_dn_succ_counter;
+    uint64_t            read_dn_fail_counter;
+    uint64_t            read_nbytes;
+    uint64_t            read_cost_msec;
 
-    uint64_t            write_times_counter;
-    uint64_t            write_nbytes_count;
+    uint64_t            write_counter;
+    uint64_t            write_np_succ_counter;
+    uint64_t            write_np_fail_counter;
+    uint64_t            write_dn_succ_counter;
+    uint64_t            write_dn_fail_counter;
+    uint64_t            write_nbytes;
+    uint64_t            write_cost_msec;
 
-    uint64_t            delete_times_counter;
+    uint64_t            update_counter;
+    uint64_t            update_succ_counter;
+    uint64_t            update_fail_counter;
+    uint64_t            update_nbytes;
+    uint64_t            update_cost_msec;
 
-    uint64_t            update_times_counter;
-    uint64_t            update_nbytes_count;
+    uint64_t            renew_counter;
+    uint64_t            renew_succ_counter;
+    uint64_t            renew_fail_counter;
+    uint64_t            renew_nbytes;
+    uint64_t            renew_cost_msec;
 
-    uint64_t            retire_times_counter;
+    uint64_t            delete_counter;
 
-    uint64_t            recycle_times_counter;
+    uint64_t            retire_counter;
+    uint64_t            retire_complete;
+
+    uint64_t            recycle_counter;
+    uint64_t            recycle_complete;
 }CXFS_STAT;
 
-#define CXFS_STAT_READ_TIMES_COUNTER(cxfs_stat)           ((cxfs_stat)->read_times_counter)
-#define CXFS_STAT_READ_NBYTES_COUNTER(cxfs_stat)          ((cxfs_stat)->read_nbytes_count)
+#define CXFS_STAT_READ_COUNTER(cxfs_stat)           ((cxfs_stat)->read_counter)
+#define CXFS_STAT_READ_NP_SUCC_COUNTER(cxfs_stat)   ((cxfs_stat)->read_np_succ_counter)
+#define CXFS_STAT_READ_NP_FAIL_COUNTER(cxfs_stat)   ((cxfs_stat)->read_np_fail_counter)
+#define CXFS_STAT_READ_DN_SUCC_COUNTER(cxfs_stat)   ((cxfs_stat)->read_dn_succ_counter)
+#define CXFS_STAT_READ_DN_FAIL_COUNTER(cxfs_stat)   ((cxfs_stat)->read_dn_fail_counter)
+#define CXFS_STAT_READ_NBYTES(cxfs_stat)            ((cxfs_stat)->read_nbytes)
+#define CXFS_STAT_READ_COST_MSEC(cxfs_stat)         ((cxfs_stat)->read_cost_msec)
 
-#define CXFS_STAT_WRITE_TIMES_COUNTER(cxfs_stat)          ((cxfs_stat)->write_times_counter)
-#define CXFS_STAT_WRITE_NBYTES_COUNTER(cxfs_stat)         ((cxfs_stat)->write_nbytes_count)
+#define CXFS_STAT_WRITE_COUNTER(cxfs_stat)          ((cxfs_stat)->write_counter)
+#define CXFS_STAT_WRITE_NP_SUCC_COUNTER(cxfs_stat)  ((cxfs_stat)->write_np_succ_counter)
+#define CXFS_STAT_WRITE_NP_FAIL_COUNTER(cxfs_stat)  ((cxfs_stat)->write_np_fail_counter)
+#define CXFS_STAT_WRITE_DN_SUCC_COUNTER(cxfs_stat)  ((cxfs_stat)->write_dn_succ_counter)
+#define CXFS_STAT_WRITE_DN_FAIL_COUNTER(cxfs_stat)  ((cxfs_stat)->write_dn_fail_counter)
+#define CXFS_STAT_WRITE_NBYTES(cxfs_stat)           ((cxfs_stat)->write_nbytes)
+#define CXFS_STAT_WRITE_COST_MSEC(cxfs_stat)        ((cxfs_stat)->write_cost_msec)
 
-#define CXFS_STAT_DELETE_TIMES_COUNTER(cxfs_stat)         ((cxfs_stat)->delete_times_counter)
+#define CXFS_STAT_UPDATE_COUNTER(cxfs_stat)         ((cxfs_stat)->update_counter)
+#define CXFS_STAT_UPDATE_SUCC_COUNTER(cxfs_stat)    ((cxfs_stat)->update_succ_counter)
+#define CXFS_STAT_UPDATE_FAIL_COUNTER(cxfs_stat)    ((cxfs_stat)->update_fail_counter)
+#define CXFS_STAT_UPDATE_NBYTES(cxfs_stat)          ((cxfs_stat)->update_nbytes)
+#define CXFS_STAT_UPDATE_COST_MSEC(cxfs_stat)       ((cxfs_stat)->update_cost_msec)
 
-#define CXFS_STAT_UPDATE_TIMES_COUNTER(cxfs_stat)         ((cxfs_stat)->update_times_counter)
-#define CXFS_STAT_UPDATE_NBYTES_COUNTER(cxfs_stat)        ((cxfs_stat)->update_nbytes_count)
+#define CXFS_STAT_RENEW_COUNTER(cxfs_stat)          ((cxfs_stat)->renew_counter)
+#define CXFS_STAT_RENEW_SUCC_COUNTER(cxfs_stat)     ((cxfs_stat)->renew_succ_counter)
+#define CXFS_STAT_RENEW_FAIL_COUNTER(cxfs_stat)     ((cxfs_stat)->renew_fail_counter)
+#define CXFS_STAT_RENEW_NBYTES(cxfs_stat)           ((cxfs_stat)->renew_nbytes)
+#define CXFS_STAT_RENEW_COST_MSEC(cxfs_stat)        ((cxfs_stat)->renew_cost_msec)
 
-#define CXFS_STAT_RETIRE_TIMES_COUNTER(cxfs_stat)         ((cxfs_stat)->retire_times_counter)
+#define CXFS_STAT_DELETE_COUNTER(cxfs_stat)         ((cxfs_stat)->delete_counter)
 
-#define CXFS_STAT_RECYCLE_TIMES_COUNTER(cxfs_stat)        ((cxfs_stat)->recycle_times_counter)
+#define CXFS_STAT_RETIRE_COUNTER(cxfs_stat)         ((cxfs_stat)->retire_counter)
+#define CXFS_STAT_RETIRE_COMPLETE(cxfs_stat)        ((cxfs_stat)->retire_complete)
+
+#define CXFS_STAT_RECYCLE_COUNTER(cxfs_stat)        ((cxfs_stat)->recycle_counter)
+#define CXFS_STAT_RECYCLE_COMPLETE(cxfs_stat)       ((cxfs_stat)->recycle_complete)
 
 #define CXFS_ERR_STATE                      ((UINT32)  0)
 #define CXFS_WORK_STATE                     ((UINT32)  1)
@@ -164,6 +208,7 @@ typedef struct
 
     /*statistics*/
     CXFS_STAT            cxfs_stat;
+    CXFS_STAT            cxfs_stat_saved;
 }CXFS_MD;
 
 #define CXFS_MD_READ_ONLY_FLAG(cxfs_md)                 ((cxfs_md)->read_only_flag)
@@ -192,6 +237,7 @@ typedef struct
 #define CXFS_MD_OP_MGR_LIST(cxfs_md)                    (&((cxfs_md)->cxfsop_mgr_list))
 #define CXFS_MD_OP_DUMP_OFFSET(cxfs_md)                 ((cxfs_md)->cxfsop_dump_offset)
 #define CXFS_MD_STAT(cxfs_md)                           (&((cxfs_md)->cxfs_stat))
+#define CXFS_MD_STAT_SAVED(cxfs_md)                     (&((cxfs_md)->cxfs_stat_saved))
 
 typedef struct
 {
@@ -1010,6 +1056,13 @@ EC_BOOL cxfs_recycle(const UINT32 cxfs_md_id, const UINT32 max_num_per_np, UINT3
 *
 **/
 EC_BOOL cxfs_process_space(const UINT32 cxfs_md_id);
+
+/**
+*
+*  process statistics
+*
+**/
+EC_BOOL cxfs_process_stat(const UINT32 cxfs_md_id);
 
 /**
 *

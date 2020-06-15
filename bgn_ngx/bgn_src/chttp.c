@@ -5336,8 +5336,8 @@ void chttp_req_print(LOG *log, const CHTTP_REQ *chttp_req)
     sys_log(log, "chttp_req_print: domain: %s\n" , cstring_get_str(CHTTP_REQ_DOMAIN(chttp_req)));
 #endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
 
-    sys_log(log, "chttp_req_print: domain: %s\n" , cstring_get_str(CHTTP_REQ_DEVICE_NAME(chttp_req)));
-    sys_log(log, "chttp_req_print: domain: %s\n" , cstring_get_str(CHTTP_REQ_TRACE_ID(chttp_req)));
+    sys_log(log, "chttp_req_print: device_name: %s\n" , cstring_get_str(CHTTP_REQ_DEVICE_NAME(chttp_req)));
+    sys_log(log, "chttp_req_print: trace_id: %s\n" , cstring_get_str(CHTTP_REQ_TRACE_ID(chttp_req)));
 
     sys_log(log, "chttp_req_print: ssl: %s\n" , c_bool_str(CHTTP_REQ_SSL_FLAG(chttp_req)));
 

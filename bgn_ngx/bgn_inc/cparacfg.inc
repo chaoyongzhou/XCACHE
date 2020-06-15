@@ -92,6 +92,9 @@ typedef struct
     UINT32    cxfsdn_camd_ssd_disk_offset   ; /* CXFSDN_CAMD_SSD_DISK_OFFSET */
     //UINT32    cxfsdn_camd_ssd_disk_size     ; /* CXFSDN_CAMD_SSD_DISK_SIZE   */
 
+    UINT32    cxfs_lru_model_switch         ; /* CXFS_LRU_MODEL_SWITCH */
+    UINT32    cxfs_fifo_model_switch        ; /* CXFS_FIFO_MODEL_SWITCH */
+
     uint16_t  rsvd03;
     uint16_t  cmon_conhash_replicas         ; /* CMON_CONHASH_REPLICAS */
     UINT32    cmon_conhash_switch           ; /* CMON_CONHASH_SWITCH */
@@ -130,17 +133,25 @@ typedef struct
     REAL      cmc_degrade_md_ratio;        /*default: 0.85*/
     REAL      cmc_degrade_lo_ratio;        /*default: 0.80*/
 
+    UINT32    cmc_lru_model_switch;        /* CMC_LRU_MODEL_SWITCH */
+    UINT32    cmc_fifo_model_switch;       /* CMC_FIFO_MODEL_SWITCH */
+
     UINT32    cdc_try_retire_max_num;      /*default: 8*/
     UINT32    cdc_try_recycle_max_num;     /*default: 128*/
     UINT32    cdc_scan_retire_max_num;     /*default: 128*/
 
-    UINT32    cdc_flow_control_switch;      /*default: on*/
+    UINT32    cdc_read_cache_switch;       /*default: off*/
+    UINT32    cdc_flow_control_switch;     /*default: on*/
     UINT32    cdc_process_degrade_max_num; /*default: 8*/
     UINT32    cdc_scan_degrade_max_num;    /*default: 256*/
 
     REAL      cdc_degrade_hi_ratio;        /*default: 0.90*/
     REAL      cdc_degrade_md_ratio;        /*default: 0.85*/
     REAL      cdc_degrade_lo_ratio;        /*default: 0.80*/
+
+    UINT32    cdc_lru_model_switch;        /* CDC_LRU_MODEL_SWITCH */
+    UINT32    cdc_fifo_model_switch;       /* CDC_FIFO_MODEL_SWITCH */
+
     UINT32    log_level_tab[ SEC_NONE_END ] ;
 }CPARACFG;
 
@@ -216,6 +227,12 @@ typedef struct
 #define CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg)              ((cparacfg)->cxfsdn_camd_ssd_disk_offset)
 //#define CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg)                ((cparacfg)->cxfsdn_camd_ssd_disk_size)
 
+#define CPARACFG_CXFS_LRU_MODEL_SWITCH(cparacfg)                    ((cparacfg)->cxfs_lru_model_switch)
+#define CPARACFG_CXFS_FIFO_MODEL_SWITCH(cparacfg)                   ((cparacfg)->cxfs_fifo_model_switch)
+
+#define CPARACFG_CXFS_LRU_MODEL_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CXFS_LRU_MODEL_SWITCH(cparacfg)))
+#define CPARACFG_CXFS_FIFO_MODEL_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CXFS_FIFO_MODEL_SWITCH(cparacfg)))
+
 #define CPARACFG_CMON_CONHASH_SWITCH(cparacfg)                      ((cparacfg)->cmon_conhash_switch)
 #define CPARACFG_CMON_CONHASH_REPLICAS(cparacfg)                    ((cparacfg)->cmon_conhash_replicas)
 #define CPARACFG_CMON_HOT_PATH_SWITCH(cparacfg)                     ((cparacfg)->cmon_hot_path_switch)
@@ -254,19 +271,34 @@ typedef struct
 #define CPARACFG_CMC_DEGRADE_MD_RATIO(cparacfg)                     ((cparacfg)->cmc_degrade_md_ratio)
 #define CPARACFG_CMC_DEGRADE_LO_RATIO(cparacfg)                     ((cparacfg)->cmc_degrade_lo_ratio)
 
+#define CPARACFG_CMC_LRU_MODEL_SWITCH(cparacfg)                     ((cparacfg)->cmc_lru_model_switch)
+#define CPARACFG_CMC_FIFO_MODEL_SWITCH(cparacfg)                    ((cparacfg)->cmc_fifo_model_switch)
+
+#define CPARACFG_CMC_LRU_MODEL_SWITCH_STR(cparacfg)                 (c_switch_to_str(CPARACFG_CMC_LRU_MODEL_SWITCH(cparacfg)))
+#define CPARACFG_CMC_FIFO_MODEL_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CMC_FIFO_MODEL_SWITCH(cparacfg)))
+
 #define CPARACFG_CDC_TRY_RETIRE_MAX_NUM(cparacfg)                   ((cparacfg)->cdc_try_retire_max_num)
 #define CPARACFG_CDC_TRY_RECYCLE_MAX_NUM(cparacfg)                  ((cparacfg)->cdc_try_recycle_max_num)
 #define CPARACFG_CDC_SCAN_RETIRE_MAX_NUM(cparacfg)                  ((cparacfg)->cdc_scan_retire_max_num)
 
+#define CPARACFG_CDC_READ_CACHE_SWITCH(cparacfg)                    ((cparacfg)->cdc_read_cache_switch)
 #define CPARACFG_CDC_FLOW_CONTROL_SWITCH(cparacfg)                  ((cparacfg)->cdc_flow_control_switch)
 #define CPARACFG_CDC_PROCESS_DEGRADE_MAX_NUM(cparacfg)              ((cparacfg)->cdc_process_degrade_max_num)
 #define CPARACFG_CDC_SCAN_DEGRADE_MAX_NUM(cparacfg)                 ((cparacfg)->cdc_scan_degrade_max_num)
 
+#define CPARACFG_CDC_READ_CACHE_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CDC_READ_CACHE_SWITCH(cparacfg)))
 #define CPARACFG_CDC_FLOW_CONTROL_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_CDC_FLOW_CONTROL_SWITCH(cparacfg)))
 
 #define CPARACFG_CDC_DEGRADE_HI_RATIO(cparacfg)                     ((cparacfg)->cdc_degrade_hi_ratio)
 #define CPARACFG_CDC_DEGRADE_MD_RATIO(cparacfg)                     ((cparacfg)->cdc_degrade_md_ratio)
 #define CPARACFG_CDC_DEGRADE_LO_RATIO(cparacfg)                     ((cparacfg)->cdc_degrade_lo_ratio)
+
+#define CPARACFG_CDC_LRU_MODEL_SWITCH(cparacfg)                     ((cparacfg)->cdc_lru_model_switch)
+#define CPARACFG_CDC_FIFO_MODEL_SWITCH(cparacfg)                    ((cparacfg)->cdc_fifo_model_switch)
+
+#define CPARACFG_CDC_LRU_MODEL_SWITCH_STR(cparacfg)                 (c_switch_to_str(CPARACFG_CDC_LRU_MODEL_SWITCH(cparacfg)))
+#define CPARACFG_CDC_FIFO_MODEL_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CDC_FIFO_MODEL_SWITCH(cparacfg)))
+
 
 //#define CPARACFG_CONN_KEEPALIVE_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CONN_KEEPALIVE_SWITCH(cparacfg)))
 #define CPARACFG_HIGH_PRECISION_TIME_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_HIGH_PRECISION_TIME_SWITCH(cparacfg)))
@@ -423,6 +455,9 @@ typedef struct
 #define CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET_DEF                 0
 //#define CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE_DEF                   0
 
+#define CPARACFG_CXFS_LRU_MODEL_SWITCH_DEF                       SWITCH_OFF
+#define CPARACFG_CXFS_FIFO_MODEL_SWITCH_DEF                      SWITCH_ON
+
 #define CPARACFG_CMON_CONHASH_SWITCH_DEF                         SWITCH_ON
 #define CPARACFG_CMON_CONHASH_REPLICAS_DEF                       160
 #define CPARACFG_CMON_HOT_PATH_SWITCH_DEF                        SWITCH_ON
@@ -458,13 +493,20 @@ typedef struct
 #define CPARACFG_CMC_DEGRADE_MD_RATIO_DEF                        0.85
 #define CPARACFG_CMC_DEGRADE_LO_RATIO_DEF                        0.80
 
+#define CPARACFG_CMC_LRU_MODEL_SWITCH_DEF                        SWITCH_ON
+#define CPARACFG_CMC_FIFO_MODEL_SWITCH_DEF                       SWITCH_OFF
+
 #define CPARACFG_CDC_TRY_RETIRE_MAX_NUM_DEF                      8
 #define CPARACFG_CDC_TRY_RECYCLE_MAX_NUM_DEF                     128
 #define CPARACFG_CDC_SCAN_RETIRE_MAX_NUM_DEF                     128
 
+#define CPARACFG_CDC_READ_CACHE_SWITCH_DEF                       SWITCH_ON
 #define CPARACFG_CDC_FLOW_CONTROL_SWITCH_DEF                     SWITCH_OFF
 #define CPARACFG_CDC_PROCESS_DEGRADE_MAX_NUM_DEF                 8
 #define CPARACFG_CDC_SCAN_DEGRADE_MAX_NUM_DEF                    256
+
+#define CPARACFG_CDC_LRU_MODEL_SWITCH_DEF                        SWITCH_ON
+#define CPARACFG_CDC_FIFO_MODEL_SWITCH_DEF                       SWITCH_OFF
 
 #define CPARACFG_CDC_DEGRADE_HI_RATIO_DEF                        0.90
 #define CPARACFG_CDC_DEGRADE_MD_RATIO_DEF                        0.85
@@ -556,6 +598,9 @@ typedef struct
 #define    CXFSDN_CAMD_SSD_DISK_OFFSET                   CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET)
 //#define    CXFSDN_CAMD_SSD_DISK_SIZE                     CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE)
 
+#define    CXFS_LRU_MODEL_SWITCH                         CPARACFG_DEFAULT_MAP(CPARACFG_CXFS_LRU_MODEL_SWITCH)
+#define    CXFS_FIFO_MODEL_SWITCH                        CPARACFG_DEFAULT_MAP(CPARACFG_CXFS_FIFO_MODEL_SWITCH)
+
 #define    CMON_CONHASH_SWITCH                           CPARACFG_DEFAULT_MAP(CPARACFG_CMON_CONHASH_SWITCH)
 #define    CMON_CONHASH_REPLICAS                         CPARACFG_DEFAULT_MAP(CPARACFG_CMON_CONHASH_REPLICAS)
 #define    CMON_HOT_PATH_SWITCH                          CPARACFG_DEFAULT_MAP(CPARACFG_CMON_HOT_PATH_SWITCH)
@@ -595,10 +640,14 @@ typedef struct
 #define    CMC_DEGRADE_MD_RATIO                          CPARACFG_DEFAULT_MAP(CPARACFG_CMC_DEGRADE_MD_RATIO)
 #define    CMC_DEGRADE_LO_RATIO                          CPARACFG_DEFAULT_MAP(CPARACFG_CMC_DEGRADE_LO_RATIO)
 
+#define    CMC_LRU_MODEL_SWITCH                          CPARACFG_DEFAULT_MAP(CPARACFG_CMC_LRU_MODEL_SWITCH)
+#define    CMC_FIFO_MODEL_SWITCH                         CPARACFG_DEFAULT_MAP(CPARACFG_CMC_FIFO_MODEL_SWITCH)
+
 #define    CDC_TRY_RETIRE_MAX_NUM                        CPARACFG_DEFAULT_MAP(CPARACFG_CDC_TRY_RETIRE_MAX_NUM)
 #define    CDC_TRY_RECYCLE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CDC_TRY_RECYCLE_MAX_NUM)
 #define    CDC_SCAN_RETIRE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CDC_SCAN_RETIRE_MAX_NUM)
 
+#define    CDC_READ_CACHE_SWITCH                         CPARACFG_DEFAULT_MAP(CPARACFG_CDC_READ_CACHE_SWITCH)
 #define    CDC_FLOW_CONTROL_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_CDC_FLOW_CONTROL_SWITCH)
 #define    CDC_PROCESS_DEGRADE_MAX_NUM                   CPARACFG_DEFAULT_MAP(CPARACFG_CDC_PROCESS_DEGRADE_MAX_NUM)
 #define    CDC_SCAN_DEGRADE_MAX_NUM                      CPARACFG_DEFAULT_MAP(CPARACFG_CDC_SCAN_DEGRADE_MAX_NUM)
@@ -606,6 +655,9 @@ typedef struct
 #define    CDC_DEGRADE_HI_RATIO                          CPARACFG_DEFAULT_MAP(CPARACFG_CDC_DEGRADE_HI_RATIO)
 #define    CDC_DEGRADE_MD_RATIO                          CPARACFG_DEFAULT_MAP(CPARACFG_CDC_DEGRADE_MD_RATIO)
 #define    CDC_DEGRADE_LO_RATIO                          CPARACFG_DEFAULT_MAP(CPARACFG_CDC_DEGRADE_LO_RATIO)
+
+#define    CDC_LRU_MODEL_SWITCH                          CPARACFG_DEFAULT_MAP(CPARACFG_CDC_LRU_MODEL_SWITCH)
+#define    CDC_FIFO_MODEL_SWITCH                         CPARACFG_DEFAULT_MAP(CPARACFG_CDC_FIFO_MODEL_SWITCH)
 
 #endif/*_CPARACFG_INC*/
 

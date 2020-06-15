@@ -1597,6 +1597,10 @@ EC_BOOL cxml_parse_cparacfg_xfs_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     __cxml_parse_tag_uint32(node, (const char *)"xfsDnAmdSsdDiskOffset", &(CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg)));
     //__cxml_parse_tag_uint32(node, (const char *)"xfsDnAmdSsdDiskSize"  , &(CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg)));
 
+    __cxml_parse_tag_switch(node, (const char *)"xfsLRUSwitch"        , &(CPARACFG_CXFS_LRU_MODEL_SWITCH(cparacfg)));
+    __cxml_parse_tag_switch(node, (const char *)"xfsFIFOSwitch"       , &(CPARACFG_CXFS_FIFO_MODEL_SWITCH(cparacfg)));
+    ASSERT(CPARACFG_CXFS_LRU_MODEL_SWITCH(cparacfg) != CPARACFG_CXFS_FIFO_MODEL_SWITCH(cparacfg));
+
     __cxml_parse_tag_uint32_t(node, (const char *)"httpReqNumPerLoop"  , &(CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)));
 
     return (EC_TRUE);
@@ -1655,6 +1659,10 @@ EC_BOOL cxml_parse_cparacfg_amd_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     __cxml_parse_tag_real(node, (const char *)"cmcDegradeMdRatio"     , &(CPARACFG_CMC_DEGRADE_MD_RATIO(cparacfg)));
     __cxml_parse_tag_real(node, (const char *)"cmcDegradeLoRatio"     , &(CPARACFG_CMC_DEGRADE_LO_RATIO(cparacfg)));
 
+    __cxml_parse_tag_switch(node, (const char *)"cmcLRUSwitch"        , &(CPARACFG_CMC_LRU_MODEL_SWITCH(cparacfg)));
+    __cxml_parse_tag_switch(node, (const char *)"cmcFIFOSwitch"       , &(CPARACFG_CMC_FIFO_MODEL_SWITCH(cparacfg)));
+    ASSERT(CPARACFG_CMC_LRU_MODEL_SWITCH(cparacfg) != CPARACFG_CMC_FIFO_MODEL_SWITCH(cparacfg));
+
     __cxml_parse_tag_uint32(node, (const char *)"cdcTryRetireMaxNum"  , &(CPARACFG_CDC_TRY_RETIRE_MAX_NUM(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"cdcTryRecycleMaxNum" , &(CPARACFG_CDC_TRY_RECYCLE_MAX_NUM(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"cdcScanRetireMaxNum" , &(CPARACFG_CDC_SCAN_RETIRE_MAX_NUM(cparacfg)));
@@ -1663,6 +1671,12 @@ EC_BOOL cxml_parse_cparacfg_amd_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     __cxml_parse_tag_real(node, (const char *)"cdcDegradeHiRatio"     , &(CPARACFG_CDC_DEGRADE_HI_RATIO(cparacfg)));
     __cxml_parse_tag_real(node, (const char *)"cdcDegradeMdRatio"     , &(CPARACFG_CDC_DEGRADE_MD_RATIO(cparacfg)));
     __cxml_parse_tag_real(node, (const char *)"cdcDegradeLoRatio"     , &(CPARACFG_CDC_DEGRADE_LO_RATIO(cparacfg)));
+
+    __cxml_parse_tag_switch(node, (const char *)"cdcLRUSwitch"        , &(CPARACFG_CDC_LRU_MODEL_SWITCH(cparacfg)));
+    __cxml_parse_tag_switch(node, (const char *)"cdcFIFOSwitch"       , &(CPARACFG_CDC_FIFO_MODEL_SWITCH(cparacfg)));
+    ASSERT(CPARACFG_CDC_LRU_MODEL_SWITCH(cparacfg) != CPARACFG_CDC_FIFO_MODEL_SWITCH(cparacfg));
+
+    __cxml_parse_tag_switch(node, (const char *)"sataDegradeSsdSwitch", &(CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH(cparacfg)));
 
     return (EC_TRUE);
 }

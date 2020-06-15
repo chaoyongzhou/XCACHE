@@ -397,6 +397,10 @@ EC_BOOL crfshttp_commit_http_get(CHTTP_NODE *chttp_node)
     {
         ret = crfshttp_commit_actsyscfg_get_request(chttp_node);
     }
+    else if (EC_TRUE == crfshttp_is_http_get_paracfg(chttp_node))
+    {
+        ret = crfshttp_commit_paracfg_get_request(chttp_node);
+    }
     else if (EC_TRUE == crfshttp_is_http_get_qtree(chttp_node))
     {
         ret = crfshttp_commit_qtree_get_request(chttp_node);
@@ -4285,7 +4289,7 @@ EC_BOOL crfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
         }
 
         rsp_body_str = json_object_to_json_string_ext(rsp_body_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
-        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str) + 1);
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str)/* + 1*/);
 
         /*free json obj*/
         json_object_put(files_obj);
@@ -4644,7 +4648,7 @@ EC_BOOL crfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
         }
 
         rsp_body_str = json_object_to_json_string_ext(rsp_body_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
-        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str) + 1);
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str)/* + 1*/);
 
         /*free json obj*/
         json_object_put(files_obj);
@@ -5005,7 +5009,7 @@ EC_BOOL crfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
         }
 
         rsp_body_str = json_object_to_json_string_ext(rsp_body_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
-        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str) + 1));
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str)/* + 1*/));
 
         /*free json obj*/
         json_object_put(files_obj);
@@ -5665,8 +5669,7 @@ EC_BOOL crfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
         }
 
         rsp_body_str = json_object_to_json_string_ext(rsp_body_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
-
-        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str) + 1);
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str)/* + 1*/);
 
         dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_handle_qtree_get_request done\n");
 
@@ -5885,7 +5888,7 @@ EC_BOOL crfshttp_handle_statusnp_get_request(CHTTP_NODE *chttp_node)
          }
 
         rsp_body_str = json_object_to_json_string_ext(crfsnp_mgr_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
-        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str) + 1));
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str)/* + 1*/));
 
         json_object_put(crfsnp_mgr_obj);
     }
@@ -6119,7 +6122,7 @@ EC_BOOL crfshttp_handle_statusdn_get_request(CHTTP_NODE *chttp_node)
         }
 
         rsp_body_str = json_object_to_json_string_ext(cpgv_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
-        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str) + 1));
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str)/* + 1*/));
 
         json_object_put(cpgv_obj);
     }
@@ -7597,6 +7600,168 @@ EC_BOOL crfshttp_commit_locked_file_retire_get_response(CHTTP_NODE *chttp_node)
     return crfshttp_commit_response(chttp_node);
 }
 #endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: paracfg ----------------------------------------*/
+STATIC_CAST static EC_BOOL __crfshttp_uri_is_paracfg_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/paracfg") == uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/paracfg")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL crfshttp_is_http_get_paracfg(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_is_http_get_paracfg: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __crfshttp_uri_is_paracfg_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL crfshttp_commit_paracfg_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == crfshttp_handle_paracfg_get_request(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_paracfg_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == crfshttp_make_paracfg_get_response(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_paracfg_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = crfshttp_commit_paracfg_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_paracfg_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL crfshttp_handle_paracfg_get_request(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *rsp_content_cbytes;
+    const char    *rsp_body_str;
+
+    TASK_BRD      *task_brd;
+
+    rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    cbytes_clean(rsp_content_cbytes);
+
+    task_brd = task_brd_default_get();
+    if(NULL_PTR != task_brd && NULL_PTR != TASK_BRD_CPARACFG(task_brd))
+    {
+        json_object   *cparacfg_obj;
+
+        cparacfg_obj = json_object_new_object();
+
+        if(NULL_PTR != cparacfg_obj)
+        {
+            cparacfg_json(cparacfg_obj, TASK_BRD_CPARACFG(task_brd));
+        }
+
+        rsp_body_str = json_object_to_json_string_ext(cparacfg_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str)/* + 1*/));
+
+        json_object_put(cparacfg_obj);
+
+        dbg_log(SEC_0049_CRFSHTTP, 5)(LOGSTDOUT, "[DEBUG] crfshttp_handle_paracfg_get_request: done\n");
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(rsp_content_cbytes));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_paracfg_get_request: done");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL crfshttp_make_paracfg_get_response(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *content_cbytes;
+    uint64_t       content_len;
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    content_len    = CBYTES_LEN(content_cbytes);
+
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_paracfg_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_paracfg_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_paracfg_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    /*no data copying but data transfering*/
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
+                                              CBYTES_BUF(content_cbytes),
+                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_paracfg_get_response: make body with len %d failed\n",
+                           (uint32_t)CBYTES_LEN(content_cbytes));
+        return (EC_FALSE);
+    }
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL crfshttp_commit_paracfg_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_paracfg_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return crfshttp_commit_response(chttp_node);
+}
+#endif
+
 
 #ifdef __cplusplus
 }
