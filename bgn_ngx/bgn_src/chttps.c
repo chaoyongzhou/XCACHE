@@ -5099,8 +5099,11 @@ EC_BOOL chttps_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHT
         if(EC_FALSE == chttps_request_basic(chttp_req, chttp_store, chttp_rsp, chttp_stat))
         {
             if(BIT_TRUE == need_log_flag
-            && NULL_PTR != chttp_stat)
+            && NULL_PTR != chttp_stat
+            && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
             {
+                CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
                 CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
 
                 CHTTP_STAT_REQ_C_MSEC(chttp_stat) = e_msec;
@@ -5128,9 +5131,13 @@ EC_BOOL chttps_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHT
             }
 
             if(BIT_TRUE == need_log_flag
-            && NULL_PTR == chttp_stat)
+            && NULL_PTR == chttp_stat
+            && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
             {
+                CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
                 CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
+
                 s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
                 sys_log(LOGUSER06, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
                                    (char *)CHTTP_REQ_IPADDR_STR(chttp_req),
@@ -5148,8 +5155,11 @@ EC_BOOL chttps_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHT
         }
 
         if(BIT_TRUE == need_log_flag
-        && NULL_PTR != chttp_stat)
+        && NULL_PTR != chttp_stat
+        && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
         {
+            CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
             CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
 
             CHTTP_STAT_REQ_C_MSEC(chttp_stat) = e_msec;
@@ -5177,8 +5187,11 @@ EC_BOOL chttps_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHT
         }
 
         if(BIT_TRUE == need_log_flag
-        && NULL_PTR == chttp_stat)
+        && NULL_PTR == chttp_stat
+        && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
         {
+            CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
             CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
             s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
             sys_log(LOGUSER06, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u - -\n",

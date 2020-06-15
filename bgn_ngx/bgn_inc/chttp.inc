@@ -926,7 +926,8 @@ typedef struct
 typedef struct
 {
     uint32_t    status;
-    uint32_t    rsvd;
+    uint32_t    logged:1;
+    uint32_t    rsvd:31;
     CSTRKV_MGR  header;
     CBYTES      body;
 
@@ -936,6 +937,7 @@ typedef struct
 }CHTTP_RSP;
 
 #define CHTTP_RSP_STATUS(chttp_rsp)                 ((chttp_rsp)->status)
+#define CHTTP_RSP_LOGGED(chttp_rsp)                 ((chttp_rsp)->logged)
 #define CHTTP_RSP_HEADER(chttp_rsp)                 (&((chttp_rsp)->header))
 #define CHTTP_RSP_BODY(chttp_rsp)                   (&((chttp_rsp)->body))
 #define CHTTP_RSP_CLIENT_IPADDR(chttp_rsp)          ((chttp_rsp)->client_ipaddr)

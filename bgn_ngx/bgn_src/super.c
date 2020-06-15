@@ -2938,8 +2938,11 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         do
         {
             if(BIT_TRUE == need_log_flag
-            && NULL_PTR != chttp_stat)
+            && NULL_PTR != chttp_stat
+            && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
             {
+                CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
                 /*trick: restore need log flag*/
                 CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 
@@ -2970,8 +2973,11 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
             }
 
             if(BIT_TRUE == need_log_flag
-            && NULL_PTR == chttp_stat)
+            && NULL_PTR == chttp_stat
+            && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
             {
+                CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
                 /*trick: restore need log flag*/
                 CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 
@@ -2998,8 +3004,11 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
     do
     {
         if(BIT_TRUE == need_log_flag
-        && NULL_PTR != chttp_stat)
+        && NULL_PTR != chttp_stat
+        && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
         {
+            CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
             /*trick: restore need log flag*/
             CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 
@@ -3021,17 +3030,19 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
                                CHTTP_STAT_S_RECV_LEN(chttp_stat)
                                );
 
-          CHTTP_STAT_SET_REQ_HOST(chttp_stat,
-                    (char *)chttp_req_get_header(chttp_req, (const char *)"Host"));
+            CHTTP_STAT_SET_REQ_HOST(chttp_stat,
+                      (char *)chttp_req_get_header(chttp_req, (const char *)"Host"));
 
-          CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, CHTTP_REQ_IPADDR(chttp_req));
+            CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, CHTTP_REQ_IPADDR(chttp_req));
 
-          chttp_stat_log(chttp_stat, LOGUSER07);
+            chttp_stat_log(chttp_stat, LOGUSER07);
         }
-
         if(BIT_TRUE == need_log_flag
-        && NULL_PTR == chttp_stat)
+        && NULL_PTR == chttp_stat
+        && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
         {
+            CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
             /*trick: restore need log flag*/
             CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 
@@ -3048,11 +3059,13 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
                                ((uint32_t)0) /*redirect times*/
                                );
         }
-    }while(0);
+     }while(0);
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_http_request: redirect_ctrl = %s, redirect_max_times = %ld\n",
                         c_bit_bool_str(CHTTP_STORE_REDIRECT_CTRL(chttp_store)),
                         CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store));
+
+    /*follow 302*/
     for(redirect_times = 0;
         BIT_TRUE == CHTTP_STORE_REDIRECT_CTRL(chttp_store)
         && CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store) > redirect_times
@@ -3095,16 +3108,13 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         }
 
         chttp_rsp_clean(chttp_rsp);
+        chttp_stat_clean(chttp_stat);
 
         if(BIT_TRUE == need_log_flag
         && NULL_PTR != chttp_stat)
         {
             CHTTP_STAT_LOG_ORIG_TIME_WHEN_START(s_msec);
             CHTTP_STAT_REQ_S_MSEC(chttp_stat) = s_msec; /*reset*/
-        }
-        else
-        {
-            chttp_stat_clean(chttp_stat);
         }
 
         chttp_req_init(&chttp_req_t);
@@ -3137,8 +3147,11 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
             do
             {
                 if(BIT_TRUE == need_log_flag
-                && NULL_PTR != chttp_stat)
+                && NULL_PTR != chttp_stat
+                && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
                 {
+                    CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
                     /*trick: restore need log flag*/
                     CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 
@@ -3169,8 +3182,11 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
                 }
 
                 if(BIT_TRUE == need_log_flag
-                && NULL_PTR == chttp_stat)
+                && NULL_PTR == chttp_stat
+                && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
                 {
+                    CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
                     /*trick: restore need log flag*/
                     CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 
@@ -3215,8 +3231,11 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
             chttp_req_print(LOGSTDOUT, &chttp_req_t);
 
             if(BIT_TRUE == need_log_flag
-            && NULL_PTR != chttp_stat)
+            && NULL_PTR != chttp_stat
+            && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
             {
+                CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
                 /*trick: restore need log flag*/
                 CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 
@@ -3247,8 +3266,11 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
             }
 
             if(BIT_TRUE == need_log_flag
-            && NULL_PTR == chttp_stat)
+            && NULL_PTR == chttp_stat
+            && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
             {
+                CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
                 /*trick: restore need log flag*/
                 CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 
@@ -3282,8 +3304,11 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
         do
         {
             if(BIT_TRUE == need_log_flag
-            && NULL_PTR != chttp_stat)
+            && NULL_PTR != chttp_stat
+            && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
             {
+                CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
                 /*trick: restore need log flag*/
                 CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 
@@ -3305,17 +3330,19 @@ EC_BOOL super_http_request(const UINT32 super_md_id, const CHTTP_REQ *chttp_req,
                                    CHTTP_STAT_S_RECV_LEN(chttp_stat)
                                    );
 
-              CHTTP_STAT_SET_REQ_HOST(chttp_stat,
-                        (char *)chttp_req_get_header(&chttp_req_t, (const char *)"Host"));
+                CHTTP_STAT_SET_REQ_HOST(chttp_stat,
+                          (char *)chttp_req_get_header(&chttp_req_t, (const char *)"Host"));
 
-              CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, CHTTP_REQ_IPADDR(&chttp_req_t));
+                CHTTP_STAT_SET_REQ_IPADDR(chttp_stat, CHTTP_REQ_IPADDR(&chttp_req_t));
 
-              chttp_stat_log(chttp_stat, LOGUSER07);
+                chttp_stat_log(chttp_stat, LOGUSER07);
             }
-
             if(BIT_TRUE == need_log_flag
-            && NULL_PTR == chttp_stat)
+            && NULL_PTR == chttp_stat
+            && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
             {
+                CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
                 /*trick: restore need log flag*/
                 CHTTP_STORE_NEED_LOG_FLAG(chttp_store) = BIT_TRUE;
 

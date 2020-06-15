@@ -1536,6 +1536,7 @@ EC_BOOL chttp_stat_clone(const CHTTP_STAT *chttp_stat_src, CHTTP_STAT *chttp_sta
 
 void chttp_stat_print(LOG *log, const CHTTP_STAT *chttp_stat)
 {
+    sys_log(LOGSTDOUT, "chttp_stat_print:rsp status : %u\n", CHTTP_STAT_RSP_STATUS(chttp_stat));
     sys_log(LOGSTDOUT, "chttp_stat_print:send len   : %u\n", CHTTP_STAT_S_SEND_LEN(chttp_stat));
     sys_log(LOGSTDOUT, "chttp_stat_print:recv len   : %u\n", CHTTP_STAT_S_RECV_LEN(chttp_stat));
 
@@ -5865,6 +5866,8 @@ EC_BOOL chttp_rsp_init(CHTTP_RSP *chttp_rsp)
 {
     CHTTP_RSP_STATUS(chttp_rsp) = CHTTP_STATUS_NONE;
 
+    CHTTP_RSP_LOGGED(chttp_rsp) = BIT_FALSE;
+
     cstrkv_mgr_init(CHTTP_RSP_HEADER(chttp_rsp));
 
     cbytes_init(CHTTP_RSP_BODY(chttp_rsp));
@@ -5878,6 +5881,8 @@ EC_BOOL chttp_rsp_init(CHTTP_RSP *chttp_rsp)
 EC_BOOL chttp_rsp_clean(CHTTP_RSP *chttp_rsp)
 {
     CHTTP_RSP_STATUS(chttp_rsp) = CHTTP_STATUS_NONE;
+
+    CHTTP_RSP_LOGGED(chttp_rsp) = BIT_FALSE;
 
     cstrkv_mgr_clean(CHTTP_RSP_HEADER(chttp_rsp));
 
@@ -5903,6 +5908,7 @@ void chttp_rsp_print(LOG *log, const CHTTP_RSP *chttp_rsp)
 {
     sys_log(log, "chttp_rsp_print: chttp_rsp: %p\n", chttp_rsp);
     sys_log(log, "chttp_rsp_print: status: %u\n", CHTTP_RSP_STATUS(chttp_rsp));
+    sys_log(log, "chttp_rsp_print: logged: %u\n", CHTTP_RSP_LOGGED(chttp_rsp));
 
     sys_log(log, "chttp_rsp_print: header: \n");
     cstrkv_mgr_print(log, CHTTP_RSP_HEADER(chttp_rsp));
@@ -11325,8 +11331,11 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
         if(EC_FALSE == chttp_request_basic(chttp_req, chttp_store, chttp_rsp, chttp_stat))
         {
             if(BIT_TRUE == need_log_flag
-            && NULL_PTR != chttp_stat)
+            && NULL_PTR != chttp_stat
+            && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
             {
+                CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
                 CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
 
                 CHTTP_STAT_REQ_C_MSEC(chttp_stat) = e_msec;
@@ -11354,8 +11363,11 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
             }
 
             if(BIT_TRUE == need_log_flag
-            && NULL_PTR == chttp_stat)
+            && NULL_PTR == chttp_stat
+            && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
             {
+                CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
                 CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
                 s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
                 sys_log(LOGUSER06, "[FAIL] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
@@ -11374,8 +11386,11 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
         }
 
         if(BIT_TRUE == need_log_flag
-        && NULL_PTR != chttp_stat)
+        && NULL_PTR != chttp_stat
+        && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
         {
+            CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
             CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
 
             CHTTP_STAT_REQ_C_MSEC(chttp_stat) = e_msec;
@@ -11403,8 +11418,11 @@ EC_BOOL chttp_request(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store, CHTT
         }
 
         if(BIT_TRUE == need_log_flag
-        && NULL_PTR == chttp_stat)
+        && NULL_PTR == chttp_stat
+        && BIT_FALSE == CHTTP_RSP_LOGGED(chttp_rsp))
         {
+            CHTTP_RSP_LOGGED(chttp_rsp) = BIT_TRUE;
+
             CHTTP_STAT_LOG_ORIG_TIME_WHEN_END(e_msec);
             s2e_elapsed_msec = CHTTP_STAT_LOG_ORIG_TIME_ELAPSED_MSEC(e_msec, s_msec);
             sys_log(LOGUSER06, "[SUCC] %s %ld %u %u \"http://%s%s\" %s %u - -\n",
