@@ -806,6 +806,7 @@ EC_BOOL cconhash_add_vnode_replicas(CCONHASH *cconhash, const UINT32 cconhash_rn
 
             /*roll back*/
             cconhash_discard_vnodes(cconhash, vnode_s_pos);
+            cconhash_vnode_free(cconhash_vnode);
             return (EC_FALSE);
         }
 
@@ -821,8 +822,6 @@ EC_BOOL cconhash_add_vnode_replicas(CCONHASH *cconhash, const UINT32 cconhash_rn
 
     return (EC_TRUE);
 }
-
-
 
 EC_BOOL cconhash_del_vnode_replicas(CCONHASH *cconhash, const UINT32 cconhash_rnode_pos)
 {
