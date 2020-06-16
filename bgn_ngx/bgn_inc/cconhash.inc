@@ -61,14 +61,14 @@ typedef struct
 typedef struct
 {
     CVECTOR             rnode_vec;  /*item is CCONHASH_RNODE*/
-    CCONHASH_VNODES     vnode_list; /*item is CCONHASH_VNODE*/
+    CCONHASH_VNODES     vnode_vec;  /*item is CCONHASH_VNODE*/
 
     UINT32              hash_id;
     UINT32              (*hash_func)(const UINT32, const UINT8 *);
 }CCONHASH;
 
 #define CCONHASH_RNODE_VEC(cconhash)               (&((cconhash)->rnode_vec))
-#define CCONHASH_VNODE_LIST(cconhash)              (&((cconhash)->vnode_list))
+#define CCONHASH_VNODE_VEC(cconhash)               (&((cconhash)->vnode_vec))
 #define CCONHASH_HASH_ID(cconhash)                 ((cconhash)->hash_id)
 #define CCONHASH_HASH_FUNC(cconhash)               ((cconhash)->hash_func)
 

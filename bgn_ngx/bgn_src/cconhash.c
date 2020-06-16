@@ -632,7 +632,7 @@ EC_BOOL cconhash_init(CCONHASH *cconhash, const UINT32 hash_id)
 
         /* default: 160 vnodes/disk * 8 disks/device * 8 device */
         vnode_num_default = CPARACFG_CMON_CONHASH_REPLICAS_DEF * 8 * 8;
-        cconhash_vnodes_init(CCONHASH_VNODE_LIST(cconhash), vnode_num_default);
+        cconhash_vnodes_init(CCONHASH_VNODE_VEC(cconhash), vnode_num_default);
     }
     return (EC_TRUE);
 }
@@ -643,7 +643,7 @@ EC_BOOL cconhash_clean(CCONHASH *cconhash)
     {
         cvector_clean(CCONHASH_RNODE_VEC(cconhash),
                         (CVECTOR_DATA_CLEANER)cconhash_rnode_free, LOC_CCONHASH_0010);
-        cconhash_vnodes_clean(CCONHASH_VNODE_LIST(cconhash));
+        cconhash_vnodes_clean(CCONHASH_VNODE_VEC(cconhash));
 
         CCONHASH_HASH_ID(cconhash)    = CHASH_ERR_ALGO_ID;
         CCONHASH_HASH_FUNC(cconhash)  = NULL_PTR;
@@ -669,7 +669,7 @@ void cconhash_print(LOG *log, const CCONHASH *cconhash)
                         cconhash,
                         CCONHASH_HASH_ID(cconhash),
                         cvector_size(CCONHASH_RNODE_VEC(cconhash)),
-                        cconhash_vnodes_num(CCONHASH_VNODE_LIST(cconhash))
+                        cconhash_vnodes_num(CCONHASH_VNODE_VEC(cconhash))
                         );
 
         if(do_log(SEC_0050_CCONHASH, 6))
@@ -681,8 +681,8 @@ void cconhash_print(LOG *log, const CCONHASH *cconhash)
 
         if(do_log(SEC_0050_CCONHASH, 7))
         {
-            sys_log(log, "cconhash %p: vnode tree:\n", cconhash);
-            cconhash_vnodes_print(log, CCONHASH_VNODE_LIST(cconhash));
+            sys_log(log, "cconhash %p: vnodes:\n", cconhash);
+            cconhash_vnodes_print(log, CCONHASH_VNODE_VEC(cconhash));
         }
     }
 
@@ -704,7 +704,7 @@ void cconhash_print_rnode_vec(LOG *log, const CCONHASH *cconhash)
     return;
 }
 
-void cconhash_print_vnode_tree(LOG *log, const CCONHASH *cconhash)
+void cconhash_print_vnode_vec(LOG *log, const CCONHASH *cconhash)
 {
     if(NULL_PTR != cconhash)
     {
@@ -712,8 +712,8 @@ void cconhash_print_vnode_tree(LOG *log, const CCONHASH *cconhash)
                         cconhash,
                         CCONHASH_HASH_ID(cconhash));
 
-        sys_log(log, "cconhash %p: vnode tree:\n", cconhash);
-        cconhash_vnodes_print(log, CCONHASH_VNODE_LIST(cconhash));
+        sys_log(log, "cconhash %p: vnodes:\n", cconhash);
+        cconhash_vnodes_print(log, CCONHASH_VNODE_VEC(cconhash));
     }
     return;
 }
@@ -725,22 +725,22 @@ UINT32 cconhash_add_rnode(CCONHASH *cconhash, const CCONHASH_RNODE *cconhash_rno
 
 EC_BOOL cconhash_add_vnode(CCONHASH *cconhash, const CCONHASH_VNODE *cconhash_vnode)
 {
-    return cconhash_vnodes_add(CCONHASH_VNODE_LIST(cconhash), cconhash_vnode);
+    return cconhash_vnodes_add(CCONHASH_VNODE_VEC(cconhash), cconhash_vnode);
 }
 
 EC_BOOL cconhash_del_vnodes(CCONHASH *cconhash, const uint32_t cconhash_rnode_pos)
 {
-    return cconhash_vnodes_del(CCONHASH_VNODE_LIST(cconhash), cconhash_rnode_pos);
+    return cconhash_vnodes_del(CCONHASH_VNODE_VEC(cconhash), cconhash_rnode_pos);
 }
 
 EC_BOOL cconhash_discard_vnodes(CCONHASH *cconhash, const uint32_t cconhash_vnode_s_pos)
 {
-    return cconhash_vnodes_discard(CCONHASH_VNODE_LIST(cconhash), cconhash_vnode_s_pos);
+    return cconhash_vnodes_discard(CCONHASH_VNODE_VEC(cconhash), cconhash_vnode_s_pos);
 }
 
 EC_BOOL cconhash_sort_vnodes(CCONHASH *cconhash)
 {
-    return cconhash_vnodes_sort(CCONHASH_VNODE_LIST(cconhash));
+    return cconhash_vnodes_sort(CCONHASH_VNODE_VEC(cconhash));
 }
 
 STATIC_CAST static uint32_t __cconhash_hash_vnode(CCONHASH *cconhash, const uint32_t tcid, const uint16_t replica, const UINT32 salt)
@@ -776,7 +776,7 @@ EC_BOOL cconhash_add_vnode_replicas(CCONHASH *cconhash, const UINT32 cconhash_rn
     CCONHASH_ASSERT(0 == (cconhash_rnode_pos >> 16));
 
     /*save start pos*/
-    vnode_s_pos = cconhash_vnodes_num(CCONHASH_VNODE_LIST(cconhash));
+    vnode_s_pos = cconhash_vnodes_num(CCONHASH_VNODE_VEC(cconhash));
 
     tcid = CCONHASH_RNODE_TCID(cconhash_rnode);
     for(replica = 0; replica < CCONHASH_RNODE_REPLICAS(cconhash_rnode); replica ++)
@@ -1130,13 +1130,13 @@ CCONHASH_RNODE *cconhash_lookup_rnode(const CCONHASH *cconhash, const uint32_t h
     CCONHASH_VNODE *cconhash_vnode;
     CCONHASH_RNODE *cconhash_rnode;
 
-    if(EC_TRUE == cconhash_vnodes_is_empty(CCONHASH_VNODE_LIST(cconhash)))
+    if(EC_TRUE == cconhash_vnodes_is_empty(CCONHASH_VNODE_VEC(cconhash)))
     {
-        dbg_log(SEC_0050_CCONHASH, 0)(LOGSTDOUT, "error:cconhash_lookup_rnode: vnode list is empty\n");
+        dbg_log(SEC_0050_CCONHASH, 0)(LOGSTDOUT, "error:cconhash_lookup_rnode: no vnode\n");
         return (NULL_PTR);
     }
 
-    cconhash_vnode = cconhash_vnodes_lookup(CCONHASH_VNODE_LIST(cconhash), hash);
+    cconhash_vnode = cconhash_vnodes_lookup(CCONHASH_VNODE_VEC(cconhash), hash);
     if(NULL_PTR == cconhash_vnode)
     {
         dbg_log(SEC_0050_CCONHASH, 0)(LOGSTDOUT, "error:cconhash_lookup_rnode: "
