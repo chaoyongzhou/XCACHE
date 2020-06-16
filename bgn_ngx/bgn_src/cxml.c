@@ -1610,6 +1610,7 @@ EC_BOOL cxml_parse_cparacfg_ngx_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 {
     __cxml_parse_tag_switch(node, (const char *)"conhashSwitch"     , &(CPARACFG_CMON_CONHASH_SWITCH(cparacfg)));
     __cxml_parse_tag_uint16_t(node, (const char *)"conhashReplicas" , &(CPARACFG_CMON_CONHASH_REPLICAS(cparacfg)));
+    __cxml_parse_tag_switch(node, (const char *)"maglevSwitch"      , &(CPARACFG_CMON_MAGLEV_SWITCH(cparacfg)));
     __cxml_parse_tag_switch(node, (const char *)"hotPathSwitch"     , &(CPARACFG_CMON_HOT_PATH_SWITCH(cparacfg)));
 
     __cxml_parse_tag_uint32_t(node, (const char *)"outputBlockingLowAt", &(CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg)));

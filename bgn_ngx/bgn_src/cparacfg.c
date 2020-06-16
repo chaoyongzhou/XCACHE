@@ -132,6 +132,8 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CMON_CONHASH_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CMON_CONHASH_REPLICAS);
+    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CMON_MAGLEV_SWITCH);
+
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CMON_HOT_PATH_SWITCH);
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT);
@@ -301,6 +303,8 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CAMD_SATA_DISK_VM_S_OFFSET                 = %ld\n" ,  CPARACFG_CAMD_SATA_DISK_VM_S_OFFSET(cparacfg));
     sys_log(log, "CMON_CONHASH_SWITCH                        = %s\n" ,  CPARACFG_CMON_CONHASH_SWITCH_STR(cparacfg));
     sys_log(log, "CMON_CONHASH_REPLICAS                      = %u\n" ,  CPARACFG_CMON_CONHASH_REPLICAS(cparacfg));
+    sys_log(log, "CMON_MAGLEV_SWITCH                         = %s\n" ,  CPARACFG_CMON_MAGLEV_SWITCH_STR(cparacfg));
+
     sys_log(log, "CMON_HOT_PATH_SWITCH                       = %s\n" ,  CPARACFG_CMON_HOT_PATH_SWITCH_STR(cparacfg));
 
     sys_log(log, "NGX_LUA_OUTPUT_BLOCKING_LOWAT              = %u\n" ,  CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg));
@@ -424,6 +428,7 @@ void cparacfg_json(json_object *obj, const CPARACFG *cparacfg)
 
     json_object_add_kv(obj,      "CMON_CONHASH_SWITCH"        ,  CPARACFG_CMON_CONHASH_SWITCH_STR(cparacfg));
     json_object_add_k_int32(obj, "CMON_CONHASH_REPLICAS"      ,  CPARACFG_CMON_CONHASH_REPLICAS(cparacfg));
+    json_object_add_kv(obj,      "CMON_MAGLEV_SWITCH"         ,  CPARACFG_CMON_MAGLEV_SWITCH_STR(cparacfg));
     json_object_add_kv(obj,      "CMON_HOT_PATH_SWITCH"       ,  CPARACFG_CMON_HOT_PATH_SWITCH_STR(cparacfg));
 
     json_object_add_k_int32(obj, "NGX_LUA_OUTPUT_BLOCKING_LOWAT",  CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg));

@@ -150,6 +150,15 @@ UINT32 cmon_start()
         CMON_MD_CCONHASH(cmon_md) = NULL_PTR;
     }
 
+    if(SWITCH_ON == CMON_MAGLEV_SWITCH)
+    {
+        CMON_MD_CMAGLEV(cmon_md) = cmaglev_new();
+    }
+    else
+    {
+        CMON_MD_CMAGLEV(cmon_md) = NULL_PTR;
+    }
+
     CMON_MD_HOT_PATH_HASH_FUNC(cmon_md) = chash_algo_fetch(CMON_HOT_PATH_HASH_ALGO);
 
     /*initialize HOT PATH RB TREE*/
@@ -242,6 +251,12 @@ void cmon_end(const UINT32 cmon_md_id)
     {
         cconhash_free(CMON_MD_CCONHASH(cmon_md));
         CMON_MD_CCONHASH(cmon_md) = NULL_PTR;
+    }
+
+    if(NULL_PTR != CMON_MD_CMAGLEV(cmon_md))
+    {
+        cmaglev_free(CMON_MD_CMAGLEV(cmon_md));
+        CMON_MD_CMAGLEV(cmon_md) = NULL_PTR;
     }
 
     CMON_MD_HOT_PATH_HASH_FUNC(cmon_md) = NULL_PTR;
@@ -783,7 +798,43 @@ EC_BOOL cmon_add_node(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
                         );
     }
 
-    dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "[DEBUG] cmon_add_node: "
+    /* use tcid to add cmaglev node */
+    if (NULL_PTR != CMON_MD_CMAGLEV(cmon_md))
+    {
+        if (EC_FALSE == cmaglev_add_node(CMON_MD_CMAGLEV(cmon_md), cmon_node_t->tcid))
+        {
+            dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_add_node: "
+                            "add cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) "
+                            "to maglev failed\n",
+                            cmon_node_t,
+                            c_word_to_ipv4(CMON_NODE_TCID(cmon_node_t)),
+                            c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node_t)), CMON_NODE_PORT(cmon_node_t),
+                            CMON_NODE_MODI(cmon_node_t),
+                            cmon_node_state(cmon_node_t)
+                            );
+            cvector_pop(CMON_MD_CMON_NODE_VEC(cmon_md));
+            cmon_node_free(cmon_node_t);
+            return (EC_FALSE);
+        }
+
+        /*
+         * update maglev, it's a little complicated that generate one time
+         * after all node is added, especially when node's status change
+         *
+         */
+        cmaglev_hash(CMON_MD_CMAGLEV(cmon_md));
+        dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_add_node: "
+                        "add cmon_node %p (tcid %s, srv %s:%ld, vec_size %ld, state %s) "
+                        "to maglev succ\n",
+                        cmon_node_t,
+                        c_word_to_ipv4(CMON_NODE_TCID(cmon_node_t)),
+                        c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node_t)), CMON_NODE_PORT(cmon_node_t),
+                        cmaglev_count_rnode(CMON_MD_CMAGLEV(cmon_md)),
+                        cmon_node_state(cmon_node_t)
+                        );
+    }
+
+    dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_add_node: "
                     "add cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) done\n",
                     cmon_node_t,
                     c_word_to_ipv4(CMON_NODE_TCID(cmon_node_t)),
@@ -791,6 +842,7 @@ EC_BOOL cmon_add_node(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
                     CMON_NODE_MODI(cmon_node_t),
                     cmon_node_state(cmon_node_t)
                     );
+
     return (EC_TRUE);
 }
 
@@ -849,6 +901,9 @@ EC_BOOL cmon_del_node(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
                             CMON_NODE_MODI(cmon_node_t),
                             cmon_node_state(cmon_node_t)
                             );
+
+            cmon_node_free(cmon_node_t);
+            return (EC_FALSE);
         }
         else
         {
@@ -862,6 +917,28 @@ EC_BOOL cmon_del_node(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
                             cmon_node_state(cmon_node_t)
                             );
         }
+    }
+
+    if (NULL_PTR != CMON_MD_CMAGLEV(cmon_md))
+    {
+        if(EC_FALSE == cmaglev_del_node(CMON_MD_CMAGLEV(cmon_md),
+                                        (uint32_t)CMON_NODE_TCID(cmon_node_t)))
+        {
+            dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_del_node: "
+                            "del cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) "
+                            "from maglev failed\n",
+                            cmon_node_t,
+                            c_word_to_ipv4(CMON_NODE_TCID(cmon_node_t)),
+                            c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node_t)), CMON_NODE_PORT(cmon_node_t),
+                            CMON_NODE_MODI(cmon_node_t),
+                            cmon_node_state(cmon_node_t)
+                            );
+
+            cmon_node_free(cmon_node_t);
+            return (EC_FALSE);
+        }
+
+        cmaglev_hash(CMON_MD_CMAGLEV(cmon_md));
     }
 
     dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_del_node: "
@@ -955,6 +1032,36 @@ EC_BOOL cmon_set_node_up(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
         }
     }
 
+    if(NULL_PTR != CMON_MD_CMAGLEV(cmon_md))
+    {
+        if(EC_FALSE == cmaglev_up_node(CMON_MD_CMAGLEV(cmon_md),
+                                            (uint32_t)CMON_NODE_TCID(cmon_node_t)))
+        {
+            dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_set_node_up: "
+                            "set up cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) "
+                            "in maglev failed\n",
+                            cmon_node_t,
+                            c_word_to_ipv4(CMON_NODE_TCID(cmon_node_t)),
+                            c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node_t)), CMON_NODE_PORT(cmon_node_t),
+                            CMON_NODE_MODI(cmon_node_t),
+                            cmon_node_state(cmon_node_t)
+                            );
+            return (EC_FALSE);
+        }
+        else
+        {
+            dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "[DEBUG] cmon_set_node_up: "
+                            "set up cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) "
+                            "in maglev done\n",
+                            cmon_node_t,
+                            c_word_to_ipv4(CMON_NODE_TCID(cmon_node_t)),
+                            c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node_t)), CMON_NODE_PORT(cmon_node_t),
+                            CMON_NODE_MODI(cmon_node_t),
+                            cmon_node_state(cmon_node_t)
+                            );
+        }
+    }
+
     CMON_NODE_STATE(cmon_node_t) = CMON_NODE_IS_UP; /*set up*/
 
     dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "[DEBUG] cmon_set_node_up: "
@@ -1037,6 +1144,36 @@ EC_BOOL cmon_set_node_down(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
             dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_set_node_down: "
                             "set down cmon_node_t %p (tcid %s, srv %s:%ld, modi %ld, state %s) "
                             "in connhash done\n",
+                            cmon_node_t,
+                            c_word_to_ipv4(CMON_NODE_TCID(cmon_node_t)),
+                            c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node_t)), CMON_NODE_PORT(cmon_node_t),
+                            CMON_NODE_MODI(cmon_node_t),
+                            cmon_node_state(cmon_node_t)
+                            );
+        }
+    }
+
+    if (NULL_PTR != CMON_MD_CMAGLEV(cmon_md))
+    {
+        if(EC_FALSE == cmaglev_down_node(CMON_MD_CMAGLEV(cmon_md),
+                                            (uint32_t)CMON_NODE_TCID(cmon_node_t)))
+        {
+            dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_set_node_down: "
+                            "set down cmon_node_t %p (tcid %s, srv %s:%ld, modi %ld, state %s) "
+                            "in maglev failed\n",
+                            cmon_node_t,
+                            c_word_to_ipv4(CMON_NODE_TCID(cmon_node_t)),
+                            c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node_t)), CMON_NODE_PORT(cmon_node_t),
+                            CMON_NODE_MODI(cmon_node_t),
+                            cmon_node_state(cmon_node_t)
+                            );
+            return (EC_FALSE);
+        }
+        else
+        {
+            dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_set_node_down: "
+                            "set down cmon_node_t %p (tcid %s, srv %s:%ld, modi %ld, state %s) "
+                            "in maglev done\n",
                             cmon_node_t,
                             c_word_to_ipv4(CMON_NODE_TCID(cmon_node_t)),
                             c_word_to_ipv4(CMON_NODE_IPADDR(cmon_node_t)), CMON_NODE_PORT(cmon_node_t),
@@ -1275,6 +1412,21 @@ EC_BOOL cmon_get_node_by_hash(const UINT32 cmon_md_id, const UINT32 hash, CMON_N
 
         return cmon_get_node_by_tcid(cmon_md_id, CCONHASH_RNODE_TCID(cconhash_rnode), 0, cmon_node);
     }
+
+    else if (NULL_PTR != CMON_MD_CMAGLEV(cmon_md))
+    {
+        CMAGLEV_RNODE *cmaglev_rnode;
+        cmaglev_rnode = cmaglev_lookup_rnode(CMON_MD_CMAGLEV(cmon_md), hash);
+        if (NULL_PTR == cmaglev_rnode)
+        {
+            dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_get_node_by_hash: "
+                        "lookup rnode in cmaglev failed where hash %ld\n", hash);
+            return (EC_FALSE);
+        }
+
+        return cmon_get_node_by_tcid(cmon_md_id, CMAGLEV_RNODE_TCID(cmaglev_rnode), 0, cmon_node);
+    }
+
     else
     {
         UINT32      num;
@@ -1313,6 +1465,7 @@ EC_BOOL cmon_get_node_by_hash(const UINT32 cmon_md_id, const UINT32 hash, CMON_N
 
         cmon_node_clone(cmon_node_t, cmon_node);
     }
+
     return (EC_TRUE);
 }
 

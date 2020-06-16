@@ -181,7 +181,7 @@
 #define SEC_0171_XXXXXXXXX                  ((UINT32)(    171)) /*-- obsolete --                  */
 #define SEC_0172_XXXXXXXX                   ((UINT32)(    172)) /*-- obsolete --                  */
 #define SEC_0173_XXXXXX                     ((UINT32)(    173)) /*-- obsolete --                  */
-#define SEC_0174_XXXXXX                     ((UINT32)(    174)) /*-- obsolete --                  */
+#define SEC_0174_CMAGLEV                    ((UINT32)(    174)) /*cmaglev                         */
 #define SEC_0175_CVENDOR                    ((UINT32)(    175)) /*cvendor                         */
 #define SEC_0176_CNGX                       ((UINT32)(    176)) /*cngx                            */
 #define SEC_0177_CCACHE                     ((UINT32)(    177)) /*ccache                          */

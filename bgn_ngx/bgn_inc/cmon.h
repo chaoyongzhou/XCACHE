@@ -27,6 +27,7 @@ extern "C"{
 
 #include "chashalgo.h"
 #include "cconhash.h"
+#include "cmaglev.h"
 
 
 #define CMON_CONHASH_DEFAULT_HASH_ALGO       CHASH_MURMUR_ALGO_ID
@@ -42,6 +43,7 @@ typedef struct
     CVECTOR              cmon_node_vec; /*item is CMON_NODE*/
 
     CCONHASH            *cconhash;
+    CMAGLEV             *cmaglev;
 
     CHASH_ALGO           hot_path_hash_func;
     CRB_TREE             hot_path_tree; /*item is CMON_HOT_PATH*/
@@ -49,6 +51,7 @@ typedef struct
 
 #define CMON_MD_CMON_NODE_VEC(cmon_md)        (&((cmon_md)->cmon_node_vec))
 #define CMON_MD_CCONHASH(cmon_md)             ((cmon_md)->cconhash)
+#define CMON_MD_CMAGLEV(cmon_md)              ((cmon_md)->cmaglev)
 #define CMON_MD_HOT_PATH_HASH_FUNC(cmon_md)   ((cmon_md)->hot_path_hash_func)
 #define CMON_MD_HOT_PATH_TREE(cmon_md)        (&((cmon_md)->hot_path_tree))
 

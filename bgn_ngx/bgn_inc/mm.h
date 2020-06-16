@@ -370,6 +370,9 @@ extern "C"{
 #define                     MM_CAMD_COND    ((UINT32)284)
 #define                 MM_CAMD_FILE_REQ    ((UINT32)285)
 #define                 MM_CDIO_FILE_REQ    ((UINT32)286)
+#define                       MM_CMAGLEV    ((UINT32)287)
+#define                 MM_CMAGLEV_RNODE    ((UINT32)288)
+#define                 MM_CMAGLEV_QNODE    ((UINT32)289)
 
 #define                           MM_END    ((UINT32)512)
 #define                        MM_IGNORE    ((UINT32)0xFFFF)

@@ -97,7 +97,10 @@ typedef struct
 
     uint16_t  rsvd03;
     uint16_t  cmon_conhash_replicas         ; /* CMON_CONHASH_REPLICAS */
+    uint32_t  rsvd04;
     UINT32    cmon_conhash_switch           ; /* CMON_CONHASH_SWITCH */
+    UINT32    cmon_maglev_switch            ; /* CMON_MAGLEV_SWITCH */
+
     UINT32    cmon_hot_path_switch          ; /* CMON_HOT_PATH_SWITCH */
 
     uint32_t  ngx_lua_output_blocking_lowat ; /* if buff to send is more than that, block for next sending;otherwise, return and prepare data for next sending*/
@@ -235,6 +238,9 @@ typedef struct
 
 #define CPARACFG_CMON_CONHASH_SWITCH(cparacfg)                      ((cparacfg)->cmon_conhash_switch)
 #define CPARACFG_CMON_CONHASH_REPLICAS(cparacfg)                    ((cparacfg)->cmon_conhash_replicas)
+
+#define CPARACFG_CMON_MAGLEV_SWITCH(cparacfg)                       ((cparacfg)->cmon_maglev_switch)
+
 #define CPARACFG_CMON_HOT_PATH_SWITCH(cparacfg)                     ((cparacfg)->cmon_hot_path_switch)
 
 #define CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg)            ((cparacfg)->ngx_lua_output_blocking_lowat)
@@ -319,6 +325,8 @@ typedef struct
 #define CPARACFG_CXFSDN_CAMD_SWITCH_STR(cparacfg)                   (c_switch_to_str(CPARACFG_CXFSDN_CAMD_SWITCH(cparacfg)))
 
 #define CPARACFG_CMON_CONHASH_SWITCH_STR(cparacfg)                  (c_switch_to_str(CPARACFG_CMON_CONHASH_SWITCH(cparacfg)))
+#define CPARACFG_CMON_MAGLEV_SWITCH_STR(cparacfg)                   (c_switch_to_str(CPARACFG_CMON_MAGLEV_SWITCH(cparacfg)))
+
 #define CPARACFG_CMON_HOT_PATH_SWITCH_STR(cparacfg)                 (c_switch_to_str(CPARACFG_CMON_HOT_PATH_SWITCH(cparacfg)))
 
 #define CPARACFG_SSL_CERTIFICATE_FILE_NAME_STR(cparacfg)            ((char *)cstring_get_str(CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR(cparacfg)))
@@ -458,8 +466,10 @@ typedef struct
 #define CPARACFG_CXFS_LRU_MODEL_SWITCH_DEF                       SWITCH_OFF
 #define CPARACFG_CXFS_FIFO_MODEL_SWITCH_DEF                      SWITCH_ON
 
-#define CPARACFG_CMON_CONHASH_SWITCH_DEF                         SWITCH_ON
+#define CPARACFG_CMON_CONHASH_SWITCH_DEF                         SWITCH_OFF
 #define CPARACFG_CMON_CONHASH_REPLICAS_DEF                       160
+#define CPARACFG_CMON_MAGLEV_SWITCH_DEF                          SWITCH_ON
+
 #define CPARACFG_CMON_HOT_PATH_SWITCH_DEF                        SWITCH_ON
 
 #define CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT_DEF               MEM_BUFF_32K
@@ -603,6 +613,8 @@ typedef struct
 
 #define    CMON_CONHASH_SWITCH                           CPARACFG_DEFAULT_MAP(CPARACFG_CMON_CONHASH_SWITCH)
 #define    CMON_CONHASH_REPLICAS                         CPARACFG_DEFAULT_MAP(CPARACFG_CMON_CONHASH_REPLICAS)
+#define    CMON_MAGLEV_SWITCH                            CPARACFG_DEFAULT_MAP(CPARACFG_CMON_MAGLEV_SWITCH)
+
 #define    CMON_HOT_PATH_SWITCH                          CPARACFG_DEFAULT_MAP(CPARACFG_CMON_HOT_PATH_SWITCH)
 
 #define    NGX_LUA_OUTPUT_BLOCKING_LOWAT                 CPARACFG_DEFAULT_MAP(CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT)

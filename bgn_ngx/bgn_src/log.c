@@ -1009,7 +1009,7 @@ int sys_log_reopen(LOG *log)
     {
         int ret;
 
-        LOG_FILE_LOCK(des_log, LOC_LOG_0008);
+        LOG_FILE_LOCK(des_log, LOC_LOG_0010);
         if(EC_TRUE == log_file_freopen(des_log))
         {
             ret = 0;
@@ -1022,7 +1022,7 @@ int sys_log_reopen(LOG *log)
         {
             LOG_FILE_CUR_RECORDS(des_log) = 0;
         }
-        LOG_FILE_UNLOCK(des_log, LOC_LOG_0009);
+        LOG_FILE_UNLOCK(des_log, LOC_LOG_0011);
 
         return (ret);
     }
@@ -1135,7 +1135,7 @@ int sys_print(LOG *log, const char * format, ...)
         ret = sys_print_to_node(NULL_PTR, format, ap, &log_node);/*no timestamp insert ahead*/
         va_end(ap);
 
-        LOG_FILE_LOCK(des_log, LOC_LOG_0010);
+        LOG_FILE_LOCK(des_log, LOC_LOG_0012);
 
         fprintf(LOG_FILE_FP(des_log), "%.*s", LOG_NODE_LEN(&log_node), LOG_NODE_BUF(&log_node));
         fflush(LOG_FILE_FP(des_log));
@@ -1151,7 +1151,7 @@ int sys_print(LOG *log, const char * format, ...)
             }
         }
 
-        LOG_FILE_UNLOCK(des_log, LOC_LOG_0011);
+        LOG_FILE_UNLOCK(des_log, LOC_LOG_0013);
 
         log_node_clean(&log_node);
 
@@ -1202,11 +1202,11 @@ LOG *log_file_new(const char *fname, const char *mode, const UINT32 tcid, const 
 {
     LOG *log;
 
-    alloc_static_mem(MM_LOG, &log, LOC_LOG_0012);
+    alloc_static_mem(MM_LOG, &log, LOC_LOG_0014);
     if(EC_FALSE == log_file_init(log, fname, mode, tcid, rank, record_limit_enabled, switch_off_enable, pid_info_enable))
     {
         dbg_log(SEC_0104_LOG, 0)(LOGSTDOUT, "error:log_file_new: log file %s init failed\n", fname);
-        free_static_mem(MM_LOG, log, LOC_LOG_0013);
+        free_static_mem(MM_LOG, log, LOC_LOG_0015);
         return (NULL_PTR);
     }
     return (log);
@@ -1242,11 +1242,11 @@ EC_BOOL log_file_init(LOG *log, const char *fname, const char *mode, const UINT3
     LOG_FILE_TCID(log) = tcid;
     LOG_FILE_RANK(log) = rank;
 
-    LOG_FILE_NAME(log) = cstring_new((UINT8 *)fname, LOC_LOG_0014);
-    LOG_FILE_MODE(log) = cstring_new((UINT8 *)mode, LOC_LOG_0015);
+    LOG_FILE_NAME(log) = cstring_new((UINT8 *)fname, LOC_LOG_0016);
+    LOG_FILE_MODE(log) = cstring_new((UINT8 *)mode, LOC_LOG_0017);
 
 #if (SWITCH_OFF == CROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH)
-    LOG_FILE_CMUTEX(log) = c_mutex_new(CMUTEX_PROCESS_PRIVATE, LOC_LOG_0016);
+    LOG_FILE_CMUTEX(log) = c_mutex_new(CMUTEX_PROCESS_PRIVATE, LOC_LOG_0018);
     if(NULL_PTR == LOG_FILE_CMUTEX(log))
     {
         fprintf(stderr,"error:log_file_init: failed to new cmutex for %s\n", (char *)LOG_FILE_NAME_STR(log));
@@ -1279,7 +1279,7 @@ EC_BOOL log_file_init(LOG *log, const char *fname, const char *mode, const UINT3
 
         if(NULL_PTR != LOG_FILE_CMUTEX(log))
         {
-            c_mutex_free(LOG_FILE_CMUTEX(log), LOC_LOG_0017);
+            c_mutex_free(LOG_FILE_CMUTEX(log), LOC_LOG_0019);
             LOG_FILE_CMUTEX(log) = NULL_PTR;
         }
         return (EC_FALSE);
@@ -1337,7 +1337,7 @@ EC_BOOL log_file_clean(LOG *log)
     log_file_fclose(log);
     if(NULL_PTR != LOG_FILE_CMUTEX(log))
     {
-        c_mutex_free(LOG_FILE_CMUTEX(log), LOC_LOG_0018);
+        c_mutex_free(LOG_FILE_CMUTEX(log), LOC_LOG_0020);
         LOG_FILE_CMUTEX(log) = NULL_PTR;
     }
 
@@ -1489,7 +1489,7 @@ void log_file_free(LOG *log)
     if(NULL_PTR != log)
     {
         log_file_clean(log);
-        free_static_mem(MM_LOG, log, LOC_LOG_0019);
+        free_static_mem(MM_LOG, log, LOC_LOG_0021);
     }
     return;
 }
@@ -1508,7 +1508,7 @@ LOG *log_cstr_new()
 {
     LOG *log;
 
-    alloc_static_mem(MM_LOG, &log, LOC_LOG_0020);
+    alloc_static_mem(MM_LOG, &log, LOC_LOG_0022);
     LOG_CSTR(log) = NULL_PTR;
     log_cstr_init(log);
 
@@ -1522,7 +1522,7 @@ EC_BOOL log_cstr_init(LOG *log)
 
     if(NULL_PTR == LOG_CSTR(log))
     {
-        LOG_CSTR(log) = cstring_new(NULL_PTR, LOC_LOG_0021);
+        LOG_CSTR(log) = cstring_new(NULL_PTR, LOC_LOG_0023);
     }
 
     return (EC_TRUE);
@@ -1543,7 +1543,7 @@ void log_cstr_free(LOG *log)
     if(NULL_PTR != log)
     {
         log_cstr_clean(log);
-        free_static_mem(MM_LOG, log, LOC_LOG_0022);
+        free_static_mem(MM_LOG, log, LOC_LOG_0024);
     }
     return;
 }
@@ -1587,7 +1587,7 @@ EC_BOOL log_free(LOG *log)
     if(NULL_PTR != log)
     {
         log_clean(log);
-        free_static_mem(MM_LOG, log, LOC_LOG_0023);
+        free_static_mem(MM_LOG, log, LOC_LOG_0025);
     }
     return (EC_TRUE);
 }
@@ -1607,7 +1607,7 @@ LOG *log_open(const char *fname, const char *mode)
 {
     LOG  *log;
 
-    alloc_static_mem(MM_LOG, &log, LOC_LOG_0024);
+    alloc_static_mem(MM_LOG, &log, LOC_LOG_0026);
     if(NULL_PTR == log)
     {
         dbg_log(SEC_0104_LOG, 0)(LOGSTDOUT, "error:log_open: new log failed\n");
@@ -1620,7 +1620,7 @@ LOG *log_open(const char *fname, const char *mode)
                     LOGD_SWITCH_OFF_ENABLE, LOGD_PID_INFO_DISABLE))
     {
         dbg_log(SEC_0104_LOG, 0)(LOGSTDOUT, "error:log_open: log file %s init failed\n", fname);
-        free_static_mem(MM_LOG, log, LOC_LOG_0025);
+        free_static_mem(MM_LOG, log, LOC_LOG_0027);
 
         return (NULL_PTR);
     }
@@ -1659,7 +1659,7 @@ EC_BOOL log_set_level(const char *level_cfg)
         {
             dbg_log(SEC_0104_LOG, 0)(LOGSTDOUT, "error:log_set_level: invalid '%s' in cfg '%s'\n",
                                 level_cfg_fields[ level_cfg_idx ], level_cfg);
-            safe_free(level_cfg_saved, LOC_LOG_0026);
+            safe_free(level_cfg_saved, LOC_LOG_0028);
             return (EC_FALSE);
         }
 
@@ -1672,7 +1672,7 @@ EC_BOOL log_set_level(const char *level_cfg)
         log_level_set_sector(c_str_to_word(sector_cfg_fields[0]), c_str_to_word(sector_cfg_fields[1]));
     }
 
-    safe_free(level_cfg_saved, LOC_LOG_0027);
+    safe_free(level_cfg_saved, LOC_LOG_0029);
     return (EC_TRUE);
 }
 #ifdef __cplusplus

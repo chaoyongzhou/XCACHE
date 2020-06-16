@@ -20,7 +20,6 @@ extern "C"{
 #include "log.h"
 #include "crb.h"
 
-#define CCONHASH_DEFAULT_REPLICAS             ((uint16_t)32)
 #define CCONHASH_ANY_REPLICAS                 ((uint16_t) 0)
 #define CCONHASH_ERR_REPLICAS                 ((uint16_t)(~((uint16_t)0)))
 
@@ -41,8 +40,8 @@ typedef struct
 
 typedef struct
 {
-    uint32_t     hash; /*hash value of tcid.{x}*/
-    uint32_t     pos;  /*CCONHASH_NODE pos in CCONHASH -> CVECTOR rnode_vec*/
+    uint32_t        hash;
+    uint32_t        pos;       /*CCONHASH_NODE pos in CCONHASH -> CVECTOR rnode_vec*/
 }CCONHASH_VNODE;/*virtual node*/
 
 #define CCONHASH_VNODE_HASH(cconhash_vnode)               ((cconhash_vnode)->hash)
@@ -50,15 +49,26 @@ typedef struct
 
 typedef struct
 {
-    CVECTOR      rnode_vec; /*item is CCONHASH_RNODE*/
-    CRB_TREE     vnode_tree;/*item is CCONHASH_VNODE*/
+    uint32_t              capacity;
+    uint32_t              size;
+    void                **vnodes;
+}CCONHASH_VNODES;
 
-    UINT32       hash_id;
-    UINT32      (*hash_func)(const UINT32, const UINT8 *);
+#define CCONHASH_VNODES_CAPACITY(cconhash_vnodes)         ((cconhash_vnodes)->capacity)
+#define CCONHASH_VNODES_SIZE(cconhash_vnodes)             ((cconhash_vnodes)->size)
+#define CCONHASH_VNODES_NODES(cconhash_vnodes)            ((cconhash_vnodes)->vnodes)
+
+typedef struct
+{
+    CVECTOR             rnode_vec;  /*item is CCONHASH_RNODE*/
+    CCONHASH_VNODES     vnode_list; /*item is CCONHASH_VNODE*/
+
+    UINT32              hash_id;
+    UINT32              (*hash_func)(const UINT32, const UINT8 *);
 }CCONHASH;
 
 #define CCONHASH_RNODE_VEC(cconhash)               (&((cconhash)->rnode_vec))
-#define CCONHASH_VNODE_TREE(cconhash)              (&((cconhash)->vnode_tree))
+#define CCONHASH_VNODE_LIST(cconhash)              (&((cconhash)->vnode_list))
 #define CCONHASH_HASH_ID(cconhash)                 ((cconhash)->hash_id)
 #define CCONHASH_HASH_FUNC(cconhash)               ((cconhash)->hash_func)
 

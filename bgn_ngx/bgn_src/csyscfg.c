@@ -1147,6 +1147,8 @@ void cparacfg_ngx_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
 
         sys_print(log, " conhashSwitch=\"%s\""        , CPARACFG_CMON_CONHASH_SWITCH_STR(cparacfg));
         sys_print(log, " conhashReplicas=\"%u\""      , CPARACFG_CMON_CONHASH_REPLICAS(cparacfg));
+        sys_print(log, " maglevSwitch=\"%s\""         , CPARACFG_CMON_MAGLEV_SWITCH_STR(cparacfg));
+
         sys_print(log, " hotPathSwitch=\"%s\""        , CPARACFG_CMON_HOT_PATH_SWITCH_STR(cparacfg));
 
         sys_print(log, " outputBlockingLowAt=\"%u\""     , CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg));

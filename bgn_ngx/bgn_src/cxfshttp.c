@@ -7051,7 +7051,7 @@ EC_BOOL cxfshttp_handle_file_notify_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_notify");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0025);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0024);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_file_notify_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -7259,7 +7259,7 @@ EC_BOOL cxfshttp_handle_file_terminate_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_terminate");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0026);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0025);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_file_terminate_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -7468,7 +7468,7 @@ EC_BOOL cxfshttp_handle_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/cond_wakeup");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0027);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0026);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_cond_wakeup_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -7679,7 +7679,7 @@ EC_BOOL cxfshttp_handle_cond_terminate_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/cond_terminate");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0028);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0027);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_cond_terminate_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -7896,7 +7896,7 @@ EC_BOOL cxfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew_header");
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0029);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0028);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_header_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -8499,7 +8499,29 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
     cbytes_clean(rsp_content_cbytes);
 
     cxfs_obj = json_object_new_object();
-    if(NULL_PTR != cxfs_stat)
+
+    if(NULL_PTR != cxfs_obj)
+    {
+        json_object    *cxfs_coroutine_obj;
+
+        TASK_BRD       *task_brd;
+        UINT32          idle_thread_num;
+        UINT32          busy_thread_num;
+        UINT32          total_thread_num;
+
+        cxfs_coroutine_obj = json_object_new_object();
+        json_object_add_obj(cxfs_obj, "coroutine", cxfs_coroutine_obj);
+
+        task_brd = task_brd_default_get();
+
+        croutine_pool_num_info(TASK_REQ_CTHREAD_POOL(task_brd), &idle_thread_num, &busy_thread_num, &total_thread_num);
+
+        json_object_add_k_int64(cxfs_coroutine_obj, "co_idle_num" , (int64_t)idle_thread_num);
+        json_object_add_k_int64(cxfs_coroutine_obj, "co_busy_num" , (int64_t)busy_thread_num);
+        json_object_add_k_int64(cxfs_coroutine_obj, "co_total_num", (int64_t)total_thread_num);
+    }
+
+    if(NULL_PTR != cxfs_obj && NULL_PTR != cxfs_stat)
     {
         json_object   *cxfs_stat_obj;
 
@@ -8564,7 +8586,7 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
         }
     }
 
-    if(NULL_PTR != cxfsnp_mgr && NULL_PTR != cxfsdn && NULL_PTR != cxfspgv)
+    if(NULL_PTR != cxfs_obj && NULL_PTR != cxfsnp_mgr && NULL_PTR != cxfsdn && NULL_PTR != cxfspgv)
     {
         json_object   *cxfs_comm_obj;
 
@@ -8578,7 +8600,7 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
         json_object_add_k_int32(cxfs_comm_obj , "cxfs_fifo_model_switch"   , SWITCH_ON == CXFS_FIFO_MODEL_SWITCH?1:0);
     }
 
-    if(NULL_PTR != cxfsnp_mgr)
+    if(NULL_PTR != cxfs_obj && NULL_PTR != cxfsnp_mgr)
     {
         json_object   *cxfs_npp_obj;
 
@@ -8597,7 +8619,7 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
         json_object_add_k_int64(cxfs_npp_obj, "np_item_used_num"    , (int64_t)cxfsnp_mgr_item_used_num(cxfsnp_mgr));
     }
 
-    if(NULL_PTR != cxfsdn && NULL_PTR != cxfspgv)
+    if(NULL_PTR != cxfs_obj && NULL_PTR != cxfsdn && NULL_PTR != cxfspgv)
     {
         json_object   *cxfs_dn_obj;
         REAL           page_used_ratio;
@@ -8636,7 +8658,7 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
         json_object_add_k_int32(cxfs_dn_obj, "dn_assign_bitmap"     , (int32_t)CXFSPGV_PAGE_MODEL_ASSIGN_BITMAP(cxfspgv));
     }
 
-    if(NULL_PTR != cdc_stat)
+    if(NULL_PTR != cxfs_obj && NULL_PTR != cdc_stat)
     {
         json_object   *cdc_stat_obj;
 
@@ -8667,7 +8689,7 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
         json_object_add_k_int64(cdc_stat_obj,  "cdc_degrade_speed_mps"  , (int64_t)CDC_STAT_SSD_DEGRADE_SPEED(cdc_stat));
     }
 
-    if(NULL_PTR != cmc_stat)
+    if(NULL_PTR != cxfs_obj && NULL_PTR != cmc_stat)
     {
         json_object   *cmc_stat_obj;
 
@@ -8698,7 +8720,7 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
         json_object_add_k_int64(cmc_stat_obj,  "cmc_degrade_speed_mps"  , (int64_t)CMC_STAT_MEM_DEGRADE_SPEED(cmc_stat));
     }
 
-    if(NULL_PTR != caio_md)
+    if(NULL_PTR != cxfs_obj && NULL_PTR != caio_md)
     {
         CLIST_DATA    *clist_data;
 
@@ -8745,7 +8767,7 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
     }
 
     taskc_mgr = taskc_mgr_new();
-    if(NULL_PTR != taskc_mgr)
+    if(NULL_PTR != cxfs_obj && NULL_PTR != taskc_mgr)
     {
         json_object   *taskc_stat_obj; /*task communication stat*/
         json_object   *taskc_list_obj; /*task communication list*/
