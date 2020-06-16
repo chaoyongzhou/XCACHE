@@ -77,7 +77,7 @@ EC_BOOL cconhash_vnodes_discard(CCONHASH_VNODES *cconhash_vnodes, const uint32_t
 
 EC_BOOL cconhash_vnodes_sort(CCONHASH_VNODES *cconhash_vnodes);
 
-CCONHASH_VNODE *cconhash_vnodes_lookup(CCONHASH_VNODES *cconhash_vnodes, const uint32_t hash);
+CCONHASH_VNODE *cconhash_vnodes_lookup(const CCONHASH_VNODES *cconhash_vnodes, const uint32_t hash);
 
 void cconhash_vnodes_print(LOG *log, const CCONHASH_VNODES *cconhash_vnodes);
 
