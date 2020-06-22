@@ -1092,7 +1092,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *file_size, UINT32 *data_ready); -- */
+/* -- EC_BOOL cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const UINT32 expire_nsec, UINT32 *file_size, UINT32 *data_ready); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_file_wait,
 /*func beg addr   */     0,
@@ -1101,13 +1101,13 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func name       */     "cxfs_file_wait",
 /*func index      */     FI_cxfs_file_wait,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     5,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_IO, },
-/*func para type  */     {e_dbg_UINT32,e_dbg_MOD_NODE_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32_ptr,e_dbg_UINT32_ptr,},
+/*func para num   */     6,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_IO, },
+/*func para type  */     {e_dbg_UINT32,e_dbg_MOD_NODE_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32_ptr,e_dbg_UINT32_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_file_wait_e(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, UINT32 *len, UINT32 *data_ready); -- */
+/* -- EC_BOOL cxfs_file_wait_e(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const UINT32 expire_nsec, UINT32 *offset, const UINT32 max_len, UINT32 *len, UINT32 *data_ready); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_file_wait_e,
 /*func beg addr   */     0,
@@ -1116,9 +1116,9 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func name       */     "cxfs_file_wait_e",
 /*func index      */     FI_cxfs_file_wait_e,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     7,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_IO, },
-/*func para type  */     {e_dbg_UINT32,e_dbg_MOD_NODE_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32_ptr,e_dbg_UINT32,e_dbg_UINT32_ptr,e_dbg_UINT32_ptr,},
+/*func para num   */     8,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IO,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_IO, },
+/*func para type  */     {e_dbg_UINT32,e_dbg_MOD_NODE_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32_ptr,e_dbg_UINT32,e_dbg_UINT32_ptr,e_dbg_UINT32_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
@@ -1182,7 +1182,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_wait_http_header(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const CSTRING *key, const CSTRING *val, UINT32 *header_ready); -- */
+/* -- EC_BOOL cxfs_wait_http_header(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const UINT32 expire_nsec, const CSTRING *key, const CSTRING *val, UINT32 *header_ready); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_wait_http_header,
 /*func beg addr   */     0,
@@ -1191,13 +1191,13 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func name       */     "cxfs_wait_http_header",
 /*func index      */     FI_cxfs_wait_http_header,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     6,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT, },
-/*func para type  */     {e_dbg_UINT32,e_dbg_MOD_NODE_ptr,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32_ptr,},
+/*func para num   */     7,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT, },
+/*func para type  */     {e_dbg_UINT32,e_dbg_MOD_NODE_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_wait_http_headers(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready); -- */
+/* -- EC_BOOL cxfs_wait_http_headers(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const UINT32 expire_nsec, const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_wait_http_headers,
 /*func beg addr   */     0,
@@ -1206,9 +1206,9 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func name       */     "cxfs_wait_http_headers",
 /*func index      */     FI_cxfs_wait_http_headers,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     5,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT, },
-/*func para type  */     {e_dbg_UINT32,e_dbg_MOD_NODE_ptr,e_dbg_CSTRING_ptr,e_dbg_CSTRKV_MGR_ptr,e_dbg_UINT32_ptr,},
+/*func para num   */     6,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT, },
+/*func para type  */     {e_dbg_UINT32,e_dbg_MOD_NODE_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_CSTRKV_MGR_ptr,e_dbg_UINT32_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
@@ -1257,7 +1257,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_file_wait_ready(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *data_ready); -- */
+/* -- EC_BOOL cxfs_file_wait_ready(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const UINT32 expire_nsec, UINT32 *data_ready); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_file_wait_ready,
 /*func beg addr   */     0,
@@ -1266,9 +1266,9 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func name       */     "cxfs_file_wait_ready",
 /*func index      */     FI_cxfs_file_wait_ready,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     4,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IO, },
-/*func para type  */     {e_dbg_UINT32,e_dbg_MOD_NODE_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32_ptr,},
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IO, },
+/*func para type  */     {e_dbg_UINT32,e_dbg_MOD_NODE_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
@@ -1781,6 +1781,22 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para type  */     {e_dbg_UINT32,},
 /*func para val   */     0, 0, {0},
 },
+{
+/* -- EC_BOOL cxfs_wait_file_retire(const UINT32 cxfs_md_id, const UINT32 retire_max_num, UINT32 *retire_num); -- */
+/*func module     */     MD_CXFS,
+/*func logic addr */     (UINT32)cxfs_wait_file_retire,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cxfs_wait_file_retire",
+/*func index      */     FI_cxfs_wait_file_retire,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     3,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT, },
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32_ptr,},
+/*func para val   */     0, 0, {0},
+},
+
 };
 
 UINT32 g_cxfs_func_addr_list_len = sizeof(g_cxfs_func_addr_list)/sizeof(g_cxfs_func_addr_list[0]);

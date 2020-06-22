@@ -93,7 +93,7 @@ void cconhash_print(LOG *log, const CCONHASH *cconhash);
 
 void cconhash_print_rnode_vec(LOG *log, const CCONHASH *cconhash);
 
-void cconhash_print_vnode_tree(LOG *log, const CCONHASH *cconhash);
+void cconhash_print_vnode_vec(LOG *log, const CCONHASH *cconhash);
 
 UINT32 cconhash_add_rnode(CCONHASH *cconhash, const CCONHASH_RNODE *cconhash_rnode);
 

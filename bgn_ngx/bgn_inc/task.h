@@ -70,6 +70,7 @@ EC_BOOL task_node_expand_to(TASK_NODE *task_node, const UINT32 new_size);
 void    task_node_print(LOG *log, const TASK_NODE *task_node);
 void    task_node_dbg(LOG *log, const char *info, const TASK_NODE *task_node);
 EC_BOOL task_node_isend(TASK_BRD *task_brd, TASK_NODE *task_node);
+EC_BOOL task_node_is_timeout(const TASK_NODE *task_node);
 
 TASK_RUNNER_NODE *task_runner_node_new();
 EC_BOOL task_runner_node_init(TASK_RUNNER_NODE *task_runner_node);
@@ -344,6 +345,7 @@ UINT32  task_brd_default_get_network_level();
 UINT32  task_brd_default_get_cmon_id();
 
 EC_BOOL task_brd_default_get_store_http_srv(const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port);
+EC_BOOL task_brd_default_add_hot_path(const CSTRING *path);
 
 EC_BOOL task_brd_default_check_validity();
 

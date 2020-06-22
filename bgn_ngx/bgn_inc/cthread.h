@@ -288,7 +288,7 @@ UINT32 cthreadp_idle_num_no_lock(CTHREAD_POOL *cthread_pool);
 
 UINT32 cthreadp_busy_num_no_lock(CTHREAD_POOL *cthread_pool);
 
-UINT32 cthreadp_num_info_no_lock(CTHREAD_POOL *cthread_pool, UINT32 *idle_num, UINT32 *busy_num, UINT32 *total_num);
+UINT32 cthreadp_num_info_no_lock(CTHREAD_POOL *cthread_pool, UINT32 *idle_num, UINT32 *busy_num, UINT32 *post_num, UINT32 *total_num);
 
 UINT32 cthreadp_size(CTHREAD_POOL *cthread_pool);
 
@@ -298,7 +298,7 @@ UINT32 cthreadp_idle_num(CTHREAD_POOL *cthread_pool);
 
 UINT32 cthreadp_busy_num(CTHREAD_POOL *cthread_pool);
 
-UINT32 cthreadp_num_info(CTHREAD_POOL *cthread_pool, UINT32 *idle_num, UINT32 *busy_num, UINT32 *total_num);
+UINT32 cthreadp_num_info(CTHREAD_POOL *cthread_pool, UINT32 *idle_num, UINT32 *busy_num, UINT32 *post_num, UINT32 *total_num);
 
 void cthreadp_print(LOG *log, const CTHREAD_POOL *cthread_pool);
 

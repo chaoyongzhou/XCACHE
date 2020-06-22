@@ -155,7 +155,7 @@ EC_BOOL cmaglev_qnode_clean(CMAGLEV_QNODE *qnode)
 
         if (NULL_PTR != CMAGLEV_QNODE_PERMUTATION(qnode))
         {
-            safe_free(CMAGLEV_QNODE_NEXT(qnode), LOC_CMAGLEV_0007);
+            safe_free(CMAGLEV_QNODE_PERMUTATION(qnode), LOC_CMAGLEV_0007);
             CMAGLEV_QNODE_PERMUTATION(qnode) = NULL_PTR;
         }
     }
@@ -565,7 +565,7 @@ void cmaglev_permutation(UINT32 *permutation, UINT32 *tcid, UINT32 pos, UINT32 r
     return;
 }
 
-void cmaglev_populate(CMAGLEV *cmaglev, UINT32 ring_size)
+EC_BOOL cmaglev_populate(CMAGLEV *cmaglev, UINT32 ring_size)
 {
     CMAGLEV_RNODE   *cmaglev_rnode;
     CMAGLEV_QNODE   *cmaglev_qnode;
@@ -576,6 +576,7 @@ void cmaglev_populate(CMAGLEV *cmaglev, UINT32 ring_size)
 
     UINT32           runs;
     UINT32           up_index;
+    UINT32           down_num;
     UINT32           pos;
 
     cmaglev_qnode = CMAGLEV_QNODE_ITEM(cmaglev);
@@ -585,12 +586,23 @@ void cmaglev_populate(CMAGLEV *cmaglev, UINT32 ring_size)
     while(1)
     {
         up_index = 0;
+        down_num = 0;
+
         for (pos = 0; pos < cvector_size(CMAGLEV_RNODE_VEC(cmaglev)); pos ++)
         {
+            if (down_num == cvector_size(CMAGLEV_RNODE_VEC(cmaglev)))
+            {
+                dbg_log(SEC_0174_CMAGLEV, 0)(LOGSTDOUT, "[error] cmaglev "
+                                     "populate: all nodes are down");
+                return (EC_FALSE);
+            }
+
             cmaglev_rnode = (CMAGLEV_RNODE *)cvector_get(CMAGLEV_RNODE_VEC(cmaglev), pos);
+
             if(NULL_PTR == cmaglev_rnode
             || CMAGLEV_RNODE_IS_UP != CMAGLEV_RNODE_STATUS(cmaglev_rnode))
             {
+                down_num ++;
                 continue;
             }
 
@@ -613,12 +625,12 @@ void cmaglev_populate(CMAGLEV *cmaglev, UINT32 ring_size)
 
             if (runs >= ring_size)
             {
-                return;
+                return EC_TRUE;
             }
         }
     }
 
-    return;
+    return EC_TRUE;
 }
 
 EC_BOOL cmaglev_hash(CMAGLEV *cmaglev)
@@ -659,6 +671,13 @@ EC_BOOL cmaglev_hash(CMAGLEV *cmaglev)
         }
     }
 
+    if (0 == up_num)
+    {
+        dbg_log(SEC_0174_CMAGLEV, 0)(LOGSTDOUT, "[error] cmaglev_hash: "
+                                     "all nodes are down");
+        return (EC_FALSE);
+    }
+
     up_index = 0;
 
     /* permutation */
@@ -684,10 +703,13 @@ EC_BOOL cmaglev_hash(CMAGLEV *cmaglev)
 
     for (pos = 0; pos < CMAGLEV_RING_SIZE(cmaglev); pos++)
     {
-         CMAGLEV_QNODE_ENTRY(cmaglev_qnode)[pos] = -1;
+         CMAGLEV_QNODE_ENTRY(cmaglev_qnode)[pos] = CMAGLEV_ENTRY_ERR_INDEX;
     }
 
-    cmaglev_populate(cmaglev, ring_size);
+    if (EC_FALSE == cmaglev_populate(cmaglev, ring_size))
+    {
+        return (EC_FALSE);
+    }
 
     return (EC_TRUE);
 }
@@ -698,7 +720,7 @@ CMAGLEV_RNODE *cmaglev_lookup_rnode(CMAGLEV *cmaglev, const uint32_t hash)
     CMAGLEV_RNODE *cmaglev_rnode;
 
     UINT32         cur;
-    UINT32         pos;
+    int            pos;
 
     cmaglev_qnode  = CMAGLEV_QNODE_ITEM(cmaglev);
 
@@ -712,11 +734,25 @@ CMAGLEV_RNODE *cmaglev_lookup_rnode(CMAGLEV *cmaglev, const uint32_t hash)
     cur = hash % CMAGLEV_RING_SIZE(cmaglev);
     pos = CMAGLEV_QNODE_ENTRY(cmaglev_qnode)[cur];
 
+    if (CMAGLEV_ENTRY_ERR_INDEX == pos)
+    {
+        dbg_log(SEC_0174_CMAGLEV, 0)(LOGSTDOUT, "error:cmaglev_lookup_rnode: "
+                            "invalid entry index: -1\n");
+        return (NULL_PTR);
+    }
+
     dbg_log(SEC_0174_CMAGLEV, 9)(LOGSTDOUT, "[DEBUG] cmaglev_lookup_rnode: "
                          "hash: %u, cur: %ld, pos: %ld, ring_size: %ld\n",
                          hash, cur, pos, CMAGLEV_RING_SIZE(cmaglev));
 
     cmaglev_rnode = (CMAGLEV_RNODE *)cvector_get(CMAGLEV_RNODE_VEC(cmaglev), pos);
+    if(NULL_PTR == cmaglev_rnode)
+    {
+        dbg_log(SEC_0174_CMAGLEV, 0)(LOGSTDOUT, "error:cmaglev_lookup_rnode: "
+                           "hash %u, rnode_pos %d, should never reach here due to rnode not existing\n",
+                           hash, pos);
+        return (NULL_PTR);
+    }
 
     return (cmaglev_rnode);
 }

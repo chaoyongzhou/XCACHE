@@ -61,7 +61,8 @@ typedef struct
     uint32_t             orig_force_flag                    :1; /*force to orig*/
     uint32_t             orig_no_cache_flag                 :1; /*orig indicate no-cache or 404 etc*/
     uint32_t             cngx_preload_switch_on_flag        :1; /*cngx http PUT req indicate preload mode*/
-    uint32_t             rsvd01                             :17;
+    uint32_t             cngx_hot_path_flag                 :1; /*this path is hot, need to disperse*/
+    uint32_t             rsvd01                             :16;
     uint32_t             rsvd02;
 
     CRANGE_MGR           cngx_range_mgr;
@@ -113,6 +114,7 @@ typedef struct
 #define CVENDOR_MD_ORIG_CHUNK_FLAG(cvendor_md)                    ((cvendor_md)->orig_chunk_flag)
 #define CVENDOR_MD_ORIG_FORCE_FLAG(cvendor_md)                    ((cvendor_md)->orig_force_flag)
 #define CVENDOR_MD_ORIG_NO_CACHE_FLAG(cvendor_md)                 ((cvendor_md)->orig_no_cache_flag)
+#define CVENDOR_MD_CNGX_HOT_PATH_FLAG(cvendor_md)                 ((cvendor_md)->cngx_hot_path_flag)
 
 
 #define CVENDOR_MD_CNGX_RANGE_MGR(cvendor_md)                     (&((cvendor_md)->cngx_range_mgr))

@@ -5870,6 +5870,18 @@ char *c_get_day_time_str()
     return (time_str);
 }
 
+uint64_t c_get_cur_time_nsec()
+{
+    CTMV        timev_cur;
+    uint64_t    time_nsec_cur;
+
+    gettimeofday(&timev_cur, NULL_PTR);
+
+    time_nsec_cur = (uint64_t)timev_cur.tv_sec;
+
+    return (time_nsec_cur);
+}
+
 uint64_t c_get_cur_time_msec()
 {
     CTMV        timev_cur;

@@ -1450,14 +1450,16 @@ CTHREAD_NODE * cthreadp_load_no_lock(CTHREAD_POOL *cthread_pool, const UINT32 st
     {
         UINT32 idle_num;
         UINT32 busy_num;
+        UINT32 post_num;
         UINT32 total_num;
         UINT32 max_num;
 
-        cthreadp_num_info_no_lock(cthread_pool, &idle_num, &busy_num, &total_num);
+        cthreadp_num_info_no_lock(cthread_pool, &idle_num, &busy_num, &post_num, &total_num);
         max_num = CTHREAD_POOL_WORKER_MAX_NUM(cthread_pool);
 
-        dbg_log(SEC_0016_CTHREAD, 1)(LOGSTDNULL, "warn:cthreadp_load_no_lock: failed to reserve one cthread_node where idle %ld, busy %ld, total %ld, max %ld\n",
-                            idle_num, busy_num, total_num, max_num);
+        dbg_log(SEC_0016_CTHREAD, 1)(LOGSTDNULL, "warn:cthreadp_load_no_lock: "
+                    "failed to reserve one cthread_node where idle %ld, busy %ld, post %ld, total %ld, max %ld\n",
+                    idle_num, busy_num, post_num, total_num, max_num);
         return (NULL_PTR);
     }
 
@@ -1465,14 +1467,16 @@ CTHREAD_NODE * cthreadp_load_no_lock(CTHREAD_POOL *cthread_pool, const UINT32 st
     {
         UINT32 idle_num;
         UINT32 busy_num;
+        UINT32 post_num;
         UINT32 total_num;
         UINT32 max_num;
 
-        cthreadp_num_info_no_lock(cthread_pool, &idle_num, &busy_num, &total_num);
+        cthreadp_num_info_no_lock(cthread_pool, &idle_num, &busy_num, &post_num, &total_num);
         max_num = CTHREAD_POOL_WORKER_MAX_NUM(cthread_pool);
 
-        dbg_log(SEC_0016_CTHREAD, 9)(LOGSTDOUT, "[DEBUG]cthreadp_load_no_lock: idle %ld, busy %ld, total %ld, max %ld\n",
-                            idle_num, busy_num, total_num, max_num);
+        dbg_log(SEC_0016_CTHREAD, 9)(LOGSTDOUT, "[DEBUG]cthreadp_load_no_lock: "
+                    "idle %ld, busy %ld, post %ld, total %ld, max %ld\n",
+                    idle_num, busy_num, post_num, total_num, max_num);
     }
 
     if(NULL_PTR == CTHREAD_NODE_TASK(cthread_node))
@@ -1550,10 +1554,11 @@ UINT32 cthreadp_busy_num_no_lock(CTHREAD_POOL *cthread_pool)
     return (num);
 }
 
-UINT32 cthreadp_num_info_no_lock(CTHREAD_POOL *cthread_pool, UINT32 *idle_num, UINT32 *busy_num, UINT32 *total_num)
+UINT32 cthreadp_num_info_no_lock(CTHREAD_POOL *cthread_pool, UINT32 *idle_num, UINT32 *busy_num, UINT32 *post_num, UINT32 *total_num)
 {
-    (*idle_num) = clist_size(CTHREAD_POOL_WORKER_IDLE_LIST(cthread_pool));
-    (*busy_num) = clist_size(CTHREAD_POOL_WORKER_BUSY_LIST(cthread_pool));
+    (*idle_num)  = clist_size(CTHREAD_POOL_WORKER_IDLE_LIST(cthread_pool));
+    (*busy_num)  = clist_size(CTHREAD_POOL_WORKER_BUSY_LIST(cthread_pool));
+    (*post_num)  = 0; /*TODO*/
     (*total_num) = (*idle_num) + (*busy_num);
 
     return (0);
@@ -1602,12 +1607,14 @@ UINT32 cthreadp_busy_num(CTHREAD_POOL *cthread_pool)
     return (num);
 }
 
-UINT32 cthreadp_num_info(CTHREAD_POOL *cthread_pool, UINT32 *idle_num, UINT32 *busy_num, UINT32 *total_num)
+UINT32 cthreadp_num_info(CTHREAD_POOL *cthread_pool, UINT32 *idle_num, UINT32 *busy_num, UINT32 *post_num, UINT32 *total_num)
 {
     cmutex_lock(CTHREAD_POOL_WORKER_CMUTEX(cthread_pool), LOC_CTHREAD_0056);
-    (*idle_num) = clist_size(CTHREAD_POOL_WORKER_IDLE_LIST(cthread_pool));
-    (*busy_num) = clist_size(CTHREAD_POOL_WORKER_BUSY_LIST(cthread_pool));
-    (*total_num) = (*idle_num) + (*busy_num);
+    (*idle_num)  = clist_size(CTHREAD_POOL_WORKER_IDLE_LIST(cthread_pool));
+    (*busy_num)  = clist_size(CTHREAD_POOL_WORKER_BUSY_LIST(cthread_pool));
+    (*post_num)  = 0; /*TODO*/
+    (*total_num) = (*idle_num) + (*busy_num) + (*post_num);
+
     cmutex_unlock(CTHREAD_POOL_WORKER_CMUTEX(cthread_pool), LOC_CTHREAD_0057);
 
     return (0);
@@ -1617,14 +1624,15 @@ void cthreadp_print(LOG *log, const CTHREAD_POOL *cthread_pool)
 {
     UINT32 idle_num;
     UINT32 busy_num;
+    UINT32 post_num;
     UINT32 total_num;
 
     cmutex_lock((CMUTEX *)CTHREAD_POOL_WORKER_CMUTEX(cthread_pool), LOC_CTHREAD_0058);
 
-    cthreadp_num_info_no_lock((CTHREAD_POOL *)cthread_pool, &idle_num, &busy_num, &total_num);
+    cthreadp_num_info_no_lock((CTHREAD_POOL *)cthread_pool, &idle_num, &busy_num, &post_num, &total_num);
 
-    sys_log(log, "cthread_pool %lx: size %ld, idle %ld, busy %ld\n",
-                 cthread_pool, total_num, idle_num, busy_num
+    sys_log(log, "cthread_pool %lx: size %ld, idle %ld, busy %ld, post %ld\n",
+                 cthread_pool, total_num, idle_num, busy_num, post_num
                );
 
     sys_log(log, "idle worker list:\n");

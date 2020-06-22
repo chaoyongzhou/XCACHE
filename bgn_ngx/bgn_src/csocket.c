@@ -332,7 +332,7 @@ EC_BOOL csocket_cnode_free(CSOCKET_CNODE *csocket_cnode)
 {
     if(NULL_PTR != csocket_cnode)
     {
-        dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "[DEBUGX] csocket_cnode_free: %p\n", csocket_cnode);
+        dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "[DEBUG] csocket_cnode_free: %p\n", csocket_cnode);
 
         if(BIT_TRUE == CSOCKET_CNODE_IS_USED(csocket_cnode))
         {

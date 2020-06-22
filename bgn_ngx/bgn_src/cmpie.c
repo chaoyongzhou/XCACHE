@@ -1867,6 +1867,7 @@ UINT32 cmpi_encode_crank_thread_stat(const UINT32 comm, const CRANK_THREAD_STAT 
 
     cmpi_encode_uint32(comm, CRANK_THREAD_MAX_NUM(crank_thread_stat), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CRANK_THREAD_BUSY_NUM(crank_thread_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32(comm, CRANK_THREAD_POST_NUM(crank_thread_stat), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CRANK_THREAD_IDLE_NUM(crank_thread_stat), out_buff, out_buff_max_len, position);
 
     return ((UINT32)0);
@@ -1876,6 +1877,7 @@ UINT32 cmpi_encode_crank_thread_stat_size(const UINT32 comm, const CRANK_THREAD_
 {
     cmpi_encode_uint32_size(comm, CRANK_THREAD_MAX_NUM(crank_thread_stat), size);
     cmpi_encode_uint32_size(comm, CRANK_THREAD_BUSY_NUM(crank_thread_stat), size);
+    cmpi_encode_uint32_size(comm, CRANK_THREAD_POST_NUM(crank_thread_stat), size);
     cmpi_encode_uint32_size(comm, CRANK_THREAD_IDLE_NUM(crank_thread_stat), size);
 
     return ((UINT32)0);
@@ -1903,6 +1905,7 @@ UINT32 cmpi_decode_crank_thread_stat(const UINT32 comm, const UINT8 *in_buff, co
 
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(CRANK_THREAD_MAX_NUM(crank_thread_stat)));
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(CRANK_THREAD_BUSY_NUM(crank_thread_stat)));
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(CRANK_THREAD_POST_NUM(crank_thread_stat)));
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &(CRANK_THREAD_IDLE_NUM(crank_thread_stat)));
 
     return ((UINT32)0);
@@ -3874,9 +3877,7 @@ UINT32 cmpi_encode_chttp_req(const UINT32 comm, const CHTTP_REQ *chttp_req, UINT
     cmpi_encode_uint32(comm, CHTTP_REQ_IPADDR(chttp_req), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CHTTP_REQ_PORT(chttp_req), out_buff, out_buff_max_len, position);
 
-#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
     cmpi_encode_cstring(comm, CHTTP_REQ_DOMAIN(chttp_req), out_buff, out_buff_max_len, position);
-#endif /*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
 
     cmpi_encode_cstring(comm, CHTTP_REQ_DEVICE_NAME(chttp_req), out_buff, out_buff_max_len, position);
     cmpi_encode_cstring(comm, CHTTP_REQ_TRACE_ID(chttp_req), out_buff, out_buff_max_len, position);
@@ -3899,9 +3900,7 @@ UINT32 cmpi_encode_chttp_req_size(const UINT32 comm, const CHTTP_REQ *chttp_req,
     cmpi_encode_uint32_size(comm, CHTTP_REQ_IPADDR(chttp_req), size);
     cmpi_encode_uint32_size(comm, CHTTP_REQ_PORT(chttp_req), size);
 
-#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
     cmpi_encode_cstring_size(comm, CHTTP_REQ_DOMAIN(chttp_req), size);
-#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
 
     cmpi_encode_cstring_size(comm, CHTTP_REQ_DEVICE_NAME(chttp_req), size);
     cmpi_encode_cstring_size(comm, CHTTP_REQ_TRACE_ID(chttp_req), size);
@@ -3942,9 +3941,7 @@ UINT32 cmpi_decode_chttp_req(const UINT32 comm, const UINT8 *in_buff, const UINT
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_REQ_IPADDR(chttp_req));
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_REQ_PORT(chttp_req));
 
-#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
     cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CHTTP_REQ_DOMAIN(chttp_req));
-#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
 
     cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CHTTP_REQ_DEVICE_NAME(chttp_req));
     cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CHTTP_REQ_TRACE_ID(chttp_req));
@@ -4264,7 +4261,7 @@ UINT32 cmpi_encode_chttp_store(const UINT32 comm, const CHTTP_STORE *chttp_store
     cmpi_encode_uint32_t(comm, CHTTP_STORE_REDIRECT_CTRL(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store), out_buff, out_buff_max_len, position);
 
-    cmpi_encode_uint32(comm, CHTTP_STORE_BGN_ORIG_MOID(chttp_store), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32(comm, CHTTP_STORE_BGN_ORIG_MODI(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32(comm, CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store), out_buff, out_buff_max_len, position);
@@ -4321,7 +4318,7 @@ UINT32 cmpi_encode_chttp_store_size(const UINT32 comm, const CHTTP_STORE *chttp_
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_REDIRECT_CTRL(chttp_store), size);
     cmpi_encode_uint32_size(comm, CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store), size);
 
-    cmpi_encode_uint32_size(comm, CHTTP_STORE_BGN_ORIG_MOID(chttp_store), size);
+    cmpi_encode_uint32_size(comm, CHTTP_STORE_BGN_ORIG_MODI(chttp_store), size);
     cmpi_encode_uint32_size(comm, CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store), size);
     cmpi_encode_uint32_size(comm, CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store), size);
     cmpi_encode_uint32_size(comm, CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store), size);
@@ -4424,7 +4421,7 @@ UINT32 cmpi_decode_chttp_store(const UINT32 comm, const UINT8 *in_buff, const UI
 
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store));
 
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_BGN_ORIG_MOID(chttp_store));
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_BGN_ORIG_MODI(chttp_store));
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store));
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store));
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store));

@@ -181,7 +181,7 @@ typedef struct
 #define CHTTP_STORE_REDIRECT_CTRL(chttp_store)                ((chttp_store)->redirect_control)
 #define CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store)           ((chttp_store)->redirect_max_times)
 
-#define CHTTP_STORE_BGN_ORIG_MOID(chttp_store)                ((chttp_store)->bgn_modi)
+#define CHTTP_STORE_BGN_ORIG_MODI(chttp_store)                ((chttp_store)->bgn_modi)
 #define CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store)   ((chttp_store)->bgn_import_header_callback)
 #define CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store)     ((chttp_store)->bgn_send_header_callback)
 #define CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store)       ((chttp_store)->bgn_send_body_callback)
@@ -870,13 +870,11 @@ typedef struct
     UINT32              ipaddr;
     UINT32              port;
 
-#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
     CSTRING             domain; /* domain optional. for dns cache only */
                                 /* if domain is set, and http(s) connect failed, */
                                 /* dns cache would kick off the ip. */
                                 /* actually we can ignore such handling */
                                 /* and ask orig detector takes responsibility of ip working*/
-#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
 
     CSTRING             device_name;    /*carry on for http stat*/
     CSTRING             trace_id;       /*carry on for http stat*/
@@ -902,10 +900,8 @@ typedef struct
 #define CHTTP_REQ_IPADDR(chttp_req)                 ((chttp_req)->ipaddr)
 #define CHTTP_REQ_IPADDR_STR(chttp_req)             (c_word_to_ipv4(CHTTP_REQ_IPADDR(chttp_req)))
 #define CHTTP_REQ_PORT(chttp_req)                   ((chttp_req)->port)
-#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
 #define CHTTP_REQ_DOMAIN(chttp_req)                 (&((chttp_req)->domain))
 #define CHTTP_REQ_DOMAIN_STR(chttp_req)             (cstring_get_str(CHTTP_REQ_DOMAIN(chttp_req)))
-#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
 #define CHTTP_REQ_DEVICE_NAME(chttp_req)            (&((chttp_req)->device_name))
 #define CHTTP_REQ_DEVICE_NAME_STR(chttp_req)        (cstring_get_str(CHTTP_REQ_DEVICE_NAME(chttp_req)))
 #define CHTTP_REQ_TRACE_ID(chttp_req)               (&((chttp_req)->trace_id))

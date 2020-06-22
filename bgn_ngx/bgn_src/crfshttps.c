@@ -219,7 +219,8 @@ EC_BOOL crfshttps_commit_request(CHTTP_NODE *chttp_node)
         if(NULL_PTR == croutine_node)
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_request: cthread load for HTTP_GET failed\n");
-            return (EC_BUSY);
+            /*return (EC_BUSY);*/
+            return (EC_FALSE); /*note: do not retry to relieve system pressure*/
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
@@ -237,7 +238,8 @@ EC_BOOL crfshttps_commit_request(CHTTP_NODE *chttp_node)
         if(NULL_PTR == croutine_node)
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_request: cthread load for HTTP_POST failed\n");
-            return (EC_BUSY);
+            /*return (EC_BUSY);*/
+            return (EC_FALSE); /*note: do not retry to relieve system pressure*/
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
@@ -255,7 +257,8 @@ EC_BOOL crfshttps_commit_request(CHTTP_NODE *chttp_node)
         if(NULL_PTR == croutine_node)
         {
             dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_request: cthread load for HTTP_HEAD failed\n");
-            return (EC_BUSY);
+            /*return (EC_BUSY);*/
+            return (EC_FALSE); /*note: do not retry to relieve system pressure*/
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;

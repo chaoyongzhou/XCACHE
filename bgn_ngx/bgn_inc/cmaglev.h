@@ -71,7 +71,7 @@ UINT32 cmaglev_count_rnode(CMAGLEV *cmaglev);
 
 void cmaglev_permutation(UINT32 *permutation, UINT32 *tcid, UINT32 pos, UINT32 ring_size);
 
-void cmaglev_populate(CMAGLEV *cmaglev, UINT32 ring_size);
+EC_BOOL cmaglev_populate(CMAGLEV *cmaglev, UINT32 ring_size);
 
 EC_BOOL cmaglev_hash(CMAGLEV *cmaglev);
 

@@ -22,6 +22,7 @@ extern "C"{
 #include "log.h"
 #include "cqueue.h"
 #include "cstack.h"
+#include "crb.h"
 #include "cmisc.h"
 
 #define COROUTINE_MUTEX_IGNORE_FLAG     ((UINT32) 0)
@@ -67,6 +68,7 @@ extern "C"{
 
 /*bit map*/
 #define COROUTINE_IS_IDLE               ((UINT32) 0x0001)
+#define COROUTINE_IS_POST               ((UINT32) 0x0002)
 #define COROUTINE_IS_BUSY               ((UINT32) 0x0010)
 #define COROUTINE_IS_WAIT               ((UINT32) 0x0100)
 #define COROUTINE_IS_CANL               ((UINT32) 0x0200)/*cancel*/
@@ -197,6 +199,8 @@ typedef struct
     uint32_t      rsvd01:31;
     uint32_t      rsvd02;
 
+    CLIST         coroutine_list;/*item is COROUTINE_NODE*/
+
     UINT32        location[COROUTINE_COND_OP_END];
 }COROUTINE_COND;
 
@@ -207,6 +211,8 @@ typedef struct
 #define COROUTINE_COND_E_MSEC(coroutine_cond)         ((coroutine_cond)->e_msec)
 
 #define COROUTINE_COND_TERMINATE_FLAG(coroutine_cond) ((coroutine_cond)->terminate_flag)
+
+#define COROUTINE_COND_COROUTINE_LIST(coroutine_cond) (&((coroutine_cond)->coroutine_list))
 
 #if 0
 #define COROUTINE_COND_LOCATION(coroutine_cond, __op__)  ((coroutine_cond)->location[__op__])
@@ -332,10 +338,16 @@ typedef struct
 #define COROUTINE_NODE_SET_WAIT_STATUS(coroutine_node)    (COROUTINE_NODE_STATUS(coroutine_node) |= COROUTINE_IS_WAIT)
 #define COROUTINE_NODE_CLR_WAIT_STATUS(coroutine_node)    (COROUTINE_NODE_STATUS(coroutine_node) &= ((~COROUTINE_IS_WAIT) & COROUTINE_ALL_MASK))
 
+#define COROUTINE_NODE_SET_POST_STATUS(coroutine_node)    (COROUTINE_NODE_STATUS(coroutine_node) |= COROUTINE_IS_POST)
+#define COROUTINE_NODE_CLR_POST_STATUS(coroutine_node)    (COROUTINE_NODE_STATUS(coroutine_node) &= ((~COROUTINE_IS_POST) & COROUTINE_ALL_MASK))
+
 typedef struct
 {
     CLIST            worker_idle_list;  /*idle coroutine_node list*/
     CLIST            worker_busy_list;  /*busy coroutine_node list*/
+    CLIST            worker_post_list;  /*post coroutine_node list*/
+
+    CRB_TREE         worker_timer_tree;
 
     UINT32           worker_max_num;    /*max supported number of coroutine_nodes*/
     COROUTINE_NODE   master_owner;
@@ -343,8 +355,11 @@ typedef struct
 }COROUTINE_POOL;
 
 #define COROUTINE_POOL_WORKER_IDLE_LIST(coroutine_pool)     (&((coroutine_pool)->worker_idle_list))
+#define COROUTINE_POOL_WORKER_POST_LIST(coroutine_pool)     (&((coroutine_pool)->worker_post_list))
 #define COROUTINE_POOL_WORKER_BUSY_LIST(coroutine_pool)     (&((coroutine_pool)->worker_busy_list))
-/*#define COROUTINE_POOL_WORKER_CMUTEX(coroutine_pool)        (&((coroutine_pool)->worker_cmutex))*/
+
+#define COROUTINE_POOL_WORKER_TIMER_TREE(coroutine_pool)     (&((coroutine_pool)->worker_timer_tree))
+
 #define COROUTINE_POOL_WORKER_MAX_NUM(coroutine_pool)       ((coroutine_pool)->worker_max_num)
 #define COROUTINE_POOL_MASTER_OWNER(coroutine_pool)         (&((coroutine_pool)->master_owner))
 #define COROUTINE_POOL_CURRENT_OWNER(coroutine_pool)        ((coroutine_pool)->current_owner)

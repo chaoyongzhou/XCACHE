@@ -1188,6 +1188,7 @@ UINT32 crank_thread_stat_init(CRANK_THREAD_STAT *crank_thread_stat)
 {
     CRANK_THREAD_MAX_NUM(crank_thread_stat)  = 0;
     CRANK_THREAD_BUSY_NUM(crank_thread_stat) = 0;
+    CRANK_THREAD_POST_NUM(crank_thread_stat) = 0;
     CRANK_THREAD_IDLE_NUM(crank_thread_stat) = 0;
     return (0);
 }
@@ -1196,6 +1197,7 @@ UINT32 crank_thread_stat_clean(CRANK_THREAD_STAT *crank_thread_stat)
 {
     CRANK_THREAD_MAX_NUM(crank_thread_stat)  = 0;
     CRANK_THREAD_BUSY_NUM(crank_thread_stat) = 0;
+    CRANK_THREAD_POST_NUM(crank_thread_stat) = 0;
     CRANK_THREAD_IDLE_NUM(crank_thread_stat) = 0;
     return (0);
 }
@@ -1211,15 +1213,17 @@ UINT32 crank_thread_stat_clone(const CRANK_THREAD_STAT *crank_thread_stat_src, C
 {
     CRANK_THREAD_MAX_NUM(crank_thread_stat_des)  = CRANK_THREAD_MAX_NUM(crank_thread_stat_src);
     CRANK_THREAD_BUSY_NUM(crank_thread_stat_des) = CRANK_THREAD_BUSY_NUM(crank_thread_stat_src);
+    CRANK_THREAD_POST_NUM(crank_thread_stat_des) = CRANK_THREAD_POST_NUM(crank_thread_stat_src);
     CRANK_THREAD_IDLE_NUM(crank_thread_stat_des) = CRANK_THREAD_IDLE_NUM(crank_thread_stat_src);
     return (0);
 }
 
 void crank_thread_stat_print(LOG *log, const CRANK_THREAD_STAT *crank_thread_stat)
 {
-    sys_log(log, "rank thread stat: total %ld, busy %ld, idle %ld\n",
+    sys_log(log, "rank thread stat: total %ld, busy %ld, post %ld, idle %ld\n",
                     CRANK_THREAD_MAX_NUM(crank_thread_stat),
                     CRANK_THREAD_BUSY_NUM(crank_thread_stat),
+                    CRANK_THREAD_POST_NUM(crank_thread_stat),
                     CRANK_THREAD_IDLE_NUM(crank_thread_stat)
                     );
     return;
@@ -1233,6 +1237,7 @@ UINT32 crank_thread_stat_get(CRANK_THREAD_STAT *crank_thread_stat)
     croutine_pool_num_info(TASK_REQ_CTHREAD_POOL(task_brd),
                      &CRANK_THREAD_IDLE_NUM(crank_thread_stat),
                      &CRANK_THREAD_BUSY_NUM(crank_thread_stat),
+                     &CRANK_THREAD_POST_NUM(crank_thread_stat),
                      &CRANK_THREAD_MAX_NUM(crank_thread_stat)
                      );
     return (0);

@@ -161,6 +161,8 @@ UINT32 cmon_start()
 
     CMON_MD_HOT_PATH_HASH_FUNC(cmon_md) = chash_algo_fetch(CMON_HOT_PATH_HASH_ALGO);
 
+    clist_init(CMON_MD_HOT_PATH_LIST(cmon_md), MM_IGNORE, LOC_TASK_0096);
+
     /*initialize HOT PATH RB TREE*/
     crb_tree_init(CMON_MD_HOT_PATH_TREE(cmon_md),
                     (CRB_DATA_CMP)cmon_hot_path_cmp,
@@ -260,6 +262,9 @@ void cmon_end(const UINT32 cmon_md_id)
     }
 
     CMON_MD_HOT_PATH_HASH_FUNC(cmon_md) = NULL_PTR;
+
+    clist_clean(CMON_MD_HOT_PATH_LIST(cmon_md), (CLIST_DATA_DATA_CLEANER)NULL_PTR);
+
     crb_tree_clean(CMON_MD_HOT_PATH_TREE(cmon_md));
 
     tasks_cfg_erase_add_worker_callback(TASK_BRD_LOCAL_TASKS_CFG(task_brd),
@@ -1020,7 +1025,7 @@ EC_BOOL cmon_set_node_up(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
         }
         else
         {
-            dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "[DEBUG] cmon_set_node_up: "
+            dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_set_node_up: "
                             "set up cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) "
                             "in connhash done\n",
                             cmon_node_t,
@@ -1050,7 +1055,7 @@ EC_BOOL cmon_set_node_up(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
         }
         else
         {
-            dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "[DEBUG] cmon_set_node_up: "
+            dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_set_node_up: "
                             "set up cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) "
                             "in maglev done\n",
                             cmon_node_t,
@@ -1064,7 +1069,7 @@ EC_BOOL cmon_set_node_up(const UINT32 cmon_md_id, const CMON_NODE *cmon_node)
 
     CMON_NODE_STATE(cmon_node_t) = CMON_NODE_IS_UP; /*set up*/
 
-    dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "[DEBUG] cmon_set_node_up: "
+    dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_set_node_up: "
                     "set up cmon_node %p (tcid %s, srv %s:%ld, modi %ld, state %s) done\n",
                     cmon_node_t,
                     c_word_to_ipv4(CMON_NODE_TCID(cmon_node_t)),
@@ -1398,24 +1403,13 @@ EC_BOOL cmon_get_node_by_hash(const UINT32 cmon_md_id, const UINT32 hash, CMON_N
             return (EC_FALSE);
         }
 
-        if(EC_FALSE == cconhash_rnode_is_up(cconhash_rnode))
-        {
-            dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_get_node_by_hash: "
-                        "found rnode (tcid %s, replicas %u, status %s) in connhash "
-                        "where hash %ld but it is not up \n",
-                        c_word_to_ipv4(CCONHASH_RNODE_TCID(cconhash_rnode)),
-                        CCONHASH_RNODE_REPLICAS(cconhash_rnode),
-                        cconhash_rnode_status(cconhash_rnode),
-                        hash);
-            return (EC_FALSE);
-        }
-
         return cmon_get_node_by_tcid(cmon_md_id, CCONHASH_RNODE_TCID(cconhash_rnode), 0, cmon_node);
     }
 
     else if (NULL_PTR != CMON_MD_CMAGLEV(cmon_md))
     {
         CMAGLEV_RNODE *cmaglev_rnode;
+
         cmaglev_rnode = cmaglev_lookup_rnode(CMON_MD_CMAGLEV(cmon_md), hash);
         if (NULL_PTR == cmaglev_rnode)
         {
@@ -1518,6 +1512,92 @@ EC_BOOL cmon_search_node_up(const UINT32 cmon_md_id, CMON_NODE *cmon_node)
     return (EC_FALSE);
 }
 
+EC_BOOL
+cmon_get_store_http_srv_of_hot_new(const UINT32 cmon_md_id,
+    const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port)
+{
+    CMON_NODE      *cmon_node;
+
+    TASK_BRD       *task_brd;
+    TASKS_CFG      *tasks_cfg;
+    CMON_MD        *cmon_md;
+    UINT32          pos;
+    UINT32          i;
+    UINT32          hash;
+    UINT32         *index_arr;
+    UINT32          size;
+
+    task_brd = task_brd_default_get();
+    tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
+
+    cmon_md = CMON_MD_GET(cmon_md_id);
+    cmon_node = NULL_PTR;
+
+    size = cvector_size(CMON_MD_CMON_NODE_VEC(cmon_md)) * sizeof (UINT32);
+
+    index_arr = safe_malloc(size, LOC_CMON_0010);
+    if (NULL_PTR == index_arr)
+    {
+        return (EC_FALSE);
+    }
+
+    /* find all cmon_node with local xfs_tcid of which state is up */
+    i = 0;
+
+    for(pos = 0; pos < cvector_size(CMON_MD_CMON_NODE_VEC(cmon_md)); pos ++)
+    {
+        cmon_node = cvector_get(CMON_MD_CMON_NODE_VEC(cmon_md), pos);
+
+        if (EC_TRUE == c_ipv4_is_local(CMON_NODE_IPADDR(cmon_node))
+            && CMON_NODE_IS_UP == CMON_NODE_STATE(cmon_node))
+        {
+            index_arr[i] = pos;
+            i ++ ;
+        }
+    }
+
+    if (0 == i) {
+        safe_free(index_arr, LOC_CMON_0010);
+        return (EC_FALSE);
+    }
+
+    /* use hash to choose a xfs_tcid.*/
+    hash = c_crc32_short(CSTRING_STR(path), (size_t)CSTRING_LEN(path));
+
+    cmon_node = cvector_get(CMON_MD_CMON_NODE_VEC(cmon_md), index_arr[hash%i]);
+
+    tasks_cfg = sys_cfg_search_tasks_cfg(TASK_BRD_SYS_CFG(task_brd),
+                                         CMON_NODE_TCID(cmon_node),
+                                         CMPI_ANY_MASK,
+                                         CMPI_ANY_MASK);
+    if(NULL_PTR == tasks_cfg)
+    {
+        dbg_log(SEC_0023_CMON, 0)(LOGSTDOUT, "error:cmon_store_http_srv_get: "
+                            "not searched tasks cfg of tcid %s\n",
+                            c_word_to_ipv4(CMON_NODE_TCID(cmon_node)));
+        safe_free(index_arr, LOC_CMON_0010);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != tcid)
+    {
+        (*tcid) = TASKS_CFG_TCID(tasks_cfg);
+    }
+
+    if(NULL_PTR != srv_ipaddr)
+    {
+        (*srv_ipaddr) = TASKS_CFG_SRVIPADDR(tasks_cfg);
+    }
+
+    if(NULL_PTR != srv_port)
+    {
+        (*srv_port) = TASKS_CFG_CSRVPORT(tasks_cfg); /*http port*/
+    }
+
+    safe_free(index_arr, LOC_CMON_0010);
+    return (EC_TRUE);
+}
+
 EC_BOOL cmon_get_store_http_srv_of_hot(const UINT32 cmon_md_id, const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port)
 {
     //CMON_MD    *cmon_md;
@@ -1526,10 +1606,6 @@ EC_BOOL cmon_get_store_http_srv_of_hot(const UINT32 cmon_md_id, const CSTRING *p
 
     TASK_BRD   *task_brd;
     TASKS_CFG  *tasks_cfg;
-
-    char       *dirname;
-
-    CSTRING     cache_path;
 
 #if ( SWITCH_ON == CMON_DEBUG_SWITCH )
     if ( CMON_MD_ID_CHECK_INVALID(cmon_md_id) )
@@ -1541,38 +1617,30 @@ EC_BOOL cmon_get_store_http_srv_of_hot(const UINT32 cmon_md_id, const CSTRING *p
     }
 #endif/*CMON_DEBUG_SWITCH*/
 
-    //cmon_md = CMON_MD_GET(cmon_md_id);
-
-    /*hot cache path*/
-    dirname = c_dirname((char *)cstring_get_str(path));
-    if(NULL_PTR == dirname)
+    if (EC_FALSE == cmon_exist_hot_path(cmon_md_id, path))
     {
         return (EC_FALSE);
     }
 
-    cstring_set_str(&cache_path, (const UINT8 *)dirname);/*mount only*/
-
-    if(EC_FALSE == cmon_exist_hot_path(cmon_md_id, &cache_path))
+    /*new hot-path*/
+    if (EC_TRUE == cmon_get_store_http_srv_of_hot_new(cmon_md_id, path, tcid,
+                                                        srv_ipaddr, srv_port))
     {
-        safe_free(dirname, LOC_CMON_0005);
-        return (EC_FALSE);
+        return (EC_TRUE);
     }
 
     if(EC_FALSE == cmon_search_node_up(cmon_md_id, &cmon_node))
     {
-        safe_free(dirname, LOC_CMON_0006);
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0023_CMON, 6)(LOGSTDOUT, "[DEBUG] cmon_get_store_http_srv_of_hot: "
                 "hot path '%s' => cmon_node (tcid %s, srv %s:%ld, modi %ld, state %s)\n",
-                dirname,
+                path,
                 c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)),
                 c_word_to_ipv4(CMON_NODE_IPADDR(&cmon_node)), CMON_NODE_PORT(&cmon_node),
                 CMON_NODE_MODI(&cmon_node),
                 cmon_node_state(&cmon_node));
-
-    safe_free(dirname, LOC_CMON_0007);
 
     task_brd = task_brd_default_get();
 
@@ -1978,6 +2046,13 @@ EC_BOOL cmon_add_hot_path(const UINT32 cmon_md_id, const CSTRING *path)
         return (EC_FALSE);
     }
 
+    /*if current hot path num has reached the max num
+     *delete the expired or the first in, decrease current num */
+    if (CMON_HOT_PATH_MAX_NUM <= clist_size(CMON_MD_HOT_PATH_LIST(cmon_md)))
+    {
+        cmon_recycle_hot_path(cmon_md);
+    }
+
     cmon_hot_path = cmon_hot_path_new();
     if(NULL_PTR == cmon_hot_path)
     {
@@ -1993,6 +2068,7 @@ EC_BOOL cmon_add_hot_path(const UINT32 cmon_md_id, const CSTRING *path)
 
     cstring_clone(path, CMON_HOT_PATH_CSTR(cmon_hot_path));
 
+    /*crb_node->data is cmon_hot_path*/
     crb_node = crb_tree_insert_data(CMON_MD_HOT_PATH_TREE(cmon_md), (void *)cmon_hot_path);
     if(NULL_PTR == crb_node)
     {
@@ -2015,7 +2091,43 @@ EC_BOOL cmon_add_hot_path(const UINT32 cmon_md_id, const CSTRING *path)
     dbg_log(SEC_0023_CMON, 9)(LOGSTDOUT, "[DEBUG] cmon_add_hot_path: "
                                          "add hot path '%s' done\n",
                                          (char *)cstring_get_str(path));
+
+    /*
+     * link all rbtree nodes to list
+     * when node num exceed max number, recycle from this FIFO list
+     * */
+    clist_push_back(CMON_MD_HOT_PATH_LIST(cmon_md),
+                        crb_node);
+
     return (EC_TRUE);
+}
+
+EC_BOOL cmon_recycle_hot_path(CMON_MD *cmon_md)
+{
+    UINT32         idx;
+    CRB_TREE      *hot_tree;
+    CRB_NODE      *del_node;
+    CLIST         *hot_path_list;
+
+    hot_tree = CMON_MD_HOT_PATH_TREE(cmon_md);
+    hot_path_list = CMON_MD_HOT_PATH_LIST(cmon_md);
+
+    for (idx = 0; idx < CMON_HOT_PATH_RECYCLE_NUM; idx++)
+    {
+        /*
+         * 1.delete data_node in clist
+         * 2.free hot_node in rbtree
+         * */
+        del_node = clist_pop_front(hot_path_list);
+        if (NULL_PTR == del_node)
+        {
+            break;
+        }
+
+        crb_tree_delete(hot_tree, del_node);
+
+    }
+    return EC_TRUE;
 }
 
 EC_BOOL cmon_del_hot_path(const UINT32 cmon_md_id, const CSTRING *path)

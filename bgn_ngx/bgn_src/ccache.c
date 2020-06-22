@@ -380,7 +380,8 @@ EC_BOOL ccache_file_wait_and_read(const UINT32 store_srv_tcid, const UINT32 stor
 
         UINT32         tag;
 
-        timeout_msec = 60 * 1000;
+        /*timeout_msec = 60 * 1000;*/
+        timeout_msec = TASK_DEFAULT_LIVE * 1000;
 
         if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
         {
@@ -1037,7 +1038,7 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
             task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                 &recv_mod_node,
                 &ret, FI_cxfs_file_wait_e, CMPI_ERROR_MODI, &send_mod_node,
-                file_path, &store_offset, store_size, content_length, data_ready);
+                file_path, TASK_DEFAULT_LIVE, &store_offset, store_size, content_length, data_ready);
         }
 
         e_time_msec = c_get_cur_time_msec();
@@ -1100,7 +1101,8 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         {
             task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                 &recv_mod_node,
-                &ret, FI_cxfs_file_wait, CMPI_ERROR_MODI, &send_mod_node, file_path, content_length, data_ready);
+                &ret, FI_cxfs_file_wait, CMPI_ERROR_MODI, &send_mod_node,
+                file_path, TASK_DEFAULT_LIVE, content_length, data_ready);
         }
 
         e_time_msec = c_get_cur_time_msec();
@@ -1171,7 +1173,8 @@ EC_BOOL ccache_file_wait_ready_over_bgn(const UINT32 store_srv_tcid, const UINT3
     {
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
             &recv_mod_node,
-            &ret, FI_cxfs_file_wait_ready, CMPI_ERROR_MODI, &send_mod_node, file_path, &data_ready_t);
+            &ret, FI_cxfs_file_wait_ready, CMPI_ERROR_MODI, &send_mod_node,
+            file_path, TASK_DEFAULT_LIVE, &data_ready_t);
     }
 
     e_time_msec = c_get_cur_time_msec();
@@ -1247,7 +1250,7 @@ EC_BOOL ccache_wait_http_headers_over_bgn(const UINT32 store_srv_tcid, const UIN
                  &recv_mod_node,
                  &ret,
                  FI_cxfs_wait_http_headers, CMPI_ERROR_MODI, &send_mod_node,
-                 file_path, cstrkv_mgr, header_ready);
+                 file_path, TASK_DEFAULT_LIVE, cstrkv_mgr, header_ready);
     }
 
     e_time_msec = c_get_cur_time_msec();

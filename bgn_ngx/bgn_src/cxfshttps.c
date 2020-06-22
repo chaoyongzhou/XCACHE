@@ -220,7 +220,8 @@ EC_BOOL cxfshttps_commit_request(CHTTP_NODE *chttp_node)
         if(NULL_PTR == croutine_node)
         {
             dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_commit_request: cthread load for HTTP_GET failed\n");
-            return (EC_BUSY);
+            /*return (EC_BUSY);*/
+            return (EC_FALSE); /*note: do not retry to relieve system pressure*/
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
@@ -238,7 +239,8 @@ EC_BOOL cxfshttps_commit_request(CHTTP_NODE *chttp_node)
         if(NULL_PTR == croutine_node)
         {
             dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_commit_request: cthread load for HTTP_POST failed\n");
-            return (EC_BUSY);
+            /*return (EC_BUSY);*/
+            return (EC_FALSE); /*note: do not retry to relieve system pressure*/
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
@@ -256,7 +258,8 @@ EC_BOOL cxfshttps_commit_request(CHTTP_NODE *chttp_node)
         if(NULL_PTR == croutine_node)
         {
             dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_commit_request: cthread load for HTTP_HEAD failed\n");
-            return (EC_BUSY);
+            /*return (EC_BUSY);*/
+            return (EC_FALSE); /*note: do not retry to relieve system pressure*/
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
@@ -427,6 +430,10 @@ EC_BOOL cxfshttps_commit_http_get(CHTTP_NODE *chttp_node)
     else if (EC_TRUE == cxfshttps_is_http_get_locked_file_retire(chttp_node))
     {
         ret = cxfshttps_commit_locked_file_retire_get_request(chttp_node);
+    }
+    else if (EC_TRUE == cxfshttps_is_http_get_wait_file_retire(chttp_node))
+    {
+        ret = cxfshttps_commit_wait_file_retire_get_request(chttp_node);
     }
     else if (EC_TRUE == cxfshttps_is_http_get_activate_ngx(chttp_node))
     {
@@ -6680,6 +6687,197 @@ EC_BOOL cxfshttps_commit_locked_file_retire_get_response(CHTTP_NODE *chttp_node)
 #endif
 
 #if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: wait_file_retire ----------------------------------------*/
+STATIC_CAST static EC_BOOL __cxfshttps_uri_is_wait_file_retire_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/wait_file_retire") <= uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/wait_file_retire")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttps_is_http_get_wait_file_retire(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0200_CXFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] cxfshttps_is_http_get_wait_file_retire: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __cxfshttps_uri_is_wait_file_retire_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfshttps_commit_wait_file_retire_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == cxfshttps_handle_wait_file_retire_get_request(chttp_node))
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_commit_wait_file_retire_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfshttps_make_wait_file_retire_get_response(chttp_node))
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_commit_wait_file_retire_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = cxfshttps_commit_wait_file_retire_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_commit_wait_file_retire_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL cxfshttps_handle_wait_file_retire_get_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER       *uri_cbuffer;
+
+    UINT32         req_body_chunk_num;
+
+    CBYTES        *content_cbytes;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
+    /*CXFSHTTPS_ASSERT(0 == req_body_chunk_num);*/
+    if(!(0 == req_body_chunk_num))
+    {
+        CHUNK_MGR *req_body_chunks;
+
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
+
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error: cxfshttps_handle_wait_file_retire_get_request: chunk num %ld\n", req_body_chunk_num);
+
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error: cxfshttps_handle_wait_file_retire_get_request: chunk mgr %p info\n", req_body_chunks);
+        chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
+
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error: cxfshttps_handle_wait_file_retire_get_request: chunk mgr %p chars\n", req_body_chunks);
+        chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttps_handle_wait_file_retire_get_request");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+        return (EC_TRUE);
+    }
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    cbytes_clean(content_cbytes);
+
+    if(EC_TRUE == __cxfshttps_uri_is_wait_file_retire_get_op(uri_cbuffer))
+    {
+        CSOCKET_CNODE * csocket_cnode;
+
+        char    *retire_max_num_str;
+        UINT32   retire_max_num;
+        UINT32   retire_num;
+
+        retire_max_num_str = chttp_node_get_header(chttp_node, (const char *)"retire-max-num");
+        retire_max_num     = c_str_to_word(retire_max_num_str);
+        retire_num         = 0;
+
+        dbg_log(SEC_0200_CXFSHTTPS, 1)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_wait_file_retire_get_request: header retire-max-num %s => %ld\n",
+                                retire_max_num_str, retire_max_num);
+
+        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+        if(EC_FALSE == cxfs_wait_file_retire(CSOCKET_CNODE_MODI(csocket_cnode), retire_max_num, &retire_num))
+        {
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttps_handle_wait_file_retire_get_request failed");
+
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0200_CXFSHTTPS, 5)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_wait_file_retire_get_request: complete %ld\n", retire_num);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttps_handle_wait_file_retire_get_request: complete %ld", retire_num);
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+
+        /*prepare response header*/
+        cstrkv_mgr_add_kv_str(CHTTP_NODE_HEADER_OUT_KVS(chttp_node), (char *)"retire-completion", c_word_to_str(retire_num));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttps_make_wait_file_retire_get_response(CHTTP_NODE *chttp_node)
+{
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_make_wait_file_retire_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_make_wait_file_retire_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_make_wait_file_retire_get_response: make header kvs failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_make_wait_file_retire_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttps_commit_wait_file_retire_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_commit_wait_file_retire_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return cxfshttps_commit_response(chttp_node);
+}
+#endif
+
+
+#if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: stat ----------------------------------------*/
 STATIC_CAST static EC_BOOL __cxfshttps_uri_is_stat_get_op(const CBUFFER *uri_cbuffer)
 {
@@ -6813,6 +7011,7 @@ EC_BOOL cxfshttps_handle_stat_get_request(CHTTP_NODE *chttp_node)
         TASK_BRD       *task_brd;
         UINT32          idle_thread_num;
         UINT32          busy_thread_num;
+        UINT32          post_thread_num;
         UINT32          total_thread_num;
 
         cxfs_coroutine_obj = json_object_new_object();
@@ -6820,10 +7019,12 @@ EC_BOOL cxfshttps_handle_stat_get_request(CHTTP_NODE *chttp_node)
 
         task_brd = task_brd_default_get();
 
-        croutine_pool_num_info(TASK_REQ_CTHREAD_POOL(task_brd), &idle_thread_num, &busy_thread_num, &total_thread_num);
+        croutine_pool_num_info(TASK_REQ_CTHREAD_POOL(task_brd),
+                    &idle_thread_num, &busy_thread_num, &post_thread_num, &total_thread_num);
 
         json_object_add_k_int64(cxfs_coroutine_obj, "co_idle_num" , (int64_t)idle_thread_num);
         json_object_add_k_int64(cxfs_coroutine_obj, "co_busy_num" , (int64_t)busy_thread_num);
+        json_object_add_k_int64(cxfs_coroutine_obj, "co_post_num" , (int64_t)post_thread_num);
         json_object_add_k_int64(cxfs_coroutine_obj, "co_total_num", (int64_t)total_thread_num);
     }
 
@@ -7002,6 +7203,7 @@ EC_BOOL cxfshttps_handle_stat_get_request(CHTTP_NODE *chttp_node)
         cmc_stat_obj = json_object_new_object();
         json_object_add_obj(cxfs_obj, "cmc_stat", cmc_stat_obj);
 
+        json_object_add_k_int64(cmc_stat_obj , "cmc_mem_disk_size"       , (int64_t)CXFSDN_CAMD_MEM_DISK_SIZE);
         json_object_add_kv(cmc_stat_obj      , "cmc_pgd_disk_choice_desc", CMCPGD_DISK_DESC);
         json_object_add_k_int64(cmc_stat_obj , "cmc_pgd_disk_choice"    , (int64_t)(((uint64_t)1) << CMCPGD_SIZE_NBITS));
 

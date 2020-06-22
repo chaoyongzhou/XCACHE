@@ -750,6 +750,30 @@ EC_BOOL task_node_isend(TASK_BRD *task_brd, TASK_NODE *task_node)
     return (EC_FALSE);
 }
 
+EC_BOOL task_node_is_timeout(const TASK_NODE *task_node)
+{
+    const TASK_ANY    *task_any;
+    UINT32             cur;
+
+    task_any = TASK_NODE_ANY(task_node);
+
+    if(TASK_ALWAYS_LIVE == TASK_ANY_TIME_TO_LIVE(task_any))
+    {
+        /*never timeout*/
+        return (EC_FALSE);
+    }
+
+    cur = (UINT32)c_get_cur_time_nsec();
+    if(cur >= TASK_ANY_START_TIME(task_any) + TASK_ANY_TIME_TO_LIVE(task_any))
+    {
+        /*time out*/
+        return (EC_TRUE);
+    }
+
+    /*not timeout*/
+    return (EC_FALSE);
+}
+
 TASK_RUNNER_NODE *task_runner_node_new()
 {
     TASK_RUNNER_NODE *task_runner_node;
@@ -2018,7 +2042,8 @@ EC_BOOL task_req_decode(const UINT32 recv_comm, TASK_REQ *task_req)
 
     position = 0;
 
-    CTIMET_GET(TASK_REQ_START_TIME(task_req));/*record start time as soon as possible*/
+    /*record start time as soon as possible*/
+    TASK_REQ_START_TIME(task_req) = (UINT32)c_get_cur_time_nsec();
 
 #if (SWITCH_OFF == TASK_HEADER_COMPRESSED_SWITCH)
     cmpi_decode_uint32(recv_comm, in_buff, in_buff_len, &(position), &(discard_info));/*dicard len info used when forwarding only*/
@@ -2165,7 +2190,7 @@ EC_BOOL task_req_isend(TASK_BRD *task_brd, TASK_REQ *task_req)
 
 UINT32 task_req_time_elapsed(const TASK_REQ *task_req)
 {
-    CTIMET cur;
+    UINT32 cur;
 
     if(TASK_ALWAYS_LIVE == TASK_REQ_TIME_TO_LIVE(task_req))
     {
@@ -2173,13 +2198,20 @@ UINT32 task_req_time_elapsed(const TASK_REQ *task_req)
         return (0);
     }
 
-    CTIMET_GET(cur);
-    return lrint(CTIMET_DIFF(TASK_REQ_START_TIME(task_req), cur));
+    cur = (UINT32)c_get_cur_time_nsec();
+    if(cur < TASK_REQ_START_TIME(task_req))
+    {
+        /*system clock is adjusted*/
+        return (0);
+    }
+
+    return (cur - TASK_REQ_START_TIME(task_req));
 }
 
 UINT32 task_req_time_left(const TASK_REQ *task_req)
 {
-    CTIMET cur;
+    UINT32 cur;
+    UINT32 elapsed;
 
     if(TASK_ALWAYS_LIVE == TASK_REQ_TIME_TO_LIVE(task_req))
     {
@@ -2187,14 +2219,20 @@ UINT32 task_req_time_left(const TASK_REQ *task_req)
         return (TASK_ALWAYS_LIVE);
     }
 
-    CTIMET_GET(cur);
-    return (TASK_REQ_TIME_TO_LIVE(task_req) - lrint(CTIMET_DIFF(TASK_REQ_START_TIME(task_req), cur)));
+    cur = (UINT32)c_get_cur_time_nsec();
+    if(cur < TASK_REQ_START_TIME(task_req))
+    {
+        /*system clock is adjusted*/
+        return TASK_REQ_TIME_TO_LIVE(task_req);
+    }
+
+    elapsed = (cur - TASK_REQ_START_TIME(task_req));
+    return (TASK_REQ_TIME_TO_LIVE(task_req) - elapsed);
 }
 
 EC_BOOL task_req_is_timeout(const TASK_REQ *task_req)
 {
-    CTIMET cur;
-    double diff;
+    UINT32 cur;
 
     if(TASK_ALWAYS_LIVE == TASK_REQ_TIME_TO_LIVE(task_req))
     {
@@ -2202,11 +2240,8 @@ EC_BOOL task_req_is_timeout(const TASK_REQ *task_req)
         return (EC_FALSE);
     }
 
-    CTIMET_GET(cur);
-
-    diff = CTIMET_DIFF(TASK_REQ_START_TIME(task_req), cur);
-
-    if(diff >= 0.0 + TASK_REQ_TIME_TO_LIVE(task_req))
+    cur = (UINT32)c_get_cur_time_nsec();
+    if(cur >= TASK_REQ_START_TIME(task_req) + TASK_REQ_TIME_TO_LIVE(task_req))
     {
         /*time out*/
         return (EC_TRUE);
@@ -3468,7 +3503,7 @@ EC_BOOL task_rsp_isend(TASK_BRD *task_brd, TASK_RSP *task_rsp)
 
 UINT32 task_rsp_time_elapsed(const TASK_RSP *task_rsp)
 {
-    CTIMET cur;
+    UINT32 cur;
 
     if(TASK_ALWAYS_LIVE == TASK_RSP_TIME_TO_LIVE(task_rsp))
     {
@@ -3476,13 +3511,20 @@ UINT32 task_rsp_time_elapsed(const TASK_RSP *task_rsp)
         return (0);
     }
 
-    CTIMET_GET(cur);
-    return lrint(CTIMET_DIFF(TASK_RSP_START_TIME(task_rsp), cur));
+    cur = (UINT32)c_get_cur_time_nsec();
+    if(cur < TASK_RSP_START_TIME(task_rsp))
+    {
+        /*system clock is adjusted*/
+        return (0);
+    }
+
+    return (cur - TASK_RSP_START_TIME(task_rsp));
 }
 
 UINT32 task_rsp_time_left(const TASK_RSP *task_rsp)
 {
-    CTIMET cur;
+    UINT32 cur;
+    UINT32 elapsed;
 
     if(TASK_ALWAYS_LIVE == TASK_RSP_TIME_TO_LIVE(task_rsp))
     {
@@ -3490,13 +3532,20 @@ UINT32 task_rsp_time_left(const TASK_RSP *task_rsp)
         return (TASK_ALWAYS_LIVE);
     }
 
-    CTIMET_GET(cur);
-    return (TASK_RSP_TIME_TO_LIVE(task_rsp) - lrint(CTIMET_DIFF(TASK_RSP_START_TIME(task_rsp), cur)));
+    cur = (UINT32)c_get_cur_time_nsec();
+    if(cur < TASK_RSP_START_TIME(task_rsp))
+    {
+        /*system clock is adjusted*/
+        return TASK_RSP_TIME_TO_LIVE(task_rsp);
+    }
+
+    elapsed = (cur - TASK_RSP_START_TIME(task_rsp));
+    return (TASK_RSP_TIME_TO_LIVE(task_rsp) - elapsed);
 }
 
 EC_BOOL task_rsp_is_timeout(const TASK_RSP *task_rsp)
 {
-    CTIMET cur;
+    UINT32 cur;
 
     if(TASK_ALWAYS_LIVE == TASK_RSP_TIME_TO_LIVE(task_rsp))
     {
@@ -3504,9 +3553,8 @@ EC_BOOL task_rsp_is_timeout(const TASK_RSP *task_rsp)
         return (EC_FALSE);
     }
 
-    CTIMET_GET(cur);
-
-    if(CTIMET_DIFF(TASK_RSP_START_TIME(task_rsp), cur) >= 0.0 + TASK_RSP_TIME_TO_LIVE(task_rsp))
+    cur = (UINT32)c_get_cur_time_nsec();
+    if(cur >= TASK_RSP_START_TIME(task_rsp) + TASK_RSP_TIME_TO_LIVE(task_rsp))
     {
         /*time out*/
         return (EC_TRUE);
@@ -8788,6 +8836,16 @@ UINT32 task_brd_default_get_cmon_id()
     return TASK_BRD_CMON_ID(task_brd_default_get());
 }
 
+EC_BOOL task_brd_default_add_hot_path(const CSTRING *path)
+{
+
+    if (EC_FALSE == cmon_add_hot_path(task_brd_default_get_cmon_id(), path))
+    {
+        return (EC_FALSE);
+    }
+    return (EC_TRUE);
+}
+
 EC_BOOL task_brd_default_get_store_http_srv(const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port)
 {
     if(EC_FALSE == cmon_get_store_http_srv(task_brd_default_get_cmon_id(),
@@ -9820,7 +9878,8 @@ EC_BOOL task_brd_commit_req(TASK_BRD *task_brd, TASK_REQ *task_req)
     /*TASK_IS_RECV_QUEUE support task priority, here add node by task_queue_add_node*/
     task_queue_add_node(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), task_req_node);
 
-    CTIMET_GET(TASK_REQ_START_TIME(task_req)); /*okay,record the task req starting time*/
+    /*okay,record the task req starting time*/
+    TASK_REQ_START_TIME(task_req) = (UINT32)c_get_cur_time_nsec();
 
     /*update load info if task_req has been recved*/
     load_set_when_task_req_commit(task_brd, task_req);
@@ -9851,7 +9910,8 @@ EC_BOOL task_brd_commit_req_no_queue(TASK_BRD *task_brd, TASK_REQ *task_req)
     /*TASK_IS_RECV_QUEUE support task priority, here add node by task_queue_add_node*/
     //task_queue_add_node(TASK_BRD_QUEUE(task_brd, TASK_IS_RECV_QUEUE), task_req_node);
 
-    CTIMET_GET(TASK_REQ_START_TIME(task_req)); /*okay,record the task req starting time*/
+    /*okay,record the task req starting time*/
+    TASK_REQ_START_TIME(task_req) = (UINT32)c_get_cur_time_nsec();
 
     /*update load info if task_req has been recved*/
     load_set_when_task_req_commit(task_brd, task_req);
@@ -10113,9 +10173,67 @@ EC_BOOL task_brd_sending_queue_handle(TASK_BRD *task_brd)
             /*incomplete sending packet means sending congestion, hence suspending next task req/rsp sending but try to recv req/rsp*/
             /*return (EC_FALSE);*/
 
+            if(EC_FALSE == super_check_tcid_connected(0/*super_md_id*/, TASK_NODE_RECV_TCID(task_node)))
+            {
+                TASK_ANY   *task_any;
+                TASK_NODE  *task_any_node;
+
+                task_any_node = task_node;
+                task_any = TASK_NODE_ANY(task_any_node);
+                /*TASK_NODE_STATUS(task_any_node) = TASK_UNDEF_STATUS;*/
+
+                dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[BROKEN] send node: from (tcid %s,comm %ld,rank %ld,modi %ld) to (tcid %s,comm %ld,rank %ld,modi %ld) with priority %ld, type %ld, tag %ld, ldb %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx\n",
+                                TASK_NODE_SEND_TCID_STR(task_node), TASK_NODE_SEND_COMM(task_node), TASK_NODE_SEND_RANK(task_node), TASK_NODE_SEND_MODI(task_node),
+                                TASK_NODE_RECV_TCID_STR(task_node), TASK_NODE_RECV_COMM(task_node), TASK_NODE_RECV_RANK(task_node), TASK_NODE_RECV_MODI(task_node),
+                                TASK_NODE_PRIO(task_node), TASK_NODE_TYPE(task_node),
+                                TASK_NODE_TAG(task_node), TASK_NODE_LDB_CHOICE(task_node),
+                                TASK_NODE_SEND_TCID(task_node), TASK_NODE_SEND_RANK(task_node), TASK_NODE_SEQNO(task_node), TASK_NODE_SUB_SEQNO(task_node),
+                                TASK_NODE_FUNC_ID(task_node)
+                                );
+
+                /*free this task any*/
+                clist_data_rmv = clist_data;
+                clist_data = CLIST_DATA_PREV(clist_data);
+
+                clist_rmv_no_lock(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), clist_data_rmv);
+                task_any_free(task_any);
+
+                continue;
+            }
+
+            /*exception*/
+            if(EC_TRUE == task_node_is_timeout(task_node))
+            {
+                TASK_ANY   *task_any;
+                TASK_NODE  *task_any_node;
+
+                task_any_node = task_node;
+                task_any = TASK_NODE_ANY(task_any_node);
+                /*TASK_NODE_STATUS(task_any_node) = TASK_UNDEF_STATUS;*/
+
+                dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[TIMEOUT] send node: from (tcid %s,comm %ld,rank %ld,modi %ld) to (tcid %s,comm %ld,rank %ld,modi %ld) with priority %ld, type %ld, tag %ld, ldb %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx\n",
+                                TASK_NODE_SEND_TCID_STR(task_node), TASK_NODE_SEND_COMM(task_node), TASK_NODE_SEND_RANK(task_node), TASK_NODE_SEND_MODI(task_node),
+                                TASK_NODE_RECV_TCID_STR(task_node), TASK_NODE_RECV_COMM(task_node), TASK_NODE_RECV_RANK(task_node), TASK_NODE_RECV_MODI(task_node),
+                                TASK_NODE_PRIO(task_node), TASK_NODE_TYPE(task_node),
+                                TASK_NODE_TAG(task_node), TASK_NODE_LDB_CHOICE(task_node),
+                                TASK_NODE_SEND_TCID(task_node), TASK_NODE_SEND_RANK(task_node), TASK_NODE_SEQNO(task_node), TASK_NODE_SUB_SEQNO(task_node),
+                                TASK_NODE_FUNC_ID(task_node)
+                                );
+
+                /*free this task any*/
+                clist_data_rmv = clist_data;
+                clist_data = CLIST_DATA_PREV(clist_data);
+
+                clist_rmv_no_lock(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), clist_data_rmv);
+                task_any_free(task_any);
+
+                continue;
+            }
+
             /*congestion may happen on some socket or mpi channel, other sockets or channels may work well, so continue sending*/
             continue;
         }
+
         dbg_log(SEC_0015_TASK, 3)(LOGSTDOUT, "sent  node: from (tcid %s,comm %ld,rank %ld,modi %ld) to (tcid %s,comm %ld,rank %ld,modi %ld) with priority %ld, type %ld, tag %ld, ldb %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx\n",
                         TASK_NODE_SEND_TCID_STR(task_node), TASK_NODE_SEND_COMM(task_node), TASK_NODE_SEND_RANK(task_node), TASK_NODE_SEND_MODI(task_node),
                         TASK_NODE_RECV_TCID_STR(task_node), TASK_NODE_RECV_COMM(task_node), TASK_NODE_RECV_RANK(task_node), TASK_NODE_RECV_MODI(task_node),
@@ -10625,6 +10743,7 @@ void task_req_handle_thread(TASK_BRD *task_brd, TASK_REQ *task_req)
     }
 
     /*compute the task rsp left time_to_live by task req*/
+    TASK_RSP_START_TIME(task_rsp)   = (UINT32)c_get_cur_time_nsec();
     TASK_RSP_TIME_TO_LIVE(task_rsp) = task_req_time_left(task_req);
 
     cload_stat_clone(TASK_BRD_CLOAD_STAT(task_brd), TASK_RSP_CLOAD_STAT(task_rsp));
@@ -10787,7 +10906,7 @@ EC_BOOL task_brd_is_recv_queue_handle(TASK_BRD *task_brd)
 
 UINT32 task_mgr_time_elapsed(const TASK_MGR *task_mgr)
 {
-    CTIMET cur;
+    UINT32 cur;
 
     if(TASK_ALWAYS_LIVE == TASK_MGR_TIME_TO_LIVE(task_mgr))
     {
@@ -10795,26 +10914,40 @@ UINT32 task_mgr_time_elapsed(const TASK_MGR *task_mgr)
         return (0);
     }
 
-    CTIMET_GET(cur);
-    return lrint(CTIMET_DIFF(TASK_MGR_START_TIME_SEC(task_mgr), cur));
+    cur = (UINT32)c_get_cur_time_nsec();
+    if(cur < TASK_MGR_START_TIME_SEC(task_mgr))
+    {
+        /*system clock is adjusted*/
+        return (0);
+    }
+
+    return (cur - TASK_MGR_START_TIME_SEC(task_mgr));
 }
 
 UINT32 task_mgr_time_left(const TASK_MGR *task_mgr)
 {
-    CTIMET cur;
+    UINT32 cur;
+    UINT32 elapsed;
 
     if(TASK_ALWAYS_LIVE == TASK_MGR_TIME_TO_LIVE(task_mgr))
     {
         return (TASK_ALWAYS_LIVE);
     }
 
-    CTIMET_GET(cur);
-    return (TASK_MGR_TIME_TO_LIVE(task_mgr) - lrint(CTIMET_DIFF(TASK_MGR_START_TIME_SEC(task_mgr), cur)));
+    cur = (UINT32)c_get_cur_time_nsec();
+    if(cur < TASK_MGR_START_TIME_SEC(task_mgr))
+    {
+        /*system clock is adjusted*/
+        return TASK_MGR_TIME_TO_LIVE(task_mgr);
+    }
+
+    elapsed = (cur - TASK_MGR_START_TIME_SEC(task_mgr));
+    return (TASK_MGR_TIME_TO_LIVE(task_mgr) - elapsed);
 }
 
 EC_BOOL task_mgr_is_timeout(const TASK_MGR *task_mgr)
 {
-    CTIMET cur;
+    UINT32 cur;
 
     if(TASK_ALWAYS_LIVE == TASK_MGR_TIME_TO_LIVE(task_mgr))
     {
@@ -10822,9 +10955,8 @@ EC_BOOL task_mgr_is_timeout(const TASK_MGR *task_mgr)
         return (EC_FALSE);
     }
 
-    CTIMET_GET(cur);
-
-    if(CTIMET_DIFF(TASK_MGR_START_TIME_SEC(task_mgr), cur) >= 0.0 + TASK_MGR_TIME_TO_LIVE(task_mgr))
+    cur = (UINT32)c_get_cur_time_nsec();
+    if(cur >= TASK_MGR_START_TIME_SEC(task_mgr) + TASK_MGR_TIME_TO_LIVE(task_mgr))
     {
         /*time out*/
         return (EC_TRUE);
@@ -12512,7 +12644,19 @@ EC_BOOL task_brd_epoll_do(TASK_BRD *task_brd)
 {
     if(NULL_PTR != TASK_BRD_CEPOLL(task_brd))
     {
-        cepoll_wait(TASK_BRD_CEPOLL(task_brd), TASK_SLOW_DOWN_MSEC);
+        COROUTINE_POOL *coroutine_pool;
+
+        coroutine_pool = TASK_BRD_CROUTINE_POOL(task_brd);
+
+        if(NULL_PTR != coroutine_pool
+        && 0 == coroutine_pool_find_timer(coroutine_pool))
+        {
+            cepoll_wait(TASK_BRD_CEPOLL(task_brd), 0);
+        }
+        else
+        {
+            cepoll_wait(TASK_BRD_CEPOLL(task_brd), TASK_SLOW_DOWN_MSEC);
+        }
         task_brd_update_time(task_brd);
 
         cepoll_timeout(TASK_BRD_CEPOLL(task_brd));
@@ -12735,6 +12879,9 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
 
         /*handle epoll*/
         task_brd_epoll_do(task_brd);
+
+        /*handle timer tree*/
+        coroutine_pool_process_timer(coroutine_pool);
 
         /*------------------------------------------------------------------------*/
 #if (SWITCH_ON == NGX_BGN_SWITCH)

@@ -28,6 +28,7 @@ extern "C"{
 #define CMAGLEV_RNODE_IS_ERR                ((uint16_t)0x0000)
 #define CMAGLEV_RNODE_IS_UP                 ((uint16_t)0x0001)
 #define CMAGLEV_RNODE_IS_DOWN               ((uint16_t)0x0002)
+#define CMAGLEV_ENTRY_ERR_INDEX             ((int)-1)
 
 typedef struct
 {

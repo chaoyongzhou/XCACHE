@@ -3373,13 +3373,12 @@ EC_BOOL chttps_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, C
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_request_block: connect server %s:%ld failed\n",
                             CHTTP_REQ_IPADDR_STR(chttp_req), CHTTP_REQ_PORT(chttp_req));
 
-#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
         if(EC_FALSE == cstring_is_empty(CHTTP_REQ_DOMAIN(chttp_req)))
         {
             cdnscache_dns_retire((char *)cstring_get_str(CHTTP_REQ_DOMAIN(chttp_req)),
                                 CHTTP_REQ_IPADDR(chttp_req));
         }
-#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
+
         if(NULL_PTR != CHTTP_REQ_CONN_FAIL_CALLBACK_FUNC(chttp_req))
         {
             /*mark ngx upstream peer down*/
@@ -3694,13 +3693,12 @@ EC_BOOL chttps_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_stor
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_request_basic: connect server %s:%ld failed\n",
                             CHTTP_REQ_IPADDR_STR(chttp_req), CHTTP_REQ_PORT(chttp_req));
 
-#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
         if(EC_FALSE == cstring_is_empty(CHTTP_REQ_DOMAIN(chttp_req)))
         {
             cdnscache_dns_retire((char *)cstring_get_str(CHTTP_REQ_DOMAIN(chttp_req)),
                                 CHTTP_REQ_IPADDR(chttp_req));
         }
-#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
+
         if(NULL_PTR != CHTTP_REQ_CONN_FAIL_CALLBACK_FUNC(chttp_req))
         {
             /*mark ngx upstream peer down*/

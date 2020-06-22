@@ -785,7 +785,7 @@ EC_BOOL chttp_store_init(CHTTP_STORE *chttp_store)
         CHTTP_STORE_REDIRECT_CTRL(chttp_store)      = BIT_TRUE;
         CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store) = 0;
 
-        CHTTP_STORE_BGN_ORIG_MOID(chttp_store)              = CMPI_ERROR_MODI;
+        CHTTP_STORE_BGN_ORIG_MODI(chttp_store)              = CMPI_ERROR_MODI;
         CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store) = 0;
         CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store)   = 0;
         CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store)     = 0;
@@ -846,7 +846,7 @@ EC_BOOL chttp_store_clean(CHTTP_STORE *chttp_store)
         CHTTP_STORE_REDIRECT_CTRL(chttp_store)      = BIT_TRUE;
         CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store) = 0;
 
-        CHTTP_STORE_BGN_ORIG_MOID(chttp_store)              = CMPI_ERROR_MODI;
+        CHTTP_STORE_BGN_ORIG_MODI(chttp_store)              = CMPI_ERROR_MODI;
         CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store) = 0;
         CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store)   = 0;
         CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store)     = 0;
@@ -918,7 +918,7 @@ EC_BOOL chttp_store_clone(const CHTTP_STORE *chttp_store_src, CHTTP_STORE *chttp
         CHTTP_STORE_REDIRECT_CTRL(chttp_store_des)      =  CHTTP_STORE_REDIRECT_CTRL(chttp_store_src);
         CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store_des) = CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store_src);
 
-        CHTTP_STORE_BGN_ORIG_MOID(chttp_store_des)              = CHTTP_STORE_BGN_ORIG_MOID(chttp_store_src);
+        CHTTP_STORE_BGN_ORIG_MODI(chttp_store_des)              = CHTTP_STORE_BGN_ORIG_MODI(chttp_store_src);
         CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store_des) = CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store_src);
         CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store_des)   = CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store_src);
         CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store_des)     = CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store_src);
@@ -1052,7 +1052,7 @@ void chttp_store_print(LOG *log, const CHTTP_STORE *chttp_store)
     sys_log(LOGSTDOUT, "chttp_store_print:redirect_ctrl            : %s\n", c_bit_bool_str(CHTTP_STORE_REDIRECT_CTRL(chttp_store)));
     sys_log(LOGSTDOUT, "chttp_store_print:redirect_max_times       : %u\n", (uint32_t)CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store));
 
-    sys_log(LOGSTDOUT, "chttp_store_print:bgn_orig_modi             : %ld\n", (uint32_t)CHTTP_STORE_BGN_ORIG_MOID(chttp_store));
+    sys_log(LOGSTDOUT, "chttp_store_print:bgn_orig_modi             : %ld\n", (uint32_t)CHTTP_STORE_BGN_ORIG_MODI(chttp_store));
     sys_log(LOGSTDOUT, "chttp_store_print:bgn_import_header_callback: %p\n" , (void *)CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store));
     sys_log(LOGSTDOUT, "chttp_store_print:bgn_send_header_callback  : %p\n" , (void *)CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store));
     sys_log(LOGSTDOUT, "chttp_store_print:bgn_send_body_callback    : %p\n" , (void *)CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store));
@@ -5104,7 +5104,9 @@ CHTTP_NODE *chttp_defer_request_queue_peek()
 
 EC_BOOL chttp_defer_request_commit(CHTTP_NODE *chttp_node)
 {
-    CBUFFER *uri_cbuffer;
+    CBUFFER       *uri_cbuffer;
+    EC_BOOL        ret;
+
     CHTTP_REST    *chttp_rest;
     const char    *rest_name;
     uint32_t       rest_len;
@@ -5161,7 +5163,13 @@ EC_BOOL chttp_defer_request_commit(CHTTP_NODE *chttp_node)
                         CBUFFER_DATA(uri_cbuffer),
                         CBUFFER_USED(uri_cbuffer));
 
-    return CHTTP_REST_COMMIT(chttp_rest)(chttp_node);
+    ret = CHTTP_REST_COMMIT(chttp_rest)(chttp_node);
+    if(EC_BUSY == ret)
+    {
+        cbuffer_left_shift_in(uri_cbuffer, (uint8_t *)CHTTP_REST_NAME(chttp_rest), (uint32_t)CHTTP_REST_LEN(chttp_rest));
+    }
+
+    return (ret);
 }
 
 EC_BOOL chttp_defer_request_queue_launch(CHTTP_NODE_COMMIT_REQUEST chttp_node_commit_request)
@@ -5257,9 +5265,7 @@ EC_BOOL chttp_req_init(CHTTP_REQ *chttp_req)
     CHTTP_REQ_IPADDR(chttp_req) = CMPI_ERROR_IPADDR;
     CHTTP_REQ_PORT(chttp_req)   = CMPI_ERROR_SRVPORT;
 
-#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
     cstring_init(CHTTP_REQ_DOMAIN(chttp_req), NULL_PTR);
-#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
 
     cstring_init(CHTTP_REQ_DEVICE_NAME(chttp_req), NULL_PTR);
     cstring_init(CHTTP_REQ_TRACE_ID(chttp_req), NULL_PTR);
@@ -5289,9 +5295,7 @@ EC_BOOL chttp_req_clean(CHTTP_REQ *chttp_req)
     CHTTP_REQ_IPADDR(chttp_req) = CMPI_ERROR_IPADDR;
     CHTTP_REQ_PORT(chttp_req)   = CMPI_ERROR_SRVPORT;
 
-#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
     cstring_clean(CHTTP_REQ_DOMAIN(chttp_req));
-#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
 
     cstring_clean(CHTTP_REQ_DEVICE_NAME(chttp_req));
     cstring_clean(CHTTP_REQ_TRACE_ID(chttp_req));
@@ -5333,9 +5337,7 @@ void chttp_req_print(LOG *log, const CHTTP_REQ *chttp_req)
     sys_log(log, "chttp_req_print: ipaddr: %s\n", CHTTP_REQ_IPADDR_STR(chttp_req));
     sys_log(log, "chttp_req_print: port: %ld\n" , CHTTP_REQ_PORT(chttp_req));
 
-#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
     sys_log(log, "chttp_req_print: domain: %s\n" , cstring_get_str(CHTTP_REQ_DOMAIN(chttp_req)));
-#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
 
     sys_log(log, "chttp_req_print: device_name: %s\n" , cstring_get_str(CHTTP_REQ_DEVICE_NAME(chttp_req)));
     sys_log(log, "chttp_req_print: trace_id: %s\n" , cstring_get_str(CHTTP_REQ_TRACE_ID(chttp_req)));
@@ -5508,14 +5510,6 @@ EC_BOOL chttp_req_set_server(CHTTP_REQ *chttp_req, const char *server)
     }
 
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_req_set_server: try to resolve host '%s'\n", fields[0]);
-#if 0
-    if(EC_FALSE == __chttp_req_resolve_host(fields[0], &ipaddr))
-    {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_req_set_server: resolve host '%s' failed\n",
-                            fields[0]);
-        return (EC_FALSE);
-    }
-#endif
 
     if(SWITCH_ON == DNS_CACHE_SWITCH)
     {
@@ -5526,9 +5520,10 @@ EC_BOOL chttp_req_set_server(CHTTP_REQ *chttp_req, const char *server)
             return (EC_FALSE);
         }
 
-#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
-        cstring_init(CHTTP_REQ_DOMAIN(chttp_req), (const UINT8 *)fields[0]);
-#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
+        if(EC_FALSE == c_ipv4_is_ok(fields[0]))
+        {
+            cstring_init(CHTTP_REQ_DOMAIN(chttp_req), (const UINT8 *)fields[0]);
+        }
 
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_req_set_server: [cache] resolve host '%s' => ip '%s'\n", fields[0], c_word_to_ipv4(ipaddr));
     }
@@ -5565,15 +5560,6 @@ EC_BOOL chttp_req_set_ipaddr(CHTTP_REQ *chttp_req, const char *ipaddr)
 {
     UINT32 ip;
 
-#if 0
-    if(EC_FALSE == __chttp_req_resolve_host(ipaddr, &ip))
-    {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_req_set_ipaddr: resolve host '%s' failed\n",
-                            ipaddr);
-        return (EC_FALSE);
-    }
-#endif
-
     if(SWITCH_ON == DNS_CACHE_SWITCH)
     {
         if(EC_FALSE == cdnscache_dns_resolve(ipaddr, &ip))
@@ -5583,9 +5569,10 @@ EC_BOOL chttp_req_set_ipaddr(CHTTP_REQ *chttp_req, const char *ipaddr)
             return (EC_FALSE);
         }
 
-#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
-        cstring_init(CHTTP_REQ_DOMAIN(chttp_req), (const UINT8 *)ipaddr);
-#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
+        if(EC_FALSE == c_ipv4_is_ok(ipaddr))
+        {
+            cstring_init(CHTTP_REQ_DOMAIN(chttp_req), (const UINT8 *)ipaddr);
+        }
 
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_req_set_ipaddr: [cache] resolve host '%s' => ip '%s'\n",
                         ipaddr, c_word_to_ipv4(ip));
@@ -5805,9 +5792,7 @@ EC_BOOL chttp_req_clone(CHTTP_REQ *chttp_req_des, const CHTTP_REQ *chttp_req_src
     CHTTP_REQ_IPADDR(chttp_req_des) = CHTTP_REQ_IPADDR(chttp_req_src);
     CHTTP_REQ_PORT(chttp_req_des)   = CHTTP_REQ_PORT(chttp_req_src);
 
-#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
     cstring_clone(CHTTP_REQ_DOMAIN(chttp_req_src), CHTTP_REQ_DOMAIN(chttp_req_des));
-#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
 
     cstring_clone(CHTTP_REQ_DEVICE_NAME(chttp_req_src), CHTTP_REQ_DEVICE_NAME(chttp_req_des));
     cstring_clone(CHTTP_REQ_TRACE_ID(chttp_req_src), CHTTP_REQ_TRACE_ID(chttp_req_des));
@@ -7706,7 +7691,7 @@ EC_BOOL chttp_node_send_rsp_header(CHTTP_NODE *chttp_node)
         return (EC_TRUE); /*terminate*/
     }while(0);
 
-    bgn_modi = CHTTP_STORE_BGN_ORIG_MOID(chttp_store);
+    bgn_modi = CHTTP_STORE_BGN_ORIG_MODI(chttp_store);
     if(CMPI_ERROR_MODI == bgn_modi)
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_send_rsp_header: sockfd %d, invalid bgn_modi\n",
@@ -7871,7 +7856,7 @@ EC_BOOL chttp_node_send_rsp_body(CHTTP_NODE *chttp_node, const UINT32 seg_no, co
         return (EC_TRUE);  /*ignore body sending*/
     }
 
-    bgn_modi = CHTTP_STORE_BGN_ORIG_MOID(chttp_store);
+    bgn_modi = CHTTP_STORE_BGN_ORIG_MODI(chttp_store);
     if(CMPI_ERROR_MODI == bgn_modi)
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_send_rsp_body: sockfd %d, invalid bgn_modi\n",
@@ -9152,7 +9137,7 @@ EC_BOOL chttp_node_store_on_headers_complete(CHTTP_NODE *chttp_node)
     /*shortcut: send rsp header at once*/
     if(0 == CHTTP_STORE_SEG_ID(chttp_store)
     && BIT_TRUE == CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store)
-    && CMPI_ERROR_MODI != CHTTP_STORE_BGN_ORIG_MOID(chttp_store)/*ms procedure*/
+    && CMPI_ERROR_MODI != CHTTP_STORE_BGN_ORIG_MODI(chttp_store)/*ms procedure*/
     && 0 != CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store))
     {
         if(EC_FALSE == chttp_node_send_rsp_header(chttp_node))
@@ -9175,7 +9160,7 @@ EC_BOOL chttp_node_store_on_headers_complete(CHTTP_NODE *chttp_node)
 
     if(0 == CHTTP_STORE_SEG_ID(chttp_store)
     && BIT_TRUE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store) /*direct procedure*/
-    && CMPI_ERROR_MODI != CHTTP_STORE_BGN_ORIG_MOID(chttp_store)
+    && CMPI_ERROR_MODI != CHTTP_STORE_BGN_ORIG_MODI(chttp_store)
     && 0 != CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store))
     {
         if(EC_FALSE == chttp_node_send_rsp_header(chttp_node))
@@ -9305,7 +9290,7 @@ EC_BOOL chttp_node_store_on_message_complete(CHTTP_NODE *chttp_node)
         CHTTP_STORE_CACHE_DONE(chttp_store) |= CHTTP_STORE_CACHE_BODY;
     }
     else if((BIT_TRUE == CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store) || BIT_TRUE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store))
-          && CMPI_ERROR_MODI != CHTTP_STORE_BGN_ORIG_MOID(chttp_store)
+          && CMPI_ERROR_MODI != CHTTP_STORE_BGN_ORIG_MODI(chttp_store)
           && 0 != CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store))
     {
         /*store all left data to storage*/
@@ -9450,7 +9435,7 @@ EC_BOOL chttp_node_store_on_body(CHTTP_NODE *chttp_node)
         /*note: do not clear corresponding cache ctrl flag due to body data may have more left*/
     }
     else if((BIT_TRUE == CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store) || BIT_TRUE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store))
-          && CMPI_ERROR_MODI != CHTTP_STORE_BGN_ORIG_MOID(chttp_store)
+          && CMPI_ERROR_MODI != CHTTP_STORE_BGN_ORIG_MODI(chttp_store)
           && 0 != CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store))
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_on_body: sockfd %d, stored %"PRId64", body parsed %"PRId64"\n",
@@ -9617,13 +9602,11 @@ EC_BOOL chttp_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, CH
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_block: connect server %s:%ld failed\n",
                             CHTTP_REQ_IPADDR_STR(chttp_req), CHTTP_REQ_PORT(chttp_req));
 
-#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
         if(EC_FALSE == cstring_is_empty(CHTTP_REQ_DOMAIN(chttp_req)))
         {
             cdnscache_dns_retire((char *)cstring_get_str(CHTTP_REQ_DOMAIN(chttp_req)),
                                 CHTTP_REQ_IPADDR(chttp_req));
         }
-#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
 
         if(NULL_PTR != CHTTP_REQ_CONN_FAIL_CALLBACK_FUNC(chttp_req))
         {
@@ -9904,13 +9887,11 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_basic: connect server %s:%ld failed\n",
                             CHTTP_REQ_IPADDR_STR(chttp_req), CHTTP_REQ_PORT(chttp_req));
 
-#if (SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)
         if(EC_FALSE == cstring_is_empty(CHTTP_REQ_DOMAIN(chttp_req)))
         {
             cdnscache_dns_retire((char *)cstring_get_str(CHTTP_REQ_DOMAIN(chttp_req)),
                                 CHTTP_REQ_IPADDR(chttp_req));
         }
-#endif/*(SWITCH_ON == CDNSCACHE_RETIRE_CONN_FAIL_SWITCH)*/
 
         if(NULL_PTR != CHTTP_REQ_CONN_FAIL_CALLBACK_FUNC(chttp_req))
         {

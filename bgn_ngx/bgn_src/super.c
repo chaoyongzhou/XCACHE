@@ -2573,6 +2573,7 @@ void super_show_thread_num(const UINT32 super_md_id, LOG *log)
     TASK_BRD  *task_brd;
     UINT32     idle_thread_num;
     UINT32     busy_thread_num;
+    UINT32     post_thread_num;
     UINT32     total_thread_num;
 
 #if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
@@ -2587,8 +2588,11 @@ void super_show_thread_num(const UINT32 super_md_id, LOG *log)
 
     task_brd = task_brd_default_get();
 
-    croutine_pool_num_info(TASK_REQ_CTHREAD_POOL(task_brd), &idle_thread_num, &busy_thread_num, &total_thread_num);
-    sys_log(log, "total req thread %ld, busy %ld, idle %ld\n", total_thread_num, busy_thread_num, idle_thread_num);
+    croutine_pool_num_info(TASK_REQ_CTHREAD_POOL(task_brd),
+                &idle_thread_num, &busy_thread_num, &post_thread_num, &total_thread_num);
+
+    sys_log(log, "total req thread %ld, busy %ld, post %ld, idle %ld\n",
+                 total_thread_num, busy_thread_num, post_thread_num, idle_thread_num);
 
     return;
 }

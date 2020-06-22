@@ -844,10 +844,14 @@ EC_BOOL tasks_node_iclose(TASKS_NODE **tasks_node_t, CSOCKET_CNODE *csocket_cnod
     if(TASK_NODE_BUFF_POS(task_node) != TASK_NODE_BUFF_LEN(task_node))/*sending not completed*/
     {
         dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "[DEBUG] tasks_node_iclose: "
-                                              "close sockfd %d on tcid %s, reset task_node %p\n",
+                                              "close sockfd %d on tcid %s, "
+                                              "reset task_node %p (tag %ld, pos %ld, len %ld)\n",
                                               CSOCKET_CNODE_SOCKFD(csocket_cnode),
                                               TASKS_NODE_TCID_STR(tasks_node),
-                        task_node);
+                                              task_node,
+                                              TASK_NODE_TAG(task_node),
+                                              TASK_NODE_BUFF_POS(task_node),
+                                              TASK_NODE_BUFF_LEN(task_node));
 
         TASK_NODE_BUFF_POS(task_node) = 0; /*reset*/
 

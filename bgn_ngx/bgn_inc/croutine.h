@@ -136,7 +136,8 @@ typedef COROUTINE_POOL   CROUTINE_POOL;
 
 #define croutine_pool_busy_num(__croutine_pool)                  coroutine_pool_busy_num(__croutine_pool)
 
-#define croutine_pool_num_info(__croutine_pool, inum, bnum, tnum)   coroutine_pool_num_info(__croutine_pool, inum, bnum, tnum)
+#define croutine_pool_num_info(__croutine_pool, inum, bnum, pnum, tnum)   \
+        coroutine_pool_num_info(__croutine_pool, inum, bnum, pnum, tnum)
 
 #define croutine_pool_print(log, __croutine_pool)                coroutine_pool_print(log, __croutine_pool)
 
@@ -256,7 +257,8 @@ typedef CTHREAD_POOL   CROUTINE_POOL;
 
 #define croutine_pool_busy_num(__croutine_pool)                  cthreadp_busy_num(__croutine_pool)
 
-#define croutine_pool_num_info(__croutine_pool, inum, bnum, tnum)   cthreadp_num_info(__croutine_pool, inum, bnum, tnum)
+#define croutine_pool_num_info(__croutine_pool, inum, bnum, pnum, tnum)   \
+        cthreadp_num_info(__croutine_pool, inum, bnum, pnum, tnum)
 
 #define croutine_pool_print(log, __croutine_pool)                cthreadp_print(log, __croutine_pool)
 

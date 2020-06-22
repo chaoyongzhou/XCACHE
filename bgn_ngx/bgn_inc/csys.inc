@@ -97,10 +97,12 @@ typedef struct
 {
     UINT32 max_thread_num;
     UINT32 busy_thread_num;
+    UINT32 post_thread_num;
     UINT32 idle_thread_num;
 }CRANK_THREAD_STAT;
 #define CRANK_THREAD_MAX_NUM(crank_thread_stat)      ((crank_thread_stat)->max_thread_num)
 #define CRANK_THREAD_BUSY_NUM(crank_thread_stat)     ((crank_thread_stat)->busy_thread_num)
+#define CRANK_THREAD_POST_NUM(crank_thread_stat)     ((crank_thread_stat)->post_thread_num)
 #define CRANK_THREAD_IDLE_NUM(crank_thread_stat)     ((crank_thread_stat)->idle_thread_num)
 
 typedef struct

@@ -2265,10 +2265,10 @@ EC_BOOL cflv_content_head_header_in_filter_server(const UINT32 cflv_md_id)
 
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
-            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter_server: "
+            dbg_log(SEC_0146_CFLV, 1)(LOGSTDOUT, "warn:cflv_content_head_header_in_filter_server: "
                                                  "get '%s' failed\n",
                                                  k);
-            return (EC_FALSE);
+            continue;
         }
 
         if(NULL_PTR != v)
@@ -2283,12 +2283,12 @@ EC_BOOL cflv_content_head_header_in_filter_server(const UINT32 cflv_md_id)
 
             if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, segs[ 0 ]))
             {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_head_header_in_filter_server: "
+                dbg_log(SEC_0146_CFLV, 1)(LOGSTDOUT, "warn:cflv_content_head_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
                 safe_free(v, LOC_CFLV_0012);
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0013);
-                return (EC_FALSE);
+
+                continue;
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
@@ -2299,7 +2299,7 @@ EC_BOOL cflv_content_head_header_in_filter_server(const UINT32 cflv_md_id)
         }
     }
 
-    /*should never reach here*/
+    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0013);
     return (EC_FALSE);
 }
 
@@ -3489,10 +3489,10 @@ EC_BOOL cflv_content_direct_header_in_filter_server(const UINT32 cflv_md_id)
 
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
-            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter_server: "
+            dbg_log(SEC_0146_CFLV, 1)(LOGSTDOUT, "warn:cflv_content_direct_header_in_filter_server: "
                                                  "get '%s' failed\n",
                                                  k);
-            return (EC_FALSE);
+            continue;
         }
 
         if(NULL_PTR != v)
@@ -3507,12 +3507,12 @@ EC_BOOL cflv_content_direct_header_in_filter_server(const UINT32 cflv_md_id)
 
             if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, segs[ 0 ]))
             {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_direct_header_in_filter_server: "
+                dbg_log(SEC_0146_CFLV, 1)(LOGSTDOUT, "warn:cflv_content_direct_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
                 safe_free(v, LOC_CFLV_0058);
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0059);
-                return (EC_FALSE);
+
+                continue;
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
@@ -3523,7 +3523,7 @@ EC_BOOL cflv_content_direct_header_in_filter_server(const UINT32 cflv_md_id)
         }
     }
 
-    /*should never reach here*/
+    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0059);
     return (EC_FALSE);
 }
 
@@ -4662,7 +4662,7 @@ EC_BOOL cflv_content_direct_set_store(const UINT32 cflv_md_id)
     /*note: disable data sending in orig procedure*/
     if(0 && BIT_TRUE == CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store))
     {
-        CHTTP_STORE_BGN_ORIG_MOID(chttp_store)              = cflv_md_id;
+        CHTTP_STORE_BGN_ORIG_MODI(chttp_store)              = cflv_md_id;
         CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store) = (UINT32)cflv_content_direct_import_header;
         CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store)   = (UINT32)cflv_content_direct_send_header;
         CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store)     = (UINT32)cflv_content_direct_send_body;
@@ -5612,10 +5612,10 @@ EC_BOOL cflv_content_repair_header_in_filter_server(const UINT32 cflv_md_id)
 
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
-            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter_server: "
+            dbg_log(SEC_0146_CFLV, 1)(LOGSTDOUT, "warn:cflv_content_repair_header_in_filter_server: "
                                                  "get '%s' failed\n",
                                                  k);
-            return (EC_FALSE);
+            continue;
         }
 
         if(NULL_PTR != v)
@@ -5630,12 +5630,12 @@ EC_BOOL cflv_content_repair_header_in_filter_server(const UINT32 cflv_md_id)
 
             if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, segs[ 0 ]))
             {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_repair_header_in_filter_server: "
+                dbg_log(SEC_0146_CFLV, 1)(LOGSTDOUT, "warn:cflv_content_repair_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
                 safe_free(v, LOC_CFLV_0108);
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0109);
-                return (EC_FALSE);
+
+                continue;
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
@@ -5646,7 +5646,7 @@ EC_BOOL cflv_content_repair_header_in_filter_server(const UINT32 cflv_md_id)
         }
     }
 
-    /*should never reach here*/
+    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0109);
     return (EC_FALSE);
 }
 
@@ -7484,10 +7484,10 @@ EC_BOOL cflv_content_orig_header_in_filter_server(const UINT32 cflv_md_id)
 
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
-            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_server: "
+            dbg_log(SEC_0146_CFLV, 1)(LOGSTDOUT, "warn:cflv_content_orig_header_in_filter_server: "
                                                  "get '%s' failed\n",
                                                  k);
-            return (EC_FALSE);
+            continue;
         }
 
         if(NULL_PTR != v)
@@ -7502,12 +7502,12 @@ EC_BOOL cflv_content_orig_header_in_filter_server(const UINT32 cflv_md_id)
 
             if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, segs[ 0 ]))
             {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_orig_header_in_filter_server: "
+                dbg_log(SEC_0146_CFLV, 1)(LOGSTDOUT, "warn:cflv_content_orig_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
                 safe_free(v, LOC_CFLV_0158);
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0159);
-                return (EC_FALSE);
+
+                continue;
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
@@ -7518,7 +7518,7 @@ EC_BOOL cflv_content_orig_header_in_filter_server(const UINT32 cflv_md_id)
         }
     }
 
-    /*should never reach here*/
+    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0159);
     return (EC_FALSE);
 }
 
@@ -9783,10 +9783,10 @@ EC_BOOL cflv_content_ms_header_in_filter_server(const UINT32 cflv_md_id)
 
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
-            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter_server: "
+            dbg_log(SEC_0146_CFLV, 1)(LOGSTDOUT, "warn:cflv_content_ms_header_in_filter_server: "
                                                  "get '%s' failed\n",
                                                  k);
-            return (EC_FALSE);
+            continue;
         }
 
         if(NULL_PTR != v)
@@ -9801,12 +9801,12 @@ EC_BOOL cflv_content_ms_header_in_filter_server(const UINT32 cflv_md_id)
 
             if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, segs[ 0 ]))
             {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ms_header_in_filter_server: "
+                dbg_log(SEC_0146_CFLV, 1)(LOGSTDOUT, "warn:cflv_content_ms_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
                 safe_free(v, LOC_CFLV_0218);
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0219);
-                return (EC_FALSE);
+
+                continue;
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
@@ -9817,7 +9817,7 @@ EC_BOOL cflv_content_ms_header_in_filter_server(const UINT32 cflv_md_id)
         }
     }
 
-    /*should never reach here*/
+    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0219);
     return (EC_FALSE);
 }
 
@@ -11303,7 +11303,7 @@ EC_BOOL cflv_content_ms_set_store(const UINT32 cflv_md_id)
 
     if(BIT_TRUE == CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store))
     {
-        CHTTP_STORE_BGN_ORIG_MOID(chttp_store)              = cflv_md_id;
+        CHTTP_STORE_BGN_ORIG_MODI(chttp_store)              = cflv_md_id;
         CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store) = (UINT32)cflv_content_ms_import_header;
         CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store)   = (UINT32)cflv_content_ms_send_header;
         CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store)     = (UINT32)cflv_content_ms_send_body;
@@ -13012,10 +13012,10 @@ EC_BOOL cflv_content_ims_header_in_filter_server(const UINT32 cflv_md_id)
 
         if(EC_FALSE == cngx_get_var_str(r, k, &v, NULL_PTR))
         {
-            dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter_server: "
+            dbg_log(SEC_0146_CFLV, 1)(LOGSTDOUT, "warn:cflv_content_ims_header_in_filter_server: "
                                                  "get '%s' failed\n",
                                                  k);
-            return (EC_FALSE);
+            continue;
         }
 
         if(NULL_PTR != v)
@@ -13030,12 +13030,12 @@ EC_BOOL cflv_content_ims_header_in_filter_server(const UINT32 cflv_md_id)
 
             if(EC_FALSE == chttp_req_set_ipaddr(chttp_req, segs[ 0 ]))
             {
-                dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_content_ims_header_in_filter_server: "
+                dbg_log(SEC_0146_CFLV, 1)(LOGSTDOUT, "warn:cflv_content_ims_header_in_filter_server: "
                                                      "[cngx] set host of '%s' failed\n",
                                                      segs[ 0 ]);
                 safe_free(v, LOC_CFLV_0290);
-                cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0291);
-                return (EC_FALSE);
+
+                continue;
             }
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
@@ -13046,7 +13046,7 @@ EC_BOOL cflv_content_ims_header_in_filter_server(const UINT32 cflv_md_id)
         }
     }
 
-    /*should never reach here*/
+    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0291);
     return (EC_FALSE);
 }
 

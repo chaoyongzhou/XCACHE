@@ -29,9 +29,10 @@ extern "C"{
 #include "cconhash.h"
 #include "cmaglev.h"
 
-
 #define CMON_CONHASH_DEFAULT_HASH_ALGO       CHASH_MURMUR_ALGO_ID
 #define CMON_HOT_PATH_HASH_ALGO              CHASH_RS_ALGO_ID
+#define CMON_HOT_PATH_MAX_NUM                (20000)
+#define CMON_HOT_PATH_RECYCLE_NUM            (10)
 
 #define CMON_CHECK_MAX_TIMES                 (64)
 
@@ -47,6 +48,7 @@ typedef struct
 
     CHASH_ALGO           hot_path_hash_func;
     CRB_TREE             hot_path_tree; /*item is CMON_HOT_PATH*/
+    CLIST                hot_path_list; /*CMON_HOT_PATH list*/
 }CMON_MD;
 
 #define CMON_MD_CMON_NODE_VEC(cmon_md)        (&((cmon_md)->cmon_node_vec))
@@ -54,6 +56,7 @@ typedef struct
 #define CMON_MD_CMAGLEV(cmon_md)              ((cmon_md)->cmaglev)
 #define CMON_MD_HOT_PATH_HASH_FUNC(cmon_md)   ((cmon_md)->hot_path_hash_func)
 #define CMON_MD_HOT_PATH_TREE(cmon_md)        (&((cmon_md)->hot_path_tree))
+#define CMON_MD_HOT_PATH_LIST(cmon_md)        (&((cmon_md)->hot_path_list))
 
 #define CMON_NODE_IS_ERR          ((UINT32)0x0000)
 #define CMON_NODE_IS_UP           ((UINT32)0x0001)
@@ -179,6 +182,7 @@ EC_BOOL cmon_set_node_start_pos(const UINT32 cmon_md_id, const UINT32 start_pos)
 EC_BOOL cmon_search_node_up(const UINT32 cmon_md_id, CMON_NODE *cmon_node);
 
 EC_BOOL cmon_get_store_http_srv_of_hot(const UINT32 cmon_md_id, const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port);
+EC_BOOL cmon_get_store_http_srv_of_hot_new(const UINT32 cmon_md_id, const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port);
 
 EC_BOOL cmon_get_store_http_srv(const UINT32 cmon_md_id, const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port);
 
@@ -203,6 +207,7 @@ int cmon_hot_path_cmp(const CMON_HOT_PATH *cmon_hot_path_1st, const CMON_HOT_PAT
 void cmon_hot_path_print(const CMON_HOT_PATH *cmon_hot_path, LOG *log);
 
 EC_BOOL cmon_add_hot_path(const UINT32 cmon_md_id, const CSTRING *path);
+EC_BOOL cmon_recycle_hot_path(CMON_MD *cmon_md);
 
 EC_BOOL cmon_del_hot_path(const UINT32 cmon_md_id, const CSTRING *path);
 

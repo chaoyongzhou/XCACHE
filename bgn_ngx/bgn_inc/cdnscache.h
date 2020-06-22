@@ -20,8 +20,6 @@ extern "C"{
 #include "cvector.h"
 #include "crb.h"
 
-#define CDNSCACHE_RETIRE_CONN_FAIL_SWITCH   (SWITCH_OFF)
-
 #define CDNSCACHE_MAX_RESOLVED_NUM      (16)
 
 typedef struct

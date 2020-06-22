@@ -181,7 +181,7 @@ typedef struct
 
     UINT32         need_rsp_flag;         /* need or not response of task req*/
     UINT32         time_to_live;          /* task req/rsp is effective only in seconds. -1 means always living until response is available*/
-    CTIMET         start_time;            /* start time*/
+    UINT32         start_time;            /* start time*/
 
     UINT32         this_prio;             /* priority*/
 

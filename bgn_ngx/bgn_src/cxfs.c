@@ -6120,7 +6120,7 @@ EC_BOOL cxfs_renew_http_headers_with_token(const UINT32 cxfs_md_id, const CSTRIN
 *  wait a file which stores http headers util specific headers are ready
 *
 **/
-EC_BOOL cxfs_wait_http_header(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const CSTRING *key, const CSTRING *val, UINT32 *header_ready)
+EC_BOOL cxfs_wait_http_header(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const UINT32 expire_nsec, const CSTRING *key, const CSTRING *val, UINT32 *header_ready)
 {
     CBYTES        cbytes;
     CHTTP_RSP     chttp_rsp;
@@ -6191,7 +6191,7 @@ EC_BOOL cxfs_wait_http_header(const UINT32 cxfs_md_id, const MOD_NODE *mod_node,
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == cxfs_file_wait(cxfs_md_id, mod_node, file_path, NULL_PTR, NULL_PTR))
+    if(EC_FALSE == cxfs_file_wait(cxfs_md_id, mod_node, file_path, expire_nsec, NULL_PTR, NULL_PTR))
     {
         return (EC_FALSE);
     }
@@ -6204,7 +6204,7 @@ EC_BOOL cxfs_wait_http_header(const UINT32 cxfs_md_id, const MOD_NODE *mod_node,
     return (EC_TRUE);
 }
 
-EC_BOOL cxfs_wait_http_headers(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready)
+EC_BOOL cxfs_wait_http_headers(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const UINT32 expire_nsec, const CSTRKV_MGR *cstrkv_mgr, UINT32 *header_ready)
 {
     CBYTES        cbytes;
     CHTTP_RSP     chttp_rsp;
@@ -6286,7 +6286,7 @@ EC_BOOL cxfs_wait_http_headers(const UINT32 cxfs_md_id, const MOD_NODE *mod_node
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == cxfs_file_wait(cxfs_md_id, mod_node, file_path, NULL_PTR, NULL_PTR))
+    if(EC_FALSE == cxfs_file_wait(cxfs_md_id, mod_node, file_path, expire_nsec, NULL_PTR, NULL_PTR))
     {
         return (EC_FALSE);
     }
@@ -8990,6 +8990,9 @@ EC_BOOL cxfs_wait_file_init(CXFS_WAIT_FILE *cxfs_wait_file)
 
     clist_init(CXFS_WAIT_FILE_OWNER_LIST(cxfs_wait_file), MM_MOD_NODE, LOC_CXFS_0014);
 
+    CXFS_WAIT_FILE_EXPIRE_NSEC(cxfs_wait_file) = 0;
+    CXFS_WAIT_FILE_START_TIME(cxfs_wait_file)  = 0;
+
     return (EC_TRUE);
 }
 
@@ -8997,6 +9000,9 @@ EC_BOOL cxfs_wait_file_clean(CXFS_WAIT_FILE *cxfs_wait_file)
 {
     cstring_clean(CXFS_WAIT_FILE_NAME(cxfs_wait_file));
     clist_clean(CXFS_WAIT_FILE_OWNER_LIST(cxfs_wait_file), (CLIST_DATA_DATA_CLEANER)mod_node_free);
+
+    CXFS_WAIT_FILE_EXPIRE_NSEC(cxfs_wait_file) = 0;
+    CXFS_WAIT_FILE_START_TIME(cxfs_wait_file)  = 0;
     return (EC_TRUE);
 }
 
@@ -9010,6 +9016,122 @@ EC_BOOL cxfs_wait_file_free(CXFS_WAIT_FILE *cxfs_wait_file)
     return (EC_TRUE);
 }
 
+EC_BOOL cxfs_wait_file_expire_set(CXFS_WAIT_FILE *cxfs_wait_file, const UINT32 expire_nsec)
+{
+    CXFS_WAIT_FILE_EXPIRE_NSEC(cxfs_wait_file) = expire_nsec;
+    CXFS_WAIT_FILE_START_TIME(cxfs_wait_file)  = (UINT32)c_get_cur_time_nsec();
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfs_wait_file_is_expire(const CXFS_WAIT_FILE *cxfs_wait_file)
+{
+    UINT32 cur_time;
+
+    cur_time = (UINT32)c_get_cur_time_nsec();
+
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_wait_file_is_expire: "
+                                          "diff_nsec %ld, timeout_nsec %ld\n",
+                                          cur_time - CXFS_WAIT_FILE_START_TIME(cxfs_wait_file),
+                                          CXFS_WAIT_FILE_EXPIRE_NSEC(cxfs_wait_file));
+    if(cur_time >= CXFS_WAIT_FILE_START_TIME(cxfs_wait_file) + CXFS_WAIT_FILE_EXPIRE_NSEC(cxfs_wait_file))
+    {
+        return (EC_TRUE);
+    }
+    return (EC_FALSE);
+}
+
+STATIC_CAST static EC_BOOL __cxfs_wait_file_need_retire(const CXFS_WAIT_FILE *cxfs_wait_file)
+{
+    UINT32 cur_time;
+
+    cur_time = (UINT32)c_get_cur_time_nsec();
+
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] __cxfs_wait_file_need_retire: diff_nsec %ld, timeout_nsec %ld\n",
+                                          cur_time - CXFS_WAIT_FILE_START_TIME(cxfs_wait_file),
+                                          CXFS_WAIT_FILE_EXPIRE_NSEC(cxfs_wait_file));
+    if(cur_time >= CXFS_WAIT_FILE_START_TIME(cxfs_wait_file) + 2 * CXFS_WAIT_FILE_EXPIRE_NSEC(cxfs_wait_file))
+    {
+        return (EC_TRUE);
+    }
+    return (EC_FALSE);
+}
+
+STATIC_CAST static EC_BOOL __cxfs_wait_file_retire(CRB_TREE *crbtree, CRB_NODE *node)
+{
+    CXFS_WAIT_FILE *cxfs_wait_file;
+
+    if(NULL_PTR == node)
+    {
+        return (EC_FALSE);
+    }
+
+    cxfs_wait_file = CRB_NODE_DATA(node);
+    if(EC_TRUE == __cxfs_wait_file_need_retire(cxfs_wait_file))
+    {
+        dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] __cxfs_wait_file_retire: file %s was retired\n",
+                            (char *)cstring_get_str(CXFS_WAIT_FILE_NAME(cxfs_wait_file)));
+
+        crb_tree_delete(crbtree, node);
+        return (EC_TRUE);/*succ and terminate*/
+    }
+
+    if(NULL_PTR != CRB_NODE_LEFT(node))
+    {
+        if(EC_TRUE == __cxfs_wait_file_retire(crbtree, CRB_NODE_LEFT(node)))
+        {
+            return (EC_TRUE);
+        }
+    }
+
+    if(NULL_PTR != CRB_NODE_RIGHT(node))
+    {
+        if(EC_TRUE == __cxfs_wait_file_retire(crbtree, CRB_NODE_RIGHT(node)))
+        {
+            return (EC_TRUE);
+        }
+    }
+
+    return (EC_FALSE);
+}
+
+/*retire the expired wait files over 120 seconds which are garbage*/
+EC_BOOL cxfs_wait_file_retire(const UINT32 cxfs_md_id, const UINT32 retire_max_num, UINT32 *retire_num)
+{
+    CXFS_MD      *cxfs_md;
+    CRB_TREE     *crbtree;
+    UINT32        retire_idx;
+
+#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_wait_file_retire: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*CXFS_DEBUG_SWITCH*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    crbtree = CXFS_MD_WAIT_FILES(cxfs_md);
+
+    for(retire_idx = 0; retire_idx < retire_max_num; retire_idx ++)
+    {
+        if(EC_FALSE == __cxfs_wait_file_retire(crbtree, CRB_TREE_ROOT(crbtree)))
+        {
+            break;/*no more to retire, terminate*/
+        }
+    }
+
+    if(NULL_PTR != retire_num)
+    {
+        (*retire_num) = retire_idx;
+    }
+
+    return (EC_TRUE);
+}
+
 int cxfs_wait_file_cmp(const CXFS_WAIT_FILE *cxfs_wait_file_1st, const CXFS_WAIT_FILE *cxfs_wait_file_2nd)
 {
     return cstring_cmp(CXFS_WAIT_FILE_NAME(cxfs_wait_file_1st), CXFS_WAIT_FILE_NAME(cxfs_wait_file_2nd));
@@ -9019,8 +9141,9 @@ void cxfs_wait_file_print(LOG *log, const CXFS_WAIT_FILE *cxfs_wait_file)
 {
     if(NULL_PTR != cxfs_wait_file)
     {
-        sys_log(log, "cxfs_wait_file_print %p: file %s, owner list: ",
+        sys_log(log, "cxfs_wait_file_print %p: file %s, expire %ld seconds, owner list: ",
                         cxfs_wait_file,
+                        CXFS_WAIT_FILE_EXPIRE_NSEC(cxfs_wait_file),
                         (char *)CXFS_WAIT_FILE_NAME_STR(cxfs_wait_file)
                         );
         clist_print(log, CXFS_WAIT_FILE_OWNER_LIST(cxfs_wait_file),(CLIST_DATA_DATA_PRINT)mod_node_print);
@@ -9506,7 +9629,7 @@ EC_BOOL cxfs_wait_file_owner_terminate(CXFS_WAIT_FILE *cxfs_wait_file, const UIN
     return cxfs_wait_file_owner_terminate_over_bgn(cxfs_wait_file, tag);
 }
 
-STATIC_CAST static EC_BOOL __cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path)
+STATIC_CAST static EC_BOOL __cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const UINT32 expire_nsec)
 {
     CXFS_MD          *cxfs_md;
 
@@ -9523,6 +9646,7 @@ STATIC_CAST static EC_BOOL __cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_N
     }
 
     cxfs_wait_file_name_set(cxfs_wait_file, file_path);
+    cxfs_wait_file_expire_set(cxfs_wait_file, expire_nsec);
 
     crb_node = crb_tree_insert_data(CXFS_MD_WAIT_FILES(cxfs_md), (void *)cxfs_wait_file);/*compare name*/
     if(NULL_PTR == crb_node)
@@ -9562,7 +9686,7 @@ STATIC_CAST static EC_BOOL __cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_N
     return (EC_TRUE);
 }
 
-EC_BOOL cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *file_size, UINT32 *data_ready)
+EC_BOOL cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const UINT32 expire_nsec, UINT32 *file_size, UINT32 *data_ready)
 {
 #if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
@@ -9605,7 +9729,7 @@ EC_BOOL cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const 
         break; /*fall through*/
     }
 
-    if(EC_FALSE == __cxfs_file_wait(cxfs_md_id, mod_node, file_path))
+    if(EC_FALSE == __cxfs_file_wait(cxfs_md_id, mod_node, file_path, expire_nsec))
     {
         return (EC_FALSE);
     }
@@ -9613,7 +9737,7 @@ EC_BOOL cxfs_file_wait(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfs_file_wait_ready(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *data_ready)
+EC_BOOL cxfs_file_wait_ready(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const UINT32 expire_nsec, UINT32 *data_ready)
 {
 #if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
@@ -9625,10 +9749,10 @@ EC_BOOL cxfs_file_wait_ready(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, 
     }
 #endif/*CXFS_DEBUG_SWITCH*/
 
-    return cxfs_file_wait(cxfs_md_id, mod_node, file_path, NULL_PTR, data_ready);
+    return cxfs_file_wait(cxfs_md_id, mod_node, file_path, expire_nsec, NULL_PTR, data_ready);
 }
 
-EC_BOOL cxfs_file_wait_e(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, UINT32 *len, UINT32 *data_ready)
+EC_BOOL cxfs_file_wait_e(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, const CSTRING *file_path, const UINT32 expire_nsec, UINT32 *offset, const UINT32 max_len, UINT32 *len, UINT32 *data_ready)
 {
     //CXFS_MD          *cxfs_md;
 
@@ -9697,7 +9821,7 @@ EC_BOOL cxfs_file_wait_e(const UINT32 cxfs_md_id, const MOD_NODE *mod_node, cons
         break; /*fall through*/
     }
 
-    if(EC_FALSE == __cxfs_file_wait(cxfs_md_id, mod_node, file_path))
+    if(EC_FALSE == __cxfs_file_wait(cxfs_md_id, mod_node, file_path, expire_nsec))
     {
         return (EC_FALSE);
     }
@@ -9938,24 +10062,21 @@ EC_BOOL cxfs_locked_file_token_gen(CXFS_LOCKED_FILE *cxfs_locked_file, const CST
 EC_BOOL cxfs_locked_file_expire_set(CXFS_LOCKED_FILE *cxfs_locked_file, const UINT32 expire_nsec)
 {
     CXFS_LOCKED_FILE_EXPIRE_NSEC(cxfs_locked_file) = expire_nsec;
-
-    CTIMET_GET(CXFS_LOCKED_FILE_START_TIME(cxfs_locked_file));
-    CTIMET_GET(CXFS_LOCKED_FILE_LAST_TIME(cxfs_locked_file));
+    CXFS_LOCKED_FILE_START_TIME(cxfs_locked_file)  = (UINT32)c_get_cur_time_nsec();
 
     return (EC_TRUE);
 }
 
 EC_BOOL cxfs_locked_file_is_expire(const CXFS_LOCKED_FILE *cxfs_locked_file)
 {
-    CTIMET cur_time;
-    REAL diff_nsec;
+    UINT32 cur_time;
 
-    CTIMET_GET(cur_time);
+    cur_time = (UINT32)c_get_cur_time_nsec();
 
-    diff_nsec = CTIMET_DIFF(CXFS_LOCKED_FILE_LAST_TIME(cxfs_locked_file), cur_time);
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_locked_file_is_expire: diff_nsec %.2f, timeout_nsec %ld\n",
-                        diff_nsec, CXFS_LOCKED_FILE_EXPIRE_NSEC(cxfs_locked_file));
-    if(diff_nsec >= 0.0 + CXFS_LOCKED_FILE_EXPIRE_NSEC(cxfs_locked_file))
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_locked_file_is_expire: diff_nsec %ld, timeout_nsec %ld\n",
+                        cur_time - CXFS_LOCKED_FILE_START_TIME(cxfs_locked_file),
+                        CXFS_LOCKED_FILE_EXPIRE_NSEC(cxfs_locked_file));
+    if(cur_time >= CXFS_LOCKED_FILE_START_TIME(cxfs_locked_file) + CXFS_LOCKED_FILE_EXPIRE_NSEC(cxfs_locked_file))
     {
         return (EC_TRUE);
     }
@@ -9970,15 +10091,14 @@ EC_BOOL cxfs_locked_file_name_set(CXFS_LOCKED_FILE *cxfs_locked_file, const CSTR
 
 STATIC_CAST static EC_BOOL __cxfs_locked_file_need_retire(const CXFS_LOCKED_FILE *cxfs_locked_file)
 {
-    CTIMET cur_time;
-    REAL diff_nsec;
+    UINT32 cur_time;
 
-    CTIMET_GET(cur_time);
+    cur_time = (UINT32)c_get_cur_time_nsec();
 
-    diff_nsec = CTIMET_DIFF(CXFS_LOCKED_FILE_LAST_TIME(cxfs_locked_file), cur_time);
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] __cxfs_locked_file_need_retire: diff_nsec %.2f, timeout_nsec %ld\n",
-                        diff_nsec, CXFS_LOCKED_FILE_EXPIRE_NSEC(cxfs_locked_file));
-    if(diff_nsec >= 0.0 + 2 * CXFS_LOCKED_FILE_EXPIRE_NSEC(cxfs_locked_file))
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] __cxfs_locked_file_need_retire: diff_nsec %ld, timeout_nsec %ld\n",
+                                          cur_time - CXFS_LOCKED_FILE_START_TIME(cxfs_locked_file),
+                                          CXFS_LOCKED_FILE_EXPIRE_NSEC(cxfs_locked_file));
+    if(cur_time >= CXFS_LOCKED_FILE_START_TIME(cxfs_locked_file) + 2 * CXFS_LOCKED_FILE_EXPIRE_NSEC(cxfs_locked_file))
     {
         return (EC_TRUE);
     }

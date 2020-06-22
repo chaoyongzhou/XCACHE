@@ -436,6 +436,8 @@ CTMV *c_get_day_time();
 
 char *c_get_day_time_str();
 
+uint64_t c_get_cur_time_nsec();
+
 uint64_t c_get_cur_time_msec();
 
 uint64_t c_get_cur_time_usec();
