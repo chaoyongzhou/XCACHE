@@ -1312,6 +1312,16 @@ UINT32 coroutine_node_shutdown(COROUTINE_NODE *coroutine_node, COROUTINE_POOL *c
         return (0);
     }
 
+    if(COROUTINE_IS_POST & COROUTINE_NODE_STATUS(coroutine_node))
+    {
+        COROUTINE_ASSERT(EC_TRUE  == coroutine_pool_check_node_is_post(coroutine_pool, (void *)coroutine_node));
+        clist_rmv_no_lock(COROUTINE_POOL_WORKER_POST_LIST(coroutine_pool), COROUTINE_NODE_MOUNTED(coroutine_node));
+        COROUTINE_NODE_CLR_POST_STATUS(coroutine_node);
+        COROUTINE_NODE_STATUS(coroutine_node) |= COROUTINE_IS_CANL;
+        COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0024);
+        return (0);
+    }
+
     if(COROUTINE_IS_BUSY & COROUTINE_NODE_STATUS(coroutine_node))
     {
         COROUTINE_ASSERT(EC_TRUE  == coroutine_pool_check_node_is_busy(coroutine_pool, (void *)coroutine_node));
@@ -2072,14 +2082,17 @@ COROUTINE_NODE * coroutine_pool_reserve_no_lock(COROUTINE_POOL *coroutine_pool)
     UINT32        total_num;
     UINT32        idle_num;
     UINT32        busy_num;
+    UINT32        post_num;
+    UINT32        max_num;
 
     coroutine_node = (COROUTINE_NODE *)clist_pop_back_no_lock(COROUTINE_POOL_WORKER_IDLE_LIST(coroutine_pool));
     if(NULL_PTR == coroutine_node)
     {
         idle_num = clist_size(COROUTINE_POOL_WORKER_IDLE_LIST(coroutine_pool));
         busy_num = clist_size(COROUTINE_POOL_WORKER_BUSY_LIST(coroutine_pool));
+        post_num = clist_size(COROUTINE_POOL_WORKER_POST_LIST(coroutine_pool));
 
-        total_num = idle_num + busy_num;
+        total_num = idle_num + busy_num + post_num;
 
         if(total_num < COROUTINE_POOL_WORKER_MAX_NUM(coroutine_pool))
         {
@@ -2087,7 +2100,8 @@ COROUTINE_NODE * coroutine_pool_reserve_no_lock(COROUTINE_POOL *coroutine_pool)
 
             coroutine_num = DMIN(COROUTINE_EXPAND_MIN_NUM, COROUTINE_POOL_WORKER_MAX_NUM(coroutine_pool) - total_num);
 
-            dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "coroutine_pool_reserve_no_lock: try to expand coroutine num from %ld to %ld\n",
+            dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "coroutine_pool_reserve_no_lock: "
+                                "try to expand coroutine num from %ld to %ld\n",
                                 total_num, coroutine_num + total_num);
             coroutine_pool_expand(coroutine_pool, coroutine_num);
         }
@@ -2096,15 +2110,14 @@ COROUTINE_NODE * coroutine_pool_reserve_no_lock(COROUTINE_POOL *coroutine_pool)
     }
 
     idle_num = clist_size(COROUTINE_POOL_WORKER_IDLE_LIST(coroutine_pool));
-    busy_num = clist_size(COROUTINE_POOL_WORKER_BUSY_LIST(coroutine_pool));
-
-    total_num = idle_num + busy_num;
-    if(total_num > COROUTINE_POOL_WORKER_MAX_NUM(coroutine_pool))
+    max_num  = COROUTINE_POOL_WORKER_MAX_NUM(coroutine_pool);
+    if(idle_num > max_num / 2 && idle_num > COROUTINE_SHRINK_THRESHOLD)
     {
-        dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "coroutine_pool_reserve_no_lock: try to shrink coroutine num from %ld to %ld\n",
-                            total_num, COROUTINE_POOL_WORKER_MAX_NUM(coroutine_pool));
+        dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "coroutine_pool_reserve_no_lock: "
+                            "try to shrink idle coroutine num from %ld to %ld\n",
+                            idle_num, idle_num - COROUTINE_SHRINK_MIN_NUM);
 
-        coroutine_pool_shrink(coroutine_pool, total_num - COROUTINE_POOL_WORKER_MAX_NUM(coroutine_pool));
+        coroutine_pool_shrink(coroutine_pool, COROUTINE_SHRINK_MIN_NUM);
     }
 
     COROUTINE_ASSERT(EC_FALSE == coroutine_pool_check_node_is_idle(coroutine_pool, (void *)coroutine_node));

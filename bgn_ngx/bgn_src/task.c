@@ -774,6 +774,34 @@ EC_BOOL task_node_is_timeout(const TASK_NODE *task_node)
     return (EC_FALSE);
 }
 
+EC_BOOL task_node_is_zombie(const TASK_NODE *task_node)
+{
+    const TASK_ANY    *task_any;
+
+    task_any = TASK_NODE_ANY(task_node);
+
+    if(TASK_ALWAYS_LIVE == TASK_ANY_TIME_TO_LIVE(task_any))
+    {
+        /*never be zombie*/
+        return (EC_FALSE);
+    }
+
+    if(TASK_NODE_BUFF_POS(task_node) != TASK_NODE_BUFF_LEN(task_node)
+    && 0 == TASK_NODE_BUFF_POS(task_node))
+    {
+        UINT32             cur;
+
+        cur = (UINT32)c_get_cur_time_nsec();
+        if(cur >= TASK_ANY_START_TIME(task_any) + TASK_ZOMBIE_NSEC)
+        {
+            /*zombie*/
+            return (EC_TRUE);
+        }
+    }
+
+    return (EC_FALSE);
+}
+
 TASK_RUNNER_NODE *task_runner_node_new()
 {
     TASK_RUNNER_NODE *task_runner_node;
@@ -10212,6 +10240,34 @@ EC_BOOL task_brd_sending_queue_handle(TASK_BRD *task_brd)
                 /*TASK_NODE_STATUS(task_any_node) = TASK_UNDEF_STATUS;*/
 
                 dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[TIMEOUT] send node: from (tcid %s,comm %ld,rank %ld,modi %ld) to (tcid %s,comm %ld,rank %ld,modi %ld) with priority %ld, type %ld, tag %ld, ldb %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx\n",
+                                TASK_NODE_SEND_TCID_STR(task_node), TASK_NODE_SEND_COMM(task_node), TASK_NODE_SEND_RANK(task_node), TASK_NODE_SEND_MODI(task_node),
+                                TASK_NODE_RECV_TCID_STR(task_node), TASK_NODE_RECV_COMM(task_node), TASK_NODE_RECV_RANK(task_node), TASK_NODE_RECV_MODI(task_node),
+                                TASK_NODE_PRIO(task_node), TASK_NODE_TYPE(task_node),
+                                TASK_NODE_TAG(task_node), TASK_NODE_LDB_CHOICE(task_node),
+                                TASK_NODE_SEND_TCID(task_node), TASK_NODE_SEND_RANK(task_node), TASK_NODE_SEQNO(task_node), TASK_NODE_SUB_SEQNO(task_node),
+                                TASK_NODE_FUNC_ID(task_node)
+                                );
+
+                /*free this task any*/
+                clist_data_rmv = clist_data;
+                clist_data = CLIST_DATA_PREV(clist_data);
+
+                clist_rmv_no_lock(TASK_BRD_QUEUE(task_brd, TASK_SENDING_QUEUE), clist_data_rmv);
+                task_any_free(task_any);
+
+                continue;
+            }
+
+            if(EC_TRUE == task_node_is_zombie(task_node))
+            {
+                TASK_ANY   *task_any;
+                TASK_NODE  *task_any_node;
+
+                task_any_node = task_node;
+                task_any = TASK_NODE_ANY(task_any_node);
+                /*TASK_NODE_STATUS(task_any_node) = TASK_UNDEF_STATUS;*/
+
+                dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[ZOMBIE] send node: from (tcid %s,comm %ld,rank %ld,modi %ld) to (tcid %s,comm %ld,rank %ld,modi %ld) with priority %ld, type %ld, tag %ld, ldb %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx\n",
                                 TASK_NODE_SEND_TCID_STR(task_node), TASK_NODE_SEND_COMM(task_node), TASK_NODE_SEND_RANK(task_node), TASK_NODE_SEND_MODI(task_node),
                                 TASK_NODE_RECV_TCID_STR(task_node), TASK_NODE_RECV_COMM(task_node), TASK_NODE_RECV_RANK(task_node), TASK_NODE_RECV_MODI(task_node),
                                 TASK_NODE_PRIO(task_node), TASK_NODE_TYPE(task_node),

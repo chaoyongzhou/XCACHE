@@ -65,6 +65,8 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CTHREAD_STACK_GUARD_SIZE);
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_TASK_SLOW_DOWN_MSEC);
+    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_TASK_LIVE_NSEC);
+    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_TASK_ZOMBIE_NSEC);
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CSOCKET_SO_SNDBUFF_SIZE);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CSOCKET_SO_RCVBUFF_SIZE);
@@ -238,6 +240,8 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CTHREAD_STACK_GUARD_SIZE                   = %ld\n",  CPARACFG_CTHREAD_STACK_GUARD_SIZE(cparacfg)      );
 
     sys_log(log, "CPARACFG_TASK_SLOW_DOWN_MSEC               = %ld\n",  CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg)           );
+    sys_log(log, "CPARACFG_TASK_LIVE_NSEC                    = %ld\n",  CPARACFG_TASK_LIVE_NSEC(cparacfg)           );
+    sys_log(log, "CPARACFG_TASK_ZOMBIE_NSEC                  = %ld\n",  CPARACFG_TASK_ZOMBIE_NSEC(cparacfg)           );
 
     sys_log(log, "CSOCKET_SO_SNDBUFF_SIZE                    = %d\n",   CPARACFG_CSOCKET_SO_SNDBUFF_SIZE(cparacfg)        );
     sys_log(log, "CSOCKET_SO_RCVBUFF_SIZE                    = %d\n",   CPARACFG_CSOCKET_SO_RCVBUFF_SIZE(cparacfg)        );
@@ -365,7 +369,9 @@ void cparacfg_json(json_object *obj, const CPARACFG *cparacfg)
     json_object_add_k_int64(obj, "CTHREAD_STACK_MAX_SIZE"  ,  CPARACFG_CTHREAD_STACK_MAX_SIZE(cparacfg));
     json_object_add_k_int64(obj, "CTHREAD_STACK_GUARD_SIZE",  CPARACFG_CTHREAD_STACK_GUARD_SIZE(cparacfg));
 
-    json_object_add_k_int64(obj, "TASK_SLOW_DOWN_MSEC",  CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg));
+    json_object_add_k_int64(obj, "TASK_SLOW_DOWN_MSEC"  ,  CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg));
+    json_object_add_k_int64(obj, "TASK_TASK_LIVE_NSEC"  ,  CPARACFG_TASK_ZOMBIE_NSEC(cparacfg));
+    json_object_add_k_int64(obj, "TASK_TASK_ZOMBIE_NSEC",  CPARACFG_TASK_ZOMBIE_NSEC(cparacfg));
 
     json_object_add_k_int32(obj, "CSOCKET_SO_SNDBUFF_SIZE",   CPARACFG_CSOCKET_SO_SNDBUFF_SIZE(cparacfg));
     json_object_add_k_int32(obj, "CSOCKET_SO_RCVBUFF_SIZE",   CPARACFG_CSOCKET_SO_RCVBUFF_SIZE(cparacfg));

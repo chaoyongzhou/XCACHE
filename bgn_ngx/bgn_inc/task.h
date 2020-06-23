@@ -71,6 +71,7 @@ void    task_node_print(LOG *log, const TASK_NODE *task_node);
 void    task_node_dbg(LOG *log, const char *info, const TASK_NODE *task_node);
 EC_BOOL task_node_isend(TASK_BRD *task_brd, TASK_NODE *task_node);
 EC_BOOL task_node_is_timeout(const TASK_NODE *task_node);
+EC_BOOL task_node_is_zombie(const TASK_NODE *task_node);
 
 TASK_RUNNER_NODE *task_runner_node_new();
 EC_BOOL task_runner_node_init(TASK_RUNNER_NODE *task_runner_node);

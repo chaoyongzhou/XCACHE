@@ -32,6 +32,8 @@ typedef struct
     UINT32    cthread_stack_guard_size      ;
 
     UINT32    task_slow_down_msec           ;
+    UINT32    task_live_nsec                ;
+    UINT32    task_zombie_nsec              ;
        int    csocket_so_sndbuff_size       ;/*for fwd rank only*/
        int    csocket_so_rcvbuff_size       ;/*for fwd rank only*/
        int    csocket_so_sndlowat_size      ;
@@ -170,6 +172,9 @@ typedef struct
 #define CPARACFG_CTHREAD_STACK_GUARD_SIZE(cparacfg)                 ((cparacfg)->cthread_stack_guard_size      )
 
 #define CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg)                      ((cparacfg)->task_slow_down_msec           )
+#define CPARACFG_TASK_LIVE_NSEC(cparacfg)                           ((cparacfg)->task_live_nsec                )
+#define CPARACFG_TASK_ZOMBIE_NSEC(cparacfg)                         ((cparacfg)->task_zombie_nsec              )
+
 #define CPARACFG_CSOCKET_SO_SNDBUFF_SIZE(cparacfg)                  ((cparacfg)->csocket_so_sndbuff_size       )
 #define CPARACFG_CSOCKET_SO_RCVBUFF_SIZE(cparacfg)                  ((cparacfg)->csocket_so_rcvbuff_size       )
 
@@ -405,7 +410,8 @@ typedef struct
 #define CPARACFG_CTHREAD_STACK_GUARD_SIZE_DEF                    CTHREAD_STACK_GUARD_SIZE_004K
 
 #define CPARACFG_TASK_SLOW_DOWN_MSEC_DEF                         1
-/*-- read only configuration -- */
+#define CPARACFG_TASK_LIVE_NSEC_DEF                              180
+#define CPARACFG_TASK_ZOMBIE_NSEC_DEF                            30
 
 #define CPARACFG_CSOCKET_HEARTBEAT_INTVL_NSEC_DEF                10
 #define CPARACFG_CSOCKET_SO_SNDBUFF_SIZE_DEF                     MEM_BUFF_64K
@@ -549,6 +555,9 @@ typedef struct
 #define    TASK_RSP_THREAD_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_TASK_RSP_THREAD_MAX_NUM)
 
 #define    TASK_SLOW_DOWN_MSEC                           CPARACFG_DEFAULT_MAP(CPARACFG_TASK_SLOW_DOWN_MSEC)
+#define    TASK_LIVE_NSEC                                CPARACFG_DEFAULT_MAP(CPARACFG_TASK_LIVE_NSEC)
+#define    TASK_ZOMBIE_NSEC                              CPARACFG_DEFAULT_MAP(CPARACFG_TASK_ZOMBIE_NSEC)
+
 #define    CSOCKET_HEARTBEAT_INTVL_NSEC                  CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_HEARTBEAT_INTVL_NSEC)
 
 #define    CSOCKET_SO_SNDBUFF_SIZE                       CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_SO_SNDBUFF_SIZE)

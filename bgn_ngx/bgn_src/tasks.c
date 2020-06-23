@@ -2216,11 +2216,11 @@ EC_BOOL tasks_node_set_writable(TASKS_NODE  *tasks_node)
     UINT32       num;
     UINT32       pos;
 
+    EC_BOOL      ret;
+
+    ret = EC_FALSE;
+
     num = cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node));
-    if(0 == num)
-    {
-        return (EC_FALSE);
-    }
 
     for(pos = 0; pos < num; pos ++)
     {
@@ -2232,25 +2232,33 @@ EC_BOOL tasks_node_set_writable(TASKS_NODE  *tasks_node)
             continue;
         }
 
-        if(BIT_FALSE == CSOCKET_CNODE_WRITING(csocket_cnode)
-        && (TASKS_NODE_COMM(tasks_node) == CSOCKET_CNODE_COMM(csocket_cnode)
+        if(TASKS_NODE_COMM(tasks_node) == CSOCKET_CNODE_COMM(csocket_cnode)
             || CMPI_ANY_COMM == TASKS_NODE_COMM(tasks_node)
             || CMPI_ANY_COMM == CSOCKET_CNODE_COMM(csocket_cnode))
-        )
         {
-            /*May 3,2017*/
-            cepoll_set_event(task_brd_default_get_cepoll(),
-                              CSOCKET_CNODE_SOCKFD(csocket_cnode),
-                              CEPOLL_WR_EVENT,
-                              (const char *)"csocket_cnode_isend",
-                              (CEPOLL_EVENT_HANDLER)csocket_cnode_isend,
-                              (void *)csocket_cnode);
-            CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_TRUE;
-            return (EC_TRUE);
+            if(EC_FALSE == csocket_cnode_is_connected(csocket_cnode))
+            {
+                continue;
+            }
+
+            if(BIT_FALSE == CSOCKET_CNODE_WRITING(csocket_cnode))
+            {
+                /*May 3,2017*/
+                cepoll_set_event(task_brd_default_get_cepoll(),
+                                  CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                                  CEPOLL_WR_EVENT,
+                                  (const char *)"csocket_cnode_isend",
+                                  (CEPOLL_EVENT_HANDLER)csocket_cnode_isend,
+                                  (void *)csocket_cnode);
+                CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_TRUE;
+            }
+
+            ret = EC_TRUE;
+            continue;
         }
     }
 
-    return (EC_TRUE);
+    return (ret);
 }
 
 EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tcid, const UINT32 des_comm, const UINT32 msg_tag, TASK_NODE *task_node)
@@ -2265,7 +2273,8 @@ EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tci
         if(TASK_REQ_SENDAGN == TASK_NODE_STATUS(task_node))
         {
             /*do not trigger connecting to avoid task flooding*/
-            return (EC_AGAIN);
+            /*return (EC_AGAIN);*/
+            return (EC_FALSE);
         }
 
         dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_worker_isend_node: "
@@ -2305,7 +2314,8 @@ EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tci
                              TASKS_CFG_SRVIPADDR(remote_tasks_cfg), TASKS_CFG_SRVPORT(remote_tasks_cfg),
                              (UINT32)CSOCKET_CNODE_NUM);
 
-            return (EC_AGAIN);
+            /*return (EC_AGAIN);*/
+            return (EC_FALSE);
         }
 
         /*if supporting T-DNS, resolve tcid*/
@@ -2323,7 +2333,8 @@ EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tci
                              NULL_PTR,
                              FI_super_connect, CMPI_ERROR_MODI, des_tcid, des_comm, (UINT32)1/*CSOCKET_CNODE_NUM*/);
 
-            return (EC_AGAIN);
+            /*return (EC_AGAIN);*/
+            return (EC_FALSE);
         }
 
         return (EC_FALSE);
@@ -2334,9 +2345,6 @@ EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tci
                                           TASKS_NODE_TCID_STR(tasks_node),
                                           TASKS_NODE_COMM(tasks_node),
                                           cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)));
-
-    /*note: task_node is only mounted to sending list*/
-    clist_push_back(TASKS_NODE_SENDING_LIST(tasks_node), (void *)task_node);
 
     if(EC_FALSE == tasks_node_set_writable(tasks_node))
     {
@@ -2349,6 +2357,9 @@ EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tci
 
         return (EC_FALSE);
     }
+
+    /*note: task_node is only mounted to sending list*/
+    clist_push_back(TASKS_NODE_SENDING_LIST(tasks_node), (void *)task_node);
 
     return (EC_TRUE);
 }

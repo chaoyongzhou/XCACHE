@@ -937,6 +937,8 @@ void cparacfg_thread_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UIN
     sys_print(log, " maxStackSize=\"%ld\""             , CPARACFG_CTHREAD_STACK_MAX_SIZE(cparacfg));
     sys_print(log, " stackGuardSize=\"%ld\""           , CPARACFG_CTHREAD_STACK_GUARD_SIZE(cparacfg));
     sys_print(log, " taskSlowDownMsec=\"%ld\""         , CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg));
+    sys_print(log, " taskLiveNsec=\"%ld\""             , CPARACFG_TASK_LIVE_NSEC(cparacfg));
+    sys_print(log, " taskZombieNsec=\"%ld\""           , CPARACFG_TASK_ZOMBIE_NSEC(cparacfg));
 
     sys_print(log, " ngxBgnOverRfsSwitch=\"%s\""       , CPARACFG_NGX_BGN_OVER_RFS_SWITCH_STR(cparacfg));
     sys_print(log, " ngxBgnOverXfsSwitch=\"%s\""       , CPARACFG_NGX_BGN_OVER_XFS_SWITCH_STR(cparacfg));
