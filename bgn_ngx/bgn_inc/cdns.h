@@ -46,19 +46,19 @@ EC_BOOL cdns_node_send(CDNS_NODE *cdns_node, CSOCKET_CNODE *csocket_cnode);
 
 EC_BOOL cdns_node_need_send(CDNS_NODE *cdns_node);
 
-EC_BOOL cdns_node_close(CDNS_NODE *cdns_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL cdns_node_close(CDNS_NODE *cdns_node);
 
 EC_BOOL cdns_node_create(CDNS_NODE *cdns_node, const CDNS_REQ * cdns_req);
 
-EC_BOOL cdns_node_send_req(CDNS_NODE *cdns_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL cdns_node_send_req(CDNS_NODE *cdns_node);
 
-EC_BOOL cdns_node_recv_rsp(CDNS_NODE *cdns_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL cdns_node_recv_rsp(CDNS_NODE *cdns_node);
 
 EC_BOOL cdns_node_disconnect(CDNS_NODE *cdns_node);
 
-EC_BOOL cdns_node_set_callback(CDNS_NODE *cdns_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL cdns_node_set_callback(CDNS_NODE *cdns_node);
 
-EC_BOOL cdns_node_set_epoll(CDNS_NODE *cdns_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL cdns_node_set_epoll(CDNS_NODE *cdns_node);
 
 
 /*---------------------------------------- general uint16_t parser and coder ----------------------------------------*/

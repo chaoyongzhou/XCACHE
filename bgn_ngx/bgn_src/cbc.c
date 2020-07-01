@@ -152,7 +152,7 @@ UINT32 cbc_md_capacity(const UINT32 md_type)
     md_cindex = (CINDEX *)carray_get(g_cbc, md_type);
     if(NULL_PTR == md_cindex)
     {
-        dbg_log(SEC_0091_CBC, 0)(LOGSTDERR, "cbc_md_capacity: md_type %ld is not registered in CBC\n", md_type);
+        dbg_log(SEC_0091_CBC, 0)(LOGSTDERR, "error:cbc_md_capacity: md_type %ld is not registered in CBC\n", md_type);
         return (0);
     }
 
@@ -166,7 +166,7 @@ UINT32 cbc_md_num(const UINT32 md_type)
     md_cindex = (CINDEX *)carray_get(g_cbc, md_type);
     if(NULL_PTR == md_cindex)
     {
-        dbg_log(SEC_0091_CBC, 0)(LOGSTDERR, "cbc_md_num: md_type %ld is not registered in CBC\n", md_type);
+        dbg_log(SEC_0091_CBC, 0)(LOGSTDERR, "error:cbc_md_num: md_type %ld is not registered in CBC\n", md_type);
         return (0);
     }
 
@@ -184,7 +184,7 @@ void *cbc_md_get(const UINT32 md_type, const UINT32 pos)
     md_cindex = (CINDEX *)carray_get(g_cbc, md_type);
     if(0 == md_cindex)
     {
-        dbg_log(SEC_0091_CBC, 0)(LOGSTDERR, "cbc_md_get: md_type %ld is not registered in CBC\n", md_type);
+        dbg_log(SEC_0091_CBC, 0)(LOGSTDERR, "error:cbc_md_get: md_type %ld is not registered in CBC\n", md_type);
         return (NULL_PTR);
     }
     return cindex_spy(md_cindex, pos);
@@ -290,7 +290,7 @@ UINT32 cbc_sum()
 
     if(NULL_PTR == g_cbc)
     {
-        dbg_log(SEC_0091_CBC, 0)(LOGSTDOUT, "cbc_sum: error:g_cbc is null\n");
+        dbg_log(SEC_0091_CBC, 0)(LOGSTDOUT, "error:cbc_sum: error:g_cbc is null\n");
         return (0);
     }
 

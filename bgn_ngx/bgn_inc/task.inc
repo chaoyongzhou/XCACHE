@@ -44,12 +44,16 @@ extern "C"{
 #include "cconnp.inc"
 #include "csdisc.h"
 #include "ceventfd.h"
+#include "ctimeout.h"
 
 #define ERR_TASK_SEQNO ((UINT32)(~((UINT32)0)))
 #define ERR_FUNC_ID    ((UINT32)(~((UINT32)0)))
 #define ERR_PARA_NUM   ((UINT32)(~((UINT32)0)))
 
 #define TASK_CONFIG_XML_MAX_SIZE            ((UINT32) 64 * 1024) /*64KB*/
+
+/*on: send task over proc channel, off: send task over socket*/
+#define TASK_PROC_SEND_CHANNEL_SWITCH       (SWITCH_ON)
 
 /*TASK_TAG*/
 #define                     TAG_TASK_REQ    ((UINT32)  1)
@@ -216,6 +220,16 @@ typedef struct _TASK_NODE
     UINT32       buff_len;                    /*the encoded length or recved length*/
     UINT32       buff_pos;                    /*the recved or sent dynamic length*/
     UINT8 *      buff;                        /*node buff for pack/unpack task req/rsp*/
+
+    CCALLBACK_NODE  on_send_succ_cb;          /*callback when send succ*/
+    CCALLBACK_NODE  on_send_fail_cb;          /*callback when send fail*/
+    CTIMEOUT_NODE   on_send_timeout_cb;       /*callback when send timeout*/
+
+    CCALLBACK_NODE  on_recv_succ_cb;          /*callback when recv succ*/
+    CCALLBACK_NODE  on_recv_fail_cb;          /*callback when recv fail*/
+    CTIMEOUT_NODE   on_recv_timeout_cb;       /*callback when recv timeout*/
+
+    CCALLBACK_NODE  on_cleanup_cb;            /*callback when cleanup*/
 }TASK_NODE;
 
 typedef EC_BOOL (*CHECKER)(const UINT32);
@@ -286,6 +300,8 @@ typedef struct _TASK_MGR
 {
     CROUTINE_COND     croutine_cond;
 
+    CTIMEOUT_NODE     ctimeout_node;
+
     MOD_MGR *         mod_mgr;         /* module mgr will deploy load balancing*/
     EC_BOOL           free_flag;       /* free or not free mod_mgr when free task mgr*/
 
@@ -311,6 +327,8 @@ typedef struct _TASK_MGR
     EC_BOOL           jump_flag;       /* jump or not jump*/
     EC_BOOL           aging_flag;      /* when aging, task mgr should be in aging list*/
     EC_BOOL           recving_flag;    /*when recving, task_mgr should be in recv list*/
+
+    CCALLBACK_NODE    cleanup_cb;
 }TASK_MGR;
 
 /*task context*/
@@ -478,9 +496,12 @@ typedef struct _TASK_BRD
 
     UINT32       reg_type;
 
+    CLIST        send_task_mgr_list;  /* sending task mgr list*/
     CLIST        recv_task_mgr_list;  /* recving task mgr list*/
     CLIST        aging_task_mgr_list; /* aging task mgr list which waiting for removal*/
     CSTACK       task_mgr_stack;   /* stack of task mgr*/
+
+    CRB_TREE     ctimeout_tree;
 
     CVECTOR      type_conv_vec;
     CVECTOR      func_addr_vec;
@@ -829,6 +850,14 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 #define TASK_NODE_SEND_TCID_STR(task_node)                   (c_word_to_ipv4(TASK_NODE_SEND_TCID(task_node)))
 #define TASK_NODE_RECV_TCID_STR(task_node)                   (c_word_to_ipv4(TASK_NODE_RECV_TCID(task_node)))
 
+#define TASK_NODE_ON_SEND_SUCC_CB(task_node)                 (&((task_node)->on_send_succ_cb))
+#define TASK_NODE_ON_SEND_FAIL_CB(task_node)                 (&((task_node)->on_send_fail_cb))
+#define TASK_NODE_ON_SEND_TIMEOUT_CB(task_node)              (&((task_node)->on_send_timeout_cb))
+#define TASK_NODE_ON_RECV_SUCC_CB(task_node)                 (&((task_node)->on_recv_succ_cb))
+#define TASK_NODE_ON_RECV_FAIL_CB(task_node)                 (&((task_node)->on_recv_fail_cb))
+#define TASK_NODE_ON_RECV_TIMEOUT_CB(task_node)              (&((task_node)->on_recv_timeout_cb))
+#define TASK_NODE_ON_CLEANUP_CB(task_node)                   (&((task_node)->on_cleanup_cb))
+
 /*---------------------------------------- interface of task manager ----------------------------------------------*/
 #define TASK_MGR_MOD(task_mgr)                             ((task_mgr)->mod_mgr)
 #define TASK_MGR_LOCAL_MOD_TCID(task_mgr)                  MOD_MGR_LOCAL_MOD_TCID(TASK_MGR_MOD(task_mgr))
@@ -854,9 +883,12 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 #define TASK_MGR_AGING_FLAG(task_mgr)                      ((task_mgr)->aging_flag)
 #define TASK_MGR_RECVING_FLAG(task_mgr)                    ((task_mgr)->recving_flag)
 
+#define TASK_MGR_CTIMEOUT_NODE(task_mgr)                   (&((task_mgr)->ctimeout_node))
+
 #define TASK_MGR_CROUTINE_COND(task_mgr)                   (&((task_mgr)->croutine_cond))
 #define TASK_MGR_CCOND_INIT(task_mgr, location)             croutine_cond_init(TASK_MGR_CROUTINE_COND(task_mgr), 0/*never timeout*/, location)
 #define TASK_MGR_CCOND_CLEAN(task_mgr, location)            croutine_cond_clean(TASK_MGR_CROUTINE_COND(task_mgr), location)
+#define TASK_MGR_CCOND_SET_TIMEOUT(task_mgr, timeout_msec)  croutine_cond_set_timeout(TASK_MGR_CROUTINE_COND(task_mgr), timeout_msec)
 #define TASK_MGR_CCOND_RESERVE(task_mgr, counter, location) croutine_cond_reserve(TASK_MGR_CROUTINE_COND(task_mgr), counter, location)
 #define TASK_MGR_CCOND_RELEASE(task_mgr, location)          croutine_cond_release(TASK_MGR_CROUTINE_COND(task_mgr), location)
 #define TASK_MGR_CCOND_RELEASE_ALL(task_mgr, location)      croutine_cond_release_all(TASK_MGR_CROUTINE_COND(task_mgr), location)
@@ -879,6 +911,8 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 
 #define TASK_MGR_ADD_REQ_TAIL(task_mgr, task_req)    \
         clist_push_back(TASK_MGR_QUEUE(task_mgr), TASK_REQ_NODE(task_req))
+
+#define TASK_MGR_CLEANUP_CB(task_mgr)                     (&((task_mgr)->cleanup_cb))
 
 /*---------------------------------------- interface of task context ----------------------------------------------*/
 #define TASK_CONTEXT_TASK_RSP(task_context)   ((task_context)->task_rsp)
@@ -977,6 +1011,7 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 #define TASK_BRD_DETECT_TASKS_CFG(task_brd)                  ((task_brd)->detect_tasks_cfg)
 #define TASK_BRD_UDP_SRV_SOCKFD(task_brd)                    ((task_brd)->udp_srv_sockfd)
 #define TASK_BRD_CSDISC_NODE(task_brd)                       ((task_brd)->csdisc_node)
+#define TASK_BRD_SEND_TASK_MGR_LIST(task_brd)                (&((task_brd)->send_task_mgr_list))
 #define TASK_BRD_RECV_TASK_MGR_LIST(task_brd)                (&((task_brd)->recv_task_mgr_list))
 #define TASK_BRD_AGING_TASK_MGR_LIST(task_brd)               (&((task_brd)->aging_task_mgr_list))
 #define TASK_BRD_MOD_MGR_LIST(task_brd)                      (&((task_brd)->mod_mgr_list))
@@ -985,8 +1020,11 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 #define TASK_BRD_CBTIMER_LIST(task_brd)                      (&((task_brd)->task_cbtimer_list))
 #define TASK_BRD_PROCESS_LIST(task_brd)                      (&((task_brd)->task_process_list))
 
+#define TASK_BRD_CTIMEOUT_TREE(task_brd)                     (&((task_brd)->ctimeout_tree))
+
 #define TASK_BRD_CEVENTFD_NODE(task_brd)                     (&((task_brd)->ceventfd_node))
 
+#define TASK_BRD_SEND_TASK_MGR_LIST_INIT(task_brd, location)           (clist_init(TASK_BRD_SEND_TASK_MGR_LIST(task_brd), MM_IGNORE, location))
 #define TASK_BRD_RECV_TASK_MGR_LIST_INIT(task_brd, location)           (clist_init(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), MM_IGNORE, location))
 #define TASK_BRD_ARGING_TASK_MGR_LIST_INIT(task_brd, location)         (clist_init(TASK_BRD_AGING_TASK_MGR_LIST(task_brd), MM_IGNORE, location))
 

@@ -478,14 +478,14 @@ EC_BOOL cvendor_set_hot_path_flag(const UINT32 cvendor_md_id)
 
     const char                  *k;
     const char                  *v;
-    
+
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
 
     r = CVENDOR_MD_NGX_HTTP_REQ(cvendor_md);
 
     k = (const char *)"is-hot-path";
     v = (const char *)"true";
-    
+
     if(EC_TRUE == cngx_has_header_in(r, k, v))
     {
         CVENDOR_MD_CNGX_HOT_PATH_FLAG(cvendor_md) = EC_TRUE;
@@ -2370,13 +2370,13 @@ EC_BOOL cvendor_content_head_header_in_filter_server(const UINT32 cvendor_md_id)
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_in_filter_server: "
                                                     "[cngx] set host '%s' to http req done\n",
                                                     segs[ 0 ]);
-            safe_free(v, LOC_CVENDOR_0017);
+            safe_free(v, LOC_CVENDOR_0016);
 
             return (EC_TRUE);
         }
     }
 
-    cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0016);
+    cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0017);
     return (EC_FALSE);
 }
 
@@ -3613,13 +3613,13 @@ EC_BOOL cvendor_content_direct_header_in_filter_server(const UINT32 cvendor_md_i
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter_server: "
                                                     "[cngx] set host '%s' to http req done\n",
                                                     segs[ 0 ]);
-            safe_free(v, LOC_CVENDOR_0064);
+            safe_free(v, LOC_CVENDOR_0063);
 
             return (EC_TRUE);
         }
     }
 
-    cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0063);
+    cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0064);
     return (EC_FALSE);
 }
 
@@ -5757,13 +5757,13 @@ EC_BOOL cvendor_content_repair_header_in_filter_server(const UINT32 cvendor_md_i
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_in_filter_server: "
                                                     "[cngx] set host '%s' to http req done\n",
                                                     segs[ 0 ]);
-            safe_free(v, LOC_CVENDOR_0115);
+            safe_free(v, LOC_CVENDOR_0114);
 
             return (EC_TRUE);
         }
     }
 
-    cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0114);
+    cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0115);
     return (EC_FALSE);
 }
 
@@ -8060,13 +8060,13 @@ EC_BOOL cvendor_content_orig_header_in_filter_server(const UINT32 cvendor_md_id)
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_in_filter_server: "
                                                     "[cngx] set host '%s' to http req done\n",
                                                     segs[ 0 ]);
-            safe_free(v, LOC_CVENDOR_0168);
+            safe_free(v, LOC_CVENDOR_0167);
 
             return (EC_TRUE);
         }
     }
 
-    cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0167);
+    cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0168);
     return (EC_FALSE);
 }
 
@@ -10280,13 +10280,13 @@ EC_BOOL cvendor_content_ms_header_in_filter_server(const UINT32 cvendor_md_id)
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_in_filter_server: "
                                                     "[cngx] set host '%s' to http req done\n",
                                                     segs[ 0 ]);
-            safe_free(v, LOC_CVENDOR_0226);
+            safe_free(v, LOC_CVENDOR_0225);
 
             return (EC_TRUE);
         }
     }
 
-    cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0225);
+    cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0226);
     return (EC_FALSE);
 }
 
@@ -13523,13 +13523,13 @@ EC_BOOL cvendor_content_ims_header_in_filter_server(const UINT32 cvendor_md_id)
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_in_filter_server: "
                                                     "[cngx] set host '%s' to http req done\n",
                                                     segs[ 0 ]);
-            safe_free(v, LOC_CVENDOR_0297);
+            safe_free(v, LOC_CVENDOR_0296);
 
             return (EC_TRUE);
         }
     }
 
-    cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0296);
+    cvendor_set_ngx_rc(cvendor_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CVENDOR_0297);
     return (EC_FALSE);
 }
 

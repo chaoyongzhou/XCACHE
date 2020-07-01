@@ -282,7 +282,7 @@ STATIC_CAST static int __chttps_on_message_begin(http_parser_t* http_parser)
         return (-1);/*error*/
     }
 
-    ccallback_list_run_not_check(CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CALLBACK_LIST(chttp_node), (UINT32)chttp_node);
+    ccallback_node_run(CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CB(chttp_node));
 
     dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] __chttps_on_message_begin: chttp_node %p, ***MESSAGE BEGIN***\n",
                     chttp_node);
@@ -343,7 +343,7 @@ STATIC_CAST static int __chttps_on_headers_complete(http_parser_t* http_parser, 
     }
 
     //chttps_node_parse_on_headers_complete(chttp_node);
-    ccallback_list_run_not_check(CHTTP_NODE_PARSE_ON_HEADERS_COMPLETE_CALLBACK_LIST(chttp_node), (UINT32)chttp_node);
+    ccallback_node_run(CHTTP_NODE_PARSE_ON_HEADERS_COMPLETE_CB(chttp_node));
 
     /*
     *   note:
@@ -398,7 +398,7 @@ STATIC_CAST static int __chttps_on_message_complete(http_parser_t* http_parser)
     }
 
     //chttps_node_parse_on_message_complete(chttp_node);
-    ccallback_list_run_not_check(CHTTP_NODE_PARSE_ON_MESSAGE_COMPLETE_CALLBACK_LIST(chttp_node), (UINT32)chttp_node);
+    ccallback_node_run(CHTTP_NODE_PARSE_ON_MESSAGE_COMPLETE_CB(chttp_node));
 
     /*
     *   note:
@@ -597,7 +597,7 @@ STATIC_CAST static int __chttps_on_body(http_parser_t* http_parser, const char* 
                     chttp_node, length, CHTTP_NODE_BODY_PARSED_LEN(chttp_node));
 
     //chttps_node_parse_on_body(chttp_node, CHTTP_NODE_CSOCKET_CNODE(chttp_node));
-    ccallback_list_run_not_check(CHTTP_NODE_PARSE_ON_BODY_CALLBACK_LIST(chttp_node), (UINT32)chttp_node);
+    ccallback_node_run(CHTTP_NODE_PARSE_ON_BODY_CB(chttp_node));
 
     /*
     *   note:
@@ -703,45 +703,13 @@ STATIC_CAST static void __chttps_parser_setting_clean(http_parser_settings_t   *
 }
 
 /*---------------------------------------- INTERFACE WITH HTTPS NODE  ----------------------------------------*/
-STATIC_CAST static EC_BOOL __chttps_node_parse_on_message_begin_runner(CHTTP_NODE *chttp_node, CCALLBACK_NODE *ccallback_node)
+EC_BOOL chttps_node_recv_req(CHTTP_NODE *chttp_node)
 {
-    CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CALLBACK    on_message_bein_callback;
+    CSOCKET_CNODE *csocket_cnode;
+    EC_BOOL        ret;
 
-    on_message_bein_callback = (CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CALLBACK)CCALLBACK_NODE_FUNC(ccallback_node);
-
-    return on_message_bein_callback(chttp_node);
-}
-
-STATIC_CAST static EC_BOOL __chttps_node_parse_on_headers_complete_runner(CHTTP_NODE *chttp_node, CCALLBACK_NODE *ccallback_node)
-{
-    CHTTP_NODE_PARSE_ON_HEADERS_COMPLETE_CALLBACK    on_headers_complete_callback;
-
-    on_headers_complete_callback = (CHTTP_NODE_PARSE_ON_HEADERS_COMPLETE_CALLBACK)CCALLBACK_NODE_FUNC(ccallback_node);
-
-    return on_headers_complete_callback(chttp_node);
-}
-
-STATIC_CAST static EC_BOOL __chttps_node_parse_on_body_runner(CHTTP_NODE *chttp_node, CCALLBACK_NODE *ccallback_node)
-{
-    CHTTP_NODE_PARSE_ON_BODY_CALLBACK    on_body_callback;
-
-    on_body_callback = (CHTTP_NODE_PARSE_ON_BODY_CALLBACK)CCALLBACK_NODE_FUNC(ccallback_node);
-
-    return on_body_callback(chttp_node);
-}
-
-STATIC_CAST static EC_BOOL __chttps_node_parse_on_message_complete_runner(CHTTP_NODE *chttp_node, CCALLBACK_NODE *ccallback_node)
-{
-    CHTTP_NODE_PARSE_ON_MESSAGE_COMPLETE_CALLBACK    on_message_complete_callback;
-
-    on_message_complete_callback = (CHTTP_NODE_PARSE_ON_MESSAGE_COMPLETE_CALLBACK)CCALLBACK_NODE_FUNC(ccallback_node);
-
-    return on_message_complete_callback(chttp_node);
-}
-
-EC_BOOL chttps_node_recv_req(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
-{
-    EC_BOOL       ret;
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    ASSERT(NULL_PTR != csocket_cnode);
 
     if(0 == (CHTTP_NODE_SSL_STATUS_HANDSHAKE_IS_DONE & CHTTP_NODE_SSL_STATUS(chttp_node)))
     {
@@ -799,8 +767,13 @@ EC_BOOL chttps_node_recv_req(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnod
     return (EC_TRUE);
 }
 
-EC_BOOL chttps_node_send_req(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
+EC_BOOL chttps_node_send_req(CHTTP_NODE *chttp_node)
 {
+    CSOCKET_CNODE *csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    ASSERT(NULL_PTR != csocket_cnode);
+
     if(0 == (CHTTP_NODE_SSL_STATUS_HANDSHAKE_IS_DONE & CHTTP_NODE_SSL_STATUS(chttp_node)))
     {
         /*skip*/
@@ -863,9 +836,13 @@ EC_BOOL chttps_node_send_req(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnod
     return (EC_TRUE);
 }
 
-EC_BOOL chttps_node_recv_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
+EC_BOOL chttps_node_recv_rsp(CHTTP_NODE *chttp_node)
 {
-    EC_BOOL       ret;
+    CSOCKET_CNODE *csocket_cnode;
+    EC_BOOL        ret;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    ASSERT(NULL_PTR != csocket_cnode);
 
     if(0 == (CHTTP_NODE_SSL_STATUS_HANDSHAKE_IS_DONE & CHTTP_NODE_SSL_STATUS(chttp_node)))
     {
@@ -975,7 +952,7 @@ EC_BOOL chttps_node_recv_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnod
                             CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
         chttp_node_release(chttp_node);
-        return chttps_node_recv_rsp(chttp_node, csocket_cnode);
+        return chttps_node_recv_rsp(chttp_node);
     }
 
     if(BIT_TRUE == CHTTP_NODE_RECV_COMPLETE(chttp_node))
@@ -992,8 +969,13 @@ EC_BOOL chttps_node_recv_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnod
     return (EC_TRUE);
 }
 
-EC_BOOL chttps_node_send_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
+EC_BOOL chttps_node_send_rsp(CHTTP_NODE *chttp_node)
 {
+    CSOCKET_CNODE *csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    ASSERT(NULL_PTR != csocket_cnode);
+
     if(0 == (CHTTP_NODE_SSL_STATUS_HANDSHAKE_IS_DONE & CHTTP_NODE_SSL_STATUS(chttp_node)))
     {
         /*skip*/
@@ -1043,8 +1025,13 @@ EC_BOOL chttps_node_send_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnod
     return (EC_DONE);/*return EC_DONE will trigger CEPOLL cleanup*/
 }
 
-EC_BOOL chttps_node_icheck(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
+EC_BOOL chttps_node_icheck(CHTTP_NODE *chttp_node)
 {
+    CSOCKET_CNODE *csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    ASSERT(NULL_PTR != csocket_cnode);
+
     if(EC_FALSE == csocket_cnode_is_connected(csocket_cnode))
     {
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_icheck: sockfd %d is not connected\n",
@@ -1059,11 +1046,12 @@ EC_BOOL chttps_node_icheck(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
     return (EC_DONE);
 }
 
-EC_BOOL chttps_node_complete(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
+EC_BOOL chttps_node_complete(CHTTP_NODE *chttp_node)
 {
-    int sockfd;
+    CSOCKET_CNODE *csocket_cnode;
 
-    sockfd = CSOCKET_CNODE_SOCKFD(csocket_cnode);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    ASSERT(NULL_PTR != csocket_cnode);
 
     if(CHTTP_TYPE_DO_SRV_REQ == CHTTP_NODE_TYPE(chttp_node))/*on server side*/
     {
@@ -1073,21 +1061,32 @@ EC_BOOL chttps_node_complete(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnod
         /*keep-alive*/
         if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
         {
-            dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_node_complete: [server] keep-alive, resume socket %d\n", sockfd);
+            dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_node_complete: "
+                            "[server] keep-alive, resume socket %d\n",
+                            CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
             /*resume*/
             //CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_TRUE;
             chttp_node_wait_resume(chttp_node);
-            dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_node_complete: [server] keep-alive, resume socket %d done\n", sockfd);
+            dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_node_complete: "
+                            "[server] keep-alive, resume socket %d done\n",
+                            CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
             return (EC_TRUE);
         }
 
         /*no keep-alive*/
-        dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_node_complete: [server] not keep-alive, closing sockfd %d\n", sockfd);
+        dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_node_complete: "
+                        "[server] not keep-alive, closing sockfd %d\n",
+                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
         /* unbind */
         CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
+
+        dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_node_complete:"
+                          "[DO_SRV_REQ] unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                          csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                          chttp_node);
 
         /*free*/
         chttp_node_free(chttp_node);
@@ -1098,6 +1097,8 @@ EC_BOOL chttps_node_complete(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnod
 
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;/*trigger socket closing*/
 
+         csocket_cnode_close(csocket_cnode);
+
         return (EC_TRUE);
     }
 
@@ -1105,6 +1106,11 @@ EC_BOOL chttps_node_complete(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnod
     {
         /* unbind */
         CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
+
+        dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_node_complete:"
+                          "[DO_CLT_RSP] unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                          csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                          chttp_node);
 
         /**
          * not free chttp_node but release ccond
@@ -1117,6 +1123,13 @@ EC_BOOL chttps_node_complete(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnod
         }
 
         //CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE; /*xxx*/
+
+        cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+        CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
+
+        csocket_cnode_close(csocket_cnode);
+
         return (EC_TRUE);
 
     }
@@ -1144,7 +1157,14 @@ EC_BOOL chttps_node_complete(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnod
     /* unbind */
     CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
 
-    dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_complete:should never reach here, release chttp_node and try to close socket %d\n", sockfd);
+    dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_node_complete:"
+                      "[ERROR] unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                      csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                      chttp_node);
+
+    dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_complete:"
+                    "should never reach here, release chttp_node and try to close socket %d\n",
+                    CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
     /*free*/
     chttp_node_free(chttp_node);
@@ -1155,13 +1175,17 @@ EC_BOOL chttps_node_complete(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnod
 
     CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;
 
+    csocket_cnode_close(csocket_cnode);
+
     return (EC_TRUE);
 }
 
-EC_BOOL chttps_node_close(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
+EC_BOOL chttps_node_close(CHTTP_NODE *chttp_node)
 {
-    int sockfd;
-    sockfd = CSOCKET_CNODE_SOCKFD(csocket_cnode);
+    CSOCKET_CNODE *csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    ASSERT(NULL_PTR != csocket_cnode);
 
     if(CHTTP_TYPE_DO_SRV_REQ == CHTTP_NODE_TYPE(chttp_node))/*on server side*/
     {
@@ -1170,18 +1194,27 @@ EC_BOOL chttps_node_close(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
 
         if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
         {
-            dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_node_close: [server] keep-alive, resume socket %d\n", sockfd);
+            dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_node_close: "
+                            "[server] keep-alive, resume socket %d\n",
+                            CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
             /*resume*/
             //CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_TRUE;
             chttp_node_wait_resume(chttp_node);
-            dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_node_close: [server] keep-alive, resume sockfd %d done\n", sockfd);
+            dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_node_close: "
+                            "[server] keep-alive, resume sockfd %d done\n",
+                            CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
             return (EC_TRUE);
         }
 
         /* umount */
         CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
+
+        dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_node_close:"
+                          "[DO_SRV_REQ] unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                          csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                          chttp_node);
 
         /*free*/
         chttp_node_free(chttp_node);
@@ -1192,6 +1225,8 @@ EC_BOOL chttps_node_close(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
 
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;/*trigger socket closing*/
 
+        csocket_cnode_close(csocket_cnode);
+
         return (EC_TRUE);
     }
 
@@ -1199,6 +1234,11 @@ EC_BOOL chttps_node_close(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
     {
         /* umount */
         CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
+
+        dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_node_close:"
+                          "[DO_CLT_RSP] unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                          csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                          chttp_node);
 
         /**
          * not free chttp_node but release ccond
@@ -1209,6 +1249,12 @@ EC_BOOL chttps_node_close(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
             CHTTP_NODE_COROUTINE_RESTORE(chttp_node) = BIT_TRUE;
             croutine_cond_release(CHTTP_NODE_CROUTINE_COND(chttp_node), LOC_CHTTPS_0008);
         }
+
+        cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+        CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
+
+        csocket_cnode_close(csocket_cnode);
 
         return (EC_TRUE);
 
@@ -1236,7 +1282,14 @@ EC_BOOL chttps_node_close(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
     /* umount */
     CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
 
-    dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_close:should never reach here, release chttp_node and try to close socket %d\n", sockfd);
+    dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_node_close:"
+                      "[ERROR] unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                      csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                      chttp_node);
+
+    dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_close:"
+                    "should never reach here, release chttp_node and try to close socket %d\n",
+                    CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
     /*free*/
     chttp_node_free(chttp_node);
@@ -1246,20 +1299,26 @@ EC_BOOL chttps_node_close(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
     CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
 
     CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;
+
+    csocket_cnode_close(csocket_cnode);
+
     return (EC_TRUE);
 }
 
-EC_BOOL chttps_node_timeout(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
+EC_BOOL chttps_node_timeout(CHTTP_NODE *chttp_node)
 {
-    int sockfd;
+    CSOCKET_CNODE *csocket_cnode;
 
-    sockfd = CSOCKET_CNODE_SOCKFD(csocket_cnode);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    ASSERT(NULL_PTR != csocket_cnode);
 
     chttp_stat_set_rsp_status(CHTTP_NODE_STAT(chttp_node), CHTTP_GATEWAY_TIMEOUT);
 
     if(CHTTP_TYPE_DO_SRV_REQ == CHTTP_NODE_TYPE(chttp_node)) /*server side*/
     {
-        dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "[DEBUG] chttps_node_timeout: [server] sockfd %d timeout\n", sockfd);
+        dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "[DEBUG] chttps_node_timeout: "
+                        "[server] sockfd %d timeout\n",
+                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
         /*umount from defer request queue if necessary*/
         chttps_defer_request_queue_erase(chttp_node);
@@ -1286,15 +1345,24 @@ EC_BOOL chttps_node_timeout(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;
         CSOCKET_CNODE_LOOPING(csocket_cnode) = BIT_TRUE;
 
+        /*not close socket*/
+
         return (EC_TRUE);
     }
 
     if(CHTTP_TYPE_DO_CLT_RSP == CHTTP_NODE_TYPE(chttp_node)) /*client side*/
     {
-        dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "[DEBUG] chttps_node_timeout: [client] sockfd %d timeout\n", sockfd);
+        dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "[DEBUG] chttps_node_timeout: "
+                        "[client] sockfd %d timeout\n",
+                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
         /* unbind */
         CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
+
+        dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_node_timeout:"
+                          "[DO_CLT_RSP] unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                          csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                          chttp_node);
 
         /**
          * not free chttp_node but release ccond
@@ -1311,13 +1379,18 @@ EC_BOOL chttps_node_timeout(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
         CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
 
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE; /*xxx*/
+
+        csocket_cnode_close(csocket_cnode);
+
         return (EC_TRUE);
 
     }
 
     if(CHTTP_TYPE_DO_CLT_CHK == CHTTP_NODE_TYPE(chttp_node))/*client side*/
     {
-        dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "[DEBUG] chttps_node_timeout: [check] sockfd %d timeout\n", sockfd);
+        dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "[DEBUG] chttps_node_timeout: "
+                        "[check] sockfd %d timeout\n",
+                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
         /*not unbind*/
 
         /**
@@ -1331,6 +1404,9 @@ EC_BOOL chttps_node_timeout(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
         }
 
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_TRUE;
+
+        /*not close socket*/
+
         return (EC_TRUE);
     }
 
@@ -1339,7 +1415,14 @@ EC_BOOL chttps_node_timeout(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
     /* unbind */
     CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
 
-    dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_force_close:should never reach here, release chttp_node and try to close socket %d\n", sockfd);
+    dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_node_timeout:"
+                      "[ERROR] unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                      csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                      chttp_node);
+
+    dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_timeout:"
+                    "should never reach here, release chttp_node and try to close socket %d\n",
+                    CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
     /*free*/
     chttp_node_free(chttp_node);
@@ -1349,24 +1432,35 @@ EC_BOOL chttps_node_timeout(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode
     CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
 
     CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;
+
+    csocket_cnode_close(csocket_cnode);
+
     return (EC_TRUE);
 }
 
-EC_BOOL chttps_node_shutdown(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
+EC_BOOL chttps_node_shutdown(CHTTP_NODE *chttp_node)
 {
-    int sockfd;
+    CSOCKET_CNODE *csocket_cnode;
 
-    sockfd = CSOCKET_CNODE_SOCKFD(csocket_cnode);
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    ASSERT(NULL_PTR != csocket_cnode);
 
     if(CHTTP_TYPE_DO_SRV_REQ == CHTTP_NODE_TYPE(chttp_node)) /*server side*/
     {
-        dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_node_shutdown: [server] sockfd %d shutdown\n", sockfd);
+        dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_node_shutdown: "
+                        "[server] sockfd %d shutdown\n",
+                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
         /*umount from defer request queue if necessary*/
         chttps_defer_request_queue_erase(chttp_node);
 
         /* unbind */
         CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
+
+        dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_node_shutdown:"
+                          "[DO_SRV_REQ] unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                          csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                          chttp_node);
 
         /*free*/
         chttp_node_free(chttp_node);
@@ -1377,15 +1471,24 @@ EC_BOOL chttps_node_shutdown(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnod
 
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;
 
+        csocket_cnode_close(csocket_cnode);
+
         return (EC_TRUE);
     }
 
     if(CHTTP_TYPE_DO_CLT_RSP == CHTTP_NODE_TYPE(chttp_node)) /*client side*/
     {
-        dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_node_shutdown: [client] sockfd %d shutdown\n", sockfd);
+        dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_node_shutdown: "
+                        "[client] sockfd %d shutdown\n",
+                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
         /* unbind */
         CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
+
+        dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_node_shutdown:"
+                          "[DO_CLT_RSP] unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                          csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                          chttp_node);
 
         /**
          * not free chttp_node but release ccond
@@ -1402,12 +1505,17 @@ EC_BOOL chttps_node_shutdown(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnod
         CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
 
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE; /*xxx*/
+
+        csocket_cnode_close(csocket_cnode);
+
         return (EC_TRUE);
     }
 
     if(CHTTP_TYPE_DO_CLT_CHK == CHTTP_NODE_TYPE(chttp_node))/*client side*/
     {
-        dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_node_shutdown: [check] sockfd %d shutdown\n", sockfd);
+        dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_node_shutdown: "
+                        "[check] sockfd %d shutdown\n",
+                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
         /*not unbind*/
 
         /**
@@ -1421,6 +1529,9 @@ EC_BOOL chttps_node_shutdown(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnod
         }
 
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_TRUE;
+
+        /*not close socket*/
+
         return (EC_TRUE);
     }
 
@@ -1429,7 +1540,14 @@ EC_BOOL chttps_node_shutdown(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnod
     /* unbind */
     CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
 
-    dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_shutdown:should never reach here, release chttp_node and try to close sockfd %d\n", sockfd);
+    dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_node_shutdown:"
+                      "[ERROR] unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                      csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                      chttp_node);
+
+    dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_node_shutdown:"
+                    "should never reach here, release chttp_node and try to close sockfd %d\n",
+                    CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
     /*free*/
     chttp_node_free(chttp_node);
@@ -1439,6 +1557,9 @@ EC_BOOL chttps_node_shutdown(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnod
     CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
 
     CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;
+
+    csocket_cnode_close(csocket_cnode);
+
     return (EC_TRUE);
 }
 
@@ -1937,9 +2058,9 @@ EC_BOOL chttps_srv_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
             return (EC_FALSE);
         }
 
-        CSOCKET_CNODE_SOCKFD(csocket_cnode) = client_conn_sockfd;
-        CSOCKET_CNODE_TYPE(csocket_cnode )  = CSOCKET_TYPE_TCP;
-        CSOCKET_CNODE_IPADDR(csocket_cnode) = client_ipaddr;
+        CSOCKET_CNODE_SOCKFD(csocket_cnode)         = client_conn_sockfd;
+        CSOCKET_CNODE_TYPE(csocket_cnode )          = CSOCKET_TYPE_TCP;
+        CSOCKET_CNODE_IPADDR(csocket_cnode)         = client_ipaddr;
         CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)    = client_port;
 
         chttp_node = chttp_node_new(CHTTP_TYPE_DO_SRV_REQ);
@@ -1958,6 +2079,11 @@ EC_BOOL chttps_srv_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
         /*mount csocket_cnode*/
         CHTTP_NODE_CSOCKET_CNODE(chttp_node) = csocket_cnode;
 
+        dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_srv_accept_once:"
+                          "bind csocket_cnode %p (sockfd %d, reusing %u) to chttp_node %p\n",
+                          csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                          chttp_node);
+
         chttp_node_init_parser(chttp_node);
 
         if(SWITCH_ON == HIGH_PRECISION_TIME_SWITCH)
@@ -1968,8 +2094,8 @@ EC_BOOL chttps_srv_accept_once(CSRV *csrv, EC_BOOL *continue_flag)
 
         CSOCKET_CNODE_MODI(csocket_cnode) = CSRV_MD_ID(csrv);
 
-        chttps_node_set_socket_callback(chttp_node, csocket_cnode);
-        chttps_node_set_socket_epoll(chttp_node, csocket_cnode);
+        chttps_node_set_socket_callback(chttp_node);
+        chttps_node_set_socket_epoll(chttp_node);
 
         dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_srv_accept_once: accept sockfd %d done\n", client_conn_sockfd);
     }
@@ -1985,7 +2111,7 @@ EC_BOOL chttps_srv_accept(CSRV *csrv)
     UINT32   num;
     EC_BOOL  continue_flag;
 
-    num = CSRV_ACCEPT_MAX_NUM;
+    num = SRV_ACCEPT_MAX_NUM;
     for(idx = 0; idx < num; idx ++)
     {
         if(EC_FALSE == chttps_srv_accept_once(csrv, &continue_flag))
@@ -2670,20 +2796,20 @@ EC_BOOL chttps_node_set_parse_callback(CHTTP_NODE *chttp_node)
             return (EC_TRUE);
         }
 
-        ccallback_list_push(CHTTP_NODE_PARSE_ON_HEADERS_COMPLETE_CALLBACK_LIST(chttp_node),
+        ccallback_node_set(CHTTP_NODE_PARSE_ON_HEADERS_COMPLETE_CB(chttp_node),
                             (const char *)"chttps_node_parse_on_headers_complete",
-                            (UINT32)chttp_node,
-                            (UINT32)chttps_node_parse_on_headers_complete);
+                            (void *)chttp_node,
+                            (void *)chttps_node_parse_on_headers_complete);
 
-        ccallback_list_push(CHTTP_NODE_PARSE_ON_BODY_CALLBACK_LIST(chttp_node),
+        ccallback_node_set(CHTTP_NODE_PARSE_ON_BODY_CB(chttp_node),
                             (const char *)"chttps_node_parse_on_body",
-                            (UINT32)chttp_node,
-                            (UINT32)chttps_node_parse_on_body);
+                            (void *)chttp_node,
+                            (void *)chttps_node_parse_on_body);
 
-        ccallback_list_push(CHTTP_NODE_PARSE_ON_MESSAGE_COMPLETE_CALLBACK_LIST(chttp_node),
+        ccallback_node_set(CHTTP_NODE_PARSE_ON_MESSAGE_COMPLETE_CB(chttp_node),
                             (const char *)"chttps_node_parse_on_message_complete",
-                            (UINT32)chttp_node,
-                            (UINT32)chttps_node_parse_on_message_complete);
+                            (void *)chttp_node,
+                            (void *)chttps_node_parse_on_message_complete);
         return (EC_TRUE);
     }
 
@@ -2693,119 +2819,184 @@ EC_BOOL chttps_node_set_parse_callback(CHTTP_NODE *chttp_node)
     }
     return (EC_FALSE);
 }
-EC_BOOL chttps_node_set_socket_callback(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
+
+/*callback when handshake*/
+EC_BOOL chttps_node_set_socket_callback(CHTTP_NODE *chttp_node)
 {
+    CSOCKET_CNODE *csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    ASSERT(NULL_PTR != csocket_cnode);
+
     if(CHTTP_TYPE_DO_SRV_REQ == CHTTP_NODE_TYPE(chttp_node))
     {
-        csocket_cnode_push_recv_callback(csocket_cnode,
+        csocket_cnode_set_recv_callback(csocket_cnode,
                                          (const char *)"chttps_node_handshake_on_server",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_handshake_on_server);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_handshake_on_server);
 
-        csocket_cnode_push_recv_callback(csocket_cnode,
-                                         (const char *)"chttps_node_recv_req",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_recv_req);
-
-        csocket_cnode_push_send_callback(csocket_cnode,
+        csocket_cnode_set_send_callback(csocket_cnode,
                                          (const char *)"chttps_node_handshake_on_client",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_handshake_on_client);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_handshake_on_client);
 
-        csocket_cnode_push_send_callback(csocket_cnode,
-                                         (const char *)"chttps_node_send_rsp",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_send_rsp);
-
-        csocket_cnode_push_complete_callback(csocket_cnode,
+        csocket_cnode_set_complete_callback(csocket_cnode,
                                          (const char *)"chttps_node_complete",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_complete);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_complete);
 
-        csocket_cnode_push_close_callback(csocket_cnode,
+        csocket_cnode_set_close_callback(csocket_cnode,
                                          (const char *)"chttps_node_close",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_close);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_close);
 
-        csocket_cnode_push_timeout_callback(csocket_cnode,
+        csocket_cnode_set_timeout_callback(csocket_cnode,
                                          (const char *)"chttps_node_timeout",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_timeout);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_timeout);
 
-        csocket_cnode_push_shutdown_callback(csocket_cnode,
+        csocket_cnode_set_shutdown_callback(csocket_cnode,
                                          (const char *)"chttps_node_shutdown",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_shutdown);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_shutdown);
         return (EC_TRUE);
     }
 
     if(CHTTP_TYPE_DO_CLT_RSP == CHTTP_NODE_TYPE(chttp_node))
     {
-        csocket_cnode_push_recv_callback(csocket_cnode,
+        csocket_cnode_set_recv_callback(csocket_cnode,
                                          (const char *)"chttps_node_handshake_on_client",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_handshake_on_client);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_handshake_on_client);
 
-        csocket_cnode_push_recv_callback(csocket_cnode,
-                                         (const char *)"chttps_node_recv_rsp",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_recv_rsp);
-
-        csocket_cnode_push_send_callback(csocket_cnode,
+        csocket_cnode_set_send_callback(csocket_cnode,
                                          (const char *)"chttps_node_handshake_on_client",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_handshake_on_client);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_handshake_on_client);
 
-        csocket_cnode_push_send_callback(csocket_cnode,
-                                         (const char *)"chttps_node_send_req",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_send_req);
-
-        csocket_cnode_push_complete_callback(csocket_cnode,
+        csocket_cnode_set_complete_callback(csocket_cnode,
                                          (const char *)"chttps_node_complete",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_complete);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_complete);
 
-        csocket_cnode_push_close_callback(csocket_cnode,
+        csocket_cnode_set_close_callback(csocket_cnode,
                                          (const char *)"chttps_node_close",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_close);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_close);
 
-        csocket_cnode_push_timeout_callback(csocket_cnode,
+        csocket_cnode_set_timeout_callback(csocket_cnode,
                                          (const char *)"chttps_node_timeout",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_timeout);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_timeout);
 
-        csocket_cnode_push_shutdown_callback(csocket_cnode,
+        csocket_cnode_set_shutdown_callback(csocket_cnode,
                                          (const char *)"chttps_node_shutdown",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_shutdown);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_shutdown);
         return (EC_TRUE);
     }
 
     if(CHTTP_TYPE_DO_CLT_CHK == CHTTP_NODE_TYPE(chttp_node))
     {
 #if 0
-        csocket_cnode_push_recv_callback(csocket_cnode,
+        csocket_cnode_set_recv_callback(csocket_cnode,
                                          (const char *)"chttps_node_handshake_on_client",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_handshake_on_client);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_handshake_on_client);
 
-        csocket_cnode_push_recv_callback(csocket_cnode,
+        csocket_cnode_set_recv_callback(csocket_cnode,
                                          (const char *)"chttps_node_recv_rsp",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_recv_rsp);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_recv_rsp);
 #endif
-        csocket_cnode_push_send_callback(csocket_cnode,
+        csocket_cnode_set_send_callback(csocket_cnode,
                                          (const char *)"chttps_node_handshake_on_client",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_handshake_on_client);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_handshake_on_client);
 
-        csocket_cnode_push_send_callback(csocket_cnode,
-                                         (const char *)"chttps_node_icheck",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_icheck);
-
-        csocket_cnode_push_close_callback(csocket_cnode,
+        csocket_cnode_set_close_callback(csocket_cnode,
                                          (const char *)"chttps_node_close",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_close);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_close);
 
-        csocket_cnode_push_timeout_callback(csocket_cnode,
+        csocket_cnode_set_timeout_callback(csocket_cnode,
                                          (const char *)"chttps_node_timeout",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_timeout);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_timeout);
 
-        csocket_cnode_push_shutdown_callback(csocket_cnode,
+        csocket_cnode_set_shutdown_callback(csocket_cnode,
                                          (const char *)"chttps_node_shutdown",
-                                         (UINT32)chttp_node, (UINT32)chttps_node_shutdown);
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_shutdown);
         return (EC_TRUE);
     }
 
     return (EC_FALSE);
 }
 
-EC_BOOL chttps_node_set_socket_epoll(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
+/*callback after handshake*/
+EC_BOOL chttps_node_reset_socket_callback(CHTTP_NODE *chttp_node)
 {
-    uint32_t    timeout_nsec;
+    CSOCKET_CNODE *csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    ASSERT(NULL_PTR != csocket_cnode);
+
+    if(CHTTP_TYPE_DO_SRV_REQ == CHTTP_NODE_TYPE(chttp_node))
+    {
+        csocket_cnode_set_recv_callback(csocket_cnode,
+                                         (const char *)"chttps_node_recv_req",
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_recv_req);
+
+        csocket_cnode_set_send_callback(csocket_cnode,
+                                         (const char *)"chttps_node_send_rsp",
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_send_rsp);
+        return (EC_TRUE);
+    }
+
+    if(CHTTP_TYPE_DO_CLT_RSP == CHTTP_NODE_TYPE(chttp_node))
+    {
+        csocket_cnode_set_recv_callback(csocket_cnode,
+                                         (const char *)"chttps_node_recv_rsp",
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_recv_rsp);
+
+        csocket_cnode_set_send_callback(csocket_cnode,
+                                         (const char *)"chttps_node_send_req",
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_send_req);
+
+         return (EC_TRUE);
+    }
+
+    if(CHTTP_TYPE_DO_CLT_CHK == CHTTP_NODE_TYPE(chttp_node))
+    {
+#if 0
+
+        csocket_cnode_set_recv_callback(csocket_cnode,
+                                         (const char *)"chttps_node_recv_rsp",
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_recv_rsp);
+#endif
+        csocket_cnode_set_send_callback(csocket_cnode,
+                                         (const char *)"chttps_node_icheck",
+                                         (void *)chttp_node,
+                                         (void *)chttps_node_icheck);
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL chttps_node_set_socket_epoll(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE *csocket_cnode;
+    uint32_t       timeout_nsec;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    ASSERT(NULL_PTR != csocket_cnode);
 
     if(NULL_PTR != CHTTP_NODE_STORE(chttp_node))
     {
@@ -2990,22 +3181,13 @@ EC_BOOL chttps_node_connect(CHTTP_NODE *chttp_node, const UINT32 csocket_block_m
         CSOCKET_CNODE_NONBLOCK(csocket_cnode) = BIT_FALSE;
     }
 
-    if(CSOCKET_IS_NONBLOCK_MODE == csocket_block_mode)
-    {
-        /*set connection pool callback*/
-        csocket_cnode_push_close_callback(csocket_cnode,
-                                     (const char *)"cconnp_mgr_release",
-                                     (UINT32)task_brd_default_get_http_cconnp_mgr(),
-                                     (UINT32)cconnp_mgr_release);
-
-        csocket_cnode_push_complete_callback(csocket_cnode,
-                                     (const char *)"cconnp_mgr_release",
-                                     (UINT32)task_brd_default_get_http_cconnp_mgr(),
-                                     (UINT32)cconnp_mgr_release);
-    }
     /* mount */
     CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = csocket_cnode;
 
+    dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_connect:"
+                      "bind csocket_cnode %p (sockfd %d, reusing %u) to chttp_node %p\n",
+                      csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                      chttp_node);
     return (EC_TRUE);
 }
 
@@ -3021,6 +3203,11 @@ EC_BOOL chttps_node_disconnect(CHTTP_NODE *chttp_node)
         /*umount csocket_cnode and chttp_node*/
         CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
 
+        dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_node_disconnect:"
+                          "unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                          csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                          chttp_node);
+
         dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_node_disconnect: close socket %d\n",
                                               CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
@@ -3035,12 +3222,18 @@ EC_BOOL chttps_node_disconnect(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL chttps_node_handshake_on_client(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
+EC_BOOL chttps_node_handshake_on_client(CHTTP_NODE *chttp_node)
 {
-    EC_BOOL      ret;
+    CSOCKET_CNODE *csocket_cnode;
+    EC_BOOL        ret;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    ASSERT(NULL_PTR != csocket_cnode);
 
     if(CHTTP_NODE_SSL_STATUS_HANDSHAKE_IS_DONE & CHTTP_NODE_SSL_STATUS(chttp_node))
     {
+        chttps_node_reset_socket_callback(chttp_node);
+
         return (EC_TRUE);
     }
 
@@ -3113,6 +3306,8 @@ EC_BOOL chttps_node_handshake_on_client(CHTTP_NODE *chttp_node, CSOCKET_CNODE *c
                         (void *)csocket_cnode);
         CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_TRUE;
 
+        chttps_node_reset_socket_callback(chttp_node);
+
         return (EC_TRUE);
     }
 
@@ -3130,6 +3325,8 @@ EC_BOOL chttps_node_handshake_on_client(CHTTP_NODE *chttp_node, CSOCKET_CNODE *c
                         (void *)csocket_cnode);
         CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_TRUE;
 
+        chttps_node_reset_socket_callback(chttp_node);
+
         return (EC_TRUE);
     }
 
@@ -3146,6 +3343,9 @@ EC_BOOL chttps_node_handshake_on_client(CHTTP_NODE *chttp_node, CSOCKET_CNODE *c
                         (CEPOLL_EVENT_HANDLER)csocket_cnode_irecv,
                         (void *)csocket_cnode);
         CSOCKET_CNODE_READING(csocket_cnode) = BIT_TRUE;
+
+        chttps_node_reset_socket_callback(chttp_node);
+
         return (EC_TRUE);
     }
 
@@ -3156,13 +3356,18 @@ EC_BOOL chttps_node_handshake_on_client(CHTTP_NODE *chttp_node, CSOCKET_CNODE *c
 }
 
 
-EC_BOOL chttps_node_handshake_on_server(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode)
+EC_BOOL chttps_node_handshake_on_server(CHTTP_NODE *chttp_node)
 {
-    CSRV        *csrv;
-    EC_BOOL      ret;
+    CSOCKET_CNODE *csocket_cnode;
+    CSRV          *csrv;
+    EC_BOOL        ret;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    ASSERT(NULL_PTR != csocket_cnode);
 
     if(CHTTP_NODE_SSL_STATUS_HANDSHAKE_IS_DONE & CHTTP_NODE_SSL_STATUS(chttp_node))
     {
+        chttps_node_reset_socket_callback(chttp_node);
         return (EC_TRUE);
     }
 
@@ -3231,6 +3436,8 @@ EC_BOOL chttps_node_handshake_on_server(CHTTP_NODE *chttp_node, CSOCKET_CNODE *c
                           (CEPOLL_EVENT_HANDLER)csocket_cnode_irecv,
                           (void *)csocket_cnode);
         CSOCKET_CNODE_READING(csocket_cnode) = BIT_TRUE;
+
+        chttps_node_reset_socket_callback(chttp_node);
         return (EC_TRUE);
     }
 
@@ -3248,6 +3455,7 @@ EC_BOOL chttps_node_handshake_on_server(CHTTP_NODE *chttp_node, CSOCKET_CNODE *c
                         (void *)csocket_cnode);
         CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_TRUE;
 
+        chttps_node_reset_socket_callback(chttp_node);
         return (EC_TRUE);
     }
 
@@ -3265,6 +3473,7 @@ EC_BOOL chttps_node_handshake_on_server(CHTTP_NODE *chttp_node, CSOCKET_CNODE *c
                         (void *)csocket_cnode);
         CSOCKET_CNODE_READING(csocket_cnode) = BIT_TRUE;
 
+        chttps_node_reset_socket_callback(chttp_node);
         return (EC_TRUE);
     }
 
@@ -3414,7 +3623,15 @@ EC_BOOL chttps_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, C
         /*unbind csocket_cnode and chttp_node*/
         CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
 
+        dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_request_block:"
+                          "[1] unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                          csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                          chttp_node);
+
         /*close http connection*/
+        cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+        CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
         csocket_cnode_close(csocket_cnode);
 
         chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
@@ -3429,7 +3646,15 @@ EC_BOOL chttps_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, C
         /*unbind csocket_cnode and chttp_node*/
         CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
 
+        dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_request_block:"
+                          "[2] unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                          csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                          chttp_node);
+
         /*close http connection*/
+        cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+        CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
         csocket_cnode_close(csocket_cnode);
 
         chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
@@ -3439,7 +3664,7 @@ EC_BOOL chttps_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, C
 
     for(;;)
     {
-        ret = chttps_node_send_req(chttp_node, csocket_cnode);
+        ret = chttps_node_send_req(chttp_node);
         if(EC_AGAIN != ret)
         {
             break;
@@ -3448,7 +3673,7 @@ EC_BOOL chttps_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, C
 
     if(EC_TRUE == ret || EC_DONE == ret)
     {
-        ret = chttps_node_recv_rsp(chttp_node, csocket_cnode);
+        ret = chttps_node_recv_rsp(chttp_node);
     }
 
     /**
@@ -3467,7 +3692,15 @@ EC_BOOL chttps_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, C
             /*unbind csocket_cnode and chttp_node*/
             CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
 
+            dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_request_block:"
+                              "[3] unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                              csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                              chttp_node);
+
             /*close http connection*/
+            cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+            CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+            CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
             csocket_cnode_close(csocket_cnode);
         }
 
@@ -3480,8 +3713,17 @@ EC_BOOL chttps_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, C
         /*unbind csocket_cnode and chttp_node*/
         CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
 
+        dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_request_block:"
+                          "[4] unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                          csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                          chttp_node);
+
         dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_request_block: try close socket %d\n", CSOCKET_CNODE_SOCKFD(csocket_cnode));
+
         /*close http connection*/
+        cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+        CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
         csocket_cnode_close(csocket_cnode);
     }
 
@@ -3726,7 +3968,15 @@ EC_BOOL chttps_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_stor
         /*umount csocket_cnode and chttp_node*/
         CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
 
+        dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_request_basic:"
+                          "[1] unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                          csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                          chttp_node);
+
         /*close http connection*/
+        cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+        CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
         csocket_cnode_close(csocket_cnode);
 
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);/*for merge orign exception*/
@@ -3749,7 +3999,15 @@ EC_BOOL chttps_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_stor
         /*umount csocket_cnode and chttp_node*/
         CHTTP_NODE_CSOCKET_CNODE(chttp_node)    = NULL_PTR;
 
+        dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_request_basic:"
+                          "[2] unbind csocket_cnode %p (sockfd %d, reusing %u) from chttp_node %p\n",
+                          csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                          chttp_node);
+
         /*close http connection*/
+        cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+        CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
         csocket_cnode_close(csocket_cnode);
 
         chttp_node_store_done_nonblocking(chttp_node, chttp_store);/*for merge orign exception*/
@@ -3770,8 +4028,8 @@ EC_BOOL chttps_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_stor
 
     chttps_node_set_parse_callback(chttp_node);
 
-    chttps_node_set_socket_callback(chttp_node, CHTTP_NODE_CSOCKET_CNODE(chttp_node));
-    chttps_node_set_socket_epoll(chttp_node, CHTTP_NODE_CSOCKET_CNODE(chttp_node));
+    chttps_node_set_socket_callback(chttp_node);
+    chttps_node_set_socket_epoll(chttp_node);
 
     if(NULL_PTR != chttp_stat)
     {
@@ -3970,6 +4228,11 @@ EC_BOOL chttps_node_check(CHTTP_NODE *chttp_node, const UINT32 ipaddr, const UIN
     /* mount */
     CHTTP_NODE_CSOCKET_CNODE(chttp_node) = csocket_cnode;
 
+    dbg_log(SEC_0157_CHTTPS, 5)(LOGSTDOUT, "[DEBUG] chttps_node_check:"
+                      "bind csocket_cnode %p (sockfd %d, reusing %u) to chttp_node %p\n",
+                      csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                      chttp_node);
+
     return (EC_TRUE);
 }
 
@@ -4010,8 +4273,8 @@ EC_BOOL chttps_check(const CHTTP_REQ *chttp_req, CHTTP_STAT *chttp_stat)
 
     chttp_node_init_parser(chttp_node);
 
-    chttps_node_set_socket_callback(chttp_node, CHTTP_NODE_CSOCKET_CNODE(chttp_node));
-    chttps_node_set_socket_epoll(chttp_node, CHTTP_NODE_CSOCKET_CNODE(chttp_node));
+    chttps_node_set_socket_callback(chttp_node);
+    chttps_node_set_socket_epoll(chttp_node);
 
     croutine_cond_reserve(croutine_cond, 1, LOC_CHTTPS_0030);
     croutine_cond_wait(croutine_cond, LOC_CHTTPS_0031);

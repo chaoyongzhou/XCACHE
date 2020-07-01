@@ -561,6 +561,8 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_start: create op mgr done\n");
     }
 
+    task_brd_set_paused();
+
     csig_atexit_register((CSIG_ATEXIT_HANDLER)cxfs_end, cxfs_md_id);
 
     task_brd_process_add(task_brd_default_get(),
@@ -595,7 +597,11 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
             if(EC_FALSE == chttp_defer_request_queue_init())
             {
                 dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: init cxfshttp defer request queue failed\n");
+
+                task_brd_set_not_paused();
+
                 cxfs_end(cxfs_md_id);
+
                 return (CMPI_ERROR_MODI);
             }
 
@@ -614,7 +620,11 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
             if(EC_FALSE == chttps_defer_request_queue_init())
             {
                 dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_start: init cxfshttp defer request queue failed\n");
+
+                task_brd_set_not_paused();
+
                 cxfs_end(cxfs_md_id);
+
                 return (CMPI_ERROR_MODI);
             }
             cxfshttps_log_start();
@@ -637,6 +647,8 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
             }
         }
     }
+
+    task_brd_set_not_paused();
 
     return ( cxfs_md_id );
 }
@@ -1108,6 +1120,8 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
 
     CXFSCFG_OP_DUMP_TIME_MSEC(CXFS_MD_CFG(cxfs_md)) = c_get_cur_time_msec();
 
+    task_brd_set_paused();
+
     /*dump cxfscfg*/
     cxfscfg_flush(CXFS_MD_CFG(cxfs_md), CXFS_MD_SATA_DISK_FD(cxfs_md));
 
@@ -1145,6 +1159,9 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
             if(EC_FALSE == chttp_defer_request_queue_init())
             {
                 dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: init cxfshttp defer request queue failed\n");
+
+                task_brd_set_not_paused();
+
                 cxfs_end(cxfs_md_id);
                 return (CMPI_ERROR_MODI);
             }
@@ -1163,6 +1180,9 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
             if(EC_FALSE == chttps_defer_request_queue_init())
             {
                 dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_retrieve: init cxfshttp defer request queue failed\n");
+
+                task_brd_set_not_paused();
+
                 cxfs_end(cxfs_md_id);
                 return (CMPI_ERROR_MODI);
             }
@@ -1185,6 +1205,8 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
             }
         }
     }
+
+    task_brd_set_not_paused();
 
     return ( cxfs_md_id );
 }

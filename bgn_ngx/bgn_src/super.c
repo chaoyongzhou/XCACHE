@@ -2159,7 +2159,7 @@ EC_BOOL super_set_ngx_slow_down(const UINT32 super_md_id, const UINT32 slow_down
     return (EC_FALSE);
 }
 
-void super_handle_broken_tcid_comm(const UINT32 super_md_id, const UINT32 broken_tcid, const UINT32 broken_comm)
+void super_handle_broken_tcid_comm0(const UINT32 super_md_id, const UINT32 broken_tcid, const UINT32 broken_comm)
 {
     TASK_BRD *task_brd;
 
@@ -2309,6 +2309,25 @@ void super_handle_broken_tcid_comm(const UINT32 super_md_id, const UINT32 broken
     dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "[DEBUG] super_handle_broken_tcid_comm: end: broken tcid %s comm %ld\n",
                                           c_word_to_ipv4(broken_tcid), broken_comm);
     //super_show_queues(super_md_id);/*debug only!*/
+    return;
+}
+
+void super_handle_broken_tcid_comm(const UINT32 super_md_id, const UINT32 broken_tcid, const UINT32 broken_comm)
+{
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_handle_broken_tcid_comm: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "[DEBUG] super_handle_broken_tcid_comm: broken tcid %s comm %ld => obsolete\n",
+                                          c_word_to_ipv4(broken_tcid), broken_comm);
+
     return;
 }
 
@@ -3558,11 +3577,13 @@ EC_BOOL super_connect(const UINT32 super_md_id, const UINT32 des_tcid, const UIN
         return (EC_FALSE);
     }
 
+#if (SWITCH_ON == TASK_PROC_SEND_CHANNEL_SWITCH)
     if(des_tcid == TASK_BRD_TCID(task_brd)
     && (CMPI_ANY_COMM == des_comm || des_comm == TASK_BRD_COMM(task_brd)))
     {
         return (EC_TRUE);
     }
+#endif/*(SWITCH_ON == TASK_PROC_SEND_CHANNEL_SWITCH)*/
 
     if(TDNS_RESOLVE_SWITCH == SWITCH_ON)
     {
@@ -3637,12 +3658,14 @@ void super_add_connection(const UINT32 super_md_id, const UINT32 des_tcid, const
         return;
     }
 
+#if (SWITCH_ON == TASK_PROC_SEND_CHANNEL_SWITCH)
     if(des_tcid == TASK_BRD_TCID(task_brd)
     && (CMPI_ANY_COMM == des_comm || des_comm == TASK_BRD_COMM(task_brd)))
     {
         dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "warn:super_add_connection: giveup connect to itself\n");
         return;
     }
+#endif/*(SWITCH_ON == TASK_PROC_SEND_CHANNEL_SWITCH)*/
 
     task_brd_register_one(task_brd, des_tcid, des_srv_ipaddr, des_srv_port, conn_num);
 
@@ -9177,6 +9200,8 @@ STATIC_CAST static EC_BOOL __super_dns_resolve_cleanup_handle(CDNS_NODE *cdns_no
 {
     if(NULL_PTR != cdns_node)
     {
+        CSOCKET_CNODE   *csocket_cnode;
+
         if(NULL_PTR != CDNS_NODE_RSP(cdns_node))
         {
             cdns_rsp_free(CDNS_NODE_RSP(cdns_node));
@@ -9188,6 +9213,18 @@ STATIC_CAST static EC_BOOL __super_dns_resolve_cleanup_handle(CDNS_NODE *cdns_no
             cdns_req_free(CDNS_NODE_REQ(cdns_node));
             CDNS_NODE_REQ(cdns_node) = NULL_PTR;
         }
+
+        csocket_cnode = CDNS_NODE_CSOCKET_CNODE(cdns_node);
+        CDNS_NODE_CSOCKET_CNODE(cdns_node) = NULL_PTR;
+
+        ASSERT(NULL_PTR != csocket_cnode);
+
+        dbg_log(SEC_0117_SUPER, 5)(LOGSTDOUT, "[DEBUG] __super_dns_resolve_cleanup_handle:"
+                          "unbind and close csocket_cnode %p (sockfd %d, reusing %u) from cdns_node %p\n",
+                          csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                          cdns_node);
+
+        csocket_cnode_close(csocket_cnode);
 
         cdns_node_free(cdns_node);
     }
@@ -9211,21 +9248,25 @@ STATIC_CAST static EC_BOOL __super_dns_resolve_recv_handle(CDNS_NODE *cdns_node)
 /*for debug*/
 STATIC_CAST EC_BOOL __super_dns_resolve_set_callback(CSOCKET_CNODE *csocket_cnode, CDNS_NODE *cdns_node)
 {
-    csocket_cnode_push_recv_callback(csocket_cnode,
+    csocket_cnode_set_recv_callback(csocket_cnode,
                                      (const char *)"__super_dns_resolve_recv_handle",
-                                     (UINT32)cdns_node, (UINT32)__super_dns_resolve_recv_handle);
+                                     (void *)cdns_node,
+                                     (void *)__super_dns_resolve_recv_handle);
 
-    csocket_cnode_push_close_callback(csocket_cnode,
+    csocket_cnode_set_close_callback(csocket_cnode,
                                      (const char *)"__super_dns_resolve_cleanup_handle",
-                                     (UINT32)cdns_node, (UINT32)__super_dns_resolve_cleanup_handle);
+                                     (void *)cdns_node,
+                                     (void *)__super_dns_resolve_cleanup_handle);
 
-    csocket_cnode_push_timeout_callback(csocket_cnode,
+    csocket_cnode_set_timeout_callback(csocket_cnode,
                                      (const char *)"__super_dns_resolve_cleanup_handle",
-                                     (UINT32)cdns_node, (UINT32)__super_dns_resolve_cleanup_handle);
+                                     (void *)cdns_node,
+                                     (void *)__super_dns_resolve_cleanup_handle);
 
-    csocket_cnode_push_shutdown_callback(csocket_cnode,
+    csocket_cnode_set_shutdown_callback(csocket_cnode,
                                      (const char *)"__super_dns_resolve_cleanup_handle",
-                                     (UINT32)cdns_node, (UINT32)__super_dns_resolve_cleanup_handle);
+                                     (void *)cdns_node,
+                                     (void *)__super_dns_resolve_cleanup_handle);
 
     return (EC_TRUE);
 }

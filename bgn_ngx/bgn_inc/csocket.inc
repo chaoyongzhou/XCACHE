@@ -189,8 +189,6 @@ typedef struct _CSOCKET_CNODE
     /*the status to exchange taskc_node with remote*/
     UINT32              status; /*counter for monitor client up to 2: send local taskc_node info to remote, recv remote taskc_node info from remote*/
 
-    UINT32              load;  /*load in sending direction*/
-
     union
     {
         struct
@@ -210,12 +208,12 @@ typedef struct _CSOCKET_CNODE
     void               *sending_task_node;/*be sending data*/
 
     /*BEG: protocol callback over socket*/
-    CCALLBACK_LIST      recv_callback_list;    /*after data recv complete*/
-    CCALLBACK_LIST      send_callback_list;    /*after data sent complete*/
-    CCALLBACK_LIST      complete_callback_list;/*after procedure complete*/
-    CCALLBACK_LIST      close_callback_list;   /*before connection close*/
-    CCALLBACK_LIST      shutdown_callback_list;/*before connection shutdown (force close)*/
-    CCALLBACK_LIST      timeout_callback_list; /*when connection timeout*/
+    CCALLBACK_NODE      on_recv;    /*recv data callback*/
+    CCALLBACK_NODE      on_send;    /*send data callback*/
+    CCALLBACK_NODE      on_complete;/*procedure complete callback*/
+    CCALLBACK_NODE      on_close;   /*connection close callback*/
+    CCALLBACK_NODE      on_shutdown;/*connection shutdown callback*/
+    CCALLBACK_NODE      on_timeout; /*connection timeout callback*/
 
     void               *mounted_point; /*used when tasks handshake, never free it.*/
     /*END: protocol callback over socket*/
@@ -248,9 +246,6 @@ typedef struct _CSOCKET_CNODE
 #define CSOCKET_CNODE_RECV_ONCE_MAX_SIZE(csocket_cnode)      ((csocket_cnode)->recv_once_max_size)
 
 #define CSOCKET_CNODE_STATUS(csocket_cnode)                  ((csocket_cnode)->status)
-#define CSOCKET_CNODE_RETRIES(csocket_cnode)                 ((csocket_cnode)->status)/*reuse status field*/
-
-#define CSOCKET_CNODE_LOAD(csocket_cnode)                    ((csocket_cnode)->load)
 
 #define CSOCKET_CNODE_IPADDR_STR(csocket_cnode)              (c_word_to_ipv4(CSOCKET_CNODE_IPADDR(csocket_cnode)))
 #define CSOCKET_CNODE_PKT_HDR(csocket_cnode)                 ((csocket_cnode)->u.pkt.pkt_hdr)
@@ -262,12 +257,12 @@ typedef struct _CSOCKET_CNODE
 #define CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode)       ((csocket_cnode)->recving_task_node)
 #define CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode)       ((csocket_cnode)->sending_task_node)
 
-#define CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode)      (&((csocket_cnode)->recv_callback_list))
-#define CSOCKET_CNODE_SEND_CALLBACK_LIST(csocket_cnode)      (&((csocket_cnode)->send_callback_list))
-#define CSOCKET_CNODE_COMPLETE_CALLBACK_LIST(csocket_cnode)  (&((csocket_cnode)->complete_callback_list))
-#define CSOCKET_CNODE_CLOSE_CALLBACK_LIST(csocket_cnode)     (&((csocket_cnode)->close_callback_list))
-#define CSOCKET_CNODE_SHUTDOWN_CALLBACK_LIST(csocket_cnode)  (&((csocket_cnode)->shutdown_callback_list))
-#define CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode)   (&((csocket_cnode)->timeout_callback_list))
+#define CSOCKET_CNODE_ON_RECV(csocket_cnode)                 (&((csocket_cnode)->on_recv))
+#define CSOCKET_CNODE_ON_SEND(csocket_cnode)                 (&((csocket_cnode)->on_send))
+#define CSOCKET_CNODE_ON_COMPLETE(csocket_cnode)             (&((csocket_cnode)->on_complete))
+#define CSOCKET_CNODE_ON_CLOSE(csocket_cnode)                (&((csocket_cnode)->on_close))
+#define CSOCKET_CNODE_ON_SHUTDOWN(csocket_cnode)             (&((csocket_cnode)->on_shutdown))
+#define CSOCKET_CNODE_ON_TIMEOUT(csocket_cnode)              (&((csocket_cnode)->on_timeout))
 
 #define CSOCKET_CNODE_MOUNTED_POINT(csocket_cnode)           ((csocket_cnode)->mounted_point)
 

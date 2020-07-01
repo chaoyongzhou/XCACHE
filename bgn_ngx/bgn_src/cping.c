@@ -104,8 +104,13 @@ void cping_node_print(LOG *log, const CPING_NODE *cping_node)
     return;
 }
 
-EC_BOOL cping_node_icheck(CPING_NODE *cping_node, CSOCKET_CNODE *csocket_cnode)
+EC_BOOL cping_node_icheck(CPING_NODE *cping_node)
 {
+    CSOCKET_CNODE *csocket_cnode;
+
+    csocket_cnode = CPING_NODE_CSOCKET_CNODE(cping_node);
+    ASSERT(NULL_PTR != csocket_cnode);
+
     if(EC_FALSE == csocket_cnode_is_connected(csocket_cnode))
     {
         dbg_log(SEC_0063_CPING, 0)(LOGSTDOUT, "error:cping_node_icheck: sockfd %d is not connected\n",
@@ -124,11 +129,17 @@ EC_BOOL cping_node_icheck(CPING_NODE *cping_node, CSOCKET_CNODE *csocket_cnode)
 
     dbg_log(SEC_0063_CPING, 9)(LOGSTDOUT, "[DEBUG] cping_node_icheck: sockfd %d return done\n",
                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
+
     return (EC_DONE);
 }
 
-EC_BOOL cping_node_complete(CPING_NODE *cping_node, CSOCKET_CNODE *csocket_cnode)
+EC_BOOL cping_node_complete(CPING_NODE *cping_node)
 {
+    CSOCKET_CNODE *csocket_cnode;
+
+    csocket_cnode = CPING_NODE_CSOCKET_CNODE(cping_node);
+    ASSERT(NULL_PTR != csocket_cnode);
+
     /* unbind */
     CPING_NODE_CSOCKET_CNODE(cping_node) = NULL_PTR;
 
@@ -145,13 +156,22 @@ EC_BOOL cping_node_complete(CPING_NODE *cping_node, CSOCKET_CNODE *csocket_cnode
 
     dbg_log(SEC_0063_CPING, 9)(LOGSTDOUT, "[DEBUG] cping_node_complete: sockfd %d return true\n",
                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
+
+    csocket_cnode_close(csocket_cnode);
+
     return (EC_TRUE);
 
 }
 
-EC_BOOL cping_node_shutdown(CPING_NODE *cping_node, CSOCKET_CNODE *csocket_cnode)
+EC_BOOL cping_node_shutdown(CPING_NODE *cping_node)
 {
-    /*not unbind*/
+    CSOCKET_CNODE *csocket_cnode;
+
+    csocket_cnode = CPING_NODE_CSOCKET_CNODE(cping_node);
+    ASSERT(NULL_PTR != csocket_cnode);
+
+    /* unbind */
+    CPING_NODE_CSOCKET_CNODE(cping_node) = NULL_PTR;
 
     /**
      * not free cping_node but release ccond
@@ -164,14 +184,23 @@ EC_BOOL cping_node_shutdown(CPING_NODE *cping_node, CSOCKET_CNODE *csocket_cnode
 
     CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;
 
-    dbg_log(SEC_0063_CPING, 9)(LOGSTDOUT, "[DEBUG] cping_node_shutdown: sockfd %d return true\n",
+    dbg_log(SEC_0063_CPING, 9)(LOGSTDOUT, "[DEBUG] cping_node_shutdown: sockfd %d \n",
                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
+
+    csocket_cnode_close(csocket_cnode);
+
     return (EC_TRUE);
 }
 
-EC_BOOL cping_node_close(CPING_NODE *cping_node, CSOCKET_CNODE *csocket_cnode)
+EC_BOOL cping_node_close(CPING_NODE *cping_node)
 {
-    /*not unbind*/
+    CSOCKET_CNODE *csocket_cnode;
+
+    csocket_cnode = CPING_NODE_CSOCKET_CNODE(cping_node);
+    ASSERT(NULL_PTR != csocket_cnode);
+
+    /* unbind */
+    CPING_NODE_CSOCKET_CNODE(cping_node) = NULL_PTR;
 
     /**
      * not free cping_node but release ccond
@@ -184,8 +213,11 @@ EC_BOOL cping_node_close(CPING_NODE *cping_node, CSOCKET_CNODE *csocket_cnode)
 
     CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;
 
-    dbg_log(SEC_0063_CPING, 9)(LOGSTDOUT, "[DEBUG] cping_node_close: sockfd %d return true\n",
+    dbg_log(SEC_0063_CPING, 9)(LOGSTDOUT, "[DEBUG] cping_node_close: sockfd %d\n",
                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
+
+    csocket_cnode_close(csocket_cnode);
+
     return (EC_TRUE);
 }
 
@@ -214,33 +246,48 @@ EC_BOOL cping_node_disconnect(CPING_NODE *cping_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cping_node_set_socket_callback(CPING_NODE *cping_node, CSOCKET_CNODE *csocket_cnode)
+EC_BOOL cping_node_set_socket_callback(CPING_NODE *cping_node)
 {
-    csocket_cnode_push_send_callback(csocket_cnode,
+    CSOCKET_CNODE *csocket_cnode;
+
+    csocket_cnode = CPING_NODE_CSOCKET_CNODE(cping_node);
+    ASSERT(NULL_PTR != csocket_cnode);
+
+    csocket_cnode_set_send_callback(csocket_cnode,
                                      (const char *)"cping_node_icheck",
-                                     (UINT32)cping_node, (UINT32)cping_node_icheck);
+                                     (void *)cping_node,
+                                     (void *)cping_node_icheck);
 
-    csocket_cnode_push_complete_callback(csocket_cnode,
+    csocket_cnode_set_complete_callback(csocket_cnode,
                                      (const char *)"cping_node_complete",
-                                     (UINT32)cping_node, (UINT32)cping_node_complete);
+                                     (void *)cping_node,
+                                     (void *)cping_node_complete);
 
-    csocket_cnode_push_close_callback(csocket_cnode,
+    csocket_cnode_set_close_callback(csocket_cnode,
                                      (const char *)"cping_node_close",
-                                     (UINT32)cping_node, (UINT32)cping_node_close);
+                                     (void *)cping_node,
+                                     (void *)cping_node_close);
 
-    csocket_cnode_push_timeout_callback(csocket_cnode,
+    csocket_cnode_set_timeout_callback(csocket_cnode,
                                      (const char *)"cping_node_close",
-                                     (UINT32)cping_node, (UINT32)cping_node_close);
+                                     (void *)cping_node,
+                                     (void *)cping_node_close);
 
-    csocket_cnode_push_shutdown_callback(csocket_cnode,
+    csocket_cnode_set_shutdown_callback(csocket_cnode,
                                      (const char *)"cping_node_shutdown",
-                                     (UINT32)cping_node, (UINT32)cping_node_shutdown);
+                                     (void *)cping_node,
+                                     (void *)cping_node_shutdown);
 
     return (EC_TRUE);
 }
 
-EC_BOOL cping_node_set_socket_epoll(CPING_NODE *cping_node, CSOCKET_CNODE *csocket_cnode)
+EC_BOOL cping_node_set_socket_epoll(CPING_NODE *cping_node)
 {
+    CSOCKET_CNODE *csocket_cnode;
+
+    csocket_cnode = CPING_NODE_CSOCKET_CNODE(cping_node);
+    ASSERT(NULL_PTR != csocket_cnode);
+
     cepoll_set_event(task_brd_default_get_cepoll(),
                     CSOCKET_CNODE_SOCKFD(csocket_cnode),
                     CEPOLL_WR_EVENT,
@@ -370,8 +417,8 @@ EC_BOOL cping_check(const UINT32 srv_ipaddr, const UINT32 srv_port, UINT32 *elap
         return (EC_FALSE);
     }
 
-    cping_node_set_socket_callback(cping_node, CPING_NODE_CSOCKET_CNODE(cping_node));
-    cping_node_set_socket_epoll(cping_node, CPING_NODE_CSOCKET_CNODE(cping_node));
+    cping_node_set_socket_callback(cping_node);
+    cping_node_set_socket_epoll(cping_node);
 
     croutine_cond_reserve(croutine_cond, 1, LOC_CPING_0009);
     croutine_cond_wait(croutine_cond, LOC_CPING_0010);
@@ -386,6 +433,8 @@ EC_BOOL cping_check(const UINT32 srv_ipaddr, const UINT32 srv_port, UINT32 *elap
     if(BIT_FALSE == CPING_NODE_COMPLETE_FLAG(cping_node))/*exception happened*/
     {
         dbg_log(SEC_0063_CPING, 0)(LOGSTDOUT, "error:cping_check: exception happened\n");
+
+        cping_node_disconnect(cping_node);
 
         cping_node_free(cping_node);
         return (EC_FALSE);

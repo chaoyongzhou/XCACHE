@@ -31,9 +31,10 @@ extern "C"{
 #include "cmpic.inc"
 #include "cmpie.h"
 #include "csbuff.h"
+#include "ccallback.h"
 #include "cproc.h"
 
-#if 1
+#if 0
 #define PRINT_BUFF(info, buff, len) do{\
     UINT32 __pos__;\
     dbg_log(SEC_0085_CPROC, 5)(LOGSTDOUT, "%s: ", info);\
@@ -370,6 +371,13 @@ EC_BOOL cproc_isend(CPROC *cproc, const UINT32 recv_rank, const UINT32 msg_tag, 
     cmpi_encode_uint32_compressed_uint8_t(CMPI_LOCAL_COMM, msg_tag, TASK_NODE_BUFF(task_node), TASK_NODE_BUFF_LEN(task_node), &pos);
 #endif/*(SWITCH_ON == TASK_HEADER_COMPRESSED_SWITCH)*/
 
+    if(CMPI_ANY_COMM == TASK_NODE_RECV_COMM(task_node))
+    {
+        TASK_NODE_RECV_COMM(task_node) = CMPI_LOCAL_COMM;
+
+        task_any_encode(TASK_NODE_ANY(task_node));
+    }
+
     cproc_isend_node(cproc, cproc_item, task_node);
     return (EC_TRUE);
 }
@@ -451,6 +459,7 @@ EC_BOOL cproc_fix_task_node(CPROC *cproc, CPROC_ITEM *cproc_item, TASK_NODE *tas
 EC_BOOL cproc_isend_node(CPROC *cproc, CPROC_ITEM *cproc_item, TASK_NODE *task_node)
 {
     clist_push_back(CPROC_ITEM_SENDING_QUEUE(cproc_item), (void *)task_node);
+
     return (EC_TRUE);
 }
 
@@ -509,6 +518,8 @@ EC_BOOL cproc_isend_on_item(CPROC *cproc, CPROC_ITEM *cproc_item)
         {
             clist_pop_front(sending_queue);
             TASK_NODE_COMP(task_node) = TASK_WAS_SENT;
+
+            ccallback_node_run(TASK_NODE_ON_SEND_SUCC_CB(task_node));
         }
         else
         {

@@ -56,6 +56,9 @@ typedef struct
 
     UINT32    file_log_max_records          ;
 
+    UINT32    cepoll_event_max_num          ;/* CEPOLL_EVENT_MAX_NUM */
+    UINT32    srv_accept_max_num            ;/* SRV_ACCEPT_MAX_NUM */
+
     //UINT32    conn_keepalive_switch         ;/*internal communication keepalive by hearbeat, http connection by checking data transfering*/
     UINT32    conn_timeout_nsec             ;/*if no data tranfer in n seconds, shutdown the connection*/
     UINT32    timeout_max_num_per_loop      ;/*once cepoll loop shutdown the timeout connections to the max num*/
@@ -198,6 +201,11 @@ typedef struct
 #define CPARACFG_CSOCKET_HEARTBEAT_INTVL_NSEC(cparacfg)             ((cparacfg)->csocket_heartbeat_intvl_nsec  )
 #define CPARACFG_FILE_LOG_MAX_RECORDS(cparacfg)                     ((cparacfg)->file_log_max_records          )
 //#define CPARACFG_CONN_KEEPALIVE_SWITCH(cparacfg)                    ((cparacfg)->conn_keepalive_switch)
+
+#define CPARACFG_CEPOLL_EVENT_MAX_NUM(cparacfg)                     ((cparacfg)->cepoll_event_max_num)
+
+#define CPARACFG_SRV_ACCEPT_MAX_NUM(cparacfg)                       ((cparacfg)->srv_accept_max_num)
+
 #define CPARACFG_CONN_TIMEOUT_NSEC(cparacfg)                        ((cparacfg)->conn_timeout_nsec)
 #define CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP(cparacfg)                 ((cparacfg)->timeout_max_num_per_loop)
 #define CPARACFG_CDNS_TIMEOUT_NSEC(cparacfg)                        ((cparacfg)->cdns_timeout_nsec)
@@ -429,7 +437,11 @@ typedef struct
 #define CPARACFG_CSOCKET_RECV_ONCE_MAX_SIZE_DEF                  MEM_BUFF_64K
 #define CPARACFG_CSOCKET_CNODE_NUM_DEF                           1
 
-#define CPARACFG_FILE_LOG_MAX_RECORDS_DEF                        FILE_LOG_RECORDS_001M
+#define CPARACFG_FILE_LOG_MAX_RECORDS_DEF                        FILE_LOG_RECORDS_010K
+
+#define CPARACFG_CEPOLL_EVENT_MAX_NUM_DEF                        1024
+
+#define CPARACFG_SRV_ACCEPT_MAX_NUM_DEF                          256
 
 #define CPARACFG_CONSOLE_TERM_SWITCH_DEF                         SWITCH_OFF
 
@@ -579,6 +591,12 @@ typedef struct
 #define    CSOCKET_SEND_ONCE_MAX_SIZE                    CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_SEND_ONCE_MAX_SIZE)
 #define    CSOCKET_RECV_ONCE_MAX_SIZE                    CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_RECV_ONCE_MAX_SIZE)
 #define    CSOCKET_CNODE_NUM                             CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_CNODE_NUM)
+
+#define    FILE_LOG_MAX_RECORDS                          CPARACFG_DEFAULT_MAP(CPARACFG_FILE_LOG_MAX_RECORDS)
+
+#define    CEPOLL_EVENT_MAX_NUM                          CPARACFG_DEFAULT_MAP(CPARACFG_CEPOLL_EVENT_MAX_NUM)
+
+#define    SRV_ACCEPT_MAX_NUM                            CPARACFG_DEFAULT_MAP(CPARACFG_SRV_ACCEPT_MAX_NUM)
 
 #define    CONN_TIMEOUT_NSEC                             CPARACFG_DEFAULT_MAP(CPARACFG_CONN_TIMEOUT_NSEC)
 #define    CONN_TIMEOUT_MAX_NUM_PER_LOOP                 CPARACFG_DEFAULT_MAP(CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP)

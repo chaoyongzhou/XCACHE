@@ -1162,11 +1162,17 @@ EC_BOOL cepoll_timeout(CEPOLL *cepoll)
 
         sockfd = CEPOLL_NODE_SOCKFD(cepoll_node);
 
-        dbg_log(SEC_0072_CEPOLL, 1)(LOGSTDOUT, "[DEBUG] cepoll_timeout: sockfd %d, cur %u, next %u, timeout_nsec %u\n",
-                           sockfd, (uint32_t)cur_ts, (uint32_t)CEPOLL_NODE_NTIME_TS(cepoll_node), CEPOLL_NODE_TIMEOUT_NSEC(cepoll_node));
+        dbg_log(SEC_0072_CEPOLL, 1)(LOGSTDOUT, "[DEBUG] cepoll_timeout: "
+                            "sockfd %d, cur %u, next %u, timeout_nsec %u\n",
+                            sockfd,
+                            (uint32_t)cur_ts,
+                            (uint32_t)CEPOLL_NODE_NTIME_TS(cepoll_node),
+                            CEPOLL_NODE_TIMEOUT_NSEC(cepoll_node));
 
-        dbg_log(SEC_0072_CEPOLL, 1)(LOGSTDOUT, "[DEBUG] cepoll_timeout: sockfd %d, crb_node %p, mounted %p\n",
-                           sockfd, crb_node, CEPOLL_NODE_CRB_NODE(cepoll_node));
+        dbg_log(SEC_0072_CEPOLL, 1)(LOGSTDOUT, "[DEBUG] cepoll_timeout: "
+                            "sockfd %d, crb_node %p, mounted %p\n",
+                            sockfd, crb_node,
+                            CEPOLL_NODE_CRB_NODE(cepoll_node));
 
         ASSERT(crb_node == CEPOLL_NODE_CRB_NODE(cepoll_node));
         crb_tree_delete(CEPOLL_TIMEOUT_TREE(cepoll), crb_node);

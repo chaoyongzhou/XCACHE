@@ -487,7 +487,7 @@ EC_BOOL ctdnshttp_commit_response(CHTTP_NODE *chttp_node)
         return (EC_FALSE);
     }
 
-    ret = chttp_node_send_rsp(chttp_node, csocket_cnode);
+    ret = chttp_node_send_rsp(chttp_node);
     if(EC_AGAIN != ret)
     {
         return (ret);

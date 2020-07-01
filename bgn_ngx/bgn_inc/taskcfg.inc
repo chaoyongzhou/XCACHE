@@ -65,24 +65,30 @@ typedef struct
 /*remote task server node*/
 typedef struct
 {
-    UINT32      srvipaddr;   /*remote tasks node srv ipaddr*/
-    UINT32      srvport;     /*remote tasks node srv port*/
-    UINT32      tcid;        /*remote tasks node tcid*/
-    UINT32      comm;        /*remote tasks node communicator*/
-    UINT32      size;        /*remote tasks node communicator size*/
+    UINT32              srvipaddr;   /*remote tasks node srv ipaddr*/
+    UINT32              srvport;     /*remote tasks node srv port*/
+    UINT32              tcid;        /*remote tasks node tcid*/
+    UINT32              comm;        /*remote tasks node communicator*/
+    UINT32              size;        /*remote tasks node communicator size*/
 
-    UINT32      load;        /*load of sending direction*/
+    UINT32              load;        /*load of sending direction*/
 
-    uint32_t    used:1;
-    uint32_t    rsvd01 :31;
-    uint32_t    rsvd02;
+    uint32_t            used:1;
+    uint32_t            rsvd01 :31;
+    uint32_t            rsvd02;
 
-    CTIMET      last_update_time;   /*last update time. update when send or recv heartbeat successfully*/
-    CTIMET      last_send_time;     /*last send heartbeat time*/
+    CTIMET              last_update_time;   /*last update time. update when send or recv heartbeat successfully*/
+    CTIMET              last_send_time;     /*last send heartbeat time*/
 
-    CVECTOR     csocket_cnode_vec;/*csocket cnodes connecting to remote tasks node*/
+    CVECTOR             csocket_cnode_vec;  /*csocket cnodes connecting to remote tasks node*/
 
-    CLIST       sending_list;   /*be sending data. item is TASK_NODE, mount only*//*FIFO*/
+    CLIST               sending_list;       /*be sending data. item is TASK_NODE, mount only*//*FIFO*/
+
+    CCALLBACK_NODE      on_recv_cb;     /*recv data callback*/
+    CCALLBACK_NODE      on_send_cb;     /*send data callback*/
+    CCALLBACK_NODE      on_timeout_cb;  /*procedure timeout callback*/
+    CCALLBACK_NODE      on_terminate_cb;/*procedure complete callback*/
+    CCALLBACK_NODE      on_cleanup_cb;  /*procedure cleanup callback*/
 }TASKS_NODE;
 
 #define TASKS_NODE_SRVIPADDR(tasks_node)                    ((tasks_node)->srvipaddr)
@@ -99,38 +105,42 @@ typedef struct
 #define TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)            (&((tasks_node)->csocket_cnode_vec))
 #define TASKS_NODE_SENDING_LIST(tasks_node)                 (&((tasks_node)->sending_list))
 
-typedef EC_BOOL (*TASKS_WORKER_ADD_CALLBACK)(const UINT32 modi, TASKS_NODE *tasks_node);/*call when add a worker (csocket_cnode -> tasks_node)*/
-typedef EC_BOOL (*TASKS_WORKER_DEL_CALLBACK)(const UINT32 modi, TASKS_NODE *tasks_node);/*call when del a worker (csocket_cnode -> tasks_node)*/
+#define TASKS_NODE_ON_RECV_CB(tasks_node)                   (&((tasks_node)->on_recv_cb))
+#define TASKS_NODE_ON_SEND_CB(tasks_node)                   (&((tasks_node)->on_send_cb))
+#define TASKS_NODE_ON_TIMEOUT_CB(tasks_node)                (&((tasks_node)->on_timeout_cb))
+#define TASKS_NODE_ON_TERMINATE_CB(tasks_node)              (&((tasks_node)->on_terminate_cb))
+#define TASKS_NODE_ON_CLEANUP_CB(tasks_node)                (&((tasks_node)->on_cleanup_cb))
+
 
 typedef struct
 {
     CVECTOR                  tasks_nodes;   /*item is TASKS_NODE*/
 
     /*call back interface*/
-    CCALLBACK_LIST           add_callback_list;
-    CCALLBACK_LIST           del_callback_list;
+    CCALLBACK_NODE           add_tasks_node_cb;
+    CCALLBACK_NODE           del_tasks_node_cb;
+    CCALLBACK_NODE           cleanup_cb;
 }TASKS_WORKER;
 
 #define TASKS_WORKER_NODES(tasks_worker)                 (&((tasks_worker)->tasks_nodes))
-#define TASKS_WORKER_ADD_CALLBACK_LIST(tasks_worker)     (&((tasks_worker)->add_callback_list))
-#define TASKS_WORKER_DEL_CALLBACK_LIST(tasks_worker)     (&((tasks_worker)->del_callback_list))
-
-typedef EC_BOOL (*TASKS_MONITOR_ADD_CALLBACK)(const UINT32 modi, TASKS_NODE *tasks_node);/*call when add a monitor (csocket_cnode -> tasks_node)*/
-typedef EC_BOOL (*TASKS_MONITOR_DEL_CALLBACK)(const UINT32 modi, TASKS_NODE *tasks_node);/*call when del a monitor (csocket_cnode -> tasks_node)*/
-
+#define TASKS_WORKER_ADD_NODE_CB(tasks_worker)           (&((tasks_worker)->add_tasks_node_cb))
+#define TASKS_WORKER_DEL_NODE_CB(tasks_worker)           (&((tasks_worker)->del_tasks_node_cb))
+#define TASKS_WORKER_CLEANUP_CB(tasks_worker)            (&((tasks_worker)->cleanup_cb))
 
 typedef struct
 {
-    CVECTOR  tasks_nodes;   /*item is TASKS_NODE*/
+    CVECTOR                  tasks_nodes;   /*item is TASKS_NODE*/
 
     /*call back interface*/
-    CCALLBACK_LIST           add_callback_list;
-    CCALLBACK_LIST           del_callback_list;
+    CCALLBACK_NODE           add_tasks_node_cb;
+    CCALLBACK_NODE           del_tasks_node_cb;
+    CCALLBACK_NODE           cleanup_cb;
 }TASKS_MONITOR;
 
 #define TASKS_MONITOR_NODES(tasks_monitor)               (&((tasks_monitor)->tasks_nodes))
-#define TASKS_MONITOR_ADD_CALLBACK_LIST(tasks_monitor)   (&((tasks_monitor)->add_callback_list))
-#define TASKS_MONITOR_DEL_CALLBACK_LIST(tasks_monitor)   (&((tasks_monitor)->del_callback_list))
+#define TASKS_MONITOR_ADD_NODE_CB(tasks_monitor)         (&((tasks_monitor)->add_tasks_node_cb))
+#define TASKS_MONITOR_DEL_NODE_CB(tasks_monitor)         (&((tasks_monitor)->del_tasks_node_cb))
+#define TASKS_MONITOR_CLEANUP_CB(tasks_monitor)          (&((tasks_monitor)->cleanup_cb))
 
 /*TASK SERVER CONFIG*/
 typedef struct
@@ -153,7 +163,7 @@ typedef struct
     TASKS_WORKER    tasks_worker; /*[ONLY FOR LOCAL TASKS CFG] working clients: remote taskcomm connection to local taskcomm : tasks_node vector  */
     TASKS_MONITOR   tasks_monitor;/*[ONLY FOR LOCAL TASKS CFG] monitoring clients: remote taskcomm connection to local taskcomm: csocket_cnode vector*/
 
-    CVECTOR  taskr_cfg_vec;
+    CVECTOR         taskr_cfg_vec;
 }TASKS_CFG;
 
 #define TASKS_CFG_TCID(tasks_cfg)                  ((tasks_cfg)->tcid)
@@ -174,9 +184,6 @@ typedef struct
 #define TASKS_CFG_MONITOR(tasks_cfg)               (&((tasks_cfg)->tasks_monitor))
 
 #define TASKS_CFG_TASKR_CFG_VEC(tasks_cfg)         (&(tasks_cfg->taskr_cfg_vec))
-
-#define TASKS_WORK_BASE_TASKS_CFG_ENTRY(tasks_worker_ptr) \
-    ((TASKS_CFG *)((char *)(tasks_worker_ptr)-(unsigned long)(&((TASKS_CFG *)0)->tasks_worker)))
 
 
 /*TASK ROUTE CONFIG*/

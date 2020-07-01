@@ -65,10 +65,13 @@ EC_BOOL task_node_buff_free(TASK_NODE *task_node);
 
 TASK_NODE *task_node_new(const UINT32 buff_size, const UINT32 location);
 EC_BOOL task_node_free(TASK_NODE *task_node);
+EC_BOOL task_node_del_timer(TASK_NODE *task_node);
+
 EC_BOOL task_node_expand_to(TASK_NODE *task_node, const UINT32 new_size);
 
 void    task_node_print(LOG *log, const TASK_NODE *task_node);
 void    task_node_dbg(LOG *log, const char *info, const TASK_NODE *task_node);
+
 EC_BOOL task_node_isend(TASK_BRD *task_brd, TASK_NODE *task_node);
 EC_BOOL task_node_is_timeout(const TASK_NODE *task_node);
 EC_BOOL task_node_is_zombie(const TASK_NODE *task_node);
@@ -148,6 +151,7 @@ EC_BOOL task_fwd_direct(TASK_BRD *task_brd, TASK_FWD *task_fwd);
 EC_BOOL task_any_init(TASK_ANY *task_any);
 TASK_ANY *task_any_new(const UINT32 buff_size, const UINT32 location);
 EC_BOOL task_any_free(TASK_ANY *task_any);
+EC_BOOL task_any_encode(TASK_ANY *task_any);
 EC_BOOL task_any_decode(const UINT32 recv_comm, TASK_ANY *task_any);
 
 /*--------------------------------------------- task rank node interface ---------------------------------------------*/
@@ -466,7 +470,7 @@ EC_BOOL task_brd_sending_queue_handle(TASK_BRD *task_brd);
 /*note: only task_req will come into the queue TASK_IS_RECV_QUEUE*/
 EC_BOOL task_brd_is_recv_queue_handle(TASK_BRD *task_brd);
 
-EC_BOOL task_brd_task_mgr_match(const TASK_BRD *task_brd, const TASK_RSP *task_rsp, TASK_MGR **task_mgr_ret);
+EC_BOOL task_brd_task_mgr_match(TASK_BRD *task_brd, TASK_RSP *task_rsp, TASK_MGR **task_mgr_ret);
 
 EC_BOOL task_brd_discard_rsp(TASK_BRD *task_brd, TASK_RSP *task_rsp);
 
@@ -509,8 +513,13 @@ EC_BOOL task_mgr_match_seqno(const TASK_MGR *task_mgr, const UINT32 seqno);
 TASK_REQ * task_mgr_search_task_req_by_recver(const TASK_MGR *task_mgr, const UINT32 seqno, const UINT32 subseqno, const MOD_NODE *recv_mod_node);
 
 EC_BOOL task_mgr_encode(TASK_BRD *task_brd, TASK_MGR *task_mgr);
-EC_BOOL task_mgr_send(TASK_BRD *task_brd, TASK_MGR *task_mgr);
+EC_BOOL task_mgr_send_wait(TASK_BRD *task_brd, TASK_MGR *task_mgr);
+EC_BOOL task_mgr_send_no_wait(TASK_BRD *task_brd, TASK_MGR *task_mgr);
 EC_BOOL task_mgr_recv(TASK_MGR *task_mgr);
+
+EC_BOOL task_mgr_is_complete(TASK_MGR *task_mgr);
+EC_BOOL task_mgr_complete(TASK_MGR *task_mgr);
+
 EC_BOOL task_mgr_reschedule_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32 tcid, const UINT32 comm);
 EC_BOOL task_mgr_discard_to(TASK_BRD *task_brd, TASK_MGR *task_mgr, const UINT32 tcid, const UINT32 comm);
 EC_BOOL task_mgr_print(LOG *log, TASK_MGR *task_mgr);
@@ -599,6 +608,10 @@ EC_BOOL task_brd_cbtimer_add(TASK_BRD *task_brd, const UINT8 *name,
                                      const UINT32 timeout_nsec, FUNC_ADDR_NODE *task_brd_timeout_func_addr_node);
 
 EC_BOOL task_brd_cbtimer_do(TASK_BRD *task_brd);
+
+EC_BOOL task_brd_is_paused();
+void task_brd_set_paused();
+void task_brd_set_not_paused();
 
 EC_BOOL do_once(TASK_BRD *task_brd);
 EC_BOOL do_slave(TASK_BRD *task_brd);

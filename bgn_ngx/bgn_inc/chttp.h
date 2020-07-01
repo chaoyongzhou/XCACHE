@@ -102,27 +102,27 @@ EC_BOOL chttp_node_is_norange(const CHTTP_NODE *chttp_node);
 
 EC_BOOL chttp_node_init_parser(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttp_node_recv_req(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttp_node_recv_req(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttp_node_send_req(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttp_node_send_req(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttp_node_recv_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttp_node_recv_rsp(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttp_node_send_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttp_node_send_rsp(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttp_node_icheck(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttp_node_icheck(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttp_node_complete(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttp_node_complete(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttp_node_close(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttp_node_close(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttp_node_timeout(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttp_node_timeout(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttp_node_shutdown(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttp_node_shutdown(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttp_node_recv(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttp_node_recv(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttp_node_send(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttp_node_send(CHTTP_NODE *chttp_node);
 
 EC_BOOL chttp_node_need_send(CHTTP_NODE *chttp_node);
 
@@ -415,9 +415,9 @@ EC_BOOL chttp_node_encode_rsp_body(CHTTP_NODE *chttp_node, CBYTES *cbytes);
 
 EC_BOOL chttp_node_encode_rsp(CHTTP_NODE *chttp_node, CBYTES *cbytes);
 
-EC_BOOL chttp_node_set_socket_callback(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttp_node_set_socket_callback(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttp_node_set_socket_epoll(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttp_node_set_socket_epoll(CHTTP_NODE *chttp_node);
 
 EC_BOOL chttp_node_connect(CHTTP_NODE *chttp_node, const UINT32 csocket_block_mode, const UINT32 ipaddr, const UINT32 port);
 

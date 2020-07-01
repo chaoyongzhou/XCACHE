@@ -52,65 +52,29 @@ CSOCKET_CNODE * csocket_cnode_new(const UINT32 location);
 
 EC_BOOL csocket_cnode_free(CSOCKET_CNODE *csocket_cnode);
 
-CCALLBACK_NODE *csocket_cnode_search_recv_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
+EC_BOOL csocket_cnode_set_recv_callback(CSOCKET_CNODE *csocket_cnode, const char *name, void *data, void *func);
 
-CCALLBACK_NODE *csocket_cnode_search_send_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
+EC_BOOL csocket_cnode_set_send_callback(CSOCKET_CNODE *csocket_cnode, const char *name, void *data, void *func);
 
-CCALLBACK_NODE *csocket_cnode_search_complete_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
+EC_BOOL csocket_cnode_set_complete_callback(CSOCKET_CNODE *csocket_cnode, const char *name, void *data, void *func);
 
-CCALLBACK_NODE *csocket_cnode_search_close_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
+EC_BOOL csocket_cnode_set_close_callback(CSOCKET_CNODE *csocket_cnode, const char *name, void *data, void *func);
 
-CCALLBACK_NODE *csocket_cnode_search_shutdown_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
+EC_BOOL csocket_cnode_set_shutdown_callback(CSOCKET_CNODE *csocket_cnode, const char *name, void *data, void *func);
 
-CCALLBACK_NODE *csocket_cnode_search_timeout_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
+EC_BOOL csocket_cnode_set_timeout_callback(CSOCKET_CNODE *csocket_cnode, const char *name, void *data, void *func);
 
-EC_BOOL csocket_cnode_push_recv_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
+EC_BOOL csocket_cnode_clean_recv_callback(CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL csocket_cnode_push_send_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
+EC_BOOL csocket_cnode_clean_send_callback(CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL csocket_cnode_push_complete_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
+EC_BOOL csocket_cnode_clean_complete_callback(CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL csocket_cnode_push_close_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
+EC_BOOL csocket_cnode_clean_close_callback(CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL csocket_cnode_push_shutdown_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
+EC_BOOL csocket_cnode_clean_shutdown_callback(CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL csocket_cnode_push_timeout_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
-
-EC_BOOL csocket_cnode_erase_recv_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
-
-EC_BOOL csocket_cnode_erase_send_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
-
-EC_BOOL csocket_cnode_erase_complete_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
-
-EC_BOOL csocket_cnode_erase_close_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
-
-EC_BOOL csocket_cnode_erase_shutdown_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
-
-EC_BOOL csocket_cnode_erase_timeout_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func);
-
-EC_BOOL csocket_cnode_reset_recv_callback(CSOCKET_CNODE *csocket_cnode);
-
-EC_BOOL csocket_cnode_reset_send_callback(CSOCKET_CNODE *csocket_cnode);
-
-EC_BOOL csocket_cnode_reset_complete_callback(CSOCKET_CNODE *csocket_cnode);
-
-EC_BOOL csocket_cnode_reset_close_callback(CSOCKET_CNODE *csocket_cnode);
-
-EC_BOOL csocket_cnode_reset_shutdown_callback(CSOCKET_CNODE *csocket_cnode);
-
-EC_BOOL csocket_cnode_reset_timeout_callback(CSOCKET_CNODE *csocket_cnode);
-
-EC_BOOL csocket_cnode_callback_when_recv(CSOCKET_CNODE *csocket_cnode);
-
-EC_BOOL csocket_cnode_callback_when_send(CSOCKET_CNODE *csocket_cnode);
-
-EC_BOOL csocket_cnode_callback_when_complete(CSOCKET_CNODE *csocket_cnode);
-
-EC_BOOL csocket_cnode_callback_when_close(CSOCKET_CNODE *csocket_cnode);
-
-EC_BOOL csocket_cnode_callback_when_shutdown(CSOCKET_CNODE *csocket_cnode);
-
-EC_BOOL csocket_cnode_callback_when_timeout(CSOCKET_CNODE *csocket_cnode);
+EC_BOOL csocket_cnode_clean_timeout_callback(CSOCKET_CNODE *csocket_cnode);
 
 EC_BOOL csocket_cnode_close(CSOCKET_CNODE *csocket_cnode);
 
@@ -119,8 +83,6 @@ CSOCKET_CNODE * csocket_cnode_unix_new(const UINT32 tcid, const int sockfd, cons
 void    csocket_cnode_close_and_clean_event(CSOCKET_CNODE *csocket_cnode);
 
 EC_BOOL csocket_cnode_set_disconnected(CSOCKET_CNODE *csocket_cnode);
-
-EC_BOOL csocket_cnode_cmp(const CSOCKET_CNODE *csocket_cnode_1, const CSOCKET_CNODE *csocket_cnode_2);
 
 EC_BOOL csocket_cnode_irecv(CSOCKET_CNODE *csocket_cnode);
 
@@ -142,7 +104,7 @@ void    csocket_cnode_print(LOG *log, const CSOCKET_CNODE *csocket_cnode);
 
 const char *csocket_cnode_tcpi_stat_desc(const CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL csocket_cnode_send(CSOCKET_CNODE *csocket_cnode, const UINT8 * out_buff, const UINT32 out_buff_max_len, UINT32 * pos);
+EC_BOOL csocket_cnode_send(CSOCKET_CNODE *csocket_cnode, const UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *pos);
 
 EC_BOOL csocket_cnode_recv(CSOCKET_CNODE *csocket_cnode, UINT8 *in_buff, const UINT32 in_buff_expect_len, UINT32 *pos);
 

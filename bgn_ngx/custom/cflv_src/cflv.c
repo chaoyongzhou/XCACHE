@@ -2293,13 +2293,13 @@ EC_BOOL cflv_content_head_header_in_filter_server(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CFLV_0014);
+            safe_free(v, LOC_CFLV_0013);
 
             return (EC_TRUE);
         }
     }
 
-    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0013);
+    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0014);
     return (EC_FALSE);
 }
 
@@ -3517,13 +3517,13 @@ EC_BOOL cflv_content_direct_header_in_filter_server(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CFLV_0060);
+            safe_free(v, LOC_CFLV_0059);
 
             return (EC_TRUE);
         }
     }
 
-    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0059);
+    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0060);
     return (EC_FALSE);
 }
 
@@ -5640,13 +5640,13 @@ EC_BOOL cflv_content_repair_header_in_filter_server(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CFLV_0110);
+            safe_free(v, LOC_CFLV_0109);
 
             return (EC_TRUE);
         }
     }
 
-    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0109);
+    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0110);
     return (EC_FALSE);
 }
 
@@ -7512,13 +7512,13 @@ EC_BOOL cflv_content_orig_header_in_filter_server(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CFLV_0160);
+            safe_free(v, LOC_CFLV_0159);
 
             return (EC_TRUE);
         }
     }
 
-    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0159);
+    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0160);
     return (EC_FALSE);
 }
 
@@ -9811,13 +9811,13 @@ EC_BOOL cflv_content_ms_header_in_filter_server(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CFLV_0220);
+            safe_free(v, LOC_CFLV_0219);
 
             return (EC_TRUE);
         }
     }
 
-    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0219);
+    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0220);
     return (EC_FALSE);
 }
 
@@ -13040,13 +13040,13 @@ EC_BOOL cflv_content_ims_header_in_filter_server(const UINT32 cflv_md_id)
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ims_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CFLV_0292);
+            safe_free(v, LOC_CFLV_0291);
 
             return (EC_TRUE);
         }
     }
 
-    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0291);
+    cflv_set_ngx_rc(cflv_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CFLV_0292);
     return (EC_FALSE);
 }
 

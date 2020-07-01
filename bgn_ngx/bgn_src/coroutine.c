@@ -39,13 +39,24 @@ void coroutine_debug(LOG *log, const char *tip)
     coroutine_node_slave = coroutine_pool_get_slave(coroutine_pool);
     coroutine_node_self = coroutine_self();
 
-    sys_log(log, "[DEBUG] %s coroutine_pool %p: idle (%p, %p, %ld), busy (%p, %p, %ld), slave %p (mounted %p), self %p (mounted %p)\n", tip,
-            coroutine_pool,
-            coroutine_pool->worker_idle_list.head.prev, coroutine_pool->worker_idle_list.head.next, coroutine_pool->worker_idle_list.size,
-            coroutine_pool->worker_busy_list.head.prev, coroutine_pool->worker_busy_list.head.next, coroutine_pool->worker_busy_list.size,
-            coroutine_node_slave, NULL_PTR == coroutine_node_slave ? NULL_PTR : COROUTINE_NODE_MOUNTED(coroutine_node_slave),
-            coroutine_node_self, NULL_PTR == coroutine_node_self ? NULL_PTR : COROUTINE_NODE_MOUNTED(coroutine_node_self)
-            );
+    sys_log(log, "[DEBUG] %s coroutine_pool %p: "
+                 "idle (%p, %p, %ld), "
+                 "busy (%p, %p, %ld), "
+                 "slave %p (mounted %p), "
+                 "self %p (mounted %p)\n",
+                 tip,
+                 coroutine_pool,
+                 coroutine_pool->worker_idle_list.head.prev,
+                 coroutine_pool->worker_idle_list.head.next,
+                 coroutine_pool->worker_idle_list.size,
+                 coroutine_pool->worker_busy_list.head.prev,
+                 coroutine_pool->worker_busy_list.head.next,
+                 coroutine_pool->worker_busy_list.size,
+                 coroutine_node_slave,
+                 NULL_PTR == coroutine_node_slave ? NULL_PTR : COROUTINE_NODE_MOUNTED(coroutine_node_slave),
+                 coroutine_node_self,
+                 NULL_PTR == coroutine_node_self ? NULL_PTR : COROUTINE_NODE_MOUNTED(coroutine_node_self)
+                 );
 
     return;
 }
@@ -57,13 +68,18 @@ COROUTINE_MUTEX *coroutine_mutex_new(const UINT32 location)
     coroutine_mutex = (COROUTINE_MUTEX *)safe_malloc(sizeof(COROUTINE_MUTEX), LOC_COROUTINE_0001);
     if(NULL_PTR == coroutine_mutex)
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_mutex_new: failed to alloc COROUTINE_MUTEX, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_mutex_new: "
+                                                  "failed to alloc COROUTINE_MUTEX, called at %s:%ld\n",
+                                                  MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
         return (NULL_PTR);
     }
 
     if(EC_FALSE == coroutine_mutex_init(coroutine_mutex, COROUTINE_MUTEX_IGNORE_FLAG, location))
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_mutex_init: failed to init coroutine_mutex %p, called at %s:%ld\n", coroutine_mutex, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_mutex_new: "
+                                                  "failed to init coroutine_mutex %p, called at %s:%ld\n",
+                                                  coroutine_mutex,
+                                                  MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
         safe_free(coroutine_mutex, LOC_COROUTINE_0002);
         return (NULL_PTR);
     }
@@ -110,8 +126,9 @@ EC_BOOL coroutine_mutex_lock(COROUTINE_MUTEX *coroutine_mutex, const UINT32 loca
     {
         COROUTINE_NODE_USER_MUTEX(coroutine_node_cur) = coroutine_mutex;
 
-        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_mutex_lock: set user mutex %p to %p\n",
-                            coroutine_mutex, coroutine_node_cur);
+        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_mutex_lock: "
+                                                  "set user mutex %p to %p\n",
+                                                  coroutine_mutex, coroutine_node_cur);
     }
 
     ++ COROUTINE_MUTEX_COUNTER(coroutine_mutex);
@@ -120,7 +137,9 @@ EC_BOOL coroutine_mutex_lock(COROUTINE_MUTEX *coroutine_mutex, const UINT32 loca
     {
         if(__COROUTINE_IS_MASTER())
         {
-            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_mutex_lock: swap from %p to itself\n", COROUTINE_NODE_CUR_GET());
+            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_mutex_lock: "
+                                                      "swap from %p to itself\n",
+                                                      COROUTINE_NODE_CUR_GET());
             COROUTINE_MUTEX_COUNTER(coroutine_mutex) = 1; /*reset forcibly*/
             break;
         }
@@ -143,7 +162,9 @@ EC_BOOL coroutine_mutex_unlock(COROUTINE_MUTEX *coroutine_mutex, const UINT32 lo
     //COROUTINE_ASSERT(0 < COROUTINE_MUTEX_COUNTER(coroutine_mutex));
     if(0 == COROUTINE_MUTEX_COUNTER(coroutine_mutex))
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_mutex_unlock: found invalid at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_mutex_unlock: "
+                                                  "found invalid at %s:%ld\n",
+                                                  MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
         exit(0);
     }
 
@@ -164,13 +185,18 @@ COROUTINE_RWLOCK *coroutine_rwlock_new(const UINT32 location)
     coroutine_rwlock = (COROUTINE_RWLOCK *)safe_malloc(sizeof(COROUTINE_RWLOCK), LOC_COROUTINE_0004);
     if(NULL_PTR == coroutine_rwlock)
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_rwlock_new: failed to alloc COROUTINE_RWLOCK, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_rwlock_new: "
+                                                  "failed to alloc COROUTINE_RWLOCK, called at %s:%ld\n",
+                                                  MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
         return (NULL_PTR);
     }
 
     if(EC_FALSE == coroutine_rwlock_init(coroutine_rwlock, COROUTINE_RWLOCK_IGNORE_FLAG, location))
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_rwlock_init: failed to init coroutine_rwlock %p, called at %s:%ld\n", coroutine_rwlock, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_rwlock_init: "
+                                                  "failed to init coroutine_rwlock %p, called at %s:%ld\n",
+                                                  coroutine_rwlock,
+                                                  MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
         safe_free(coroutine_rwlock, LOC_COROUTINE_0005);
         return (NULL_PTR);
     }
@@ -220,15 +246,18 @@ EC_BOOL coroutine_rwlock_rdlock(COROUTINE_RWLOCK *coroutine_rwlock, const UINT32
     {
         COROUTINE_NODE_USER_RWLOCK(coroutine_node_cur) = coroutine_rwlock;
 
-        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_rwlock_rdlock: set user rwlock %p to %p\n",
-                            coroutine_rwlock, coroutine_node_cur);
+        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_rwlock_rdlock: "
+                                                  "set user rwlock %p to %p\n",
+                                                  coroutine_rwlock, coroutine_node_cur);
     }
 
     while(0 < COROUTINE_RWLOCK_WRITERS(coroutine_rwlock))
     {
         if(__COROUTINE_IS_MASTER())
         {
-            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_rwlock_rdlock: swap from %p to itself\n", COROUTINE_NODE_CUR_GET());
+            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_rwlock_rdlock: "
+                                                      "swap from %p to itself\n",
+                                                      COROUTINE_NODE_CUR_GET());
             COROUTINE_RWLOCK_READERS(coroutine_rwlock) = 0; /*reset forcibly*/
             break;
         }
@@ -255,15 +284,18 @@ EC_BOOL coroutine_rwlock_wrlock(COROUTINE_RWLOCK *coroutine_rwlock, const UINT32
     {
         COROUTINE_NODE_USER_RWLOCK(coroutine_node_cur) = coroutine_rwlock;
 
-        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_rwlock_wrlock: set user rwlock %p to %p\n",
-                            coroutine_rwlock, coroutine_node_cur);
+        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_rwlock_wrlock: "
+                                                  "set user rwlock %p to %p\n",
+                                                  coroutine_rwlock, coroutine_node_cur);
     }
 
     while(0 < COROUTINE_RWLOCK_READERS(coroutine_rwlock) || 0 < COROUTINE_RWLOCK_WRITERS(coroutine_rwlock))
     {
         if(__COROUTINE_IS_MASTER())
         {
-            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_rwlock_wrlock: swap from %p to itself\n", COROUTINE_NODE_CUR_GET());
+            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_rwlock_wrlock: "
+                                                      "swap from %p to itself\n",
+                                                      COROUTINE_NODE_CUR_GET());
             COROUTINE_RWLOCK_READERS(coroutine_rwlock) = 0;/*reset forcibly*/
             COROUTINE_RWLOCK_WRITERS(coroutine_rwlock) = 0;/*reset forcibly*/
             break;
@@ -310,13 +342,18 @@ COROUTINE_COND *coroutine_cond_new(const UINT32 timeout_msec, const UINT32 locat
     alloc_static_mem(MM_COROUTINE_COND, &coroutine_cond, location);
     if(NULL_PTR == coroutine_cond)
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_cond_new: failed to alloc coroutine_cond, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_cond_new: "
+                                                  "failed to alloc coroutine_cond, called at %s:%ld\n",
+                                                  MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
         return (NULL_PTR);
     }
 
     if(EC_FALSE == coroutine_cond_init(coroutine_cond, timeout_msec, location))
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_cond_new: failed to init coroutine_cond %p, called at %s:%ld\n", coroutine_cond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_cond_new: "
+                                                  "failed to init coroutine_cond %p, called at %s:%ld\n",
+                                                  coroutine_cond,
+                                                  MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
         free_static_mem(MM_COROUTINE_COND, coroutine_cond, location);
         return (NULL_PTR);
     }
@@ -355,18 +392,24 @@ EC_BOOL coroutine_cond_init(COROUTINE_COND *coroutine_cond, const UINT32 timeout
     clist_init(COROUTINE_COND_COROUTINE_LIST(coroutine_cond), MM_IGNORE, location);
 
 #if 1
-    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_init: current: %p, cond %p, counter %ld, timeout %ld ms at %s:%ld\n",
-                                COROUTINE_NODE_CUR_GET(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond), timeout_msec,
-                                MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_init: "
+                                              "current: %p, cond %p, counter %ld, timeout %ld ms at %s:%ld\n",
+                                              COROUTINE_NODE_CUR_GET(),
+                                              coroutine_cond,
+                                              COROUTINE_COND_COUNTER(coroutine_cond), timeout_msec,
+                                              MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
 #endif
     return (EC_TRUE);
 }
 
 EC_BOOL coroutine_cond_clean(COROUTINE_COND *coroutine_cond, const UINT32 location)
 {
-    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_clean: status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
-                        __COROUTINE_STATUS(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
-                        MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_clean: "
+                                              "status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
+                                              __COROUTINE_STATUS(),
+                                              coroutine_cond,
+                                              COROUTINE_COND_COUNTER(coroutine_cond),
+                                              MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
 
     COROUTINE_COND_SET_LOCATION(coroutine_cond, COROUTINE_COND_OP_CLEAN, location);
     COROUTINE_COND_COUNTER(coroutine_cond)        = 0;
@@ -385,9 +428,11 @@ void    coroutine_cond_free(COROUTINE_COND *coroutine_cond, const UINT32 locatio
     if(NULL_PTR != coroutine_cond)
     {
 #if 0
-        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_free: status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
-                            __COROUTINE_STATUS(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
-                            MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_free: "
+                                                  "status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
+                                                  __COROUTINE_STATUS(),
+                                                  coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
+                                                  MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
 #endif
         COROUTINE_COND_SET_LOCATION(coroutine_cond, COROUTINE_COND_OP_FREE, location);
         coroutine_cond_clean(coroutine_cond, location);
@@ -467,9 +512,11 @@ EC_BOOL coroutine_cond_reserve(COROUTINE_COND *coroutine_cond, const UINT32 coun
         coroutine_node_busy_to_post(coroutine_node_cur, coroutine_pool_default());
     }
 
-    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_reserve: status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
-                                __COROUTINE_STATUS(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
-                                MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_reserve: "
+                                              "status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
+                                              __COROUTINE_STATUS(),
+                                              coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
+                                              MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
     return (EC_TRUE);
 }
 
@@ -480,15 +527,19 @@ EC_BOOL coroutine_cond_release(COROUTINE_COND *coroutine_cond, const UINT32 loca
     {
         -- COROUTINE_COND_COUNTER(coroutine_cond);
 
-        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_release: [Y] status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
-                                    __COROUTINE_STATUS(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
-                                    MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_release: "
+                                                  "[Y] status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
+                                                  __COROUTINE_STATUS(),
+                                                  coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
+                                                  MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
     }
     else
     {
-        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_release: [X] status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
-                                    __COROUTINE_STATUS(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
-                                    MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_release: "
+                                                  "[X] status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
+                                                  __COROUTINE_STATUS(),
+                                                  coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
+                                                  MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
     }
 
     if(0 == COROUTINE_COND_COUNTER(coroutine_cond))
@@ -512,9 +563,11 @@ EC_BOOL coroutine_cond_release_all(COROUTINE_COND *coroutine_cond, const UINT32 
     coroutine_cond_unreg_timer(coroutine_cond);
     coroutine_cond_wakeup(coroutine_cond);
 
-    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_release_all: status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
-                                __COROUTINE_STATUS(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
-                                MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_release_all: "
+                                              "status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
+                                              __COROUTINE_STATUS(),
+                                              coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
+                                              MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
 
     return (EC_TRUE);
 }
@@ -528,9 +581,11 @@ EC_BOOL coroutine_cond_terminate(COROUTINE_COND *coroutine_cond, const UINT32 lo
     coroutine_cond_unreg_timer(coroutine_cond);
     coroutine_cond_wakeup(coroutine_cond);
 
-    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_terminate: status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
-                                __COROUTINE_STATUS(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
-                                MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_terminate: "
+                                              "status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
+                                              __COROUTINE_STATUS(),
+                                              coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
+                                              MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
 
     return (EC_TRUE);
 }
@@ -561,7 +616,8 @@ EC_BOOL coroutine_cond_is_timeout(const COROUTINE_COND *coroutine_cond)
                 UINT32   elapsed_msec;
 
                 elapsed_msec = task_brd_default_get_time_msec() - COROUTINE_COND_S_MSEC(coroutine_cond);
-                sys_log(LOGSTDOUT, "[DEBUG] coroutine_cond_is_timeout: elapsed %ld ms, timeout_msec %ld => timeout\n",
+                sys_log(LOGSTDOUT, "[DEBUG] coroutine_cond_is_timeout: "
+                                   "elapsed %ld ms, timeout_msec %ld => timeout\n",
                                    elapsed_msec, COROUTINE_COND_TIMEOUT_MSEC(coroutine_cond));
             }
 
@@ -573,7 +629,8 @@ EC_BOOL coroutine_cond_is_timeout(const COROUTINE_COND *coroutine_cond)
             UINT32   elapsed_msec;
 
             elapsed_msec = task_brd_default_get_time_msec() - COROUTINE_COND_S_MSEC(coroutine_cond);
-            sys_log(LOGSTDOUT, "[DEBUG] coroutine_cond_is_timeout: elapsed %ld ms, timeout_msec %ld => not timeout\n",
+            sys_log(LOGSTDOUT, "[DEBUG] coroutine_cond_is_timeout: "
+                               "elapsed %ld ms, timeout_msec %ld => not timeout\n",
                                elapsed_msec, COROUTINE_COND_TIMEOUT_MSEC(coroutine_cond));
         }
 
@@ -644,8 +701,9 @@ EC_BOOL coroutine_cond_wait(COROUTINE_COND *coroutine_cond, const UINT32 locatio
 
         coroutine_cond_reg_timer(coroutine_cond);
 
-        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_wait: set user cond %p to %p\n",
-                            coroutine_cond, coroutine_node_cur);
+        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_wait: "
+                                                  "set user cond %p to %p\n",
+                                                  coroutine_cond, coroutine_node_cur);
     }
 
     while(0 < COROUTINE_COND_COUNTER(coroutine_cond))
@@ -654,8 +712,11 @@ EC_BOOL coroutine_cond_wait(COROUTINE_COND *coroutine_cond, const UINT32 locatio
         coroutine_node_cur = COROUTINE_NODE_CUR_GET();
         if(COROUTINE_NODE_USER_COND(coroutine_node_cur) != coroutine_cond)
         {
-            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_cond_wait: %p cond (%p) is not user cond %p\n",
-                            coroutine_node_cur, COROUTINE_NODE_USER_COND(coroutine_node_cur), coroutine_cond);
+            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_cond_wait: "
+                                                      "%p cond (%p) is not user cond %p\n",
+                                                      coroutine_node_cur,
+                                                      COROUTINE_NODE_USER_COND(coroutine_node_cur),
+                                                      coroutine_cond);
             return (EC_TRUE);
         }
 
@@ -663,8 +724,11 @@ EC_BOOL coroutine_cond_wait(COROUTINE_COND *coroutine_cond, const UINT32 locatio
         {
             task_brd_default_notify();
 
-            dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_wait: __COROUTINE_NO_WAIT, status: 0x%lx, cond %p, counter %ld [terminate]\n",
-                                __COROUTINE_STATUS(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond));
+            dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_wait: "
+                                                      "__COROUTINE_NO_WAIT, status: 0x%lx, "
+                                                      "cond %p, counter %ld [terminate]\n",
+                                                      __COROUTINE_STATUS(),
+                                                      coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond));
             COROUTINE_NODE_USER_COND(coroutine_node_cur) = NULL_PTR;/*reset forcibly*/
             __COROUTINE_NO_WAIT();
             return (EC_TERMINATE);
@@ -674,8 +738,11 @@ EC_BOOL coroutine_cond_wait(COROUTINE_COND *coroutine_cond, const UINT32 locatio
         {
             task_brd_default_notify();
 
-            dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_wait: __COROUTINE_NO_WAIT, status: 0x%lx, cond %p, counter %ld [timeout]\n",
-                                __COROUTINE_STATUS(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond));
+            dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_wait: "
+                                                      "__COROUTINE_NO_WAIT, status: 0x%lx, "
+                                                      "cond %p, counter %ld [timeout]\n",
+                                                      __COROUTINE_STATUS(),
+                                                      coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond));
             COROUTINE_NODE_USER_COND(coroutine_node_cur) = NULL_PTR;/*reset forcibly*/
             __COROUTINE_NO_WAIT();
             return (EC_TIMEOUT);
@@ -683,22 +750,30 @@ EC_BOOL coroutine_cond_wait(COROUTINE_COND *coroutine_cond, const UINT32 locatio
 
         if(__COROUTINE_IS_MASTER())
         {
-            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_cond_wait: swap from %p to itself [%s:%ld]\n", COROUTINE_NODE_CUR_GET(),
-                            MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_cond_wait: "
+                                                      "swap from %p to itself [%s:%ld]\n",
+                                                      COROUTINE_NODE_CUR_GET(),
+                                                      MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
             COROUTINE_COND_COUNTER(coroutine_cond) = 0;/*reset forcibly*/
             break;
         }
 
-        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_wait: __COROUTINE_WAIT, status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
-                                __COROUTINE_STATUS(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
-                                MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_wait: "
+                                                  "__COROUTINE_WAIT, status: 0x%lx, "
+                                                  "cond %p, counter %ld at %s:%ld\n",
+                                                  __COROUTINE_STATUS(),
+                                                  coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
+                                                  MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
 
         __COROUTINE_WAIT();
     }
 
-    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_wait: __COROUTINE_NO_WAIT, status: 0x%lx, cond %p, counter %ld at %s:%ld\n",
-                            __COROUTINE_STATUS(), coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
-                            MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
+    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_cond_wait: "
+                                              "__COROUTINE_NO_WAIT, status: 0x%lx, "
+                                              "cond %p, counter %ld at %s:%ld\n",
+                                              __COROUTINE_STATUS(),
+                                              coroutine_cond, COROUTINE_COND_COUNTER(coroutine_cond),
+                                              MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
 
     COROUTINE_NODE_USER_COND(coroutine_node_cur) = NULL_PTR;/*reset forcibly*/
     __COROUTINE_NO_WAIT();
@@ -718,13 +793,15 @@ COROUTINE_CHECKER *coroutine_checker_new(EC_BOOL (*func)(void *, void *), void *
     alloc_static_mem(MM_COROUTINE_CHECKER, &coroutine_checker, LOC_COROUTINE_0008);
     if(NULL_PTR == coroutine_checker)
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_checker_new: alloc coroutine_checker failed\n");
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_checker_new: "
+                                                  "alloc coroutine_checker failed\n");
         return (NULL_PTR);
     }
 
     if(EC_FALSE == coroutine_checker_init(coroutine_checker, func, arg1, arg2))
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_checker_new: init coroutine_checker failed\n");
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_checker_new: "
+                                                  "init coroutine_checker failed\n");
         free_static_mem(MM_COROUTINE_CHECKER, coroutine_checker, LOC_COROUTINE_0009);
         return (NULL_PTR);
     }
@@ -781,13 +858,15 @@ COROUTINE_CLEANER *coroutine_cleaner_new(EC_BOOL (*func)(void *, void *), void *
     alloc_static_mem(MM_COROUTINE_CLEANER, &coroutine_cleaner, LOC_COROUTINE_0011);
     if(NULL_PTR == coroutine_cleaner)
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_cleaner_new: alloc coroutine_cleaner failed\n");
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_cleaner_new: "
+                                                  "alloc coroutine_cleaner failed\n");
         return (NULL_PTR);
     }
 
     if(EC_FALSE == coroutine_cleaner_init(coroutine_cleaner, func, arg1, arg2))
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_cleaner_new: init coroutine_cleaner failed\n");
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_cleaner_new: "
+                                                  "init coroutine_cleaner failed\n");
         free_static_mem(MM_COROUTINE_CLEANER, coroutine_cleaner, LOC_COROUTINE_0012);
         return (NULL_PTR);
     }
@@ -899,21 +978,24 @@ EC_BOOL coroutine_node_cur_is_cancelled()
     coroutine_node_current = COROUTINE_POOL_CURRENT_OWNER(coroutine_pool);
     if(NULL_PTR == coroutine_node_current)
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_cur_is_cancelled: current is null\n");
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_cur_is_cancelled: "
+                                                  "current is null\n");
         return (EC_FALSE);
     }
 
     coroutine_node_master = COROUTINE_POOL_MASTER_OWNER(coroutine_pool);
     if(NULL_PTR == coroutine_node_master)
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_cur_is_cancelled: master is null\n");
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_cur_is_cancelled: "
+                                                  "master is null\n");
         return (EC_FALSE);
     }
 
     if(coroutine_node_current == coroutine_node_master)
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_cur_is_cancelled: current == master (%p)\n",
-                        coroutine_node_current);
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_cur_is_cancelled: "
+                                                  "current == master (%p)\n",
+                                                  coroutine_node_current);
         return (EC_FALSE);
     }
 
@@ -931,13 +1013,15 @@ COROUTINE_NODE *coroutine_node_new(COROUTINE_NODE *coroutine_node_next)
     alloc_static_mem(MM_COROUTINE_NODE, &coroutine_node, LOC_COROUTINE_0014);
     if(NULL_PTR == coroutine_node)
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_new: alloc COROUTINE_NODE failed\n");
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_new: "
+                                                  "alloc COROUTINE_NODE failed\n");
         return (NULL_PTR);
     }
 
     if(EC_FALSE == coroutine_node_init(coroutine_node, coroutine_node_next))
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_new: init COROUTINE_NODE failed\n");
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_new: "
+                                                  "init COROUTINE_NODE failed\n");
         free_static_mem(MM_COROUTINE_NODE, coroutine_node, LOC_COROUTINE_0015);
         return (NULL_PTR);
     }
@@ -953,7 +1037,9 @@ EC_BOOL coroutine_node_init(COROUTINE_NODE *coroutine_node, COROUTINE_NODE *coro
     COROUTINE_NODE_STACK_SPACE(coroutine_node) = safe_malloc(COROUTINE_STACK_SIZE_DEFAULT, LOC_COROUTINE_0016);
     if(NULL_PTR == COROUTINE_NODE_STACK_SPACE(coroutine_node))
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_init: malloc %ld bytes failed\n", (UINT32)COROUTINE_STACK_SIZE_DEFAULT);
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_init: "
+                                                  "malloc %ld bytes failed\n",
+                                                  (UINT32)COROUTINE_STACK_SIZE_DEFAULT);
         return (EC_FALSE);
     }
     COROUTINE_NODE_STACK_SIZE(coroutine_node) = COROUTINE_STACK_SIZE_DEFAULT;
@@ -968,8 +1054,10 @@ EC_BOOL coroutine_node_init(COROUTINE_NODE *coroutine_node, COROUTINE_NODE *coro
     cqueue_init(COROUTINE_NODE_PREV_CHECKER_QUEUE(coroutine_node), MM_COROUTINE_CHECKER, LOC_COROUTINE_0018);
     cstack_init(COROUTINE_NODE_POST_CLEANER_STACK(coroutine_node), MM_COROUTINE_CLEANER, LOC_COROUTINE_0019);
 
-    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_init: stack: [%p, %p)\n",
-                        COROUTINE_NODE_STACK_SPACE(coroutine_node), COROUTINE_NODE_STACK_SPACE(coroutine_node) + COROUTINE_STACK_SIZE_DEFAULT);
+    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_init: "
+                        "stack: [%p, %p)\n",
+                        COROUTINE_NODE_STACK_SPACE(coroutine_node),
+                        COROUTINE_NODE_STACK_SPACE(coroutine_node) + COROUTINE_STACK_SIZE_DEFAULT);
     return (EC_TRUE);
 }
 
@@ -1177,7 +1265,9 @@ EC_BOOL coroutine_node_make_task(COROUTINE_NODE *coroutine_node, const UINT32 st
             MAKE_CONTEXT(16, start_routine_addr, _arg_num, _arg_list);
             break;
         default:
-            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_caller: arg num = %ld overflow\n", arg_num);
+            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_caller: "
+                                                      "arg num = %ld overflow\n",
+                                                      arg_num);
             return (EC_FALSE);
     }
 
@@ -1247,8 +1337,10 @@ EC_BOOL coroutine_node_swap_task(COROUTINE_NODE *coroutine_node_save, COROUTINE_
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_swap_task: swap %p => %p, master %p\n",
-                    coroutine_node_save, coroutine_node_to, COROUTINE_NODE_MASTER_GET());
+    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_swap_task: "
+                                              "swap %p => %p, master %p\n",
+                                              coroutine_node_save, coroutine_node_to,
+                                              COROUTINE_NODE_MASTER_GET());
     COROUTINE_NODE_CUR_SET(coroutine_node_to);
 
     if(0 == swapcontext(COROUTINE_NODE_TASK(coroutine_node_save), COROUTINE_NODE_TASK(coroutine_node_to)))
@@ -1259,8 +1351,11 @@ EC_BOOL coroutine_node_swap_task(COROUTINE_NODE *coroutine_node_save, COROUTINE_
 
     COROUTINE_NODE_CUR_SET(coroutine_node_tmp);
 
-    dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_swap_task: swap %p => %p failed, errno = %d, errstr = %s\n",
-                    coroutine_node_save, coroutine_node_to, errno, strerror(errno));
+    dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_swap_task: "
+                                              "swap %p => %p failed, "
+                                              "errno = %d, errstr = %s\n",
+                                              coroutine_node_save, coroutine_node_to,
+                                              errno, strerror(errno));
     return (EC_FALSE);
 }
 
@@ -1279,8 +1374,10 @@ EC_BOOL coroutine_node_wait_and_swap_task(COROUTINE_NODE *coroutine_node_save, C
 
     COROUTINE_NODE_SET_WAIT_STATUS(coroutine_node_save);
 
-    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_wait_and_swap_task: swap %p => %p, master %p\n",
-                    coroutine_node_save, coroutine_node_to, COROUTINE_NODE_MASTER_GET());
+    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_wait_and_swap_task: "
+                                              "swap %p => %p, master %p\n",
+                                              coroutine_node_save, coroutine_node_to,
+                                              COROUTINE_NODE_MASTER_GET());
     COROUTINE_NODE_CUR_SET(coroutine_node_to);
     if(0 == swapcontext(COROUTINE_NODE_TASK(coroutine_node_save), COROUTINE_NODE_TASK(coroutine_node_to)))
     {
@@ -1289,8 +1386,11 @@ EC_BOOL coroutine_node_wait_and_swap_task(COROUTINE_NODE *coroutine_node_save, C
     }
     COROUTINE_NODE_CUR_SET(coroutine_node_tmp);
 
-    dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_wait_and_swap_task: swap %p => %p failed, errno = %d, errstr = %s\n",
-                    coroutine_node_save, coroutine_node_to, errno, strerror(errno));
+    dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_wait_and_swap_task: "
+                                              "swap %p => %p failed, "
+                                              "errno = %d, errstr = %s\n",
+                                              coroutine_node_save, coroutine_node_to,
+                                              errno, strerror(errno));
 
     return (EC_FALSE);
 }
@@ -1299,7 +1399,9 @@ EC_BOOL coroutine_node_wait_and_swap_task(COROUTINE_NODE *coroutine_node_save, C
 /*note: coroutine_node_shutdown will lock coroutine_pool, so DO NOT call it when coroutine_pool_shutdown*/
 UINT32 coroutine_node_shutdown(COROUTINE_NODE *coroutine_node, COROUTINE_POOL *coroutine_pool)
 {
-    dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_node_shutdown: shutdown %p\n", coroutine_node);
+    dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_node_shutdown: "
+                                              "shutdown %p\n",
+                                              coroutine_node);
     COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0023);
 
     COROUTINE_NODE_STATUS(coroutine_node) |= COROUTINE_IS_DOWN;
@@ -1318,7 +1420,7 @@ UINT32 coroutine_node_shutdown(COROUTINE_NODE *coroutine_node, COROUTINE_POOL *c
         clist_rmv_no_lock(COROUTINE_POOL_WORKER_POST_LIST(coroutine_pool), COROUTINE_NODE_MOUNTED(coroutine_node));
         COROUTINE_NODE_CLR_POST_STATUS(coroutine_node);
         COROUTINE_NODE_STATUS(coroutine_node) |= COROUTINE_IS_CANL;
-        COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0024);
+        COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0025);
         return (0);
     }
 
@@ -1327,11 +1429,11 @@ UINT32 coroutine_node_shutdown(COROUTINE_NODE *coroutine_node, COROUTINE_POOL *c
         COROUTINE_ASSERT(EC_TRUE  == coroutine_pool_check_node_is_busy(coroutine_pool, (void *)coroutine_node));
         clist_rmv_no_lock(COROUTINE_POOL_WORKER_BUSY_LIST(coroutine_pool), COROUTINE_NODE_MOUNTED(coroutine_node));
         COROUTINE_NODE_STATUS(coroutine_node) |= COROUTINE_IS_CANL;
-        COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0025);
+        COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0026);
         return (0);
     }
 
-    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0026);
+    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0027);
     return (0);
 }
 
@@ -1344,26 +1446,38 @@ UINT32 coroutine_node_shutdown(COROUTINE_NODE *coroutine_node, COROUTINE_POOL *c
 UINT32 coroutine_node_cancel(COROUTINE_NODE *coroutine_node, COROUTINE_POOL *coroutine_pool)
 {
     COROUTINE_ASSERT(((UINT32)coroutine_node) > 0xFFFFFFFF);
-    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_cancel: cancel %p, status 0x%lx\n", coroutine_node, COROUTINE_NODE_STATUS(coroutine_node));
-    dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_node_cancel: coroutine_node %p (mounted %p), coroutine_pool %p, status 0x%lx\n",
-                coroutine_node, COROUTINE_NODE_MOUNTED(coroutine_node),
-                coroutine_pool, COROUTINE_NODE_STATUS(coroutine_node));
+    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_cancel: "
+                                              "cancel %p, status 0x%lx\n",
+                                              coroutine_node,
+                                              COROUTINE_NODE_STATUS(coroutine_node));
+
+    dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_node_cancel: "
+                                              "coroutine_node %p (mounted %p), "
+                                              "coroutine_pool %p, status 0x%lx\n",
+                                              coroutine_node, COROUTINE_NODE_MOUNTED(coroutine_node),
+                                              coroutine_pool, COROUTINE_NODE_STATUS(coroutine_node));
 
     /*COROUTINE_COROUTINE_ASSERT(0 == (COROUTINE_NODE_STATUS(coroutine_node) & COROUTINE_IS_WAIT));*/
     if(COROUTINE_NODE_STATUS(coroutine_node) & COROUTINE_IS_WAIT)
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "[DEBUG] coroutine_node_cancel: delay cancel %p, status 0x%lx [IS_WAIT]\n",
-                    coroutine_node, COROUTINE_NODE_STATUS(coroutine_node));
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "[DEBUG] coroutine_node_cancel: "
+                                                  "delay cancel %p, status 0x%lx [IS_WAIT]\n",
+                                                  coroutine_node,
+                                                  COROUTINE_NODE_STATUS(coroutine_node));
         COROUTINE_NODE_STATUS(coroutine_node) |= COROUTINE_IS_CANL;
 
         COROUTINE_ASSERT(((UINT32)coroutine_node) > 0xFFFFFFFF);
 
         if(NULL_PTR != COROUTINE_NODE_USER_COND(coroutine_node))
         {
-            dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_cancel: delay cancel %p, status 0x%lx, release user cond %p [IS_WAIT]\n",
-                        coroutine_node, COROUTINE_NODE_STATUS(coroutine_node), COROUTINE_NODE_USER_COND(coroutine_node));
+            dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_cancel: "
+                                                      "delay cancel %p, status 0x%lx, "
+                                                      "release user cond %p [IS_WAIT]\n",
+                                                      coroutine_node,
+                                                      COROUTINE_NODE_STATUS(coroutine_node),
+                                                      COROUTINE_NODE_USER_COND(coroutine_node));
 
-            coroutine_cond_release_all(COROUTINE_NODE_USER_COND(coroutine_node), LOC_COROUTINE_0027);
+            coroutine_cond_release_all(COROUTINE_NODE_USER_COND(coroutine_node), LOC_COROUTINE_0028);
             COROUTINE_NODE_USER_COND(coroutine_node) = NULL_PTR;
 
             COROUTINE_ASSERT(((UINT32)coroutine_node) > 0xFFFFFFFF);
@@ -1371,19 +1485,27 @@ UINT32 coroutine_node_cancel(COROUTINE_NODE *coroutine_node, COROUTINE_POOL *cor
 
         if(NULL_PTR != COROUTINE_NODE_USER_MUTEX(coroutine_node))
         {
-            dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_cancel: delay cancel %p, status 0x%lx, release user mutex %p [IS_WAIT]\n",
-                        coroutine_node, COROUTINE_NODE_STATUS(coroutine_node), COROUTINE_NODE_USER_MUTEX(coroutine_node));
+            dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_cancel: "
+                                                      "delay cancel %p, status 0x%lx, "
+                                                      "release user mutex %p [IS_WAIT]\n",
+                                                      coroutine_node,
+                                                      COROUTINE_NODE_STATUS(coroutine_node),
+                                                      COROUTINE_NODE_USER_MUTEX(coroutine_node));
 
-            coroutine_mutex_unlock(COROUTINE_NODE_USER_MUTEX(coroutine_node), LOC_COROUTINE_0028);
+            coroutine_mutex_unlock(COROUTINE_NODE_USER_MUTEX(coroutine_node), LOC_COROUTINE_0029);
             COROUTINE_NODE_USER_MUTEX(coroutine_node) = NULL_PTR;
         }
 
         if(NULL_PTR != COROUTINE_NODE_USER_RWLOCK(coroutine_node))
         {
-            dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_cancel: delay cancel %p, status 0x%lx, release user rwlock %p [IS_WAIT]\n",
-                        coroutine_node, COROUTINE_NODE_STATUS(coroutine_node), COROUTINE_NODE_USER_RWLOCK(coroutine_node));
+            dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_cancel: "
+                                                      "delay cancel %p, status 0x%lx, "
+                                                      "release user rwlock %p [IS_WAIT]\n",
+                                                      coroutine_node,
+                                                      COROUTINE_NODE_STATUS(coroutine_node),
+                                                      COROUTINE_NODE_USER_RWLOCK(coroutine_node));
 
-            coroutine_rwlock_unlock(COROUTINE_NODE_USER_RWLOCK(coroutine_node), LOC_COROUTINE_0029);
+            coroutine_rwlock_unlock(COROUTINE_NODE_USER_RWLOCK(coroutine_node), LOC_COROUTINE_0030);
             COROUTINE_NODE_USER_RWLOCK(coroutine_node) = NULL_PTR;
         }
 
@@ -1405,8 +1527,10 @@ UINT32 coroutine_node_cancel(COROUTINE_NODE *coroutine_node, COROUTINE_POOL *cor
 
     if(COROUTINE_NODE_CUR_GET() == coroutine_node) /*cancel current coroutine for event ...*/
     {
-        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_cancel: self cancel %p, status 0x%lx\n",
-                    coroutine_node, COROUTINE_NODE_STATUS(coroutine_node));
+        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_cancel: "
+                                                  "self cancel %p, status 0x%lx\n",
+                                                  coroutine_node,
+                                                  COROUTINE_NODE_STATUS(coroutine_node));
 
         COROUTINE_ASSERT(((UINT32)coroutine_node) > 0xFFFFFFFF);
         coroutine_node_post_cleaner_run(coroutine_node);/*xxxx*/
@@ -1422,8 +1546,10 @@ UINT32 coroutine_node_cancel(COROUTINE_NODE *coroutine_node, COROUTINE_POOL *cor
 
 EC_BOOL coroutine_node_pre_check(COROUTINE_NODE *coroutine_node, COROUTINE_POOL *coroutine_pool)
 {
-    dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_node_pre_check: check %p, status 0x%lx\n",
-                        coroutine_node, COROUTINE_NODE_STATUS(coroutine_node));
+    dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_node_pre_check: "
+                                              "check %p, status 0x%lx\n",
+                                              coroutine_node,
+                                              COROUTINE_NODE_STATUS(coroutine_node));
 
     if((COROUTINE_NODE_STATUS(coroutine_node) & COROUTINE_IS_CANL)
     && (COROUTINE_NODE_STATUS(coroutine_node) & COROUTINE_IS_WAIT))
@@ -1435,7 +1561,9 @@ EC_BOOL coroutine_node_pre_check(COROUTINE_NODE *coroutine_node, COROUTINE_POOL 
     /*if coroutine had been cancelled or shutdown, move it to idle and give up handling*/
     if(COROUTINE_NODE_STATUS(coroutine_node) & COROUTINE_IS_CANL)
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "[DEBUG] coroutine_node_pre_check: [IS_CANL] %p\n", coroutine_node);
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "[DEBUG] coroutine_node_pre_check: "
+                                                  "[IS_CANL] %p\n",
+                                                  coroutine_node);
         COROUTINE_NODE_STATUS(coroutine_node) |= COROUTINE_IS_DOWN;
         /*fall through*/
     }
@@ -1466,11 +1594,17 @@ EC_BOOL coroutine_node_pre_check(COROUTINE_NODE *coroutine_node, COROUTINE_POOL 
 
 EC_BOOL coroutine_node_post_check(COROUTINE_NODE *coroutine_node, COROUTINE_POOL *coroutine_pool)
 {
-    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_post_check: check %p, status 0x%lx\n", coroutine_node, COROUTINE_NODE_STATUS(coroutine_node));
+    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_post_check: "
+                                              "check %p, status 0x%lx\n",
+                                              coroutine_node,
+                                              COROUTINE_NODE_STATUS(coroutine_node));
     /*check coroutine status*/
     if(COROUTINE_NODE_STATUS(coroutine_node) & COROUTINE_IS_CANL)
     {
-        dbg_log(SEC_0001_COROUTINE, 1)(LOGSTDOUT, "[DEBUG] coroutine_node_post_check: [IS_CANL] %p, status 0x%lx\n", coroutine_node, COROUTINE_NODE_STATUS(coroutine_node));
+        dbg_log(SEC_0001_COROUTINE, 1)(LOGSTDOUT, "[DEBUG] coroutine_node_post_check: "
+                                                  "[IS_CANL] %p, status 0x%lx\n",
+                                                  coroutine_node,
+                                                  COROUTINE_NODE_STATUS(coroutine_node));
         COROUTINE_NODE_STATUS(coroutine_node) |= COROUTINE_IS_DOWN;
         /*fall through*/
     }
@@ -1513,36 +1647,44 @@ EC_BOOL coroutine_node_post_check(COROUTINE_NODE *coroutine_node, COROUTINE_POOL
 
 UINT32 coroutine_node_busy_to_idle(COROUTINE_NODE *coroutine_node, COROUTINE_POOL *coroutine_pool)
 {
-    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_busy_to_idle: %p, busy => idle\n", coroutine_node);
-    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0030);
+    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_busy_to_idle: "
+                                              "%p, busy => idle\n",
+                                              coroutine_node);
+    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0031);
 
     COROUTINE_ASSERT(EC_TRUE  == coroutine_pool_check_node_is_busy(coroutine_pool, (void *)coroutine_node));
     COROUTINE_ASSERT(EC_FALSE == coroutine_pool_check_node_is_idle(coroutine_pool, (void *)coroutine_node));
 
     if(NULL_PTR != COROUTINE_NODE_USER_COND(coroutine_node))
     {
-        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_busy_to_idle: %p, busy => idle, release user cond %p\n",
-                    coroutine_node, COROUTINE_NODE_USER_COND(coroutine_node));
+        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_busy_to_idle: "
+                                                  "%p, busy => idle, release user cond %p\n",
+                                                  coroutine_node,
+                                                  COROUTINE_NODE_USER_COND(coroutine_node));
 
-        coroutine_cond_release_all(COROUTINE_NODE_USER_COND(coroutine_node), LOC_COROUTINE_0031);
+        coroutine_cond_release_all(COROUTINE_NODE_USER_COND(coroutine_node), LOC_COROUTINE_0032);
         COROUTINE_NODE_USER_COND(coroutine_node) = NULL_PTR;
     }
 
     if(NULL_PTR != COROUTINE_NODE_USER_MUTEX(coroutine_node))
     {
-        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_busy_to_idle: %p, busy => idle, release user mutex %p\n",
-                    coroutine_node, COROUTINE_NODE_USER_MUTEX(coroutine_node));
+        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_busy_to_idle: "
+                                                  "%p, busy => idle, release user mutex %p\n",
+                                                  coroutine_node,
+                                                  COROUTINE_NODE_USER_MUTEX(coroutine_node));
 
-        coroutine_mutex_unlock(COROUTINE_NODE_USER_MUTEX(coroutine_node), LOC_COROUTINE_0032);
+        coroutine_mutex_unlock(COROUTINE_NODE_USER_MUTEX(coroutine_node), LOC_COROUTINE_0033);
         COROUTINE_NODE_USER_MUTEX(coroutine_node) = NULL_PTR;
     }
 
     if(NULL_PTR != COROUTINE_NODE_USER_RWLOCK(coroutine_node))
     {
-        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_busy_to_idle: %p, busy => idle, release user rwlock %p\n",
-                    coroutine_node, COROUTINE_NODE_USER_RWLOCK(coroutine_node));
+        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_busy_to_idle: "
+                                                  "%p, busy => idle, release user rwlock %p\n",
+                                                  coroutine_node,
+                                                  COROUTINE_NODE_USER_RWLOCK(coroutine_node));
 
-        coroutine_rwlock_unlock(COROUTINE_NODE_USER_RWLOCK(coroutine_node), LOC_COROUTINE_0033);
+        coroutine_rwlock_unlock(COROUTINE_NODE_USER_RWLOCK(coroutine_node), LOC_COROUTINE_0034);
         COROUTINE_NODE_USER_RWLOCK(coroutine_node) = NULL_PTR;
     }
 
@@ -1555,7 +1697,7 @@ UINT32 coroutine_node_busy_to_idle(COROUTINE_NODE *coroutine_node, COROUTINE_POO
     COROUTINE_NODE_STATUS(coroutine_node)  = COROUTINE_IS_IDLE;
     COROUTINE_NODE_MOUNTED(coroutine_node) = clist_push_back_no_lock(COROUTINE_POOL_WORKER_IDLE_LIST(coroutine_pool), coroutine_node);
 
-    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0034);
+    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0035);
 
     /*debug*/
     COROUTINE_ASSERT(EC_FALSE == coroutine_pool_check_node_is_busy(coroutine_pool, (void *)coroutine_node));
@@ -1565,8 +1707,10 @@ UINT32 coroutine_node_busy_to_idle(COROUTINE_NODE *coroutine_node, COROUTINE_POO
 
 UINT32 coroutine_node_busy_to_tail(COROUTINE_NODE *coroutine_node, COROUTINE_POOL *coroutine_pool)
 {
-    dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_node_busy_to_tail: %p, busy => tail\n", coroutine_node);
-    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0035);
+    dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_node_busy_to_tail: "
+                                              "%p, busy => tail\n",
+                                              coroutine_node);
+    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0036);
 
     COROUTINE_ASSERT(EC_FALSE == coroutine_pool_check_node_is_idle(coroutine_pool, (void *)coroutine_node));
     COROUTINE_ASSERT(EC_TRUE  == coroutine_pool_check_node_is_busy(coroutine_pool, (void *)coroutine_node));
@@ -1582,15 +1726,17 @@ UINT32 coroutine_node_busy_to_tail(COROUTINE_NODE *coroutine_node, COROUTINE_POO
     COROUTINE_ASSERT(EC_FALSE == coroutine_pool_check_node_is_idle(coroutine_pool, (void *)coroutine_node));
     COROUTINE_ASSERT(EC_TRUE  == coroutine_pool_check_node_is_busy(coroutine_pool, (void *)coroutine_node));
 
-    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0036);
+    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0037);
 
     return (0);
 }
 
 UINT32 coroutine_node_post_to_busy(COROUTINE_NODE *coroutine_node, COROUTINE_POOL *coroutine_pool)
 {
-    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_post_to_busy: %p, post => busy\n", coroutine_node);
-    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0030);
+    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_post_to_busy: "
+                                              "%p, post => busy\n",
+                                              coroutine_node);
+    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0038);
 
     COROUTINE_ASSERT(EC_TRUE  == coroutine_pool_check_node_is_post(coroutine_pool, (void *)coroutine_node));
     COROUTINE_ASSERT(EC_FALSE == coroutine_pool_check_node_is_busy(coroutine_pool, (void *)coroutine_node));
@@ -1600,7 +1746,7 @@ UINT32 coroutine_node_post_to_busy(COROUTINE_NODE *coroutine_node, COROUTINE_POO
 
     COROUTINE_NODE_MOUNTED(coroutine_node) = clist_push_back_no_lock(COROUTINE_POOL_WORKER_BUSY_LIST(coroutine_pool), coroutine_node);
 
-    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0034);
+    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0039);
 
     /*debug*/
     COROUTINE_ASSERT(EC_FALSE == coroutine_pool_check_node_is_post(coroutine_pool, (void *)coroutine_node));
@@ -1610,8 +1756,10 @@ UINT32 coroutine_node_post_to_busy(COROUTINE_NODE *coroutine_node, COROUTINE_POO
 
 UINT32 coroutine_node_busy_to_post(COROUTINE_NODE *coroutine_node, COROUTINE_POOL *coroutine_pool)
 {
-    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_busy_to_post: %p, busy => post\n", coroutine_node);
-    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0030);
+    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_node_busy_to_post: "
+                                              "%p, busy => post\n",
+                                              coroutine_node);
+    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0040);
 
     COROUTINE_ASSERT(EC_FALSE == coroutine_pool_check_node_is_post(coroutine_pool, (void *)coroutine_node));
 
@@ -1621,7 +1769,7 @@ UINT32 coroutine_node_busy_to_post(COROUTINE_NODE *coroutine_node, COROUTINE_POO
     COROUTINE_NODE_MOUNTED(coroutine_node) = clist_push_back_no_lock(COROUTINE_POOL_WORKER_POST_LIST(coroutine_pool), coroutine_node);
     COROUTINE_NODE_SET_POST_STATUS(coroutine_node);
 
-    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0034);
+    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0041);
 
     /*debug*/
     COROUTINE_ASSERT(EC_FALSE == coroutine_pool_check_node_is_busy(coroutine_pool, (void *)coroutine_node));
@@ -1705,11 +1853,14 @@ EC_BOOL coroutine_node_post_cleaner_push(COROUTINE_NODE *coroutine_node, EC_BOOL
 {
     COROUTINE_CLEANER *coroutine_cleaner;
 
-    dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_node_post_cleaner_push: push (%p, %p, %p) to %p\n", func, arg1, arg2, coroutine_node);
+    dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_node_post_cleaner_push: "
+                                              "push (%p, %p, %p) to %p\n",
+                                              func, arg1, arg2, coroutine_node);
     coroutine_cleaner = coroutine_cleaner_new(func, arg1, arg2);
     if(NULL_PTR == coroutine_cleaner)
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_post_cleaner_push: new coroutine_cleaner failed\n");
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_post_cleaner_push: "
+                                                  "new coroutine_cleaner failed\n");
         return (EC_FALSE);
     }
 
@@ -1724,7 +1875,8 @@ COROUTINE_CLEANER *coroutine_node_post_cleaner_pop(COROUTINE_NODE *coroutine_nod
     coroutine_cleaner = cstack_pop(COROUTINE_NODE_POST_CLEANER_STACK(coroutine_node));
     if(NULL_PTR == coroutine_cleaner)
     {
-        dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_node_post_cleaner_pop: no more coroutine_cleaner in stack\n");
+        dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_node_post_cleaner_pop: "
+                                                  "no more coroutine_cleaner in stack\n");
         return (NULL_PTR);
     }
     return (coroutine_cleaner);
@@ -1753,7 +1905,9 @@ EC_BOOL coroutine_node_post_cleaner_pop_and_release(COROUTINE_NODE *coroutine_no
     coroutine_cleaner = coroutine_node_post_cleaner_pop(coroutine_node);
     if(NULL_PTR != coroutine_cleaner)
     {
-        dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_node_post_cleaner_pop_and_release: release %p\n", coroutine_node);
+        dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_node_post_cleaner_pop_and_release: "
+                                                  "release %p\n",
+                                                  coroutine_node);
         coroutine_cleaner_free(coroutine_cleaner);
     }
 
@@ -1775,9 +1929,12 @@ EC_BOOL coroutine_node_post_cleaner_run(COROUTINE_NODE *coroutine_node)
             break;
         }
 
-        dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_node_post_cleaner_run: run (%p, %p, %p) on %p\n",
-                            COROUTINE_CLEANER_FUNC(coroutine_cleaner),COROUTINE_CLEANER_ARG1(coroutine_cleaner), COROUTINE_CLEANER_ARG2(coroutine_cleaner),
-                            coroutine_node);
+        dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_node_post_cleaner_run: "
+                                                  "run (%p, %p, %p) on %p\n",
+                                                  COROUTINE_CLEANER_FUNC(coroutine_cleaner),
+                                                  COROUTINE_CLEANER_ARG1(coroutine_cleaner),
+                                                  COROUTINE_CLEANER_ARG2(coroutine_cleaner),
+                                                  coroutine_node);
 
         if(NULL_PTR != COROUTINE_CLEANER_FUNC(coroutine_cleaner)
         && EC_FALSE == COROUTINE_CLEANER_FUNC(coroutine_cleaner)(
@@ -1807,7 +1964,9 @@ EC_BOOL coroutine_node_post_cleaner_release(COROUTINE_NODE *coroutine_node)
         {
             break;
         }
-        dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_node_post_cleaner_release: release %p\n", coroutine_node);
+        dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_node_post_cleaner_release: "
+                                                  "release %p\n",
+                                                  coroutine_node);
         coroutine_cleaner_free(coroutine_cleaner);
     }
 
@@ -1826,7 +1985,8 @@ EC_BOOL coroutine_node_prev_checker_push(COROUTINE_NODE *coroutine_node, EC_BOOL
     coroutine_checker = coroutine_checker_new(func, arg1, arg2);
     if(NULL_PTR == coroutine_checker)
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_prev_checker_push: new coroutine_checker failed\n");
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_node_prev_checker_push: "
+                                                  "new coroutine_checker failed\n");
         return (EC_FALSE);
     }
 
@@ -1841,7 +2001,8 @@ COROUTINE_CHECKER *coroutine_node_prev_checker_pop(COROUTINE_NODE *coroutine_nod
     coroutine_checker = cqueue_pop(COROUTINE_NODE_PREV_CHECKER_QUEUE(coroutine_node));
     if(NULL_PTR == coroutine_checker)
     {
-        dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_node_prev_checker_pop: no more coroutine_checker in queue\n");
+        dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_node_prev_checker_pop: "
+                                                  "no more coroutine_checker in queue\n");
         return (NULL_PTR);
     }
     return (coroutine_checker);
@@ -1930,10 +2091,11 @@ COROUTINE_POOL * coroutine_pool_new(const UINT32 coroutine_num, const UINT32 fla
 {
     COROUTINE_POOL *coroutine_pool;
 
-    alloc_static_mem(MM_COROUTINE_POOL, &coroutine_pool, LOC_COROUTINE_0037);
+    alloc_static_mem(MM_COROUTINE_POOL, &coroutine_pool, LOC_COROUTINE_0042);
     if(NULL_PTR == coroutine_pool)
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_pool_new: alloc COROUTINE_POOL failed\n");
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_pool_new: "
+                                                  "alloc COROUTINE_POOL failed\n");
         return (NULL_PTR);
     }
 
@@ -1945,16 +2107,16 @@ COROUTINE_POOL * coroutine_pool_new(const UINT32 coroutine_num, const UINT32 fla
 
 UINT32 coroutine_pool_init(COROUTINE_POOL *coroutine_pool)
 {
-    clist_init(COROUTINE_POOL_WORKER_IDLE_LIST(coroutine_pool), MM_IGNORE, LOC_COROUTINE_0038);
-    clist_init(COROUTINE_POOL_WORKER_POST_LIST(coroutine_pool), MM_IGNORE, LOC_COROUTINE_0039);
-    clist_init(COROUTINE_POOL_WORKER_BUSY_LIST(coroutine_pool), MM_IGNORE, LOC_COROUTINE_0039);
+    clist_init(COROUTINE_POOL_WORKER_IDLE_LIST(coroutine_pool), MM_IGNORE, LOC_COROUTINE_0043);
+    clist_init(COROUTINE_POOL_WORKER_POST_LIST(coroutine_pool), MM_IGNORE, LOC_COROUTINE_0044);
+    clist_init(COROUTINE_POOL_WORKER_BUSY_LIST(coroutine_pool), MM_IGNORE, LOC_COROUTINE_0045);
 
     crb_tree_init(COROUTINE_POOL_WORKER_TIMER_TREE(coroutine_pool),
                   (CRB_DATA_CMP)coroutine_cond_cmp,
                   (CRB_DATA_FREE)NULL_PTR, /*note: not define*/
                   (CRB_DATA_PRINT)coroutine_cond_print);
 
-    COROUTINE_POOL_WORKER_INIT_LOCK(coroutine_pool, LOC_COROUTINE_0040);
+    COROUTINE_POOL_WORKER_INIT_LOCK(coroutine_pool, LOC_COROUTINE_0046);
 
     COROUTINE_POOL_WORKER_MAX_NUM(coroutine_pool) = 0;
     return (0);
@@ -1970,7 +2132,9 @@ UINT32 coroutine_pool_create(COROUTINE_POOL *coroutine_pool, const UINT32 corout
 
     COROUTINE_POOL_CURRENT_OWNER(coroutine_pool) = COROUTINE_POOL_MASTER_OWNER(coroutine_pool);
 
-    dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "[DEBUG] coroutine_pool_create: master %p\n", COROUTINE_POOL_MASTER_OWNER(coroutine_pool));
+    dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "[DEBUG] coroutine_pool_create: "
+                                              "master %p\n",
+                                              COROUTINE_POOL_MASTER_OWNER(coroutine_pool));
     return (succ_coroutine_num);
 }
 
@@ -1985,7 +2149,9 @@ UINT32 coroutine_pool_expand(COROUTINE_POOL *coroutine_pool, const UINT32 corout
         coroutine_node = coroutine_node_new(COROUTINE_POOL_MASTER_OWNER(coroutine_pool));
         if(NULL_PTR == coroutine_node)
         {
-            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_pool_expand: failed to new # %ld COROUTINE_NODE\n", coroutine_idx);
+            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_pool_expand: "
+                                                      "failed to new # %ld COROUTINE_NODE\n",
+                                                      coroutine_idx);
             break;
         }
 
@@ -2019,8 +2185,13 @@ UINT32 coroutine_pool_shrink(COROUTINE_POOL *coroutine_pool, const UINT32 corout
         COROUTINE_ASSERT(EC_FALSE == coroutine_pool_check_node_is_idle(coroutine_pool, (void *)coroutine_node));
     }
 
-    dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "coroutine_pool_shrink report: to shrink %ld coroutine_nodes, actually shrinked %ld coroutine_nodes, current support max %ld coroutine_nodes\n",
-                        coroutine_num_to_shrink, coroutine_num_shrinked, COROUTINE_POOL_WORKER_MAX_NUM(coroutine_pool));
+    dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "coroutine_pool_shrink report: "
+                                              "to shrink %ld coroutine_nodes, "
+                                              "actually shrinked %ld coroutine_nodes, "
+                                              "current support max %ld coroutine_nodes\n",
+                                              coroutine_num_to_shrink,
+                                              coroutine_num_shrinked,
+                                              COROUTINE_POOL_WORKER_MAX_NUM(coroutine_pool));
     return (coroutine_num_shrinked);
 }
 
@@ -2028,7 +2199,7 @@ UINT32 coroutine_pool_shutdown(COROUTINE_POOL *coroutine_pool)
 {
     COROUTINE_NODE *coroutine_node;
 
-    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0041);
+    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0047);
 
     while(EC_FALSE == clist_is_empty_no_lock(COROUTINE_POOL_WORKER_IDLE_LIST(coroutine_pool)))
     {
@@ -2054,7 +2225,7 @@ UINT32 coroutine_pool_shutdown(COROUTINE_POOL *coroutine_pool)
         //dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "coroutine_pool_shutdown: shutdown busy coroutine_node %p\n", coroutine_node);
     }
 
-    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0042);
+    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0048);
     return (0);
 }
 
@@ -2065,14 +2236,14 @@ UINT32 coroutine_pool_clean(COROUTINE_POOL *coroutine_pool)
 
     coroutine_pool_shutdown(coroutine_pool);
 
-    COROUTINE_POOL_WORKER_CLEAN_LOCK(coroutine_pool, LOC_COROUTINE_0043);
+    COROUTINE_POOL_WORKER_CLEAN_LOCK(coroutine_pool, LOC_COROUTINE_0049);
     return (0);
 }
 
 UINT32 coroutine_pool_free(COROUTINE_POOL *coroutine_pool)
 {
     coroutine_pool_clean(coroutine_pool);
-    free_static_mem(MM_COROUTINE_POOL, coroutine_pool, LOC_COROUTINE_0044);
+    free_static_mem(MM_COROUTINE_POOL, coroutine_pool, LOC_COROUTINE_0050);
     return (0);
 }
 
@@ -2101,8 +2272,8 @@ COROUTINE_NODE * coroutine_pool_reserve_no_lock(COROUTINE_POOL *coroutine_pool)
             coroutine_num = DMIN(COROUTINE_EXPAND_MIN_NUM, COROUTINE_POOL_WORKER_MAX_NUM(coroutine_pool) - total_num);
 
             dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "coroutine_pool_reserve_no_lock: "
-                                "try to expand coroutine num from %ld to %ld\n",
-                                total_num, coroutine_num + total_num);
+                                                      "try to expand coroutine num from %ld to %ld\n",
+                                                      total_num, coroutine_num + total_num);
             coroutine_pool_expand(coroutine_pool, coroutine_num);
         }
 
@@ -2114,8 +2285,8 @@ COROUTINE_NODE * coroutine_pool_reserve_no_lock(COROUTINE_POOL *coroutine_pool)
     if(idle_num > max_num / 2 && idle_num > COROUTINE_SHRINK_THRESHOLD)
     {
         dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "coroutine_pool_reserve_no_lock: "
-                            "try to shrink idle coroutine num from %ld to %ld\n",
-                            idle_num, idle_num - COROUTINE_SHRINK_MIN_NUM);
+                                                  "try to shrink idle coroutine num from %ld to %ld\n",
+                                                  idle_num, idle_num - COROUTINE_SHRINK_MIN_NUM);
 
         coroutine_pool_shrink(coroutine_pool, COROUTINE_SHRINK_MIN_NUM);
     }
@@ -2129,9 +2300,9 @@ COROUTINE_NODE * coroutine_pool_reserve(COROUTINE_POOL *coroutine_pool)
 {
     COROUTINE_NODE *coroutine_node;
 
-    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0045);
+    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0051);
     coroutine_node = coroutine_pool_reserve_no_lock(coroutine_pool);
-    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0046);
+    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0052);
 
     return (coroutine_node);
 }
@@ -2205,7 +2376,7 @@ COROUTINE_NODE * coroutine_pool_load_no_lock(COROUTINE_POOL *coroutine_pool, con
 
     coroutine_node_get_task(coroutine_node); /*in order to init floating-point register only*/
     coroutine_node_make_task(coroutine_node, start_routine_addr, para_num, para_list);
-    COROUTINE_NODE_COND_RESERVE(coroutine_node, 1, LOC_COROUTINE_0047);
+    COROUTINE_NODE_COND_RESERVE(coroutine_node, 1, LOC_COROUTINE_0053);
 
     /*COROUTINE_NODE_STATUS(coroutine_node)  = ((COROUTINE_NODE_STATUS(coroutine_node) & COROUTINE_HI_MASK) | COROUTINE_IS_BUSY);*/
     //COROUTINE_ASSERT(COROUTINE_IS_IDLE == COROUTINE_NODE_STATUS(coroutine_node));
@@ -2217,8 +2388,12 @@ COROUTINE_NODE * coroutine_pool_load_no_lock(COROUTINE_POOL *coroutine_pool, con
 
     task_brd_default_notify();
 
-    dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_pool_load_no_lock: load %p (stack %p, size %ld, resume %p)\n",
-                            coroutine_node, COROUTINE_NODE_STACK_SPACE(coroutine_node), COROUTINE_NODE_STACK_SIZE(coroutine_node), COROUTINE_NODE_RESUME_POINT(coroutine_node));
+    dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_pool_load_no_lock: "
+                                              "load %p (stack %p, size %ld, resume %p)\n",
+                                              coroutine_node,
+                                              COROUTINE_NODE_STACK_SPACE(coroutine_node),
+                                              COROUTINE_NODE_STACK_SIZE(coroutine_node),
+                                              COROUTINE_NODE_RESUME_POINT(coroutine_node));
     return (coroutine_node);
 }
 
@@ -2229,12 +2404,14 @@ COROUTINE_NODE * coroutine_pool_load(COROUTINE_POOL *coroutine_pool, const UINT3
 
     va_start(para_list, para_num);
 
-    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0048);
+    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0054);
     coroutine_node = coroutine_pool_load_no_lock(coroutine_pool, start_routine_addr, para_num, para_list);
 #if 1
-    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_pool_load: coroutine_node %p\n", coroutine_node);
+    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_pool_load: "
+                                              "coroutine_node %p\n",
+                                              coroutine_node);
 #endif
-    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0049);
+    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0055);
 
     va_end(para_list);
 
@@ -2245,7 +2422,8 @@ EC_BOOL coroutine_pool_unload(COROUTINE_POOL *coroutine_pool, COROUTINE_NODE *co
 {
     if(NULL_PTR == coroutine_node)
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_pool_unload: coroutine_node is null\n");
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_pool_unload: "
+                                                  "coroutine_node is null\n");
         return (EC_FALSE);
     }
 
@@ -2291,9 +2469,9 @@ COROUTINE_NODE *coroutine_pool_get_slave(COROUTINE_POOL *coroutine_pool)
 {
     COROUTINE_NODE *coroutine_node;
 
-    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0050);
+    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0056);
     coroutine_node = (COROUTINE_NODE *)clist_first_data(COROUTINE_POOL_WORKER_BUSY_LIST(coroutine_pool));
-    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0051);
+    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0057);
 
     return (coroutine_node);
 }
@@ -2301,29 +2479,39 @@ COROUTINE_NODE *coroutine_pool_get_slave(COROUTINE_POOL *coroutine_pool)
 /*run the specific coroutine*/
 void coroutine_pool_run_one(COROUTINE_POOL *coroutine_pool, COROUTINE_NODE *coroutine_node_master, COROUTINE_NODE *coroutine_node_slave)
 {
-    dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_one: beg, slave %p\n", coroutine_node_slave);
+    dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_one: "
+                                              "beg, slave %p\n",
+                                              coroutine_node_slave);
 
     if(EC_FALSE == coroutine_node_pre_check(coroutine_node_slave, coroutine_pool))
     {
-        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_one: end, slave %p, pre-check return false\n", coroutine_node_slave);
+        dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_one: "
+                                                  "end, slave %p, pre-check return false\n",
+                                                  coroutine_node_slave);
         return;/*give up*/
     }
 
     COROUTINE_NODE_CLR_WAIT_STATUS(coroutine_node_slave);
     if(EC_FALSE == coroutine_node_swap_task(coroutine_node_master, coroutine_node_slave))
     {
-        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_pool_run_one: swap from master to slave %p failed\n", coroutine_node_slave);
+        dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_pool_run_one: "
+                                                  "swap from master to slave %p failed\n",
+                                                  coroutine_node_slave);
         coroutine_node_busy_to_tail(coroutine_node_slave, coroutine_pool);
         return;
     }
 
     //dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_pool_run: after  swap, master %lx, slave %lx status %lx\n", coroutine_node_master, coroutine_node_slave, COROUTINE_NODE_STATUS(coroutine_node_slave));
-    dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_one: end, slave %p, swap back\n", coroutine_node_slave);
+    dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_one: "
+                                              "end, slave %p, swap back\n",
+                                              coroutine_node_slave);
 
     /*when swap back, coroutine_node_slave maybe busy or else. busy means it has already completed task*/
     coroutine_node_post_check(coroutine_node_slave, coroutine_pool);
 
-    dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_one: end, slave %p\n", coroutine_node_slave);
+    dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_one: "
+                                              "end, slave %p\n",
+                                              coroutine_node_slave);
 
     return;
 }
@@ -2339,7 +2527,9 @@ void coroutine_pool_run_once(COROUTINE_POOL *coroutine_pool)
     coroutine_node_get_task(coroutine_node_master);
 
     busy_num = coroutine_pool_busy_num(coroutine_pool);
-    dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_once: beg, busy_num = %ld\n", coroutine_pool_busy_num(coroutine_pool));
+    dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_once: "
+                                              "beg, busy_num = %ld\n",
+                                              coroutine_pool_busy_num(coroutine_pool));
     for(handle_num = 0; handle_num < busy_num; handle_num ++)
     {
         COROUTINE_NODE *coroutine_node_slave;
@@ -2347,7 +2537,9 @@ void coroutine_pool_run_once(COROUTINE_POOL *coroutine_pool)
         coroutine_node_slave = coroutine_pool_get_slave(coroutine_pool);
         if(NULL_PTR == coroutine_node_slave)
         {
-            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_once: busy_num = %ld, slave is null\n", coroutine_pool_busy_num(coroutine_pool));
+            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_once: "
+                                                      "busy_num = %ld, slave is null\n",
+                                                      coroutine_pool_busy_num(coroutine_pool));
             break;
         }
         if(EC_FALSE == coroutine_node_is_runnable(coroutine_node_slave))
@@ -2361,7 +2553,9 @@ void coroutine_pool_run_once(COROUTINE_POOL *coroutine_pool)
             break;
         }
     }
-    dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_once: end, busy_num = %ld\n", coroutine_pool_busy_num(coroutine_pool));
+    dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_once: "
+                                              "end, busy_num = %ld\n",
+                                              coroutine_pool_busy_num(coroutine_pool));
     return;
 }
 
@@ -2378,7 +2572,9 @@ void coroutine_pool_run_all(COROUTINE_POOL *coroutine_pool)
     task_brd_update_time(task_brd_default_get());
 
     busy_num = coroutine_pool_busy_num(coroutine_pool);
-    dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_all: beg, busy_num = %ld\n", coroutine_pool_busy_num(coroutine_pool));
+    dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_all: "
+                                              "beg, busy_num = %ld\n",
+                                              coroutine_pool_busy_num(coroutine_pool));
     for(handle_num = 0; handle_num < busy_num; handle_num ++)
     {
         COROUTINE_NODE *coroutine_node_slave;
@@ -2386,7 +2582,9 @@ void coroutine_pool_run_all(COROUTINE_POOL *coroutine_pool)
         coroutine_node_slave = coroutine_pool_get_slave(coroutine_pool);
         if(NULL_PTR == coroutine_node_slave)
         {
-            dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_all: busy_num = %ld, slave is null\n", coroutine_pool_busy_num(coroutine_pool));
+            dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_all: "
+                                                      "busy_num = %ld, slave is null\n",
+                                                      coroutine_pool_busy_num(coroutine_pool));
             break;
         }
 
@@ -2402,7 +2600,9 @@ void coroutine_pool_run_all(COROUTINE_POOL *coroutine_pool)
     }
 
     task_brd_update_time(task_brd_default_get());
-    dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_all: end, busy_num = %ld\n", coroutine_pool_busy_num(coroutine_pool));
+    dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_all: "
+                                              "end, busy_num = %ld\n",
+                                              coroutine_pool_busy_num(coroutine_pool));
     return;
 }
 
@@ -2421,6 +2621,7 @@ EC_BOOL coroutine_pool_add_timer(COROUTINE_POOL *coroutine_pool, COROUTINE_COND 
 {
     CRB_NODE    *crb_node;
 
+    ASSERT(0 < COROUTINE_COND_TIMEOUT_MSEC(coroutine_cond));
     crb_node = crb_tree_insert_data(COROUTINE_POOL_WORKER_TIMER_TREE(coroutine_pool),
                                     (void *)coroutine_cond);
     if(NULL_PTR == crb_node)
@@ -2441,8 +2642,9 @@ EC_BOOL coroutine_pool_add_timer(COROUTINE_POOL *coroutine_pool, COROUTINE_COND 
     }
 
     dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_pool_add_timer: "
-                                              "add timer %p (e:%ld)done\n",
+                                              "add timer %p (o:%ld, e:%ld) done\n",
                                               coroutine_cond,
+                                              COROUTINE_COND_TIMEOUT_MSEC(coroutine_cond),
                                               COROUTINE_COND_E_MSEC(coroutine_cond));
     return (EC_TRUE);
 }
@@ -2453,10 +2655,30 @@ EC_BOOL coroutine_pool_del_timer(COROUTINE_POOL *coroutine_pool, COROUTINE_COND 
     if(0 < COROUTINE_COND_TIMEOUT_MSEC(coroutine_cond))
     {
         /*note: free handler is null, here coroutine_cond would not be free*/
-        return crb_tree_delete_data(COROUTINE_POOL_WORKER_TIMER_TREE(coroutine_pool),
-                                    (void *)coroutine_cond);
+        if(EC_FALSE == crb_tree_delete_data(COROUTINE_POOL_WORKER_TIMER_TREE(coroutine_pool),
+                                    (void *)coroutine_cond))
+        {
+            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "error:coroutine_pool_del_timer: "
+                                                      "timer %p (o:%ld, e:%ld) => delete failed\n",
+                                                      coroutine_cond,
+                                                      COROUTINE_COND_TIMEOUT_MSEC(coroutine_cond),
+                                                      COROUTINE_COND_E_MSEC(coroutine_cond));
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "[DEBUG] coroutine_pool_del_timer: "
+                                                  "timer %p (o:%ld, e:%ld) => delete done\n",
+                                                  coroutine_cond,
+                                                  COROUTINE_COND_TIMEOUT_MSEC(coroutine_cond),
+                                                  COROUTINE_COND_E_MSEC(coroutine_cond));
+        return (EC_TRUE);
     }
 
+    dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "warn:coroutine_pool_del_timer: "
+                                              "timer %p (o:%ld, e:%ld) => not delete\n",
+                                              coroutine_cond,
+                                              COROUTINE_COND_TIMEOUT_MSEC(coroutine_cond),
+                                              COROUTINE_COND_E_MSEC(coroutine_cond));
     return (EC_TRUE);
 }
 
@@ -2561,11 +2783,11 @@ UINT32 coroutine_pool_size(COROUTINE_POOL *coroutine_pool)
 {
     UINT32 size;
 
-    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0052);
+    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0058);
     size = clist_size(COROUTINE_POOL_WORKER_IDLE_LIST(coroutine_pool))
          + clist_size(COROUTINE_POOL_WORKER_BUSY_LIST(coroutine_pool))
          + clist_size(COROUTINE_POOL_WORKER_POST_LIST(coroutine_pool));
-    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0053);
+    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0059);
 
     return (size);
 }
@@ -2573,9 +2795,9 @@ UINT32 coroutine_pool_size(COROUTINE_POOL *coroutine_pool)
 /*Jan 25, 2017: adjust pool size*/
 EC_BOOL coroutine_pool_size_reset(COROUTINE_POOL *coroutine_pool, const UINT32 size)
 {
-    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0054);
+    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0060);
     COROUTINE_POOL_WORKER_MAX_NUM(coroutine_pool) = size;
-    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0055);
+    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0061);
 
     return (EC_TRUE);
 }
@@ -2584,9 +2806,9 @@ UINT32 coroutine_pool_idle_num(COROUTINE_POOL *coroutine_pool)
 {
     UINT32 num;
 
-    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0056);
+    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0062);
     num = clist_size(COROUTINE_POOL_WORKER_IDLE_LIST(coroutine_pool));
-    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0057);
+    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0063);
 
     return (num);
 }
@@ -2595,22 +2817,22 @@ UINT32 coroutine_pool_busy_num(COROUTINE_POOL *coroutine_pool)
 {
     UINT32 num;
 
-    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0058);
+    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0064);
     num = clist_size(COROUTINE_POOL_WORKER_BUSY_LIST(coroutine_pool));
-    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0059);
+    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0065);
 
     return (num);
 }
 
 UINT32 coroutine_pool_num_info(COROUTINE_POOL *coroutine_pool, UINT32 *idle_num, UINT32 *busy_num, UINT32 *post_num, UINT32 *total_num)
 {
-    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0060);
+    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0066);
     (*idle_num)  = clist_size(COROUTINE_POOL_WORKER_IDLE_LIST(coroutine_pool));
     (*busy_num)  = clist_size(COROUTINE_POOL_WORKER_BUSY_LIST(coroutine_pool));
     (*post_num)  = clist_size(COROUTINE_POOL_WORKER_POST_LIST(coroutine_pool));
     (*total_num) = (*idle_num) + (*busy_num) + (*post_num);
 
-    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0061);
+    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0067);
 
     return (0);
 }
@@ -2652,7 +2874,7 @@ void coroutine_pool_print(LOG *log, COROUTINE_POOL *coroutine_pool)
     UINT32 post_num;
     UINT32 total_num;
 
-    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0062);
+    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0068);
 
     coroutine_pool_num_info_no_lock((COROUTINE_POOL *)coroutine_pool, &idle_num, &busy_num, &post_num, &total_num);
 
@@ -2672,7 +2894,7 @@ void coroutine_pool_print(LOG *log, COROUTINE_POOL *coroutine_pool)
     sys_log(log, "timer tree:\n");
     crb_tree_print(log, COROUTINE_POOL_WORKER_TIMER_TREE(coroutine_pool));
 
-    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0063);
+    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0069);
     return;
 }
 

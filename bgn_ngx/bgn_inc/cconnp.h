@@ -28,7 +28,7 @@ CSOCKET_CNODE *cconnp_reserve(CCONNP *cconnp);
 
 EC_BOOL cconnp_release(CCONNP *cconnp, CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL cconnp_erase(CCONNP *cconnp, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL cconnp_erase(CSOCKET_CNODE *csocket_cnode);
 
 void cconnp_print(LOG *log, const CCONNP *cconnp);
 

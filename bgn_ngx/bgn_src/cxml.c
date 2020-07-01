@@ -1636,6 +1636,8 @@ EC_BOOL cxml_parse_cparacfg_conn_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     __cxml_parse_tag_switch(node, (const char *)"tdnsResolveSwitch"      , &(CPARACFG_TDNS_RESOLVE_SWITCH(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"tdnsResolveTimeoutNsec" , &(CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC(cparacfg)));
 
+    __cxml_parse_tag_uint32(node, (const char *)"cepollEventMaxNum"      , &(CPARACFG_CEPOLL_EVENT_MAX_NUM(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"srvAcceptMaxNum"        , &(CPARACFG_SRV_ACCEPT_MAX_NUM(cparacfg)));
     return (EC_TRUE);
 }
 

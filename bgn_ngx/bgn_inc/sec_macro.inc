@@ -104,7 +104,7 @@
 #define SEC_0094_KBUFF                      ((UINT32)(     94)) /*kbuff                           */
 #define SEC_0095_RANK                       ((UINT32)(     95)) /*rank                            */
 #define SEC_0096_CMCPGRB                    ((UINT32)(     96)) /*cmcpgrb                         */
-#define SEC_0097_XXXXXX                     ((UINT32)(     97)) /*-- obsolete --                  */
+#define SEC_0097_CTIMEOUT                   ((UINT32)(     97)) /*ctimeout                        */
 #define SEC_0098_CMCPGB                     ((UINT32)(     98)) /*cmcpgb                          */
 #define SEC_0099_CHUNK                      ((UINT32)(     99)) /*chunk                           */
 #define SEC_0100_CRFSNPRB                   ((UINT32)(    100)) /*crfsnprb                        */

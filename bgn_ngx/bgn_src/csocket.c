@@ -126,183 +126,108 @@ void csocket_tcpi_stat_print(LOG *log, const int sockfd)
     return;
 }
 
-STATIC_CAST static EC_BOOL __csocket_cnode_recv_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
-{
-    CSOCKET_CNODE_RECV_CALLBACK    recv_callback;
-
-    recv_callback = (CSOCKET_CNODE_RECV_CALLBACK)CCALLBACK_NODE_FUNC(ccallback_node);
-
-    return recv_callback(CCALLBACK_NODE_DATA(ccallback_node), csocket_cnode);
-}
-
-STATIC_CAST static EC_BOOL __csocket_cnode_send_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
-{
-    CSOCKET_CNODE_SEND_CALLBACK    send_callback;
-
-    send_callback = (CSOCKET_CNODE_SEND_CALLBACK)CCALLBACK_NODE_FUNC(ccallback_node);
-
-    return send_callback(CCALLBACK_NODE_DATA(ccallback_node), csocket_cnode);
-}
-
-STATIC_CAST static EC_BOOL __csocket_cnode_complete_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
-{
-    CSOCKET_CNODE_COMPLETE_CALLBACK    complete_callback;
-
-    complete_callback = (CSOCKET_CNODE_COMPLETE_CALLBACK)CCALLBACK_NODE_FUNC(ccallback_node);
-
-    return complete_callback(CCALLBACK_NODE_DATA(ccallback_node), csocket_cnode);
-}
-
-STATIC_CAST static EC_BOOL __csocket_cnode_close_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
-{
-    CSOCKET_CNODE_CLOSE_CALLBACK    close_callback;
-
-    close_callback = (CSOCKET_CNODE_CLOSE_CALLBACK)CCALLBACK_NODE_FUNC(ccallback_node);
-
-    return close_callback(CCALLBACK_NODE_DATA(ccallback_node), csocket_cnode);
-}
-
-STATIC_CAST static EC_BOOL __csocket_cnode_shutdown_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
-{
-    CSOCKET_CNODE_SHUTDOWN_CALLBACK    shutdown_callback;
-
-    shutdown_callback = (CSOCKET_CNODE_SHUTDOWN_CALLBACK)CCALLBACK_NODE_FUNC(ccallback_node);
-
-    return shutdown_callback(CCALLBACK_NODE_DATA(ccallback_node), csocket_cnode);
-}
-
-STATIC_CAST static EC_BOOL __csocket_cnode_timeout_runner(CSOCKET_CNODE *csocket_cnode, CCALLBACK_NODE *ccallback_node)
-{
-    CSOCKET_CNODE_TIMEOUT_CALLBACK    timeout_callback;
-
-    timeout_callback = (CSOCKET_CNODE_TIMEOUT_CALLBACK)CCALLBACK_NODE_FUNC(ccallback_node);
-
-    return timeout_callback(CCALLBACK_NODE_DATA(ccallback_node), csocket_cnode);
-}
-
 EC_BOOL csocket_cnode_init(CSOCKET_CNODE *csocket_cnode)
 {
-    CSOCKET_CNODE_TCID(csocket_cnode   )            = CMPI_ERROR_TCID;
-    CSOCKET_CNODE_COMM(csocket_cnode   )            = CMPI_ERROR_COMM;
-    CSOCKET_CNODE_SIZE(csocket_cnode   )            = 0              ;
-    CSOCKET_CNODE_SOCKFD(csocket_cnode )            = CMPI_ERROR_SOCKFD;
+    if(NULL_PTR != csocket_cnode)
+    {
+        CSOCKET_CNODE_TCID(csocket_cnode)              = CMPI_ERROR_TCID;
+        CSOCKET_CNODE_COMM(csocket_cnode)               = CMPI_ERROR_COMM;
+        CSOCKET_CNODE_SIZE(csocket_cnode)               = 0;
+        CSOCKET_CNODE_SOCKFD(csocket_cnode)             = CMPI_ERROR_SOCKFD;
 
-    CSOCKET_CNODE_TYPE(csocket_cnode )              = CSOCKET_TYPE_ERR;
-    CSOCKET_CNODE_UNIX(csocket_cnode )              = BIT_FALSE;
-    CSOCKET_CNODE_IS_USED(csocket_cnode)            = BIT_FALSE; /*default is not used*/
-    CSOCKET_CNODE_READING(csocket_cnode)            = BIT_FALSE;
-    CSOCKET_CNODE_WRITING(csocket_cnode)            = BIT_FALSE;
-    CSOCKET_CNODE_REUSING(csocket_cnode)            = BIT_FALSE;
-    CSOCKET_CNODE_CLOSING(csocket_cnode)            = BIT_FALSE;
-    CSOCKET_CNODE_PENDING(csocket_cnode)            = BIT_FALSE;
-    CSOCKET_CNODE_LOOPING(csocket_cnode)            = BIT_FALSE;
-    CSOCKET_CNODE_NONBLOCK(csocket_cnode)           = BIT_TRUE;
+        CSOCKET_CNODE_TYPE(csocket_cnode)               = CSOCKET_TYPE_ERR;
+        CSOCKET_CNODE_UNIX(csocket_cnode)               = BIT_FALSE;
+        CSOCKET_CNODE_IS_USED(csocket_cnode)            = BIT_FALSE; /*default is not used*/
+        CSOCKET_CNODE_READING(csocket_cnode)            = BIT_FALSE;
+        CSOCKET_CNODE_WRITING(csocket_cnode)            = BIT_FALSE;
+        CSOCKET_CNODE_REUSING(csocket_cnode)            = BIT_FALSE;
+        CSOCKET_CNODE_CLOSING(csocket_cnode)            = BIT_FALSE;
+        CSOCKET_CNODE_PENDING(csocket_cnode)            = BIT_FALSE;
+        CSOCKET_CNODE_LOOPING(csocket_cnode)            = BIT_FALSE;
+        CSOCKET_CNODE_NONBLOCK(csocket_cnode)           = BIT_TRUE;
 
-    CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode)      = CMPI_ERROR_IPADDR;
-    CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)        = CMPI_ERROR_CLNTPORT;
+        CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode)      = CMPI_ERROR_IPADDR;
+        CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)        = CMPI_ERROR_CLNTPORT;
 
-    CSOCKET_CNODE_SEND_ONCE_MAX_SIZE(csocket_cnode) = CSOCKET_SEND_ONCE_MAX_SIZE;
-    CSOCKET_CNODE_RECV_ONCE_MAX_SIZE(csocket_cnode) = CSOCKET_RECV_ONCE_MAX_SIZE;
+        CSOCKET_CNODE_SEND_ONCE_MAX_SIZE(csocket_cnode) = CSOCKET_SEND_ONCE_MAX_SIZE;
+        CSOCKET_CNODE_RECV_ONCE_MAX_SIZE(csocket_cnode) = CSOCKET_RECV_ONCE_MAX_SIZE;
 
-    CSOCKET_CNODE_STATUS(csocket_cnode)             = CSOCKET_CNODE_NONA_TASKC_NODE;
+        CSOCKET_CNODE_STATUS(csocket_cnode)             = CSOCKET_CNODE_NONA_TASKC_NODE;
 
-    CSOCKET_CNODE_IPADDR(csocket_cnode )            = CMPI_ERROR_IPADDR;
-    CSOCKET_CNODE_SRVPORT(csocket_cnode)            = CMPI_ERROR_SRVPORT;
+        CSOCKET_CNODE_IPADDR(csocket_cnode )            = CMPI_ERROR_IPADDR;
+        CSOCKET_CNODE_SRVPORT(csocket_cnode)            = CMPI_ERROR_SRVPORT;
 
-    CSOCKET_CNODE_MOUNTED_POINT(csocket_cnode)      = NULL_PTR;
+        CSOCKET_CNODE_MOUNTED_POINT(csocket_cnode)      = NULL_PTR;
 
-    CSOCKET_CNODE_LOAD(csocket_cnode)               = 0;
-    CSOCKET_CNODE_PKT_POS(csocket_cnode)            = 0;
+        CSOCKET_CNODE_PKT_POS(csocket_cnode)            = 0;
 
-    CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode)  = NULL_PTR;
-    CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode)  = NULL_PTR;
+        CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode)  = NULL_PTR;
+        CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode)  = NULL_PTR;
 
-    ccallback_list_init(CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode));
-    ccallback_list_set_name(CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode), (const char *)"CSOCKET_CNODE_RECV_CALLBACK_LIST");
-    ccallback_list_set_filter(CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode), (CCALLBACK_FILTER)NULL_PTR);
-    ccallback_list_set_runner(CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode), (CCALLBACK_RUNNER)__csocket_cnode_recv_runner);
-
-    ccallback_list_init(CSOCKET_CNODE_SEND_CALLBACK_LIST(csocket_cnode));
-    ccallback_list_set_name(CSOCKET_CNODE_SEND_CALLBACK_LIST(csocket_cnode), (const char *)"CSOCKET_CNODE_SEND_CALLBACK_LIST");
-    ccallback_list_set_filter(CSOCKET_CNODE_SEND_CALLBACK_LIST(csocket_cnode), (CCALLBACK_FILTER)NULL_PTR);
-    ccallback_list_set_runner(CSOCKET_CNODE_SEND_CALLBACK_LIST(csocket_cnode), (CCALLBACK_RUNNER)__csocket_cnode_send_runner);
-
-    ccallback_list_init(CSOCKET_CNODE_COMPLETE_CALLBACK_LIST(csocket_cnode));
-    ccallback_list_set_name(CSOCKET_CNODE_COMPLETE_CALLBACK_LIST(csocket_cnode), (const char *)"CSOCKET_CNODE_COMPLETE_CALLBACK_LIST");
-    ccallback_list_set_filter(CSOCKET_CNODE_COMPLETE_CALLBACK_LIST(csocket_cnode), (CCALLBACK_FILTER)NULL_PTR);
-    ccallback_list_set_runner(CSOCKET_CNODE_COMPLETE_CALLBACK_LIST(csocket_cnode), (CCALLBACK_RUNNER)__csocket_cnode_complete_runner);
-
-    ccallback_list_init(CSOCKET_CNODE_CLOSE_CALLBACK_LIST(csocket_cnode));
-    ccallback_list_set_name(CSOCKET_CNODE_CLOSE_CALLBACK_LIST(csocket_cnode), (const char *)"CSOCKET_CNODE_CLOSE_CALLBACK_LIST");
-    ccallback_list_set_filter(CSOCKET_CNODE_CLOSE_CALLBACK_LIST(csocket_cnode), (CCALLBACK_FILTER)NULL_PTR);
-    ccallback_list_set_runner(CSOCKET_CNODE_CLOSE_CALLBACK_LIST(csocket_cnode), (CCALLBACK_RUNNER)__csocket_cnode_close_runner);
-
-    ccallback_list_init(CSOCKET_CNODE_SHUTDOWN_CALLBACK_LIST(csocket_cnode));
-    ccallback_list_set_name(CSOCKET_CNODE_SHUTDOWN_CALLBACK_LIST(csocket_cnode), (const char *)"CSOCKET_CNODE_SHUTDOWN_CALLBACK_LIST");
-    ccallback_list_set_filter(CSOCKET_CNODE_SHUTDOWN_CALLBACK_LIST(csocket_cnode), (CCALLBACK_FILTER)NULL_PTR);
-    ccallback_list_set_runner(CSOCKET_CNODE_SHUTDOWN_CALLBACK_LIST(csocket_cnode), (CCALLBACK_RUNNER)__csocket_cnode_shutdown_runner);
-
-    ccallback_list_init(CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode));
-    ccallback_list_set_name(CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode), (const char *)"CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST");
-    ccallback_list_set_filter(CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode), (CCALLBACK_FILTER)NULL_PTR);
-    ccallback_list_set_runner(CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode), (CCALLBACK_RUNNER)__csocket_cnode_timeout_runner);
-
+        ccallback_node_init(CSOCKET_CNODE_ON_RECV(csocket_cnode));
+        ccallback_node_init(CSOCKET_CNODE_ON_SEND(csocket_cnode));
+        ccallback_node_init(CSOCKET_CNODE_ON_COMPLETE(csocket_cnode));
+        ccallback_node_init(CSOCKET_CNODE_ON_CLOSE(csocket_cnode));
+        ccallback_node_init(CSOCKET_CNODE_ON_SHUTDOWN(csocket_cnode));
+        ccallback_node_init(CSOCKET_CNODE_ON_TIMEOUT(csocket_cnode));
+    }
     return (EC_TRUE);
 }
 
 EC_BOOL csocket_cnode_clean(CSOCKET_CNODE *csocket_cnode)
 {
-    ccallback_list_clean(CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode));
-    ccallback_list_clean(CSOCKET_CNODE_SEND_CALLBACK_LIST(csocket_cnode));
-    ccallback_list_clean(CSOCKET_CNODE_COMPLETE_CALLBACK_LIST(csocket_cnode));
-    ccallback_list_clean(CSOCKET_CNODE_CLOSE_CALLBACK_LIST(csocket_cnode));
-    ccallback_list_clean(CSOCKET_CNODE_SHUTDOWN_CALLBACK_LIST(csocket_cnode));
-    ccallback_list_clean(CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode));
-
-    ASSERT(NULL_PTR == CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode));
-    ASSERT(NULL_PTR == CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode));
-
-    CSOCKET_CNODE_TCID(csocket_cnode   )            = CMPI_ERROR_TCID;
-    CSOCKET_CNODE_COMM(csocket_cnode   )            = CMPI_ERROR_COMM;
-    CSOCKET_CNODE_SIZE(csocket_cnode   )            = 0              ;
-
-    if(0 < CSOCKET_CNODE_SOCKFD(csocket_cnode ))
+    if(NULL_PTR != csocket_cnode)
     {
-        csocket_close(CSOCKET_CNODE_SOCKFD(csocket_cnode));
-        CSOCKET_CNODE_SOCKFD(csocket_cnode )        = CMPI_ERROR_SOCKFD;
+        ccallback_node_clean(CSOCKET_CNODE_ON_RECV(csocket_cnode));
+        ccallback_node_clean(CSOCKET_CNODE_ON_SEND(csocket_cnode));
+        ccallback_node_clean(CSOCKET_CNODE_ON_COMPLETE(csocket_cnode));
+        ccallback_node_clean(CSOCKET_CNODE_ON_CLOSE(csocket_cnode));
+        ccallback_node_clean(CSOCKET_CNODE_ON_SHUTDOWN(csocket_cnode));
+        ccallback_node_clean(CSOCKET_CNODE_ON_TIMEOUT(csocket_cnode));
+
+        ASSERT(NULL_PTR == CSOCKET_CNODE_RECVING_TASK_NODE(csocket_cnode));
+        ASSERT(NULL_PTR == CSOCKET_CNODE_SENDING_TASK_NODE(csocket_cnode));
+
+        CSOCKET_CNODE_TCID(csocket_cnode)              = CMPI_ERROR_TCID;
+        CSOCKET_CNODE_COMM(csocket_cnode)              = CMPI_ERROR_COMM;
+        CSOCKET_CNODE_SIZE(csocket_cnode)              = 0;
+
+        if(0 < CSOCKET_CNODE_SOCKFD(csocket_cnode ))
+        {
+            csocket_close(CSOCKET_CNODE_SOCKFD(csocket_cnode));
+            CSOCKET_CNODE_SOCKFD(csocket_cnode )        = CMPI_ERROR_SOCKFD;
+        }
+        else
+        {
+            CSOCKET_CNODE_SOCKFD(csocket_cnode)         = CMPI_ERROR_SOCKFD;
+        }
+
+        CSOCKET_CNODE_TYPE(csocket_cnode)               = CSOCKET_TYPE_ERR;
+        CSOCKET_CNODE_UNIX(csocket_cnode)               = BIT_FALSE;
+        CSOCKET_CNODE_IS_USED(csocket_cnode)            = BIT_FALSE;
+        CSOCKET_CNODE_READING(csocket_cnode)            = BIT_FALSE;
+        CSOCKET_CNODE_WRITING(csocket_cnode)            = BIT_FALSE;
+        CSOCKET_CNODE_REUSING(csocket_cnode)            = BIT_FALSE;
+        CSOCKET_CNODE_CLOSING(csocket_cnode)            = BIT_FALSE;
+        CSOCKET_CNODE_PENDING(csocket_cnode)            = BIT_FALSE;
+        CSOCKET_CNODE_LOOPING(csocket_cnode)            = BIT_FALSE;
+        CSOCKET_CNODE_NONBLOCK(csocket_cnode)           = BIT_TRUE;
+
+        CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode)      = CMPI_ERROR_IPADDR;
+        CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)        = CMPI_ERROR_CLNTPORT;
+
+        CSOCKET_CNODE_SEND_ONCE_MAX_SIZE(csocket_cnode) = 0;
+        CSOCKET_CNODE_RECV_ONCE_MAX_SIZE(csocket_cnode) = 0;
+
+        CSOCKET_CNODE_STATUS(csocket_cnode)             = CSOCKET_CNODE_NONA_TASKC_NODE;
+
+        CSOCKET_CNODE_IPADDR(csocket_cnode )            = CMPI_ERROR_IPADDR;
+        CSOCKET_CNODE_SRVPORT(csocket_cnode)            = CMPI_ERROR_SRVPORT;
+
+        CSOCKET_CNODE_PKT_POS(csocket_cnode)            = 0;
+
+        CSOCKET_CNODE_MOUNTED_POINT(csocket_cnode)      = NULL_PTR;
     }
-    else
-    {
-        CSOCKET_CNODE_SOCKFD(csocket_cnode )        = CMPI_ERROR_SOCKFD;
-    }
-
-    CSOCKET_CNODE_TYPE(csocket_cnode )              = CSOCKET_TYPE_ERR;
-    CSOCKET_CNODE_UNIX(csocket_cnode )              = BIT_FALSE;
-    CSOCKET_CNODE_IS_USED(csocket_cnode)            = BIT_FALSE;
-    CSOCKET_CNODE_READING(csocket_cnode)            = BIT_FALSE;
-    CSOCKET_CNODE_WRITING(csocket_cnode)            = BIT_FALSE;
-    CSOCKET_CNODE_REUSING(csocket_cnode)            = BIT_FALSE;
-    CSOCKET_CNODE_CLOSING(csocket_cnode)            = BIT_FALSE;
-    CSOCKET_CNODE_PENDING(csocket_cnode)            = BIT_FALSE;
-    CSOCKET_CNODE_LOOPING(csocket_cnode)            = BIT_FALSE;
-    CSOCKET_CNODE_NONBLOCK(csocket_cnode)           = BIT_TRUE;
-
-    CSOCKET_CNODE_CLIENT_IPADDR(csocket_cnode)      = CMPI_ERROR_IPADDR;
-    CSOCKET_CNODE_CLIENT_PORT(csocket_cnode)        = CMPI_ERROR_CLNTPORT;
-
-    CSOCKET_CNODE_SEND_ONCE_MAX_SIZE(csocket_cnode) = 0;
-    CSOCKET_CNODE_RECV_ONCE_MAX_SIZE(csocket_cnode) = 0;
-
-    CSOCKET_CNODE_STATUS(csocket_cnode)             = CSOCKET_CNODE_NONA_TASKC_NODE;
-
-    CSOCKET_CNODE_IPADDR(csocket_cnode )            = CMPI_ERROR_IPADDR;
-    CSOCKET_CNODE_SRVPORT(csocket_cnode)            = CMPI_ERROR_SRVPORT;
-
-    CSOCKET_CNODE_LOAD(csocket_cnode)               = 0;
-    CSOCKET_CNODE_PKT_POS(csocket_cnode)            = 0;
-
-    CSOCKET_CNODE_MOUNTED_POINT(csocket_cnode)      = NULL_PTR;
-
     return (EC_TRUE);
 }
 
@@ -344,197 +269,66 @@ EC_BOOL csocket_cnode_free(CSOCKET_CNODE *csocket_cnode)
     return (EC_TRUE);
 }
 
-CCALLBACK_NODE *csocket_cnode_search_recv_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
+EC_BOOL csocket_cnode_set_recv_callback(CSOCKET_CNODE *csocket_cnode, const char *name, void *data, void *func)
 {
-    return ccallback_list_search(CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode), name, data, func);
+    return ccallback_node_set(CSOCKET_CNODE_ON_RECV(csocket_cnode), name, data, func);
 }
 
-CCALLBACK_NODE *csocket_cnode_search_send_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
+EC_BOOL csocket_cnode_set_send_callback(CSOCKET_CNODE *csocket_cnode, const char *name, void *data, void *func)
 {
-    return ccallback_list_search(CSOCKET_CNODE_SEND_CALLBACK_LIST(csocket_cnode), name, data, func);
+    return ccallback_node_set(CSOCKET_CNODE_ON_SEND(csocket_cnode), name, data, func);
 }
 
-CCALLBACK_NODE *csocket_cnode_search_complete_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
+EC_BOOL csocket_cnode_set_complete_callback(CSOCKET_CNODE *csocket_cnode, const char *name, void *data, void *func)
 {
-    return ccallback_list_search(CSOCKET_CNODE_COMPLETE_CALLBACK_LIST(csocket_cnode), name, data, func);
+    return ccallback_node_set(CSOCKET_CNODE_ON_COMPLETE(csocket_cnode), name, data, func);
 }
 
-CCALLBACK_NODE *csocket_cnode_search_close_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
+EC_BOOL csocket_cnode_set_close_callback(CSOCKET_CNODE *csocket_cnode, const char *name, void *data, void *func)
 {
-    return ccallback_list_search(CSOCKET_CNODE_CLOSE_CALLBACK_LIST(csocket_cnode), name, data, func);
+    return ccallback_node_set(CSOCKET_CNODE_ON_CLOSE(csocket_cnode), name, data, func);
 }
 
-CCALLBACK_NODE *csocket_cnode_search_shutdown_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
+EC_BOOL csocket_cnode_set_shutdown_callback(CSOCKET_CNODE *csocket_cnode, const char *name, void *data, void *func)
 {
-    return ccallback_list_search(CSOCKET_CNODE_SHUTDOWN_CALLBACK_LIST(csocket_cnode), name, data, func);
+    return ccallback_node_set(CSOCKET_CNODE_ON_SHUTDOWN(csocket_cnode), name, data, func);
 }
 
-CCALLBACK_NODE *csocket_cnode_search_timeout_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
+EC_BOOL csocket_cnode_set_timeout_callback(CSOCKET_CNODE *csocket_cnode, const char *name, void *data, void *func)
 {
-    return ccallback_list_search(CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode), name, data, func);
+    return ccallback_node_set(CSOCKET_CNODE_ON_TIMEOUT(csocket_cnode), name, data, func);
 }
 
-EC_BOOL csocket_cnode_push_recv_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
+EC_BOOL csocket_cnode_clean_recv_callback(CSOCKET_CNODE *csocket_cnode)
 {
-    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT,"[DEBUG] csocket_cnode_push_recv_callback: sockfd %d\n", CSOCKET_CNODE_SOCKFD(csocket_cnode));
-    if(NULL_PTR == ccallback_list_push(CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode), name, data, func))
-    {
-        return (EC_FALSE);
-    }
-    return (EC_TRUE);
+    return ccallback_node_clean(CSOCKET_CNODE_ON_RECV(csocket_cnode));
 }
 
-EC_BOOL csocket_cnode_push_send_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
+EC_BOOL csocket_cnode_clean_send_callback(CSOCKET_CNODE *csocket_cnode)
 {
-    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT,"[DEBUG] csocket_cnode_push_send_callback: sockfd %d\n", CSOCKET_CNODE_SOCKFD(csocket_cnode));
-    if(NULL_PTR == ccallback_list_push(CSOCKET_CNODE_SEND_CALLBACK_LIST(csocket_cnode), name, data, func))
-    {
-        return (EC_FALSE);
-    }
-    return (EC_TRUE);
+    return ccallback_node_clean(CSOCKET_CNODE_ON_SEND(csocket_cnode));
 }
 
-EC_BOOL csocket_cnode_push_complete_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
+EC_BOOL csocket_cnode_clean_complete_callback(CSOCKET_CNODE *csocket_cnode)
 {
-    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT,"[DEBUG] csocket_cnode_push_complete_callback: sockfd %d\n", CSOCKET_CNODE_SOCKFD(csocket_cnode));
-    if(NULL_PTR == ccallback_list_push(CSOCKET_CNODE_COMPLETE_CALLBACK_LIST(csocket_cnode), name, data, func))
-    {
-        return (EC_FALSE);
-    }
-    return (EC_TRUE);
+    return ccallback_node_clean(CSOCKET_CNODE_ON_COMPLETE(csocket_cnode));
 }
 
-EC_BOOL csocket_cnode_push_close_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
+EC_BOOL csocket_cnode_clean_close_callback(CSOCKET_CNODE *csocket_cnode)
 {
-    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT,"[DEBUG] csocket_cnode_push_close_callback: sockfd %d\n", CSOCKET_CNODE_SOCKFD(csocket_cnode));
-    if(NULL_PTR == ccallback_list_push(CSOCKET_CNODE_CLOSE_CALLBACK_LIST(csocket_cnode), name, data, func))
-    {
-        return (EC_FALSE);
-    }
-    return (EC_TRUE);
+    return ccallback_node_clean(CSOCKET_CNODE_ON_CLOSE(csocket_cnode));
 }
 
-EC_BOOL csocket_cnode_push_shutdown_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
+EC_BOOL csocket_cnode_clean_shutdown_callback(CSOCKET_CNODE *csocket_cnode)
 {
-    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT,"[DEBUG] csocket_cnode_push_shutdown_callback: sockfd %d\n", CSOCKET_CNODE_SOCKFD(csocket_cnode));
-    if(NULL_PTR == ccallback_list_push(CSOCKET_CNODE_SHUTDOWN_CALLBACK_LIST(csocket_cnode), name, data, func))
-    {
-        return (EC_FALSE);
-    }
-    return (EC_TRUE);
+    return ccallback_node_clean(CSOCKET_CNODE_ON_SHUTDOWN(csocket_cnode));
 }
 
-EC_BOOL csocket_cnode_push_timeout_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
+EC_BOOL csocket_cnode_clean_timeout_callback(CSOCKET_CNODE *csocket_cnode)
 {
-    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT,"[DEBUG] csocket_cnode_push_timeout_callback: sockfd %d\n", CSOCKET_CNODE_SOCKFD(csocket_cnode));
-    if(NULL_PTR == ccallback_list_push(CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode), name, data, func))
-    {
-        return (EC_FALSE);
-    }
-    return (EC_TRUE);
+    return ccallback_node_clean(CSOCKET_CNODE_ON_TIMEOUT(csocket_cnode));
 }
 
-EC_BOOL csocket_cnode_erase_recv_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
-{
-    return ccallback_list_erase(CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode), name, data, func);
-}
-
-EC_BOOL csocket_cnode_erase_send_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
-{
-    return ccallback_list_erase(CSOCKET_CNODE_SEND_CALLBACK_LIST(csocket_cnode), name, data, func);
-}
-
-EC_BOOL csocket_cnode_erase_complete_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
-{
-    return ccallback_list_erase(CSOCKET_CNODE_COMPLETE_CALLBACK_LIST(csocket_cnode), name, data, func);
-}
-
-EC_BOOL csocket_cnode_erase_close_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
-{
-    return ccallback_list_erase(CSOCKET_CNODE_CLOSE_CALLBACK_LIST(csocket_cnode), name, data, func);
-}
-
-EC_BOOL csocket_cnode_erase_shutdown_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
-{
-    return ccallback_list_erase(CSOCKET_CNODE_SHUTDOWN_CALLBACK_LIST(csocket_cnode), name, data, func);
-}
-
-EC_BOOL csocket_cnode_erase_timeout_callback(CSOCKET_CNODE *csocket_cnode, const char *name, const UINT32 data, const UINT32 func)
-{
-    return ccallback_list_erase(CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode), name, data, func);
-}
-
-EC_BOOL csocket_cnode_reset_recv_callback(CSOCKET_CNODE *csocket_cnode)
-{
-    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "[DEBUG] csocket_cnode_reset_recv_callback: sockfd %d reset recv callback list\n",
-                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
-    return ccallback_list_reset(CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode));
-}
-
-EC_BOOL csocket_cnode_reset_send_callback(CSOCKET_CNODE *csocket_cnode)
-{
-    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "[DEBUG] csocket_cnode_reset_send_callback: sockfd %d reset send callback list\n",
-                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
-    return ccallback_list_reset(CSOCKET_CNODE_SEND_CALLBACK_LIST(csocket_cnode));
-}
-
-EC_BOOL csocket_cnode_reset_complete_callback(CSOCKET_CNODE *csocket_cnode)
-{
-    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "[DEBUG] csocket_cnode_reset_complete_callback: sockfd %d reset complete callback list\n",
-                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
-    return ccallback_list_reset(CSOCKET_CNODE_COMPLETE_CALLBACK_LIST(csocket_cnode));
-}
-
-EC_BOOL csocket_cnode_reset_close_callback(CSOCKET_CNODE *csocket_cnode)
-{
-    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "[DEBUG] csocket_cnode_reset_close_callback: sockfd %d reset close callback list\n",
-                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
-    return ccallback_list_reset(CSOCKET_CNODE_CLOSE_CALLBACK_LIST(csocket_cnode));
-}
-
-EC_BOOL csocket_cnode_reset_shutdown_callback(CSOCKET_CNODE *csocket_cnode)
-{
-    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "[DEBUG] csocket_cnode_reset_shutdown_callback: sockfd %d reset shutdown callback list\n",
-                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
-    return ccallback_list_reset(CSOCKET_CNODE_SHUTDOWN_CALLBACK_LIST(csocket_cnode));
-}
-
-EC_BOOL csocket_cnode_reset_timeout_callback(CSOCKET_CNODE *csocket_cnode)
-{
-    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "[DEBUG] csocket_cnode_reset_timeout_callback: sockfd %d reset timeout callback list\n",
-                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
-    return ccallback_list_reset(CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode));
-}
-
-EC_BOOL csocket_cnode_callback_when_recv(CSOCKET_CNODE *csocket_cnode)
-{
-    return ccallback_list_run_and_check(CSOCKET_CNODE_RECV_CALLBACK_LIST(csocket_cnode), (UINT32)csocket_cnode);
-}
-
-EC_BOOL csocket_cnode_callback_when_send(CSOCKET_CNODE *csocket_cnode)
-{
-    return ccallback_list_run_and_check(CSOCKET_CNODE_SEND_CALLBACK_LIST(csocket_cnode), (UINT32)csocket_cnode);
-}
-
-EC_BOOL csocket_cnode_callback_when_complete(CSOCKET_CNODE *csocket_cnode)
-{
-    return ccallback_list_run_and_check(CSOCKET_CNODE_COMPLETE_CALLBACK_LIST(csocket_cnode), (UINT32)csocket_cnode);
-}
-
-EC_BOOL csocket_cnode_callback_when_close(CSOCKET_CNODE *csocket_cnode)
-{
-    return ccallback_list_run_not_check(CSOCKET_CNODE_CLOSE_CALLBACK_LIST(csocket_cnode), (UINT32)csocket_cnode);
-}
-
-EC_BOOL csocket_cnode_callback_when_shutdown(CSOCKET_CNODE *csocket_cnode)
-{
-    return ccallback_list_run_not_check(CSOCKET_CNODE_SHUTDOWN_CALLBACK_LIST(csocket_cnode), (UINT32)csocket_cnode);
-}
-
-EC_BOOL csocket_cnode_callback_when_timeout(CSOCKET_CNODE *csocket_cnode)
-{
-    return ccallback_list_run_not_check(CSOCKET_CNODE_TIMEOUT_CALLBACK_LIST(csocket_cnode), (UINT32)csocket_cnode);
-}
 
 EC_BOOL csocket_cnode_close(CSOCKET_CNODE *csocket_cnode)
 {
@@ -578,7 +372,6 @@ CSOCKET_CNODE * csocket_cnode_unix_new(const UINT32 tcid, const int sockfd, cons
     CSOCKET_CNODE_IPADDR(csocket_cnode) = ipaddr;
     CSOCKET_CNODE_SRVPORT(csocket_cnode)= srvport;
 
-    CSOCKET_CNODE_LOAD(csocket_cnode)    = 0;
     CSOCKET_CNODE_PKT_POS(csocket_cnode) = 0;
 
     CSOCKET_CNODE_SET_CONNECTED(csocket_cnode);
@@ -605,7 +398,7 @@ void csocket_cnode_close_and_clean_event(CSOCKET_CNODE *csocket_cnode)
             CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
         }
 
-        csocket_cnode_callback_when_close(csocket_cnode);
+        ccallback_node_run(CSOCKET_CNODE_ON_CLOSE(csocket_cnode));
         csocket_cnode_close(csocket_cnode);
 
         if(BIT_TRUE == nonblock)
@@ -623,59 +416,6 @@ EC_BOOL csocket_cnode_set_disconnected(CSOCKET_CNODE *csocket_cnode)
         CSOCKET_CNODE_SET_DISCONNECTED(csocket_cnode);
     }
 
-    return (EC_TRUE);
-}
-
-EC_BOOL csocket_cnode_cmp(const CSOCKET_CNODE *csocket_cnode_1, const CSOCKET_CNODE *csocket_cnode_2)
-{
-    if((NULL_PTR == csocket_cnode_1) && (NULL_PTR == csocket_cnode_2))
-    {
-        return (EC_TRUE);
-    }
-    if((NULL_PTR == csocket_cnode_1) || (NULL_PTR == csocket_cnode_2))
-    {
-        return (EC_FALSE);
-    }
-    if(CSOCKET_CNODE_TCID(csocket_cnode_1) != CSOCKET_CNODE_TCID(csocket_cnode_2))
-    {
-        return (EC_FALSE);
-    }
-    if(CSOCKET_CNODE_SOCKFD(csocket_cnode_1) != CSOCKET_CNODE_SOCKFD(csocket_cnode_2))
-    {
-        return (EC_FALSE);
-    }
-
-    /*when comm not set, then skip comparasion*/
-    if(CMPI_ERROR_COMM != (CSOCKET_CNODE_COMM(csocket_cnode_1))
-    && CMPI_ERROR_COMM != (CSOCKET_CNODE_COMM(csocket_cnode_2))
-    && CSOCKET_CNODE_COMM(csocket_cnode_1) != CSOCKET_CNODE_COMM(csocket_cnode_2))
-    {
-        return (EC_FALSE);
-    }
-
-    /*when size not set, then skip comparasion*/
-    if(0 != (CSOCKET_CNODE_SIZE(csocket_cnode_1))
-    && 0 != (CSOCKET_CNODE_SIZE(csocket_cnode_2))
-    && CSOCKET_CNODE_SIZE(csocket_cnode_1) != CSOCKET_CNODE_SIZE(csocket_cnode_2))
-    {
-        return (EC_FALSE);
-    }
-
-    /*when ipaddr not set, then skip comparasion*/
-    if(CMPI_ERROR_IPADDR != (CSOCKET_CNODE_IPADDR(csocket_cnode_1))
-    && CMPI_ERROR_IPADDR != (CSOCKET_CNODE_IPADDR(csocket_cnode_2))
-    && CSOCKET_CNODE_IPADDR(csocket_cnode_1) != CSOCKET_CNODE_IPADDR(csocket_cnode_2))
-    {
-        return (EC_FALSE);
-    }
-
-    /*when srvport not set, then skip comparasion*/
-    if(CMPI_ERROR_SRVPORT != (CSOCKET_CNODE_SRVPORT(csocket_cnode_1))
-    && CMPI_ERROR_SRVPORT != (CSOCKET_CNODE_SRVPORT(csocket_cnode_2))
-    && (CSOCKET_CNODE_SRVPORT(csocket_cnode_1) != CSOCKET_CNODE_SRVPORT(csocket_cnode_2)))
-    {
-        return (EC_FALSE);
-    }
     return (EC_TRUE);
 }
 
@@ -721,35 +461,19 @@ const char *csocket_cnode_tcpi_stat_desc(const CSOCKET_CNODE *csocket_cnode)
 
 EC_BOOL csocket_cnode_irecv(CSOCKET_CNODE *csocket_cnode)
 {
-    return csocket_cnode_callback_when_recv(csocket_cnode);
+    return ccallback_node_run(CSOCKET_CNODE_ON_RECV(csocket_cnode));
 }
 
 EC_BOOL csocket_cnode_isend(CSOCKET_CNODE *csocket_cnode)
 {
-    return csocket_cnode_callback_when_send(csocket_cnode);
+    return ccallback_node_run(CSOCKET_CNODE_ON_SEND(csocket_cnode));
 }
 
 EC_BOOL csocket_cnode_icomplete(CSOCKET_CNODE *csocket_cnode)
 {
     ASSERT(NULL_PTR != csocket_cnode);
 
-    csocket_cnode_callback_when_complete(csocket_cnode);
-
-    if(BIT_FALSE == CSOCKET_CNODE_REUSING(csocket_cnode))
-    {
-        dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_cnode_icomplete: sockfd %d, resuing: false\n",
-                    CSOCKET_CNODE_SOCKFD(csocket_cnode));
-        csocket_cnode_close(csocket_cnode);
-        return (EC_TRUE);
-    }
-
-    if(BIT_TRUE  == CSOCKET_CNODE_CLOSING(csocket_cnode))
-    {
-        dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_cnode_icomplete: sockfd %d, closing: true\n",
-                    CSOCKET_CNODE_SOCKFD(csocket_cnode));
-        csocket_cnode_close(csocket_cnode);
-        return (EC_TRUE);
-    }
+    ccallback_node_run(CSOCKET_CNODE_ON_COMPLETE(csocket_cnode));
 
     return (EC_TRUE);
 }
@@ -758,9 +482,7 @@ EC_BOOL csocket_cnode_ishutdown(CSOCKET_CNODE *csocket_cnode)
 {
     ASSERT(NULL_PTR != csocket_cnode);
 
-    csocket_cnode_callback_when_shutdown(csocket_cnode);
-
-    csocket_cnode_close(csocket_cnode);
+    ccallback_node_run(CSOCKET_CNODE_ON_SHUTDOWN(csocket_cnode));
 
     return (EC_TRUE);
 }
@@ -769,23 +491,7 @@ EC_BOOL csocket_cnode_iclose(CSOCKET_CNODE *csocket_cnode)
 {
     ASSERT(NULL_PTR != csocket_cnode);
 
-    csocket_cnode_callback_when_close(csocket_cnode);
-
-    if(BIT_FALSE == CSOCKET_CNODE_REUSING(csocket_cnode))
-    {
-        dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_cnode_iclose: sockfd %d, resuing: false\n",
-                    CSOCKET_CNODE_SOCKFD(csocket_cnode));
-        csocket_cnode_close(csocket_cnode);
-        return (EC_TRUE);
-    }
-
-    if(BIT_TRUE  == CSOCKET_CNODE_CLOSING(csocket_cnode))
-    {
-        dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_cnode_iclose: sockfd %d, closing: true\n",
-                    CSOCKET_CNODE_SOCKFD(csocket_cnode));
-        csocket_cnode_close(csocket_cnode);
-        return (EC_TRUE);
-    }
+    ccallback_node_run(CSOCKET_CNODE_ON_CLOSE(csocket_cnode));
 
     return (EC_TRUE);
 }
@@ -794,32 +500,33 @@ EC_BOOL csocket_cnode_itimeout(CSOCKET_CNODE *csocket_cnode)
 {
     ASSERT(NULL_PTR != csocket_cnode);
 
-    csocket_cnode_callback_when_timeout(csocket_cnode);
+    ccallback_node_run(CSOCKET_CNODE_ON_TIMEOUT(csocket_cnode));
 
-    /*do not walk through iclose procedure*/
-    if(BIT_FALSE == CSOCKET_CNODE_LOOPING(csocket_cnode))
-    {
-        csocket_cnode_close(csocket_cnode);
-    }
     return (EC_TRUE);
 }
 
-EC_BOOL csocket_cnode_send(CSOCKET_CNODE *csocket_cnode, const UINT8 * out_buff, const UINT32 out_buff_max_len, UINT32 * pos)
+EC_BOOL csocket_cnode_send(CSOCKET_CNODE *csocket_cnode, const UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *pos)
 {
     if(CSOCKET_TYPE_TCP == CSOCKET_CNODE_TYPE(csocket_cnode))
     {
         return csocket_write(CSOCKET_CNODE_SOCKFD(csocket_cnode),
-                         CSOCKET_CNODE_SEND_ONCE_MAX_SIZE(csocket_cnode), out_buff, out_buff_max_len, pos);
+                             CSOCKET_CNODE_SEND_ONCE_MAX_SIZE(csocket_cnode),
+                             out_buff, out_buff_max_len, pos);
     }
 
     if(CSOCKET_TYPE_UDP == CSOCKET_CNODE_TYPE(csocket_cnode))
     {
-        return csocket_udp_write(CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_IPADDR(csocket_cnode), CSOCKET_CNODE_SRVPORT(csocket_cnode),
-                             CSOCKET_CNODE_SEND_ONCE_MAX_SIZE(csocket_cnode), out_buff, out_buff_max_len, pos);
+        return csocket_udp_write(CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                                 CSOCKET_CNODE_IPADDR(csocket_cnode),
+                                 CSOCKET_CNODE_SRVPORT(csocket_cnode),
+                                 CSOCKET_CNODE_SEND_ONCE_MAX_SIZE(csocket_cnode),
+                                 out_buff, out_buff_max_len, pos);
     }
 
-    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "error:csocket_cnode_send: sockfd %d, invalid type %u \n",
-                    CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_TYPE(csocket_cnode));
+    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "error:csocket_cnode_send: "
+                                            "sockfd %d, invalid type %u \n",
+                                            CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                                            CSOCKET_CNODE_TYPE(csocket_cnode));
     return (EC_FALSE);
 }
 
@@ -828,29 +535,42 @@ EC_BOOL csocket_cnode_recv(CSOCKET_CNODE *csocket_cnode, UINT8 *in_buff, const U
     if(CSOCKET_TYPE_TCP == CSOCKET_CNODE_TYPE(csocket_cnode))
     {
         return csocket_read(CSOCKET_CNODE_SOCKFD(csocket_cnode),
-                        CSOCKET_CNODE_RECV_ONCE_MAX_SIZE(csocket_cnode), in_buff, in_buff_expect_len, pos);
+                            CSOCKET_CNODE_RECV_ONCE_MAX_SIZE(csocket_cnode),
+                            in_buff, in_buff_expect_len, pos);
     }
 
     if(CSOCKET_TYPE_UDP == CSOCKET_CNODE_TYPE(csocket_cnode))
     {
-        return csocket_udp_read(CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_IPADDR(csocket_cnode), CSOCKET_CNODE_SRVPORT(csocket_cnode),
-                            CSOCKET_CNODE_RECV_ONCE_MAX_SIZE(csocket_cnode), in_buff, in_buff_expect_len, pos);
+        return csocket_udp_read(CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                                CSOCKET_CNODE_IPADDR(csocket_cnode),
+                                CSOCKET_CNODE_SRVPORT(csocket_cnode),
+                                CSOCKET_CNODE_RECV_ONCE_MAX_SIZE(csocket_cnode),
+                                in_buff, in_buff_expect_len, pos);
     }
-    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "error:csocket_cnode_recv: sockfd %d, invalid type %u \n",
-                    CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_TYPE(csocket_cnode));
+
+    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "error:csocket_cnode_recv: "
+                                            "sockfd %d, invalid type %u \n",
+                                            CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                                            CSOCKET_CNODE_TYPE(csocket_cnode));
     return (EC_FALSE);
 }
 
 EC_BOOL csocket_cnode_udp_send(CSOCKET_CNODE *csocket_cnode, const UINT8 * out_buff, const UINT32 out_buff_max_len, UINT32 * pos)
 {
-    return csocket_udp_write(CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_IPADDR(csocket_cnode), CSOCKET_CNODE_SRVPORT(csocket_cnode),
-                             CSOCKET_CNODE_SEND_ONCE_MAX_SIZE(csocket_cnode), out_buff, out_buff_max_len, pos);
+    return csocket_udp_write(CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                             CSOCKET_CNODE_IPADDR(csocket_cnode),
+                             CSOCKET_CNODE_SRVPORT(csocket_cnode),
+                             CSOCKET_CNODE_SEND_ONCE_MAX_SIZE(csocket_cnode),
+                             out_buff, out_buff_max_len, pos);
 }
 
 EC_BOOL csocket_cnode_udp_recv(CSOCKET_CNODE *csocket_cnode, UINT8 *in_buff, const UINT32 in_buff_expect_len, UINT32 *pos)
 {
-    return csocket_udp_read(CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_IPADDR(csocket_cnode), CSOCKET_CNODE_SRVPORT(csocket_cnode),
-                            CSOCKET_CNODE_RECV_ONCE_MAX_SIZE(csocket_cnode), in_buff, in_buff_expect_len, pos);
+    return csocket_udp_read(CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                            CSOCKET_CNODE_IPADDR(csocket_cnode),
+                            CSOCKET_CNODE_SRVPORT(csocket_cnode),
+                            CSOCKET_CNODE_RECV_ONCE_MAX_SIZE(csocket_cnode),
+                            in_buff, in_buff_expect_len, pos);
 }
 
 void sockfd_print(LOG *log, const void *data)
@@ -3288,7 +3008,7 @@ EC_BOOL csocket_close( const int sockfd )
 #endif
 
     close(sockfd);
-    dbg_log(SEC_0053_CSOCKET, 1)(LOGSTDOUT,"warn:csocket_close: force close sockfd %d\n", sockfd);
+    dbg_log(SEC_0053_CSOCKET, 1)(LOGSTDOUT, "warn:csocket_close: force close sockfd %d\n", sockfd);
 
     return ( EC_TRUE );
 }
@@ -3722,7 +3442,8 @@ TASK_NODE *csocket_fetch_task_node(CSOCKET_CNODE *csocket_cnode)
         if(CSOCKET_BUFF_MAX_LEN <= len || 0 == len)/*should never overflow 1 GB*/
         {
             CSOCKET_CNODE_SET_DISCONNECTED(csocket_cnode);
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_fetch_task_node: disconnect sockfd %d due to invalid len 0x%lx\n",
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_fetch_task_node: "
+                                                    "disconnect sockfd %d due to invalid len 0x%lx\n",
                                                     CSOCKET_CNODE_SOCKFD(csocket_cnode), len);
             return (NULL_PTR);
         }
@@ -3731,13 +3452,16 @@ TASK_NODE *csocket_fetch_task_node(CSOCKET_CNODE *csocket_cnode)
         if(NULL_PTR == task_node)
         {
             CSOCKET_CNODE_SET_DISCONNECTED(csocket_cnode); /*something wrong. Feb 24,2018*/
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_fetch_task_node: new task_node with %ld bytes failed\n", len);
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_fetch_task_node: "
+                                                    "new task_node with %ld bytes failed\n",
+                                                    len);
             return (NULL_PTR);
         }
 
         TASK_NODE_TAG(task_node) = tag;
 
-        dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "[DEBUG] csocket_fetch_task_node: sockfd %d, len 0x%lx, tag 0x%lx, new task_node %p\n",
+        dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "[DEBUG] csocket_fetch_task_node: "
+                                                "sockfd %d, len 0x%lx, tag 0x%lx, new task_node %p\n",
                                                 CSOCKET_CNODE_SOCKFD(csocket_cnode), len, tag, task_node);
 
         /*move the probed buff to task_node*/
@@ -3745,7 +3469,8 @@ TASK_NODE *csocket_fetch_task_node(CSOCKET_CNODE *csocket_cnode)
         TASK_NODE_BUFF_POS(task_node)        = out_size;
         CSOCKET_CNODE_PKT_POS(csocket_cnode) = 0;
 
-        csocket_cnode_recv(csocket_cnode, TASK_NODE_BUFF(task_node), TASK_NODE_BUFF_LEN(task_node), &(TASK_NODE_BUFF_POS(task_node)));
+        csocket_cnode_recv(csocket_cnode, TASK_NODE_BUFF(task_node),
+                            TASK_NODE_BUFF_LEN(task_node), &(TASK_NODE_BUFF_POS(task_node)));
 
         return (task_node);
     }
@@ -3756,12 +3481,19 @@ EC_BOOL csocket_isend_task_node(CSOCKET_CNODE *csocket_cnode, TASK_NODE *task_no
 {
     if(EC_FALSE == CSOCKET_CNODE_IS_CONNECTED(csocket_cnode))
     {
-        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_request_isend: sockfd %d is disconnected\n", CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_request_isend: "
+                                                "sockfd %d is disconnected\n",
+                                                CSOCKET_CNODE_SOCKFD(csocket_cnode));
         return (EC_FALSE);
     }
-    if(EC_FALSE == csocket_cnode_send(csocket_cnode, TASK_NODE_BUFF(task_node), TASK_NODE_BUFF_LEN(task_node), &(TASK_NODE_BUFF_POS(task_node))))
+    if(EC_FALSE == csocket_cnode_send(csocket_cnode,
+                                        TASK_NODE_BUFF(task_node),
+                                        TASK_NODE_BUFF_LEN(task_node),
+                                        &(TASK_NODE_BUFF_POS(task_node))))
     {
-        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_request_isend: sockfd %d isend failed\n", CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_request_isend: "
+                                                "sockfd %d isend failed\n",
+                                                CSOCKET_CNODE_SOCKFD(csocket_cnode));
         return (EC_FALSE);
     }
     return (EC_TRUE);
@@ -3771,21 +3503,26 @@ EC_BOOL csocket_irecv_task_node(CSOCKET_CNODE *csocket_cnode, TASK_NODE *task_no
 {
     if(EC_FALSE == csocket_is_connected(CSOCKET_CNODE_SOCKFD(csocket_cnode)))
     {
-        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_request_irecv: tcid %s sockfd %d is disconnected\n",
-                            TASK_NODE_RECV_TCID_STR(task_node),
-                            CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_request_irecv: "
+                                                "tcid %s sockfd %d is disconnected\n",
+                                                TASK_NODE_RECV_TCID_STR(task_node),
+                                                CSOCKET_CNODE_SOCKFD(csocket_cnode));
         return (EC_FALSE);
     }
 
     if(EC_FALSE == csocket_cnode_recv(csocket_cnode,
-                                  TASK_NODE_BUFF(task_node), TASK_NODE_BUFF_LEN(task_node), &(TASK_NODE_BUFF_POS(task_node))))
+                                  TASK_NODE_BUFF(task_node),
+                                  TASK_NODE_BUFF_LEN(task_node),
+                                  &(TASK_NODE_BUFF_POS(task_node))))
     {
-        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_request_irecv: tcid %s sockfd %d irecv failed where data addr = %p, len = %ld, pos = %ld\n",
-                        TASK_NODE_RECV_TCID_STR(task_node),
-                        CSOCKET_CNODE_SOCKFD(csocket_cnode),
-                        TASK_NODE_BUFF(task_node),
-                        TASK_NODE_BUFF_LEN(task_node),
-                        TASK_NODE_BUFF_POS(task_node));
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_request_irecv: "
+                                                "tcid %s sockfd %d irecv failed "
+                                                "where data addr = %p, len = %ld, pos = %ld\n",
+                                                TASK_NODE_RECV_TCID_STR(task_node),
+                                                CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                                                TASK_NODE_BUFF(task_node),
+                                                TASK_NODE_BUFF_LEN(task_node),
+                                                TASK_NODE_BUFF_POS(task_node));
         return (EC_FALSE);
     }
     return (EC_TRUE);
@@ -3795,11 +3532,15 @@ EC_BOOL csocket_srv_start( const UINT32 srv_ipaddr, const UINT32 srv_port, const
 {
     if(EC_FALSE == csocket_listen(srv_ipaddr, srv_port, srv_sockfd))
     {
-        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_srv_start: failed to listen on port %ld\n",srv_port);
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_srv_start: "
+                                                "failed to listen on port %ld\n",
+                                                srv_port);
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "csocket_srv_start: start server %d on port %s:%ld\n", (*srv_sockfd), c_word_to_ipv4(srv_ipaddr), srv_port);
+    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "csocket_srv_start: "
+                                            "start server %d on port %s:%ld\n",
+                                            (*srv_sockfd), c_word_to_ipv4(srv_ipaddr), srv_port);
 
     if(CSOCKET_IS_NONBLOCK_MODE == csocket_block_mode && EC_FALSE == csocket_is_nonblock(*srv_sockfd))
     {
@@ -3825,13 +3566,15 @@ EC_BOOL csocket_client_start( const UINT32 srv_ipaddr, const UINT32 srv_port, co
 {
     if(EC_FALSE == csocket_connect( srv_ipaddr, srv_port , csocket_block_mode, client_sockfd, client_ipaddr, client_port ))
     {
-        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDNULL, "error:csocket_client_start: client failed to connect server %s:%ld\n",
-                            c_word_to_ipv4(srv_ipaddr), srv_port);
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDNULL, "error:csocket_client_start: "
+                                                 "client failed to connect server %s:%ld\n",
+                                                 c_word_to_ipv4(srv_ipaddr), srv_port);
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDNULL, "csocket_client_start: start client %d connecting to server %s:%ld\n",
-                        (*client_sockfd), c_word_to_ipv4(srv_ipaddr), srv_port);
+    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDNULL, "csocket_client_start: "
+                                             "start client %d connecting to server %s:%ld\n",
+                                             (*client_sockfd), c_word_to_ipv4(srv_ipaddr), srv_port);
     return (EC_TRUE);
 }
 
@@ -3854,7 +3597,9 @@ EC_BOOL csocket_unix_optimize(int sockfd)
         flag = 1;
         if( 0 != setsockopt(sockfd, CSOCKET_IPPROTO_TCP, CSOCKET_TCP_NODELAY, (char *)&flag, sizeof(flag)))
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: sockfd %d failed to disable Nagle Algo\n", sockfd);
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: "
+                                                    "sockfd %d failed to disable Nagle Algo\n",
+                                                    sockfd);
             ret = EC_FALSE;
         }
     }
@@ -3867,7 +3612,9 @@ EC_BOOL csocket_unix_optimize(int sockfd)
         flag = 1;
         if(0 != setsockopt(sockfd, CSOCKET_IPPROTO_TCP, TCP_QUICKACK, (char *) &flag, sizeof(flag)))
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_unix_optimize: sockfd %d failed to enable QUICKACK\n", sockfd);
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_unix_optimize: "
+                                                   "sockfd %d failed to enable QUICKACK\n",
+                                                   sockfd);
             ret = EC_FALSE;
         }
     }
@@ -3880,7 +3627,9 @@ EC_BOOL csocket_unix_optimize(int sockfd)
         flag = CSOCKET_SO_SNDBUFF_SIZE;
         if(0 <= flag && 0 != setsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_SNDBUF, (char *)&flag, sizeof(flag)))
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: sockfd %d failed to set SEND BUFF to %d\n", sockfd, flag);
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: "
+                                                    "sockfd %d failed to set SEND BUFF to %d\n",
+                                                    sockfd, flag);
             ret = EC_FALSE;
         }
     }
@@ -3893,7 +3642,9 @@ EC_BOOL csocket_unix_optimize(int sockfd)
         flag = CSOCKET_SO_RCVBUFF_SIZE;
         if(0 <= flag && 0 != setsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_RCVBUF, (char *)&flag, sizeof(flag)))
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: sockfd %d failed to set RECV BUFF to %d\n", sockfd, flag);
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: "
+                                                    "sockfd %d failed to set RECV BUFF to %d\n",
+                                                    sockfd, flag);
             ret = EC_FALSE;
         }
     }
@@ -3914,25 +3665,33 @@ EC_BOOL csocket_unix_optimize(int sockfd)
         keep_count    = CSOCKET_TCP_KEEPCNT_TIMES;  /*send heartbeat packet up to 3 times, if some heartbeat recv ack, then stop. otherwise, regard socket is disconnected*/
         if( 0 != setsockopt( sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_KEEPALIVE, (char *)&flag, sizeof(flag) ) )
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: sockfd %d failed to set KEEPALIVE\n", sockfd);
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: "
+                                                    "sockfd %d failed to set KEEPALIVE\n",
+                                                    sockfd);
             ret = EC_FALSE;
         }
 
         if( 1 == flag && 0 != setsockopt( sockfd, CSOCKET_SOL_TCP, CSOCKET_TCP_KEEPIDLE, (char *)&keep_idle, sizeof(keep_idle) ) )
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: sockfd %d failed to set KEEPIDLE\n", sockfd);
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: "
+                                                    "sockfd %d failed to set KEEPIDLE\n",
+                                                    sockfd);
             ret = EC_FALSE;
         }
 
         if( 1 == flag && 0 != setsockopt( sockfd, CSOCKET_SOL_TCP, CSOCKET_TCP_KEEPINTVL, (char *)&keep_interval, sizeof(keep_interval) ) )
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: sockfd %d failed to set KEEPINTVL\n", sockfd);
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: "
+                                                    "sockfd %d failed to set KEEPINTVL\n",
+                                                    sockfd);
             ret = EC_FALSE;
         }
 
         if( 1 == flag && 0 != setsockopt( sockfd, CSOCKET_SOL_TCP, CSOCKET_TCP_KEEPCNT, (char *)&keep_count, sizeof(keep_count) ) )
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: sockfd %d failed to set KEEPCNT\n", sockfd);
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: "
+                                                    "sockfd %d failed to set KEEPCNT\n",
+                                                    sockfd);
             ret = EC_FALSE;
         }
     }
@@ -3944,7 +3703,9 @@ EC_BOOL csocket_unix_optimize(int sockfd)
         flag = 1;
         if( 0 != setsockopt( sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_REUSEADDR, (char *)&flag, sizeof(flag) ) )
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: sockfd %d failed to set REUSEADDR\n", sockfd);
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: "
+                                                    "sockfd %d failed to set REUSEADDR\n",
+                                                    sockfd);
             ret = EC_FALSE;
         }
     }
@@ -3959,7 +3720,9 @@ EC_BOOL csocket_unix_optimize(int sockfd)
         timeout.tv_usec = usecs % 1000;
         if ( 0 != setsockopt( sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_SNDTIMEO, (char *)&timeout, sizeof(struct timeval) ) )
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: sockfd %d failed to set SEND TIMEOUT to %ld usecs\n", sockfd, usecs);
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unix_optimize: "
+                                                    "sockfd %d failed to set SEND TIMEOUT to %ld usecs\n",
+                                                    sockfd, usecs);
             ret = EC_FALSE;
         }
     }
@@ -3974,7 +3737,9 @@ EC_BOOL csocket_unix_optimize(int sockfd)
         timeout.tv_usec = usecs % 1000;
         if ( 0 != setsockopt( sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_RCVTIMEO, (char *)&timeout, sizeof(struct timeval) ) )
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_unix_optimize: sockfd %d failed to set RECV TIMEOUT to %ld usecs\n", sockfd, usecs);
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_unix_optimize: "
+                                                   "sockfd %d failed to set RECV TIMEOUT to %ld usecs\n",
+                                                   sockfd, usecs);
             ret = EC_FALSE;
         }
     }
@@ -3997,7 +3762,9 @@ EC_BOOL csocket_unix_optimize(int sockfd)
 
         if( 0 != setsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_LINGER, (const char*)&linger_disable, sizeof(struct linger)))
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_unix_optimize: sockfd %d failed to disable linger\n", sockfd);
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_unix_optimize: "
+                                                   "sockfd %d failed to disable linger\n",
+                                                   sockfd);
             ret = EC_FALSE;
         }
     }
@@ -4010,7 +3777,9 @@ EC_BOOL csocket_unix_optimize(int sockfd)
         recv_lowat_size = CSOCKET_SO_RCVLOWAT_SIZE;
         if(0 < recv_lowat_size && 0 != setsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_RCVLOWAT, (const char *) &recv_lowat_size, sizeof(int)))
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_unix_optimize: sockfd %d failed to set CSOCKET_SO_RCVLOWAT to %d\n", sockfd, recv_lowat_size);
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_unix_optimize: "
+                                                   "sockfd %d failed to set CSOCKET_SO_RCVLOWAT to %d\n",
+                                                   sockfd, recv_lowat_size);
             ret = EC_FALSE;
         }
     }
@@ -4023,7 +3792,9 @@ EC_BOOL csocket_unix_optimize(int sockfd)
         send_lowat_size = CSOCKET_SO_SNDLOWAT_SIZE;
         if(0 < send_lowat_size && 0 != setsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_SNDLOWAT, (const char *) &send_lowat_size, sizeof(int)))
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_unix_optimize: sockfd %d failed to set CSOCKET_SO_SNDLOWAT to %d\n", sockfd, send_lowat_size);
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_unix_optimize: "
+                                                   "sockfd %d failed to set CSOCKET_SO_SNDLOWAT to %d\n",
+                                                   sockfd, send_lowat_size);
             ret = EC_FALSE;
         }
     }

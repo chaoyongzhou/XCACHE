@@ -120,17 +120,6 @@ EC_BOOL csrv_accept_once(CSRV *csrv, EC_BOOL *continue_flag);
 
 EC_BOOL csrv_accept(CSRV *csrv);
 
-EC_BOOL csrv_unix_accept_once(CSRV *csrv, EC_BOOL *continue_flag);
-
-EC_BOOL csrv_unix_accept(CSRV *csrv);
-
-EC_BOOL csrv_select(CSRV *csrv, int *ret);
-
-EC_BOOL csrv_process(CSRV *csrv, struct _CSOCKET_CNODE *csocket_cnode);
-
-EC_BOOL csrv_handle(CSRV *csrv, struct _CSOCKET_CNODE *csocket_cnode);
-
-EC_BOOL csrv_do_once(CSRV *csrv);
 
 #endif/*_CSRV_H*/
 

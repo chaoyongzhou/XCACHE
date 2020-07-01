@@ -378,7 +378,6 @@ STATIC_CAST static int __log_cur_time_str(char *time_str, const int max_size)
 
 STATIC_CAST static int __log_time_str(char *time_str, const int max_size)
 {
-#if (SWITCH_OFF == LOG_ACCURATE_TIME_SWITCH)
     int  len;
     char *log_time_str;
 
@@ -412,10 +411,6 @@ STATIC_CAST static int __log_time_str(char *time_str, const int max_size)
 #endif/*(SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH)*/
     }
     return (len);
-#endif /*(SWITCH_OFF == LOG_ACCURATE_TIME_SWITCH)*/
-#if (SWITCH_ON == LOG_ACCURATE_TIME_SWITCH)
-    return __log_cur_time_str(time_str, max_size);
-#endif/*(SWITCH_ON == LOG_ACCURATE_TIME_SWITCH)*/
 }
 
 STATIC_CAST static EC_BOOL __log_reg(LOG *log, FILE *fp)

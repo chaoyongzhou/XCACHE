@@ -92,15 +92,6 @@ EC_BOOL tasks_cfg_add_taskr(TASKS_CFG *tasks_cfg, const TASKR_CFG *taskr_cfg);
 
 EC_BOOL tasks_cfg_del_taskr(TASKS_CFG *tasks_cfg, const TASKR_CFG *taskr_cfg);
 
-EC_BOOL tasks_cfg_push_add_worker_callback(TASKS_CFG *tasks_cfg, const char *name, const UINT32 modi, const UINT32 func);
-
-EC_BOOL tasks_cfg_push_del_worker_callback(TASKS_CFG *tasks_cfg, const char *name, const UINT32 modi, const UINT32 func);
-
-EC_BOOL tasks_cfg_erase_add_worker_callback(TASKS_CFG *tasks_cfg, const char *name, const UINT32 modi, const UINT32 func);
-
-EC_BOOL tasks_cfg_erase_del_worker_callback(TASKS_CFG *tasks_cfg, const char *name, const UINT32 modi, const UINT32 func);
-
-
 void    tasks_cfg_print(LOG *log, const TASKS_CFG *tasks_cfg);
 
 void    tasks_cfg_print_xml(LOG *log, const TASKS_CFG *tasks_cfg, const UINT32 level);

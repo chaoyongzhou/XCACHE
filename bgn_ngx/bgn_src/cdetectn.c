@@ -1894,6 +1894,8 @@ STATIC_CAST static EC_BOOL __cdetectn_resolve_orig_node_domain_cleanup_handle(CD
 {
     if(NULL_PTR != cdns_node)
     {
+        CSOCKET_CNODE   *csocket_cnode;
+
         if(NULL_PTR != CDNS_NODE_RSP(cdns_node))
         {
             cdns_rsp_free(CDNS_NODE_RSP(cdns_node));
@@ -1905,6 +1907,17 @@ STATIC_CAST static EC_BOOL __cdetectn_resolve_orig_node_domain_cleanup_handle(CD
             cdns_req_free(CDNS_NODE_REQ(cdns_node));
             CDNS_NODE_REQ(cdns_node) = NULL_PTR;
         }
+
+        csocket_cnode = CDNS_NODE_CSOCKET_CNODE(cdns_node);
+        CDNS_NODE_CSOCKET_CNODE(cdns_node) = NULL_PTR;
+        ASSERT(NULL_PTR != csocket_cnode);
+
+        dbg_log(SEC_0070_CDETECTN, 5)(LOGSTDOUT, "[DEBUG] __cdetectn_resolve_orig_node_domain_cleanup_handle:"
+                          "unbind and close csocket_cnode %p (sockfd %d, reusing %u) from cdns_node %p\n",
+                          csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
+                          cdns_node);
+
+        csocket_cnode_close(csocket_cnode);
 
         cdns_node_free(cdns_node);
     }
@@ -1996,21 +2009,25 @@ STATIC_CAST static EC_BOOL __cdetectn_resolve_orig_node_domain_recv_handle(CDNS_
 
 STATIC_CAST EC_BOOL __cdetectn_resolve_orig_node_domain_set_callback(CSOCKET_CNODE *csocket_cnode, CDNS_NODE *cdns_node)
 {
-    csocket_cnode_push_recv_callback(csocket_cnode,
+    csocket_cnode_set_recv_callback(csocket_cnode,
                                      (const char *)"__cdetectn_resolve_orig_node_domain_recv_handle",
-                                     (UINT32)cdns_node, (UINT32)__cdetectn_resolve_orig_node_domain_recv_handle);
+                                     (void *)cdns_node,
+                                     (void *)__cdetectn_resolve_orig_node_domain_recv_handle);
 
-    csocket_cnode_push_close_callback(csocket_cnode,
+    csocket_cnode_set_close_callback(csocket_cnode,
                                      (const char *)"__cdetectn_resolve_orig_node_domain_cleanup_handle",
-                                     (UINT32)cdns_node, (UINT32)__cdetectn_resolve_orig_node_domain_cleanup_handle);
+                                     (void *)cdns_node,
+                                     (void *)__cdetectn_resolve_orig_node_domain_cleanup_handle);
 
-    csocket_cnode_push_timeout_callback(csocket_cnode,
+    csocket_cnode_set_timeout_callback(csocket_cnode,
                                      (const char *)"__cdetectn_resolve_orig_node_domain_cleanup_handle",
-                                     (UINT32)cdns_node, (UINT32)__cdetectn_resolve_orig_node_domain_cleanup_handle);
+                                     (void *)cdns_node,
+                                     (void *)__cdetectn_resolve_orig_node_domain_cleanup_handle);
 
-    csocket_cnode_push_shutdown_callback(csocket_cnode,
+    csocket_cnode_set_shutdown_callback(csocket_cnode,
                                      (const char *)"__cdetectn_resolve_orig_node_domain_cleanup_handle",
-                                     (UINT32)cdns_node, (UINT32)__cdetectn_resolve_orig_node_domain_cleanup_handle);
+                                     (void *)cdns_node,
+                                     (void *)__cdetectn_resolve_orig_node_domain_cleanup_handle);
 
     return (EC_TRUE);
 }

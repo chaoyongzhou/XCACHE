@@ -186,11 +186,8 @@ EC_BOOL cmon_get_store_http_srv_of_hot_new(const UINT32 cmon_md_id, const CSTRIN
 
 EC_BOOL cmon_get_store_http_srv(const UINT32 cmon_md_id, const CSTRING *path, UINT32 *tcid, UINT32 *srv_ipaddr, UINT32 *srv_port);
 
-/*when add a csocket_cnode (->tasks_node);*/
-EC_BOOL cmon_callback_when_add(const UINT32 cmon_md_id, TASKS_NODE *tasks_node);
-
 /*when del a csocket_cnode (->tasks_node);*/
-EC_BOOL cmon_callback_when_del(const UINT32 cmon_md_id, TASKS_NODE *tasks_node);
+EC_BOOL cmon_callback_when_del(const UINT32 cmon_md_id);
 
 CMON_HOT_PATH *cmon_hot_path_new();
 

@@ -164,7 +164,7 @@ extern "C"{
 #define                 MM_CEVENTFD_NODE    ((UINT32) 97)
 #define                MM_TYPE_CONV_ITEM    ((UINT32) 98)
 #define                          MM_CSRV    ((UINT32) 99)
-#define                        MM_000100    ((UINT32)100) /*-- obsolete --*/
+#define                 MM_CTIMEOUT_NODE    ((UINT32)100)
 #define                        MM_CBYTES    ((UINT32)101)
 #define                        MM_000102    ((UINT32)102) /*-- obsolete --*/
 #define                       MM_CBITMAP    ((UINT32)103)

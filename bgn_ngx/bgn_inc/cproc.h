@@ -32,9 +32,8 @@ extern "C"{
 
 #define CPROC_SUPPORT_MAX_COMM_SIZE     ((UINT32)128)
 
-//#define CPROC_DATA_CACHE_MAX_SIZE       (UINT32_ONE << 20)  /*1M*/
-//#define CPROC_DATA_CACHE_MAX_SIZE       (UINT32_ONE << 21)  /*2M*/
-#define CPROC_DATA_CACHE_MAX_SIZE       (UINT32_ONE << 22)  /*4M*/
+
+#define CPROC_DATA_CACHE_MAX_SIZE       (UINT32_ONE << 25)  /*32M*/
 
 #define CPROC_RANK_IS_NOT_READY         ((UINT32) 1)
 #define CPROC_RANK_IS_READY             ((UINT32) 2)
@@ -65,7 +64,7 @@ typedef struct
     UINT32     col_rank;
 
     struct _TASK_NODE *incoming_task_node;   /*be recving task node*/
-    CLIST      sedning_task_node_queue;/*task node queues*/
+    CLIST      sending_task_node_queue;/*task node queues*/
     CSBUFF     csbuff;
     UINT8      cache[CPROC_DATA_CACHE_MAX_SIZE];
 }CPROC_ITEM;
@@ -74,7 +73,7 @@ typedef struct
 #define CPROC_ITEM_COL_RANK(cproc_item)             ((cproc_item)->col_rank)
 
 #define CPROC_ITEM_INCOMING_TASK_NODE(cproc_item)   ((cproc_item)->incoming_task_node)
-#define CPROC_ITEM_SENDING_QUEUE(cproc_item)        (&((cproc_item)->sedning_task_node_queue))
+#define CPROC_ITEM_SENDING_QUEUE(cproc_item)        (&((cproc_item)->sending_task_node_queue))
 #define CPROC_ITEM_CSBUFF(cproc_item)               (&((cproc_item)->csbuff))
 
 #define CPROC_DATA_ITEM_TOTAL_SIZE                  (sizeof(CPROC_ITEM))

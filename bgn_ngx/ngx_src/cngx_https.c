@@ -517,7 +517,7 @@ EC_BOOL cngx_https_commit_response(CHTTP_NODE *chttp_node)
         return (EC_FALSE);
     }
 
-    ret = chttps_node_send_rsp(chttp_node, csocket_cnode);
+    ret = chttps_node_send_rsp(chttp_node);
     if(EC_AGAIN != ret)
     {
         return (ret);

@@ -31,23 +31,23 @@ extern "C"{
 
 /*---------------------------------------- INTERFACE WITH HTTP NODE  ----------------------------------------*/
 
-EC_BOOL chttps_node_recv_req(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttps_node_recv_req(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttps_node_send_req(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttps_node_send_req(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttps_node_recv_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttps_node_recv_rsp(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttps_node_send_rsp(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttps_node_send_rsp(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttps_node_icheck(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttps_node_icheck(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttps_node_complete(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttps_node_complete(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttps_node_close(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttps_node_close(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttps_node_timeout(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttps_node_timeout(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttps_node_shutdown(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttps_node_shutdown(CHTTP_NODE *chttp_node);
 
 EC_BOOL chttps_node_recv(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
 
@@ -107,9 +107,11 @@ EC_BOOL chttps_defer_request_commit(CHTTP_NODE *chttp_node);
 \*-------------------------------------------------------------------------------------------------------------------------------------------*/
 
 
-EC_BOOL chttps_node_set_socket_callback(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttps_node_set_socket_callback(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttps_node_set_socket_epoll(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttps_node_reset_socket_callback(CHTTP_NODE *chttp_node);
+
+EC_BOOL chttps_node_set_socket_epoll(CHTTP_NODE *chttp_node);
 
 EC_BOOL chttps_node_connect(CHTTP_NODE *chttp_node, const UINT32 csocket_block_mode, const UINT32 ipaddr, const UINT32 port);
 
@@ -117,9 +119,9 @@ EC_BOOL chttps_node_disconnect(CHTTP_NODE *chttp_node);
 
 EC_BOOL chttps_node_detach(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttps_node_handshake_on_client(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttps_node_handshake_on_client(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttps_node_handshake_on_server(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL chttps_node_handshake_on_server(CHTTP_NODE *chttp_node);
 
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------\
@@ -142,8 +144,6 @@ EC_BOOL chttps_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_stor
  * Try to connect remote http server to check connectivity (HEALTH CHECKER)
  *
 \*-------------------------------------------------------------------------------------------------------------------------------------------*/
-
-EC_BOOL chttps_node_icheck(CHTTP_NODE *chttp_node, CSOCKET_CNODE *csocket_cnode);
 
 EC_BOOL chttps_node_check(CHTTP_NODE *chttp_node, const UINT32 ipaddr, const UINT32 port);
 

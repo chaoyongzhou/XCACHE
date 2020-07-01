@@ -1070,6 +1070,9 @@ void cparacfg_conn_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT3
         sys_print(log, " highPrecisionTimeSwitch=\"%s\"" , CPARACFG_HIGH_PRECISION_TIME_SWITCH_STR(cparacfg));
         sys_print(log, " tdnsResolveSwitch=\"%s\""       , CPARACFG_TDNS_RESOLVE_SWITCH_STR(cparacfg));
         sys_print(log, " tdnsResolveTimeoutNsec=\"%ld\"" , CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC(cparacfg));
+
+        sys_print(log, " cepollEventMaxNum=\"%ld\""      , CPARACFG_CEPOLL_EVENT_MAX_NUM(cparacfg));
+        sys_print(log, " srvAcceptMaxNum=\"%ld\""        , CPARACFG_SRV_ACCEPT_MAX_NUM(cparacfg));
         sys_print(log, "/>\n");
     }
     return;

@@ -93,6 +93,10 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
 
     //CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CONN_KEEPALIVE_SWITCH);
 
+    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CEPOLL_EVENT_MAX_NUM);
+
+    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_SRV_ACCEPT_MAX_NUM);
+
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CONN_TIMEOUT_NSEC);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CDNS_TIMEOUT_NSEC);
@@ -265,6 +269,11 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "FILE_LOG_MAX_RECORDS                       = %ld\n",  CPARACFG_FILE_LOG_MAX_RECORDS(cparacfg)          );
 
     //sys_log(log, "CPARACFG_CONN_KEEPALIVE_SWITCH             = %s\n" ,  CPARACFG_CONN_KEEPALIVE_SWITCH_STR(cparacfg));
+
+    sys_log(log, "CEPOLL_EVENT_MAX_NUM                       = %ld\n",  CPARACFG_CEPOLL_EVENT_MAX_NUM(cparacfg)          );
+
+    sys_log(log, "SRV_ACCEPT_MAX_NUM                         = %ld\n",  CPARACFG_SRV_ACCEPT_MAX_NUM(cparacfg)          );
+
     sys_log(log, "CONN_TIMEOUT_NSEC                          = %ld\n",  CPARACFG_CONN_TIMEOUT_NSEC(cparacfg));
     sys_log(log, "TIMEOUT_MAX_NUM_PER_LOOP                   = %ld\n",  CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP(cparacfg));
     sys_log(log, "CDNS_TIMEOUT_NSEC                          = %ld\n",  CPARACFG_CDNS_TIMEOUT_NSEC(cparacfg));
@@ -393,6 +402,10 @@ void cparacfg_json(json_object *obj, const CPARACFG *cparacfg)
     json_object_add_k_int64(obj, "CSOCKET_CNODE_NUM"           ,  CPARACFG_CSOCKET_CNODE_NUM(cparacfg));
     json_object_add_k_int64(obj, "CSOCKET_HEARTBEAT_INTVL_NSEC",  CPARACFG_CSOCKET_HEARTBEAT_INTVL_NSEC(cparacfg));
     json_object_add_k_int64(obj, "FILE_LOG_MAX_RECORDS"        ,  CPARACFG_FILE_LOG_MAX_RECORDS(cparacfg));
+
+    json_object_add_k_int64(obj, "CEPOLL_EVENT_MAX_NUM"        ,  CPARACFG_CEPOLL_EVENT_MAX_NUM(cparacfg));
+
+    json_object_add_k_int64(obj, "SRV_ACCEPT_MAX_NUM"          ,  CPARACFG_SRV_ACCEPT_MAX_NUM(cparacfg));
 
     json_object_add_k_int64(obj, "CONN_TIMEOUT_NSEC"       ,  CPARACFG_CONN_TIMEOUT_NSEC(cparacfg));
     json_object_add_k_int64(obj, "TIMEOUT_MAX_NUM_PER_LOOP",  CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP(cparacfg));

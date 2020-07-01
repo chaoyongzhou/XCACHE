@@ -266,7 +266,7 @@ EC_BOOL cconhash_vnodes_init(CCONHASH_VNODES *cconhash_vnodes, const uint32_t ca
 
         nbytes = (((UINT32)capacity) * sizeof(CCONHASH_VNODE *));
 
-        CCONHASH_VNODES_NODES(cconhash_vnodes) = safe_malloc(nbytes, LOC_CCONHASH_0004);
+        CCONHASH_VNODES_NODES(cconhash_vnodes) = safe_malloc(nbytes, LOC_CCONHASH_0007);
         if(NULL_PTR == CCONHASH_VNODES_NODES(cconhash_vnodes))
         {
             dbg_log(SEC_0050_CCONHASH, 0)(LOGSTDOUT, "error:cconhash_vnodes_init: "
@@ -297,7 +297,7 @@ EC_BOOL cconhash_vnodes_clean(CCONHASH_VNODES *cconhash_vnodes)
                 CCONHASH_VNODES_NODES(cconhash_vnodes)[ pos ] = NULL_PTR;
             }
 
-            safe_free(CCONHASH_VNODES_NODES(cconhash_vnodes), LOC_CCONHASH_0005);
+            safe_free(CCONHASH_VNODES_NODES(cconhash_vnodes), LOC_CCONHASH_0008);
             CCONHASH_VNODES_NODES(cconhash_vnodes) = NULL_PTR;
         }
 
@@ -353,7 +353,7 @@ EC_BOOL cconhash_vnodes_expand(CCONHASH_VNODES *cconhash_vnodes)
         data_src     = CCONHASH_VNODES_NODES(cconhash_vnodes);
 
         nbytes_des   = (capacity_des * sizeof(CCONHASH_VNODE *));
-        data_des     = safe_malloc(nbytes_des, LOC_CCONHASH_0004);
+        data_des     = safe_malloc(nbytes_des, LOC_CCONHASH_0009);
 
         if(NULL_PTR == data_des)
         {
@@ -367,7 +367,7 @@ EC_BOOL cconhash_vnodes_expand(CCONHASH_VNODES *cconhash_vnodes)
         nbytes_src = (capacity_src * sizeof(CCONHASH_VNODE *));
         BCOPY(data_src, data_des, nbytes_src);
 
-        safe_free(data_src, LOC_CCONHASH_0004);
+        safe_free(data_src, LOC_CCONHASH_0010);
 
         CCONHASH_VNODES_NODES(cconhash_vnodes)    = data_des;
         CCONHASH_VNODES_CAPACITY(cconhash_vnodes) = capacity_des;
@@ -594,7 +594,7 @@ CCONHASH *cconhash_new(const UINT32 hash_id)
 {
     CCONHASH *cconhash;
 
-    alloc_static_mem(MM_CCONHASH, &cconhash, LOC_CCONHASH_0007);
+    alloc_static_mem(MM_CCONHASH, &cconhash, LOC_CCONHASH_0011);
     if(NULL_PTR == cconhash)
     {
         dbg_log(SEC_0050_CCONHASH, 0)(LOGSTDOUT, "error:cconhash_new: alloc cconhash failed\n");
@@ -603,7 +603,7 @@ CCONHASH *cconhash_new(const UINT32 hash_id)
 
     if(EC_FALSE == cconhash_init(cconhash, hash_id))
     {
-        free_static_mem(MM_CCONHASH, cconhash, LOC_CCONHASH_0008);
+        free_static_mem(MM_CCONHASH, cconhash, LOC_CCONHASH_0012);
         dbg_log(SEC_0050_CCONHASH, 0)(LOGSTDOUT, "error:cconhash_new: init cconhash failed\n");
         return (NULL_PTR);
     }
@@ -628,7 +628,7 @@ EC_BOOL cconhash_init(CCONHASH *cconhash, const UINT32 hash_id)
         CCONHASH_HASH_ID(cconhash)   = hash_id;
 
         cvector_init(CCONHASH_RNODE_VEC(cconhash), 0,
-                        MM_CCONHASH_RNODE, CVECTOR_LOCK_ENABLE, LOC_CCONHASH_0009);
+                        MM_CCONHASH_RNODE, CVECTOR_LOCK_ENABLE, LOC_CCONHASH_0013);
 
         /* default: 160 vnodes/disk * 8 disks/device * 8 device */
         vnode_num_default = CPARACFG_CMON_CONHASH_REPLICAS_DEF * 8 * 8;
@@ -642,7 +642,7 @@ EC_BOOL cconhash_clean(CCONHASH *cconhash)
     if(NULL_PTR != cconhash)
     {
         cvector_clean(CCONHASH_RNODE_VEC(cconhash),
-                        (CVECTOR_DATA_CLEANER)cconhash_rnode_free, LOC_CCONHASH_0010);
+                        (CVECTOR_DATA_CLEANER)cconhash_rnode_free, LOC_CCONHASH_0014);
         cconhash_vnodes_clean(CCONHASH_VNODE_VEC(cconhash));
 
         CCONHASH_HASH_ID(cconhash)    = CHASH_ERR_ALGO_ID;
@@ -656,7 +656,7 @@ EC_BOOL cconhash_free(CCONHASH *cconhash)
     if(NULL_PTR != cconhash)
     {
         cconhash_clean(cconhash);
-        free_static_mem(MM_CCONHASH, cconhash, LOC_CCONHASH_0011);
+        free_static_mem(MM_CCONHASH, cconhash, LOC_CCONHASH_0015);
     }
     return (EC_TRUE);
 }

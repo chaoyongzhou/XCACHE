@@ -2629,13 +2629,13 @@ EC_BOOL cmp4_content_head_header_in_filter_server(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CMP4_0019);
+            safe_free(v, LOC_CMP4_0018);
 
             return (EC_TRUE);
         }
     }
 
-    cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0018);
+    cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0019);
     return (EC_FALSE);
 }
 
@@ -3851,13 +3851,13 @@ EC_BOOL cmp4_content_direct_header_in_filter_server(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CMP4_0065);
+            safe_free(v, LOC_CMP4_0064);
 
             return (EC_TRUE);
         }
     }
 
-    cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0064);
+    cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0065);
     return (EC_FALSE);
 }
 
@@ -5975,13 +5975,13 @@ EC_BOOL cmp4_content_repair2_header_in_filter_server(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CMP4_0115);
+            safe_free(v, LOC_CMP4_0114);
 
             return (EC_TRUE);
         }
     }
 
-    cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0114);
+    cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0115);
     return (EC_FALSE);
 }
 
@@ -7816,13 +7816,13 @@ EC_BOOL cmp4_content_orig_header_in_filter_server(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CMP4_0162);
+            safe_free(v, LOC_CMP4_0161);
 
             return (EC_TRUE);
         }
     }
 
-    cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0161);
+    cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0162);
     return (EC_FALSE);
 }
 
@@ -10180,13 +10180,13 @@ EC_BOOL cmp4_content_ms_header_in_filter_server(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CMP4_0218);
+            safe_free(v, LOC_CMP4_0217);
 
             return (EC_TRUE);
         }
     }
 
-    cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0217);
+    cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0218);
     return (EC_FALSE);
 }
 
@@ -13345,13 +13345,13 @@ EC_BOOL cmp4_content_ims_header_in_filter_server(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ims_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CMP4_0289);
+            safe_free(v, LOC_CMP4_0288);
 
             return (EC_TRUE);
         }
     }
 
-    cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0288);
+    cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0289);
     return (EC_FALSE);
 }
 
@@ -15335,13 +15335,13 @@ EC_BOOL cmp4_content_repair_header_in_filter_server(const UINT32 cmp4_md_id)
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair_header_in_filter_server: "
                                                  "[cngx] set host '%s' to http req done\n",
                                                  segs[ 0 ]);
-            safe_free(v, LOC_CMP4_0335);
+            safe_free(v, LOC_CMP4_0334);
 
             return (EC_TRUE);
         }
     }
 
-    cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0334);
+    cmp4_set_ngx_rc(cmp4_md_id, NGX_HTTP_GATEWAY_TIME_OUT, LOC_CMP4_0335);
     return (EC_FALSE);
 }
 

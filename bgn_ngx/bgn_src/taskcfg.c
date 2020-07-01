@@ -432,26 +432,6 @@ EC_BOOL tasks_cfg_del_taskr(TASKS_CFG *tasks_cfg, const TASKR_CFG *taskr_cfg)
     return (EC_TRUE);
 }
 
-EC_BOOL tasks_cfg_push_add_worker_callback(TASKS_CFG *tasks_cfg, const char *name, const UINT32 modi, const UINT32 func)
-{
-    return tasks_worker_push_add_callback(TASKS_CFG_WORKER(tasks_cfg), name, modi, func);
-}
-
-EC_BOOL tasks_cfg_push_del_worker_callback(TASKS_CFG *tasks_cfg, const char *name, const UINT32 modi, const UINT32 func)
-{
-    return tasks_worker_push_del_callback(TASKS_CFG_WORKER(tasks_cfg), name, modi, func);
-}
-
-EC_BOOL tasks_cfg_erase_add_worker_callback(TASKS_CFG *tasks_cfg, const char *name, const UINT32 modi, const UINT32 func)
-{
-    return tasks_worker_erase_add_callback(TASKS_CFG_WORKER(tasks_cfg), name, modi, func);
-}
-
-EC_BOOL tasks_cfg_erase_del_worker_callback(TASKS_CFG *tasks_cfg, const char *name, const UINT32 modi, const UINT32 func)
-{
-    return tasks_worker_erase_del_callback(TASKS_CFG_WORKER(tasks_cfg), name, modi, func);
-}
-
 void tasks_cfg_print(LOG *log, const TASKS_CFG *tasks_cfg)
 {
     char *cluster_str;

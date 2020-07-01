@@ -85,7 +85,7 @@ EC_BOOL cmaglev_clean(CMAGLEV *cmaglev)
         CMAGLEV_RING_SIZE(cmaglev) = 0;
 
         cvector_clean(CMAGLEV_RNODE_VEC(cmaglev),
-                        (CVECTOR_DATA_CLEANER)cmaglev_rnode_free, LOC_CMAGLEV_0009);
+                        (CVECTOR_DATA_CLEANER)cmaglev_rnode_free, LOC_CMAGLEV_0003);
 
         cmaglev_qnode_clean(CMAGLEV_QNODE_ITEM(cmaglev));
     }
@@ -107,7 +107,7 @@ CMAGLEV_QNODE *cmaglev_qnode_new()
 {
     CMAGLEV_QNODE *qnode;
 
-    alloc_static_mem(MM_CMAGLEV_QNODE, &qnode, LOC_CMAGLEV_0009);
+    alloc_static_mem(MM_CMAGLEV_QNODE, &qnode, LOC_CMAGLEV_0004);
     if (NULL_PTR == qnode)
     {
         dbg_log(SEC_0174_CMAGLEV, 0)(LOGSTDOUT, "error:cmaglev_qnode_new: "
@@ -118,7 +118,7 @@ CMAGLEV_QNODE *cmaglev_qnode_new()
 
     if (EC_FALSE == cmaglev_qnode_init(qnode))
     {
-        free_static_mem(MM_CMAGLEV_QNODE, qnode, LOC_CMAGLEV_0011);
+        free_static_mem(MM_CMAGLEV_QNODE, qnode, LOC_CMAGLEV_0005);
         return (NULL_PTR);
     }
 
@@ -143,7 +143,7 @@ EC_BOOL cmaglev_qnode_clean(CMAGLEV_QNODE *qnode)
     {
         if (NULL_PTR != CMAGLEV_QNODE_ENTRY(qnode))
         {
-            safe_free(CMAGLEV_QNODE_ENTRY(qnode), LOC_CMAGLEV_0007);
+            safe_free(CMAGLEV_QNODE_ENTRY(qnode), LOC_CMAGLEV_0006);
             CMAGLEV_QNODE_ENTRY(qnode) = NULL_PTR;
         }
 
@@ -155,7 +155,7 @@ EC_BOOL cmaglev_qnode_clean(CMAGLEV_QNODE *qnode)
 
         if (NULL_PTR != CMAGLEV_QNODE_PERMUTATION(qnode))
         {
-            safe_free(CMAGLEV_QNODE_PERMUTATION(qnode), LOC_CMAGLEV_0007);
+            safe_free(CMAGLEV_QNODE_PERMUTATION(qnode), LOC_CMAGLEV_0008);
             CMAGLEV_QNODE_PERMUTATION(qnode) = NULL_PTR;
         }
     }
@@ -180,21 +180,21 @@ EC_BOOL cmaglev_qnode_make(CMAGLEV_QNODE *qnode, const UINT32 ring_size, const U
         UINT32      size;
 
         size = ring_size * next_size * sizeof(int);
-        CMAGLEV_QNODE_ENTRY(qnode) = (int *)safe_malloc(size, LOC_CMAGLEV_0003);
+        CMAGLEV_QNODE_ENTRY(qnode) = (int *)safe_malloc(size, LOC_CMAGLEV_0009);
         if (NULL_PTR == CMAGLEV_QNODE_ENTRY(qnode))
         {
             return (EC_FALSE);
         }
 
         size = next_size * sizeof(UINT32);
-        CMAGLEV_QNODE_NEXT(qnode) = (UINT32 *)safe_malloc(size, LOC_CMAGLEV_0004);
+        CMAGLEV_QNODE_NEXT(qnode) = (UINT32 *)safe_malloc(size, LOC_CMAGLEV_0010);
         if (NULL_PTR == CMAGLEV_QNODE_NEXT(qnode))
         {
             return (EC_FALSE);
         }
 
         size = next_size * ring_size * sizeof(UINT32) * 2;
-        CMAGLEV_QNODE_PERMUTATION(qnode) = (UINT32 *)safe_malloc(size, LOC_CMAGLEV_0005);
+        CMAGLEV_QNODE_PERMUTATION(qnode) = (UINT32 *)safe_malloc(size, LOC_CMAGLEV_0011);
         if (NULL_PTR == CMAGLEV_QNODE_PERMUTATION(qnode))
         {
             return (EC_FALSE);
@@ -211,7 +211,7 @@ CMAGLEV_RNODE *cmaglev_rnode_new()
 {
     CMAGLEV_RNODE *cmaglev_rnode;
 
-    alloc_static_mem(MM_CMAGLEV_RNODE, &cmaglev_rnode, LOC_CMAGLEV_0009);
+    alloc_static_mem(MM_CMAGLEV_RNODE, &cmaglev_rnode, LOC_CMAGLEV_0012);
     if (NULL_PTR == cmaglev_rnode)
     {
         dbg_log(SEC_0174_CMAGLEV, 0)(LOGSTDOUT, "error:cmaglev_rnode_new: "
@@ -222,7 +222,7 @@ CMAGLEV_RNODE *cmaglev_rnode_new()
 
     if (EC_FALSE == cmaglev_rnode_init(cmaglev_rnode))
     {
-        free_static_mem(MM_CMAGLEV_RNODE, cmaglev_rnode, LOC_CMAGLEV_0011);
+        free_static_mem(MM_CMAGLEV_RNODE, cmaglev_rnode, LOC_CMAGLEV_0013);
         return NULL_PTR;
     }
 
@@ -256,7 +256,7 @@ EC_BOOL cmaglev_rnode_free(CMAGLEV_RNODE *cmaglev_rnode)
     if(NULL_PTR != cmaglev_rnode)
     {
         cmaglev_rnode_clean(cmaglev_rnode);
-        free_static_mem(MM_CMAGLEV_RNODE, cmaglev_rnode, LOC_CMAGLEV_0011);
+        free_static_mem(MM_CMAGLEV_RNODE, cmaglev_rnode, LOC_CMAGLEV_0014);
     }
 
     return (EC_TRUE);
@@ -266,7 +266,7 @@ CMAGLEV_RNODE *cmaglev_rnode_make(const uint32_t tcid)
 {
     CMAGLEV_RNODE *cmaglev_rnode;
 
-    alloc_static_mem(MM_CMAGLEV_RNODE, &cmaglev_rnode, LOC_CMAGLEV_0010);
+    alloc_static_mem(MM_CMAGLEV_RNODE, &cmaglev_rnode, LOC_CMAGLEV_0015);
     if (NULL_PTR == cmaglev_rnode)
     {
         dbg_log(SEC_0174_CMAGLEV, 0)(LOGSTDOUT, "error:cmaglev_rnode_make: "

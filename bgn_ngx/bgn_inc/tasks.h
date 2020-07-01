@@ -61,25 +61,19 @@ EC_BOOL tasks_node_is_connected(const TASKS_NODE *tasks_node);
 
 EC_BOOL tasks_node_is_connected_no_lock(const TASKS_NODE *tasks_node);
 
-UINT32 tasks_node_count_load(const TASKS_NODE *tasks_node);
-
-CSOCKET_CNODE *tasks_node_search_csocket_cnode_with_min_load(const TASKS_NODE *tasks_node);
-
-CSOCKET_CNODE *tasks_node_search_csocket_cnode_by_sockfd(const TASKS_NODE *tasks_node, const int sockfd);
-
 EC_BOOL tasks_node_is_empty(const TASKS_NODE *tasks_node);
 
 EC_BOOL tasks_node_cmp(const TASKS_NODE *src_tasks_node, const TASKS_NODE *des_tasks_node);
 
 EC_BOOL tasks_node_check(const TASKS_NODE *tasks_node, const CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL tasks_node_irecv(TASKS_NODE **tasks_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL tasks_node_irecv(CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL tasks_node_isend(TASKS_NODE **tasks_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL tasks_node_isend(CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL tasks_node_iclose(TASKS_NODE **tasks_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL tasks_node_iclose(CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL tasks_node_heartbeat(TASKS_NODE **tasks_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL tasks_node_heartbeat(CSOCKET_CNODE *csocket_cnode);
 
 EC_BOOL tasks_node_set_epoll(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnode);
 
@@ -104,38 +98,16 @@ UINT32 tasks_worker_count_no_lock(const TASKS_WORKER *tasks_worker, const UINT32
 
 UINT32 tasks_worker_count(const TASKS_WORKER *tasks_worker, const UINT32 tcid, const UINT32 srv_ipaddr, const UINT32 srv_port);
 
-CCALLBACK_NODE *tasks_worker_search_add_callback(TASKS_WORKER *tasks_worker, const char *name, const UINT32 modi, const UINT32 func);
-
-CCALLBACK_NODE *tasks_worker_search_del_callback(TASKS_WORKER *tasks_worker, const char *name, const UINT32 modi, const UINT32 func);
-
-EC_BOOL tasks_worker_push_add_callback(TASKS_WORKER *tasks_worker, const char *name, const UINT32 modi, const UINT32 func);
-
-EC_BOOL tasks_worker_push_del_callback(TASKS_WORKER *tasks_worker, const char *name, const UINT32 modi, const UINT32 func);
-
-EC_BOOL tasks_worker_erase_add_callback(TASKS_WORKER *tasks_worker, const char *name, const UINT32 modi, const UINT32 func);
-
-EC_BOOL tasks_worker_erase_del_callback(TASKS_WORKER *tasks_worker, const char *name, const UINT32 modi, const UINT32 func);
-
-EC_BOOL tasks_worker_callback_when_add(TASKS_WORKER *tasks_worker, TASKS_NODE *tasks_node);
-
-EC_BOOL tasks_worker_callback_when_del(TASKS_WORKER *tasks_worker, TASKS_NODE *tasks_node);
-
-
 TASKS_NODE    *tasks_worker_search_tasks_node_by_ipaddr(const TASKS_WORKER *tasks_worker, const UINT32 ipaddr);
 
 TASKS_NODE    *tasks_worker_search_tasks_node_by_tcid(const TASKS_WORKER *tasks_worker, const UINT32 tcid);
 
 TASKS_NODE *tasks_worker_search_tasks_node_by_tcid_comm(const TASKS_WORKER *tasks_worker, const UINT32 tcid, const UINT32 comm);
 
-CSOCKET_CNODE *tasks_worker_search_tasks_csocket_cnode_with_min_load_by_tcid(const TASKS_WORKER *tasks_worker, const UINT32 tasks_tcid);
-
-CSOCKET_CNODE *tasks_worker_search_taskr_csocket_cnode_with_min_load_by_tcid(const TASKS_WORKER *tasks_worker, const UINT32 des_tcid);
-
-CSOCKET_CNODE *tasks_worker_search_csocket_cnode_with_min_load_by_tcid(const TASKS_WORKER *tasks_worker, const UINT32 tcid);
-
-CSOCKET_CNODE *tasks_worker_search_csocket_cnode_by_tcid_sockfd(const TASKS_WORKER *tasks_worker, const UINT32 tcid, const int sockfd);
+TASKS_NODE *tasks_worker_search(TASKS_WORKER *tasks_worker, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port);
 
 UINT32  tasks_worker_search_tcid_by_ipaddr(const TASKS_WORKER *tasks_worker, const UINT32 ipaddr);
+
 
 EC_BOOL tasks_worker_check_connected_by_tcid(const TASKS_WORKER *tasks_worker, const UINT32 tcid);
 
@@ -162,6 +134,8 @@ EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tci
 EC_BOOL tasks_worker_heartbeat(TASKS_WORKER *tasks_worker);
 
 /*------------------------------------------------- TASKS_MONITOR interface -------------------------------------------------*/
+EC_BOOL tasks_monitor_add_csocket_cnode(TASKS_MONITOR *tasks_monitor, CSOCKET_CNODE *csocket_cnode);
+
 UINT32 tasks_monitor_count_no_lock(const TASKS_MONITOR *tasks_monitor, const UINT32 tcid, const UINT32 srv_ipaddr, const UINT32 srv_port);
 
 UINT32 tasks_monitor_count(const TASKS_MONITOR *tasks_monitor, const UINT32 tcid, const UINT32 srv_ipaddr, const UINT32 srv_port);
@@ -178,25 +152,6 @@ EC_BOOL tasks_monitor_is_empty(const TASKS_MONITOR *tasks_monitor);
 void    tasks_monitor_print(LOG *log, const TASKS_MONITOR *tasks_monitor);
 
 
-CCALLBACK_NODE *tasks_monitor_search_add_callback(TASKS_MONITOR *tasks_monitor, const char *name, const UINT32 modi, const UINT32 func);
-
-CCALLBACK_NODE *tasks_monitor_search_del_callback(TASKS_MONITOR *tasks_monitor, const char *name, const UINT32 modi, const UINT32 func);
-
-EC_BOOL tasks_monitor_push_add_callback(TASKS_MONITOR *tasks_monitor, const char *name, const UINT32 modi, const UINT32 func);
-
-EC_BOOL tasks_monitor_push_del_callback(TASKS_MONITOR *tasks_monitor, const char *name, const UINT32 modi, const UINT32 func);
-
-EC_BOOL tasks_monitor_erase_add_callback(TASKS_MONITOR *tasks_monitor, const char *name, const UINT32 modi, const UINT32 func);
-
-EC_BOOL tasks_monitor_erase_del_callback(TASKS_MONITOR *tasks_monitor, const char *name, const UINT32 modi, const UINT32 func);
-
-EC_BOOL tasks_monitor_callback_when_add(TASKS_MONITOR *tasks_monitor, TASKS_NODE *tasks_node);
-
-EC_BOOL tasks_monitor_callback_when_del(TASKS_MONITOR *tasks_monitor, TASKS_NODE *tasks_node);
-
-EC_BOOL tasks_monitor_add_csocket_cnode(TASKS_MONITOR *tasks_monitor, CSOCKET_CNODE *csocket_cnode);
-
-
 EC_BOOL tasks_handshake_isend(CSOCKET_CNODE *csocket_cnode);
 
 EC_BOOL tasks_handshake_irecv(CSOCKET_CNODE *csocket_cnod);
@@ -205,11 +160,11 @@ EC_BOOL tasks_handshake_icomplete(CSOCKET_CNODE *csocket_cnode);
 
 EC_BOOL tasks_handshake_ichange(CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL tasks_handshake_send(TASKS_NODE **tasks_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL tasks_handshake_send(CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL tasks_handshake_recv(TASKS_NODE **tasks_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL tasks_handshake_recv(CSOCKET_CNODE *csocket_cnode);
 
-EC_BOOL tasks_handshake_shutdown(TASKS_NODE **tasks_node, CSOCKET_CNODE *csocket_cnode);
+EC_BOOL tasks_handshake_shutdown(CSOCKET_CNODE *csocket_cnode);
 
 #endif/*_TASKS_H*/
 

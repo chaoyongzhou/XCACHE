@@ -443,10 +443,10 @@ typedef struct _CHTTP_NODE
 
     CSTRKV                   *http_parsing_header_kv;/*temporary header kv during parsing header field*/
 
-    CCALLBACK_LIST            parse_on_message_begin_callback_list;
-    CCALLBACK_LIST            parse_on_headers_complete_callback_list;
-    CCALLBACK_LIST            parse_on_body_callback_list;
-    CCALLBACK_LIST            parse_on_message_complete_callback_list;
+    CCALLBACK_NODE            parse_on_message_begin_cb;
+    CCALLBACK_NODE            parse_on_headers_complete_cb;
+    CCALLBACK_NODE            parse_on_body_cb;
+    CCALLBACK_NODE            parse_on_message_complete_cb;
 
     CBUFFER                   i_buf;   /*io buffer used by http. socket read buff, and the input buff of http_parser*/
     CHUNK_MGR                 send_buf; /*io buffer used by http*/
@@ -531,10 +531,10 @@ typedef struct _CHTTP_NODE
 
 #define CHTTP_NODE_PARSING_HEADER_KV(chttp_node)           ((chttp_node)->http_parsing_header_kv)
 
-#define CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CALLBACK_LIST(chttp_node)       (&((chttp_node)->parse_on_message_begin_callback_list))
-#define CHTTP_NODE_PARSE_ON_HEADERS_COMPLETE_CALLBACK_LIST(chttp_node)    (&((chttp_node)->parse_on_headers_complete_callback_list))
-#define CHTTP_NODE_PARSE_ON_BODY_CALLBACK_LIST(chttp_node)                (&((chttp_node)->parse_on_body_callback_list))
-#define CHTTP_NODE_PARSE_ON_MESSAGE_COMPLETE_CALLBACK_LIST(chttp_node)    (&((chttp_node)->parse_on_message_complete_callback_list))
+#define CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CB(chttp_node)       (&((chttp_node)->parse_on_message_begin_cb))
+#define CHTTP_NODE_PARSE_ON_HEADERS_COMPLETE_CB(chttp_node)    (&((chttp_node)->parse_on_headers_complete_cb))
+#define CHTTP_NODE_PARSE_ON_BODY_CB(chttp_node)                (&((chttp_node)->parse_on_body_cb))
+#define CHTTP_NODE_PARSE_ON_MESSAGE_COMPLETE_CB(chttp_node)    (&((chttp_node)->parse_on_message_complete_cb))
 
 #define CHTTP_NODE_IN_BUF(chttp_node)                      (&((chttp_node)->i_buf))
 #define CHTTP_NODE_SEND_BUF(chttp_node)                    (&((chttp_node)->send_buf))
@@ -594,12 +594,6 @@ typedef struct _CHTTP_NODE
 #define CHTTP_NODE_CA_FILE(chttp_node)                     ((chttp_node)->ca_file)
 #define CHTTP_NODE_CLIENT_CERT_FILE(chttp_node)            ((chttp_node)->client_cert_file)
 #define CHTTP_NODE_CLIENT_PRIVKEY_FILE(chttp_node)         ((chttp_node)->client_privkey_file)
-
-typedef EC_BOOL (*CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CALLBACK)(CHTTP_NODE *chttp_node);
-typedef EC_BOOL (*CHTTP_NODE_PARSE_ON_HEADERS_COMPLETE_CALLBACK)(CHTTP_NODE *chttp_node);
-typedef EC_BOOL (*CHTTP_NODE_PARSE_ON_BODY_CALLBACK)(CHTTP_NODE *chttp_node);
-typedef EC_BOOL (*CHTTP_NODE_PARSE_ON_MESSAGE_COMPLETE_CALLBACK)(CHTTP_NODE *chttp_node);
-
 
 /*use when ms orig procedure*/
 typedef EC_BOOL (*CHTTP_NODE_IMPORT_HEADER_CALLBACK)(const UINT32, const CHTTP_NODE *);

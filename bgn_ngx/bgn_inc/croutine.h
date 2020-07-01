@@ -89,6 +89,8 @@ typedef COROUTINE_COND CROUTINE_COND;
 
 #define croutine_cond_free(croutine_cond, location)              coroutine_cond_free(croutine_cond, location)
 
+#define croutine_cond_set_timeout(croutine_cond, timeout_msec)   coroutine_cond_set_timeout(croutine_cond, timeout_msec)
+
 #define croutine_cond_reserve(croutine_cond, counter, location)  coroutine_cond_reserve(croutine_cond, counter, location)
 
 #define croutine_cond_release(croutine_cond, location)           coroutine_cond_release(croutine_cond, location)
@@ -208,6 +210,8 @@ typedef CCOND CROUTINE_COND;
 #define croutine_cond_clean(croutine_cond, location)             ccond_clean(croutine_cond, location)
 
 #define croutine_cond_free(croutine_cond, location)              ccond_free(croutine_cond, location)
+
+#define croutine_cond_set_timeout(croutine_cond, timeout_msec)   do{}while(0)
 
 #define croutine_cond_reserve(croutine_cond, counter, location)  ccond_reserve(croutine_cond, counter, location)
 
