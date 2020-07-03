@@ -100,6 +100,9 @@ typedef struct
     UINT32    cxfs_lru_model_switch         ; /* CXFS_LRU_MODEL_SWITCH */
     UINT32    cxfs_fifo_model_switch        ; /* CXFS_FIFO_MODEL_SWITCH */
 
+    UINT32    cxfs_camd_overhead_switch     ; /* CXFS_CAMD_OVERHEAD_SWITCH */
+    UINT32    cxfs_camd_discard_ratio       ; /* CXFS_CAMD_DISCARD_RATIO */
+
     uint16_t  rsvd03;
     uint16_t  cmon_conhash_replicas         ; /* CMON_CONHASH_REPLICAS */
     uint32_t  rsvd04;
@@ -248,6 +251,11 @@ typedef struct
 
 #define CPARACFG_CXFS_LRU_MODEL_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CXFS_LRU_MODEL_SWITCH(cparacfg)))
 #define CPARACFG_CXFS_FIFO_MODEL_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CXFS_FIFO_MODEL_SWITCH(cparacfg)))
+
+#define CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH(cparacfg)                ((cparacfg)->cxfs_camd_overhead_switch)
+#define CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH_STR(cparacfg)            (c_switch_to_str(CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH(cparacfg)))
+
+#define CPARACFG_CXFS_CAMD_DISCARD_RATIO(cparacfg)                  ((cparacfg)->cxfs_camd_discard_ratio)
 
 #define CPARACFG_CMON_CONHASH_SWITCH(cparacfg)                      ((cparacfg)->cmon_conhash_switch)
 #define CPARACFG_CMON_CONHASH_REPLICAS(cparacfg)                    ((cparacfg)->cmon_conhash_replicas)
@@ -484,6 +492,9 @@ typedef struct
 #define CPARACFG_CXFS_LRU_MODEL_SWITCH_DEF                       SWITCH_OFF
 #define CPARACFG_CXFS_FIFO_MODEL_SWITCH_DEF                      SWITCH_ON
 
+#define CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH_DEF                   SWITCH_OFF
+#define CPARACFG_CXFS_CAMD_DISCARD_RATIO_DEF                     10 /*1/10*/
+
 #define CPARACFG_CMON_CONHASH_SWITCH_DEF                         SWITCH_OFF
 #define CPARACFG_CMON_CONHASH_REPLICAS_DEF                       160
 #define CPARACFG_CMON_MAGLEV_SWITCH_DEF                          SWITCH_ON
@@ -509,6 +520,7 @@ typedef struct
 #define CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH_DEF                 SWITCH_ON
 #define CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH_DEF                SWITCH_ON
 #define CPARACFG_CAMD_SATA_DISK_VM_S_OFFSET_DEF                  0
+
 #define CPARACFG_CMC_TRY_RETIRE_MAX_NUM_DEF                      8
 #define CPARACFG_CMC_TRY_RECYCLE_MAX_NUM_DEF                     128
 #define CPARACFG_CMC_SCAN_RETIRE_MAX_NUM_DEF                     256
@@ -637,6 +649,9 @@ typedef struct
 
 #define    CXFS_LRU_MODEL_SWITCH                         CPARACFG_DEFAULT_MAP(CPARACFG_CXFS_LRU_MODEL_SWITCH)
 #define    CXFS_FIFO_MODEL_SWITCH                        CPARACFG_DEFAULT_MAP(CPARACFG_CXFS_FIFO_MODEL_SWITCH)
+
+#define    CXFS_CAMD_OVERHEAD_SWITCH                     CPARACFG_DEFAULT_MAP(CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH)
+#define    CXFS_CAMD_DISCARD_RATIO                       CPARACFG_DEFAULT_MAP(CPARACFG_CXFS_CAMD_DISCARD_RATIO)
 
 #define    CMON_CONHASH_SWITCH                           CPARACFG_DEFAULT_MAP(CPARACFG_CMON_CONHASH_SWITCH)
 #define    CMON_CONHASH_REPLICAS                         CPARACFG_DEFAULT_MAP(CPARACFG_CMON_CONHASH_REPLICAS)

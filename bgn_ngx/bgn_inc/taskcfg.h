@@ -94,6 +94,8 @@ EC_BOOL tasks_cfg_del_taskr(TASKS_CFG *tasks_cfg, const TASKR_CFG *taskr_cfg);
 
 void    tasks_cfg_print(LOG *log, const TASKS_CFG *tasks_cfg);
 
+void    tasks_cfg_print_in_plain(LOG *log, const TASKS_CFG *tasks_cfg);
+
 void    tasks_cfg_print_xml(LOG *log, const TASKS_CFG *tasks_cfg, const UINT32 level);
 
 
@@ -142,6 +144,8 @@ TASKS_CFG *task_cfg_searchs_by_netcards(const TASK_CFG *task_cfg, const CSET *cn
 TASKS_CFG *task_cfg_searchs_by_csrv(const TASK_CFG *task_cfg, const UINT32 tcid, const UINT32 csrvport);
 
 void task_cfg_print(LOG *log, const TASK_CFG *task_cfg);
+
+void task_cfg_print_in_plain(LOG *log, const TASK_CFG *task_cfg);
 
 void task_cfg_print_xml(LOG *log, const TASK_CFG *task_cfg, const UINT32 level);
 

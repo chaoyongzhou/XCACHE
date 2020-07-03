@@ -136,6 +136,9 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFS_LRU_MODEL_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFS_FIFO_MODEL_SWITCH);
 
+    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH);
+    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFS_CAMD_DISCARD_RATIO);
+
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CMON_CONHASH_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CMON_CONHASH_REPLICAS);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CMON_MAGLEV_SWITCH);
@@ -313,6 +316,9 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CXFS_LRU_MODEL_SWITCH                      = %s\n",   CPARACFG_CXFS_LRU_MODEL_SWITCH_STR(cparacfg));
     sys_log(log, "CXFS_FIFO_MODEL_SWITCH                     = %s\n",   CPARACFG_CXFS_FIFO_MODEL_SWITCH_STR(cparacfg));
 
+    sys_log(log, "CXFS_CAMD_OVERHEAD_SWITCH                  = %s\n",   CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH_STR(cparacfg));
+    sys_log(log, "CXFS_CAMD_DISCARD_RATIO                    = %ld\n",  CPARACFG_CXFS_CAMD_DISCARD_RATIO(cparacfg));
+
     sys_log(log, "CAMD_SATA_DISK_VM_S_OFFSET                 = %ld\n" ,  CPARACFG_CAMD_SATA_DISK_VM_S_OFFSET(cparacfg));
     sys_log(log, "CMON_CONHASH_SWITCH                        = %s\n" ,  CPARACFG_CMON_CONHASH_SWITCH_STR(cparacfg));
     sys_log(log, "CMON_CONHASH_REPLICAS                      = %u\n" ,  CPARACFG_CMON_CONHASH_REPLICAS(cparacfg));
@@ -444,6 +450,9 @@ void cparacfg_json(json_object *obj, const CPARACFG *cparacfg)
 
     json_object_add_kv(obj,      "CXFS_LRU_MODEL_SWITCH"      , CPARACFG_CXFS_LRU_MODEL_SWITCH_STR(cparacfg));
     json_object_add_kv(obj,      "CXFS_FIFO_MODEL_SWITCH"     , CPARACFG_CXFS_FIFO_MODEL_SWITCH_STR(cparacfg));
+
+    json_object_add_kv(obj,      "CXFS_CAMD_OVERHEAD_SWITCH"  , CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH_STR(cparacfg));
+    json_object_add_k_int64(obj, "CXFS_CAMD_DISCARD_RATIO"    , CPARACFG_CXFS_CAMD_DISCARD_RATIO(cparacfg));
 
     json_object_add_kv(obj,      "CMON_CONHASH_SWITCH"        ,  CPARACFG_CMON_CONHASH_SWITCH_STR(cparacfg));
     json_object_add_k_int32(obj, "CMON_CONHASH_REPLICAS"      ,  CPARACFG_CMON_CONHASH_REPLICAS(cparacfg));

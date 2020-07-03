@@ -415,6 +415,10 @@ EC_BOOL cngx_http_commit_http_get(CHTTP_NODE *chttp_node)
     {
         ret = cngx_http_commit_paracfg_get_request(chttp_node);
     }
+    else if (EC_TRUE == cngx_http_is_http_get_dbgtaskcfg(chttp_node))
+    {
+        ret = cngx_http_commit_dbgtaskcfg_get_request(chttp_node);
+    }
     else
     {
         CBUFFER *uri_cbuffer;
@@ -5020,6 +5024,172 @@ EC_BOOL cngx_http_commit_paracfg_get_response(CHTTP_NODE *chttp_node)
     if(NULL_PTR == csocket_cnode)
     {
         dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_paracfg_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return cngx_http_commit_response(chttp_node);
+}
+#endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: dbgtaskcfg ----------------------------------------*/
+STATIC_CAST static EC_BOOL __cngx_http_uri_is_dbgtaskcfg_get_op(const CBUFFER *uri_cbuffer)
+{
+    const uint8_t *uri_str;
+    uint32_t       uri_len;
+
+    uri_str      = CBUFFER_DATA(uri_cbuffer);
+    uri_len      = CBUFFER_USED(uri_cbuffer);
+
+    if(CONST_STR_LEN("/dbgtaskcfg") == uri_len
+    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/dbgtaskcfg")))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cngx_http_is_http_get_dbgtaskcfg(const CHTTP_NODE *chttp_node)
+{
+    const CBUFFER *uri_cbuffer;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    dbg_log(SEC_0054_CNGX_HTTP, 9)(LOGSTDOUT, "[DEBUG] cngx_http_is_http_get_dbgtaskcfg: uri: '%.*s' [len %d]\n",
+                        CBUFFER_USED(uri_cbuffer),
+                        CBUFFER_DATA(uri_cbuffer),
+                        CBUFFER_USED(uri_cbuffer));
+
+    if(EC_TRUE == __cngx_http_uri_is_dbgtaskcfg_get_op(uri_cbuffer))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL cngx_http_commit_dbgtaskcfg_get_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == cngx_http_handle_dbgtaskcfg_get_request(chttp_node))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_dbgtaskcfg_get_request: handle 'GET' request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cngx_http_make_dbgtaskcfg_get_response(chttp_node))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_dbgtaskcfg_get_request: make 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = cngx_http_commit_dbgtaskcfg_get_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_dbgtaskcfg_get_request: commit 'GET' response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL cngx_http_handle_dbgtaskcfg_get_request(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *rsp_content_cbytes;
+
+    TASK_BRD      *task_brd;
+
+    rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    cbytes_clean(rsp_content_cbytes);
+
+    task_brd = task_brd_default_get();
+    if(NULL_PTR != task_brd && NULL_PTR != TASK_BRD_SYS_CFG(task_brd))
+    {
+        SYS_CFG       *sys_cfg;
+        TASK_CFG      *task_cfg;
+        LOG           *des_log;
+        CSTRING       *rsp_body_cstr;
+
+        sys_cfg  = TASK_BRD_SYS_CFG(task_brd);
+        task_cfg = SYS_CFG_TASK_CFG(sys_cfg);
+
+        des_log = log_cstr_new();
+
+        task_cfg_print(des_log, task_cfg);
+
+        rsp_body_cstr = LOG_CSTR(des_log);
+
+        cbytes_set(rsp_content_cbytes, CSTRING_STR(rsp_body_cstr), CSTRING_LEN(rsp_body_cstr));
+
+        cstring_unset(rsp_body_cstr);
+
+        log_cstr_free(des_log);
+
+        dbg_log(SEC_0054_CNGX_HTTP, 5)(LOGSTDOUT, "[DEBUG] cngx_http_handle_dbgtaskcfg_get_request: done\n");
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(rsp_content_cbytes));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_http_handle_dbgtaskcfg_get_request: done");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_http_make_dbgtaskcfg_get_response(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *content_cbytes;
+    uint64_t       content_len;
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    content_len    = CBYTES_LEN(content_cbytes);
+
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_dbgtaskcfg_get_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_dbgtaskcfg_get_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_dbgtaskcfg_get_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    /*no data copying but data transfering*/
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
+                                              CBYTES_BUF(content_cbytes),
+                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_dbgtaskcfg_get_response: make body with len %d failed\n",
+                           (uint32_t)CBYTES_LEN(content_cbytes));
+        return (EC_FALSE);
+    }
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_http_commit_dbgtaskcfg_get_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_commit_dbgtaskcfg_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 

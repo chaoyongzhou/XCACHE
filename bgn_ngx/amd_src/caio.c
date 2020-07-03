@@ -3306,6 +3306,16 @@ EC_BOOL caio_poll(CAIO_MD *caio_md)
     return (EC_TRUE);
 }
 
+EC_BOOL caio_is_overhead(CAIO_MD *caio_md)
+{
+    if(CAIO_REQ_QUEUE_MAX_LEN <= clist_size(CAIO_MD_REQ_LIST(caio_md)))
+    {
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
 void caio_process(CAIO_MD *caio_md)
 {
     caio_process_pages(caio_md);

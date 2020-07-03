@@ -1137,6 +1137,9 @@ void cparacfg_xfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
         sys_print(log, " xfsLRUSwitch=\"%s\""            , CPARACFG_CXFS_LRU_MODEL_SWITCH_STR(cparacfg));
         sys_print(log, " xfsFIFOSwitch=\"%s\""           , CPARACFG_CXFS_FIFO_MODEL_SWITCH_STR(cparacfg));
 
+        sys_print(log, " xfsAmdOverheadSwitch=\"%s\""    , CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH_STR(cparacfg));
+        sys_print(log, " xfsAmdDiscardRatio=\"%ld\""     , CPARACFG_CXFS_CAMD_DISCARD_RATIO(cparacfg));
+
         sys_print(log, " httpReqNumPerLoop=\"%u\""       , CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
         sys_print(log, "/>\n");
     }

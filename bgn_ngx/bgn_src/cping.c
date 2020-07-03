@@ -157,6 +157,10 @@ EC_BOOL cping_node_complete(CPING_NODE *cping_node)
     dbg_log(SEC_0063_CPING, 9)(LOGSTDOUT, "[DEBUG] cping_node_complete: sockfd %d return true\n",
                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
+    cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+    CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+    CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
+
     csocket_cnode_close(csocket_cnode);
 
     return (EC_TRUE);
@@ -187,6 +191,10 @@ EC_BOOL cping_node_shutdown(CPING_NODE *cping_node)
     dbg_log(SEC_0063_CPING, 9)(LOGSTDOUT, "[DEBUG] cping_node_shutdown: sockfd %d \n",
                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
+    cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+    CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+    CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
+
     csocket_cnode_close(csocket_cnode);
 
     return (EC_TRUE);
@@ -216,6 +224,10 @@ EC_BOOL cping_node_close(CPING_NODE *cping_node)
     dbg_log(SEC_0063_CPING, 9)(LOGSTDOUT, "[DEBUG] cping_node_close: sockfd %d\n",
                        CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
+    cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+    CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+    CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
+
     csocket_cnode_close(csocket_cnode);
 
     return (EC_TRUE);
@@ -236,7 +248,9 @@ EC_BOOL cping_node_disconnect(CPING_NODE *cping_node)
         dbg_log(SEC_0063_CPING, 5)(LOGSTDOUT, "[DEBUG] cping_node_disconnect: close sockfd %d\n",
                                               CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
-        cepoll_del_event(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode), CEPOLL_WR_EVENT);
+
+        cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
         CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
 
         /*close http connection*/

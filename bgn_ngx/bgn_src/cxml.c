@@ -1603,6 +1603,9 @@ EC_BOOL cxml_parse_cparacfg_xfs_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     __cxml_parse_tag_switch(node, (const char *)"xfsFIFOSwitch"       , &(CPARACFG_CXFS_FIFO_MODEL_SWITCH(cparacfg)));
     ASSERT(CPARACFG_CXFS_LRU_MODEL_SWITCH(cparacfg) != CPARACFG_CXFS_FIFO_MODEL_SWITCH(cparacfg));
 
+    __cxml_parse_tag_switch(node, (const char *)"xfsAmdOverheadSwitch" , &(CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"xfsAmdDiscardRatio"   , &(CPARACFG_CXFS_CAMD_DISCARD_RATIO(cparacfg)));
+
     __cxml_parse_tag_uint32_t(node, (const char *)"httpReqNumPerLoop"  , &(CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)));
 
     return (EC_TRUE);

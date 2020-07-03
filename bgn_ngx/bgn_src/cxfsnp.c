@@ -1838,7 +1838,7 @@ uint32_t cxfsnp_insert_no_lock(CXFSNP *cxfsnp, const uint32_t path_len, const ui
         dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_insert_no_lock: np %u, node_pos %u\n", CXFSNP_ID(cxfsnp), node_pos);
 
         cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
-        dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_insert_no_lock: np %u, node_pos %u,  dir flag %u\n",
+        dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_insert_no_lock: np %u, node_pos %u, dir flag %u\n",
                             CXFSNP_ID(cxfsnp), node_pos, CXFSNP_ITEM_DIR_FLAG(cxfsnp_item));
 
         if(CXFSNP_ITEM_FILE_IS_REG == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))

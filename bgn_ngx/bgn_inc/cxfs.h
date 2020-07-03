@@ -209,6 +209,8 @@ typedef struct
     /*statistics*/
     CXFS_STAT            cxfs_stat;
     CXFS_STAT            cxfs_stat_saved;
+
+    UINT32               overhead_counter;
 }CXFS_MD;
 
 #define CXFS_MD_READ_ONLY_FLAG(cxfs_md)                 ((cxfs_md)->read_only_flag)
@@ -238,6 +240,7 @@ typedef struct
 #define CXFS_MD_OP_DUMP_OFFSET(cxfs_md)                 ((cxfs_md)->cxfsop_dump_offset)
 #define CXFS_MD_STAT(cxfs_md)                           (&((cxfs_md)->cxfs_stat))
 #define CXFS_MD_STAT_SAVED(cxfs_md)                     (&((cxfs_md)->cxfs_stat_saved))
+#define CXFS_MD_OVERHEAD_COUNTER(cxfs_md)               ((cxfs_md)->overhead_counter)
 
 typedef struct
 {

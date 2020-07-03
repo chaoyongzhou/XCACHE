@@ -100,6 +100,8 @@ extern "C"{
 
 #define CAIO_PROCESS_EVENT_ONCE_NUM     (128)
 
+#define CAIO_REQ_QUEUE_MAX_LEN          (2048) /*overhead judgement*/
+
 //#define CAIO_MEM_CACHE_MAX_NUM          ((UINT32)1024) /*256MB for 256K-page*/
 #define CAIO_MEM_CACHE_MAX_NUM          ((UINT32)~0)/*no limitation*/
 
@@ -617,6 +619,8 @@ EC_BOOL caio_is_read_only(const CAIO_MD *caio_md);
 
 /*for debug*/
 EC_BOOL caio_poll(CAIO_MD *caio_md);
+
+EC_BOOL caio_is_overhead(CAIO_MD *caio_md);
 
 void caio_process(CAIO_MD *caio_md);
 

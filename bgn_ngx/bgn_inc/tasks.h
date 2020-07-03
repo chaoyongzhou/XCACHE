@@ -108,6 +108,8 @@ TASKS_NODE *tasks_worker_search(TASKS_WORKER *tasks_worker, const UINT32 tcid, c
 
 UINT32  tasks_worker_search_tcid_by_ipaddr(const TASKS_WORKER *tasks_worker, const UINT32 ipaddr);
 
+/*debug*/
+EC_BOOL tasks_worker_delete(TASKS_WORKER *tasks_worker, const UINT32 tcid, const UINT32 ipaddr, const UINT32 port);
 
 EC_BOOL tasks_worker_check_connected_by_tcid(const TASKS_WORKER *tasks_worker, const UINT32 tcid);
 
@@ -150,6 +152,8 @@ EC_BOOL tasks_monitor_clean(TASKS_MONITOR *tasks_monitor);
 EC_BOOL tasks_monitor_is_empty(const TASKS_MONITOR *tasks_monitor);
 
 void    tasks_monitor_print(LOG *log, const TASKS_MONITOR *tasks_monitor);
+
+void    tasks_monitor_print_in_plain(LOG *log, const TASKS_MONITOR *tasks_monitor);
 
 
 EC_BOOL tasks_handshake_isend(CSOCKET_CNODE *csocket_cnode);

@@ -23,7 +23,7 @@ extern "C"{
 #include "task.h"
 
 #include "cmpie.h"
-
+#include "cepoll.h"
 #include "crb.h"
 #include "chttp.h"
 #include "chttps.h"
@@ -1916,6 +1916,10 @@ STATIC_CAST static EC_BOOL __cdetectn_resolve_orig_node_domain_cleanup_handle(CD
                           "unbind and close csocket_cnode %p (sockfd %d, reusing %u) from cdns_node %p\n",
                           csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
                           cdns_node);
+
+        cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+        CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
 
         csocket_cnode_close(csocket_cnode);
 

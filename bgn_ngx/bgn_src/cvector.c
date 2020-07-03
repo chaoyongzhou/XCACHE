@@ -1039,21 +1039,6 @@ EC_BOOL cvector_delete(CVECTOR *cvector, const void * data)
     return (EC_TRUE);
 }
 
-EC_BOOL cvector_remove(CVECTOR *cvector, const void * data)
-{
-    UINT32 pos;
-
-    CVECTOR_LOCK(cvector, LOC_CVECTOR_0074);
-    for(pos = 0; pos < cvector->size; pos ++)
-    {
-        if(data == cvector->data[ pos ])
-        {
-            cvector->data[ pos ] = NULL_PTR;
-        }
-    }
-    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0075);
-    return (EC_TRUE);
-}
 
 /**
 *   make cvector order as c0 < c1 < c2 < ... < ck
@@ -1411,6 +1396,32 @@ void cvector_print(LOG *log, const CVECTOR *cvector, void (*handler)(LOG *, cons
         }
 
         sys_log(log, "cvector %lx No. %ld: ", cvector, pos);
+        (handler)(log, cvector->data[ pos ]);
+    }
+    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0102);
+    return;
+}
+
+void cvector_print_in_plain(LOG *log, const CVECTOR *cvector, void (*handler)(LOG *, const void *))
+{
+    UINT32 pos;
+
+    CVECTOR_LOCK(cvector, LOC_CVECTOR_0101);
+    for(pos = 0; pos < cvector->size; pos ++)
+    {
+        if(NULL_PTR == cvector->data[ pos ])
+        {
+            sys_print(log, "No. %ld: (null)\n", pos);
+            continue;
+        }
+
+        if(NULL_PTR == handler)
+        {
+            sys_print(log, "No. %ld: %lx\n", pos, cvector->data[ pos ]);
+            continue;
+        }
+
+        sys_print(log, "No. %ld: ", pos);
         (handler)(log, cvector->data[ pos ]);
     }
     CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0102);
@@ -2044,21 +2055,6 @@ EC_BOOL cvector_delete_no_lock(CVECTOR *cvector, const void * data)
 
     cvector->data[ pos ] = NULL_PTR;
     cvector->size --;
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cvector_remove_no_lock(CVECTOR *cvector, const void * data)
-{
-    UINT32 pos;
-
-    for(pos = 0; pos < cvector->size; pos ++)
-    {
-        if(data == cvector->data[ pos ])
-        {
-            cvector->data[ pos ] = NULL_PTR;
-        }
-    }
 
     return (EC_TRUE);
 }

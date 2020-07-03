@@ -1302,6 +1302,10 @@ EC_BOOL cdns_node_close(CDNS_NODE *cdns_node)
                         "release cdns_node and umount socket %d done\n",
                         CSOCKET_CNODE_SOCKFD(csocket_cnode));
 
+    cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+    CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+    CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
+
     csocket_cnode_close(csocket_cnode);
 
     return (EC_TRUE);

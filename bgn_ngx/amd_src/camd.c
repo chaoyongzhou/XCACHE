@@ -5400,6 +5400,11 @@ EC_BOOL camd_poll_debug(CAMD_MD *camd_md)
     return (EC_TRUE);
 }
 
+EC_BOOL camd_is_overhead(CAMD_MD *camd_md)
+{
+    return caio_is_overhead(CAMD_MD_CAIO_MD(camd_md));
+}
+
 void camd_process(CAMD_MD *camd_md)
 {
     uint64_t    ssd_traffic_read_bps;

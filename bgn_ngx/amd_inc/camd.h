@@ -664,6 +664,8 @@ EC_BOOL camd_poll(CAMD_MD *camd_md);
 /*for debug only!*/
 EC_BOOL camd_poll_debug(CAMD_MD *camd_md);
 
+EC_BOOL camd_is_overhead(CAMD_MD *camd_md);
+
 void camd_process(CAMD_MD *camd_md);
 
 void camd_process_ssd_bad_bitmap(CAMD_MD *camd_md);

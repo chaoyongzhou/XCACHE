@@ -452,11 +452,40 @@ void tasks_cfg_print(LOG *log, const TASKS_CFG *tasks_cfg)
         safe_free(cluster_str, LOC_TASKCFG_0007);
     }
 
-    sys_log(log, "tasks_cfg: worker clients");
+    sys_log(log, "tasks_cfg: worker clients:\n");
     tasks_worker_print(log, TASKS_CFG_WORKER(tasks_cfg));
 
-    sys_log(log, "tasks_cfg: monitor clients");
+    sys_log(log, "tasks_cfg: monitor clients:\n");
     tasks_monitor_print(log, TASKS_CFG_MONITOR(tasks_cfg));
+
+    return;
+}
+
+void tasks_cfg_print_in_plain(LOG *log, const TASKS_CFG *tasks_cfg)
+{
+    char *cluster_str;
+
+    cluster_str = uint32_vec_to_str(TASKS_CFG_CLUSTER_VEC(tasks_cfg));
+    sys_print(log, "tasks_cfg %lx:  tcid = %s, maski = %s, maske = %s, srvipaddr = %s, srvport = %ld, srvsockfd = %d, cluster = %s\n",
+                    tasks_cfg,
+                    TASKS_CFG_TCID_STR(tasks_cfg),
+                    TASKS_CFG_MASKI_STR(tasks_cfg),
+                    TASKS_CFG_MASKE_STR(tasks_cfg),
+                    TASKS_CFG_SRVIPADDR_STR(tasks_cfg),
+                    TASKS_CFG_SRVPORT(tasks_cfg),
+                    TASKS_CFG_SRVSOCKFD(tasks_cfg),
+                    (NULL_PTR == cluster_str)?(const char *)"null":cluster_str
+            );
+    if(NULL_PTR != cluster_str)
+    {
+        safe_free(cluster_str, LOC_TASKCFG_0007);
+    }
+
+    sys_print(log, "tasks_cfg: worker clients:\n");
+    tasks_worker_print_in_plain(log, TASKS_CFG_WORKER(tasks_cfg));
+
+    sys_print(log, "tasks_cfg: monitor clients:\n");
+    tasks_monitor_print_in_plain(log, TASKS_CFG_MONITOR(tasks_cfg));
 
     return;
 }
@@ -875,6 +904,14 @@ void task_cfg_print(LOG *log, const TASK_CFG *task_cfg)
 {
     sys_log(log, "task_cfg %lx:\n", task_cfg);
     cvector_print(log, TASK_CFG_TASKS_CFG_VEC(task_cfg), (CVECTOR_DATA_PRINT)tasks_cfg_print);
+    return;
+}
+
+void task_cfg_print_in_plain(LOG *log, const TASK_CFG *task_cfg)
+{
+    sys_log(log, "task_cfg %lx:\n", task_cfg);
+    cvector_print_in_plain(log, TASK_CFG_TASKS_CFG_VEC(task_cfg),
+                                (CVECTOR_DATA_PRINT)tasks_cfg_print_in_plain);
     return;
 }
 

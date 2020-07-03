@@ -152,6 +152,12 @@ EC_BOOL api_cmd_ui_cxfs_lru_model_switch_on(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_lru_model_switch_on_all(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_fifo_model_switch_on(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_fifo_model_switch_on_all(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_camd_overhead_switch_on(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_camd_overhead_switch_on_all(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_camd_overhead_switch_off(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_camd_overhead_switch_off_all(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_camd_discard_ratio_set(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_camd_discard_ratio_set_all(CMD_PARA_VEC * param);
 
 EC_BOOL api_cmd_ui_cmc_lru_model_switch_on(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cmc_lru_model_switch_on_all(CMD_PARA_VEC * param);
@@ -303,7 +309,9 @@ EC_BOOL api_cmd_ui_crfs_show_specific_np_del_list(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_crfs_show_specific_np(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_crfs_show_locked_files(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_crfs_md5sum(CMD_PARA_VEC * param);
+#endif
 
+#if 1
 EC_BOOL api_cmd_ui_cxfs_create_npp(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_create_dn(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_create_sata_bad_bitmap(CMD_PARA_VEC * param);
@@ -363,7 +371,9 @@ EC_BOOL api_cmd_ui_cxfs_show_specific_np(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_show_locked_files(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_show_wait_files(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_md5sum(CMD_PARA_VEC * param);
+#endif
 
+#if 1
 EC_BOOL api_cmd_ui_ctdns_create_npp(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_start(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_end(CMD_PARA_VEC * param);
@@ -385,12 +395,18 @@ EC_BOOL api_cmd_ui_ctdns_show_npp(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_show_svp(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ctdns_refresh_cache(CMD_PARA_VEC * param);
 
+#endif
+
+#if 1
 EC_BOOL api_cmd_ui_cdetect_show_orig_nodes(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cdetect_show_orig_node(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cdetect_dns_resolve(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cdetect_process(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cdetect_process_loop(CMD_PARA_VEC * param);
 
+#endif
+
+#if 1
 EC_BOOL api_cmd_ui_cp2p_load(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cp2p_upload(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cp2p_download(CMD_PARA_VEC * param);
@@ -410,7 +426,9 @@ EC_BOOL api_cmd_ui_cp2p_deliver_cmd_subnet(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cp2p_deliver_cmd_all(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cp2p_online(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cp2p_offline(CMD_PARA_VEC * param);
+#endif
 
+#if 1
 EC_BOOL api_cmd_ui_download_file(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_upload_file(CMD_PARA_VEC * param);
 
@@ -418,6 +436,11 @@ EC_BOOL api_cmd_ui_upload_file(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ngx_reload_so(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ngx_switch_so(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_ngx_show_so(CMD_PARA_VEC * param);
+#endif
+
+#if 1
+EC_BOOL api_cmd_ui_show_task_cfg(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_delete_tasks_worker(CMD_PARA_VEC * param);
 #endif
 
 #endif

@@ -1097,7 +1097,7 @@ EC_BOOL chttps_node_complete(CHTTP_NODE *chttp_node)
 
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;/*trigger socket closing*/
 
-         csocket_cnode_close(csocket_cnode);
+        csocket_cnode_close(csocket_cnode);
 
         return (EC_TRUE);
     }

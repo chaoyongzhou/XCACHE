@@ -2271,7 +2271,7 @@ EC_BOOL cngx_send_body_blocking(ngx_http_request_t *r, ngx_int_t *ngx_rc)
     ngx_msec_t                 b_time_msec; /*beg time in msec*/
     ngx_msec_t                 s_time_msec; /*start time in msec*/
     ngx_msec_t                 e_time_msec; /*end time in msec*/
-    ngx_msec_t                 c_time_msec;     /*cur time in msec*/
+    ngx_msec_t                 c_time_msec; /*cur time in msec*/
 
     ngx_msec_t                 ev_timeout_msec; /*event timeout in msec*/
     size_t                     send_lowat;

@@ -8635,7 +8635,9 @@ LOG * task_brd_default_init(int argc, char **argv)
     /*[optional] share TASKC_NODE info to forwarding process of taskComm*/
     if (CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
     {
+#if (SWITCH_ON == TASK_PROC_SEND_CHANNEL_SWITCH)
         super_incl_taskc_node(TASK_BRD_SUPER_MD_ID(task_brd), TASK_BRD_IPADDR(task_brd), TASK_BRD_PORT(task_brd), CMPI_ANY_SOCKFD, TASK_BRD_TCID(task_brd), TASK_BRD_COMM(task_brd), TASK_BRD_SIZE(task_brd));
+#endif/*(SWITCH_ON == TASK_PROC_SEND_CHANNEL_SWITCH)*/
 
         dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "======================================================================\n");
         dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "              super_incl_taskc_node finished                      \n");
@@ -10244,6 +10246,30 @@ EC_BOOL task_rsp_node_on_send_fail(TASK_NODE *task_node)
 
     task_node_del_timer(task_node);
 
+    /*handle local task rsp*/
+    if(CMPI_LOCAL_TCID == TASK_RSP_RECV_TCID(task_rsp)
+    && CMPI_LOCAL_COMM == TASK_RSP_RECV_COMM(task_rsp))
+    {
+        TASK_BRD    *task_brd;
+        TASK_MGR    *task_mgr;
+        TASK_REQ    *task_req;
+
+        task_brd = task_brd_default_get();
+
+        if(EC_TRUE == task_rsp_reserve(task_brd, task_rsp, &task_mgr, &task_req))
+        {
+            if(NULL_PTR != task_mgr)
+            {
+                TASK_MGR_COUNTER_INC_BY_TASK_RSP(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_FAIL, task_rsp, LOC_TASK_0163);
+            }
+
+            if(NULL_PTR != task_mgr && EC_TRUE == task_mgr_is_complete(task_mgr))
+            {
+                task_mgr_complete(task_mgr);
+            }
+        }
+    }
+
     task_rsp_free(task_rsp);
 
     dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT,"[DEBUG] task_rsp_node_on_send_fail: "
@@ -10264,6 +10290,30 @@ EC_BOOL task_rsp_node_on_send_timeout(TASK_NODE *task_node)
     task_rsp = TASK_NODE_RSP(task_node);
 
     ASSERT(TAG_TASK_RSP == TASK_NODE_TAG(task_node));
+
+    /*handle local task rsp*/
+    if(CMPI_LOCAL_TCID == TASK_RSP_RECV_TCID(task_rsp)
+    && CMPI_LOCAL_COMM == TASK_RSP_RECV_COMM(task_rsp))
+    {
+        TASK_BRD    *task_brd;
+        TASK_MGR    *task_mgr;
+        TASK_REQ    *task_req;
+
+        task_brd = task_brd_default_get();
+
+        if(EC_TRUE == task_rsp_reserve(task_brd, task_rsp, &task_mgr, &task_req))
+        {
+            if(NULL_PTR != task_mgr)
+            {
+                TASK_MGR_COUNTER_INC_BY_TASK_RSP(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_FAIL, task_rsp, LOC_TASK_0163);
+            }
+
+            if(NULL_PTR != task_mgr && EC_TRUE == task_mgr_is_complete(task_mgr))
+            {
+                task_mgr_complete(task_mgr);
+            }
+        }
+    }
 
     task_rsp_free(task_rsp);
 
@@ -10287,6 +10337,30 @@ EC_BOOL task_rsp_node_on_cleanup(TASK_NODE *task_node)
     ASSERT(TAG_TASK_RSP == TASK_NODE_TAG(task_node));
 
     task_node_del_timer(task_node);
+
+    /*handle local task rsp*/
+    if(CMPI_LOCAL_TCID == TASK_RSP_RECV_TCID(task_rsp)
+    && CMPI_LOCAL_COMM == TASK_RSP_RECV_COMM(task_rsp))
+    {
+        TASK_BRD    *task_brd;
+        TASK_MGR    *task_mgr;
+        TASK_REQ    *task_req;
+
+        task_brd = task_brd_default_get();
+
+        if(EC_TRUE == task_rsp_reserve(task_brd, task_rsp, &task_mgr, &task_req))
+        {
+            if(NULL_PTR != task_mgr)
+            {
+                TASK_MGR_COUNTER_INC_BY_TASK_RSP(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_FAIL, task_rsp, LOC_TASK_0163);
+            }
+
+            if(NULL_PTR != task_mgr && EC_TRUE == task_mgr_is_complete(task_mgr))
+            {
+                task_mgr_complete(task_mgr);
+            }
+        }
+    }
 
     task_rsp_free(task_rsp);
 

@@ -171,8 +171,6 @@ EC_BOOL cvector_runthrough_back(const CVECTOR *cvector, const void *pvoid, EC_BO
 
 EC_BOOL cvector_delete(CVECTOR *cvector, const void * data);
 
-EC_BOOL cvector_remove(CVECTOR *cvector, const void * data);
-
 /**
 *   make cvector order as c0 < c1 < c2 < ... < ck
 * where "<" is a kind of order
@@ -207,6 +205,8 @@ void cvector_merge_direct(CVECTOR *cvector_src, CVECTOR *cvector_des);
 UINT32 cvector_count(const CVECTOR *cvector, const void *data, EC_BOOL (*cmp)(const void *, const void *));
 
 void cvector_print(LOG *log, const CVECTOR *cvector, void (*handler)(LOG *, const void *));
+
+void cvector_print_in_plain(LOG *log, const CVECTOR *cvector, void (*handler)(LOG *, const void *));
 
 void cvector_print_level(LOG *log, const CVECTOR *cvector, const UINT32 level, void (*print)(LOG *, const void *, const UINT32));
 
@@ -264,7 +264,6 @@ EC_BOOL cvector_runthrough_back_no_lock(const CVECTOR *cvector, const void *pvoi
 
 EC_BOOL cvector_delete_no_lock(CVECTOR *cvector, const void * data);
 
-EC_BOOL cvector_remove_no_lock(CVECTOR *cvector, const void * data);
 /**
 *   make cvector order as c0 < c1 < c2 < ... < ck
 * where "<" is a kind of order

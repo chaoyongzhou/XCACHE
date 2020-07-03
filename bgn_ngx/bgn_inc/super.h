@@ -844,6 +844,20 @@ void super_ngx_show_so(const UINT32 super_md_id, LOG *log);
 
 /**
 *
+* debug: task_cfg print
+*
+**/
+void super_show_task_cfg(const UINT32 super_md_id, LOG *log);
+
+/**
+*
+* debug: clean up worker
+*
+**/
+EC_BOOL super_delete_tasks_worker(const UINT32 super_md_id);
+
+/**
+*
 * set dma:ssd:aio:req:max:<num>
 *
 **/
@@ -900,6 +914,27 @@ EC_BOOL super_cxfs_lru_model_switch_on(const UINT32 super_md_id);
 *
 **/
 EC_BOOL super_cxfs_fifo_model_switch_on(const UINT32 super_md_id);
+
+/**
+*
+* set cxfs:camd:overhead:switch:on
+*
+**/
+EC_BOOL super_cxfs_camd_overhead_switch_on(const UINT32 super_md_id);
+
+/**
+*
+* set cxfs:camd:overhead:switch:off
+*
+**/
+EC_BOOL super_cxfs_camd_overhead_switch_off(const UINT32 super_md_id);
+
+/**
+*
+* set cxfs:camd:discard:ratio:<n>
+*
+**/
+EC_BOOL super_cxfs_camd_discard_ratio_set(const UINT32 super_md_id, const UINT32 ratio);
 
 /**
 *

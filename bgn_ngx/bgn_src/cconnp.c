@@ -227,6 +227,9 @@ EC_BOOL cconnp_erase(CSOCKET_CNODE *csocket_cnode)
                     CSOCKET_CNODE_SOCKFD(csocket_cnode),
                     CCONNP_SRV_IPADDR_STR(cconnp), CCONNP_SRV_PORT(cconnp));
 
+    cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+    CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+    CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
     csocket_cnode_close(csocket_cnode);
 
     return (EC_TRUE);
@@ -489,6 +492,10 @@ EC_BOOL cconnp_mgr_release(CCONNP_MGR *cconnp_mgr, CSOCKET_CNODE *csocket_cnode)
                             CSOCKET_CNODE_IPADDR_STR(csocket_cnode), CSOCKET_CNODE_SRVPORT(csocket_cnode),
                             CSOCKET_CNODE_TCID_STR(csocket_cnode));
 
+        cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+        CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
+
         csocket_cnode_close(csocket_cnode);
         return (EC_FALSE);
     }
@@ -502,6 +509,10 @@ EC_BOOL cconnp_mgr_release(CCONNP_MGR *cconnp_mgr, CSOCKET_CNODE *csocket_cnode)
                             CSOCKET_CNODE_IPADDR_STR(csocket_cnode), CSOCKET_CNODE_SRVPORT(csocket_cnode),
                             CSOCKET_CNODE_TCID_STR(csocket_cnode),
                             CSOCKET_CNODE_SOCKFD(csocket_cnode));
+
+        cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+        CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;
 
         csocket_cnode_close(csocket_cnode);
@@ -517,7 +528,11 @@ EC_BOOL cconnp_mgr_release(CCONNP_MGR *cconnp_mgr, CSOCKET_CNODE *csocket_cnode)
                             CCONNP_SRV_IPADDR_STR(cconnp), CCONNP_SRV_PORT(cconnp),
                             CCONNP_SRV_TCID_STR(cconnp));
 
+        cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+        CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
         CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;
+
         csocket_cnode_close(csocket_cnode);
         return (EC_FALSE);
     }

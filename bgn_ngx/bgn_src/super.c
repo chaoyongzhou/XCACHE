@@ -39,6 +39,8 @@ extern "C"{
 
 #include "cparacfg.h"
 
+#include "cepoll.h"
+
 #include "cmpie.h"
 #include "tcnode.h"
 #include "super.h"
@@ -9224,6 +9226,10 @@ STATIC_CAST static EC_BOOL __super_dns_resolve_cleanup_handle(CDNS_NODE *cdns_no
                           csocket_cnode, CSOCKET_CNODE_SOCKFD(csocket_cnode), CSOCKET_CNODE_REUSING(csocket_cnode),
                           cdns_node);
 
+        cepoll_del_all(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        CSOCKET_CNODE_READING(csocket_cnode) = BIT_FALSE;
+        CSOCKET_CNODE_WRITING(csocket_cnode) = BIT_FALSE;
+
         csocket_cnode_close(csocket_cnode);
 
         cdns_node_free(cdns_node);
@@ -9551,6 +9557,67 @@ void super_ngx_show_so(const UINT32 super_md_id, LOG *log)
 
 /**
 *
+* debug: task_cfg print
+*
+**/
+void super_show_task_cfg(const UINT32 super_md_id, LOG *log)
+{
+    TASK_BRD      *task_brd;
+    SYS_CFG       *sys_cfg;
+    TASK_CFG      *task_cfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_show_task_cfg: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    task_brd = task_brd_default_get();
+    sys_cfg  = TASK_BRD_SYS_CFG(task_brd);
+    task_cfg = SYS_CFG_TASK_CFG(sys_cfg);
+
+    task_cfg_print_in_plain(log, task_cfg);
+
+    return;
+}
+
+/**
+*
+* debug: clean up worker
+*
+**/
+EC_BOOL super_delete_tasks_worker(const UINT32 super_md_id)
+{
+    TASK_BRD        *task_brd;
+    TASKS_CFG       *local_tasks_cfg;
+    TASKS_WORKER    *tasks_worker;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_delete_tasks_worker: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    task_brd        = task_brd_default_get();
+    local_tasks_cfg = TASK_BRD_LOCAL_TASKS_CFG(task_brd);
+    tasks_worker    = TASKS_CFG_WORKER(local_tasks_cfg);
+
+    return tasks_worker_delete(tasks_worker,
+                                TASK_BRD_TCID(task_brd),
+                                TASK_BRD_IPADDR(task_brd),
+                                TASK_BRD_PORT(task_brd));
+}
+
+/**
+*
 * set dma:ssd:aio:req:max:<num>
 *
 **/
@@ -9792,6 +9859,98 @@ EC_BOOL super_cxfs_fifo_model_switch_on(const UINT32 super_md_id)
 
     return (EC_FALSE);
 }
+
+/**
+*
+* set cxfs:camd:overhead:switch:on
+*
+**/
+EC_BOOL super_cxfs_camd_overhead_switch_on(const UINT32 super_md_id)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_cxfs_camd_overhead_switch_on: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    if(NULL_PTR != cparacfg)
+    {
+        CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH(cparacfg)  = SWITCH_ON;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+/**
+*
+* set cxfs:camd:discard:ratio:<n>
+*
+**/
+EC_BOOL super_cxfs_camd_discard_ratio_set(const UINT32 super_md_id, const UINT32 ratio)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_cxfs_camd_discard_ratio_set: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    if(NULL_PTR != cparacfg)
+    {
+        CPARACFG_CXFS_CAMD_DISCARD_RATIO(cparacfg)  = ratio;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+
+/**
+*
+* set cxfs:camd:overhead:switch:off
+*
+**/
+EC_BOOL super_cxfs_camd_overhead_switch_off(const UINT32 super_md_id)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_cxfs_camd_overhead_switch_off: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    if(NULL_PTR != cparacfg)
+    {
+        CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH(cparacfg)  = SWITCH_OFF;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
 
 /**
 *

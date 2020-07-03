@@ -341,7 +341,7 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
     CXFS_MD_OP_DUMP_OFFSET(cxfs_md)         = 0;
     CXFS_MD_NP_CMMAP_NODE(cxfs_md)          = NULL_PTR;
     CXFS_MD_DN_CMMAP_NODE(cxfs_md)          = NULL_PTR;
-
+    CXFS_MD_OVERHEAD_COUNTER(cxfs_md)       = 0;
 
     /*load config*/
     if(EC_FALSE == cxfscfg_load(CXFS_MD_CFG(cxfs_md), sata_disk_fd))
@@ -865,6 +865,7 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
     CXFS_MD_OP_DUMP_OFFSET(cxfs_md)         = 0;
     CXFS_MD_NP_CMMAP_NODE(cxfs_md)          = NULL_PTR;
     CXFS_MD_DN_CMMAP_NODE(cxfs_md)          = NULL_PTR;
+    CXFS_MD_OVERHEAD_COUNTER(cxfs_md)       = 0;
 
     /*load config*/
     if(EC_FALSE == cxfscfg_load(CXFS_MD_CFG(cxfs_md), sata_disk_fd))
@@ -1320,6 +1321,7 @@ void cxfs_end(const UINT32 cxfs_md_id)
     CXFS_MD_OP_REPLAY_FLAG(cxfs_md)         = BIT_FALSE;
     CXFS_MD_CUR_DISK_NO(cxfs_md)            = 0;
     CXFS_MD_OP_DUMP_OFFSET(cxfs_md)         = 0;
+    CXFS_MD_OVERHEAD_COUNTER(cxfs_md)       = 0;
 
     /* free module : */
     //cxfs_free_module_static_mem(cxfs_md_id);
@@ -4257,6 +4259,7 @@ EC_BOOL cxfs_read_safe(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES
 EC_BOOL cxfs_read(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES *cbytes)
 {
     CXFS_MD      *cxfs_md;
+    CXFSDN       *cxfsdn;
     CXFSNP_FNODE  cxfsnp_fnode;
 
     uint64_t      s_msec;
@@ -4274,6 +4277,7 @@ EC_BOOL cxfs_read(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES *cby
 #endif/*CXFS_DEBUG_SWITCH*/
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
+    cxfsdn  = CXFS_MD_DN(cxfs_md);
 
     if(BIT_TRUE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md))
     {
@@ -4333,6 +4337,30 @@ EC_BOOL cxfs_read(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES *cby
 
     if(NULL_PTR != cbytes)
     {
+        if(NULL_PTR != cxfsdn
+        && SWITCH_ON == CXFS_CAMD_OVERHEAD_SWITCH
+        && EC_TRUE == camd_is_overhead(CXFSDN_CAMD_MD(cxfsdn)))
+        {
+            CXFS_MD_OVERHEAD_COUNTER(cxfs_md) ++;
+
+            if(0 == (CXFS_MD_OVERHEAD_COUNTER(cxfs_md) % CXFS_CAMD_DISCARD_RATIO)) /*discard 10% reading*/
+            {
+                e_msec = c_get_cur_time_msec();
+                cost_msec = e_msec - s_msec;
+
+                CXFS_STAT_READ_COST_MSEC(CXFS_MD_STAT(cxfs_md)) += cost_msec;
+                CXFS_STAT_READ_DN_FAIL_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+                dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "error:cxfs_read: offset read file %s from dn failed due to camd overload\n",
+                                                     (char *)cstring_get_str(file_path));
+                return (EC_FALSE);
+            }
+        }
+        else
+        {
+            CXFS_MD_OVERHEAD_COUNTER(cxfs_md) = 0;
+        }
+
         if(EC_FALSE == cxfs_read_dn(cxfs_md_id, &cxfsnp_fnode, cbytes))
         {
             e_msec = c_get_cur_time_msec();
@@ -4508,6 +4536,7 @@ EC_BOOL cxfs_write_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *
 EC_BOOL cxfs_read_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *offset, const UINT32 max_len, CBYTES *cbytes)
 {
     CXFS_MD      *cxfs_md;
+    CXFSDN       *cxfsdn;
     CXFSNP_FNODE  cxfsnp_fnode;
 
     uint64_t      s_msec;
@@ -4525,6 +4554,7 @@ EC_BOOL cxfs_read_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *o
 #endif/*CXFS_DEBUG_SWITCH*/
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
+    cxfsdn  = CXFS_MD_DN(cxfs_md);
 
     if(BIT_TRUE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md))
     {
@@ -4583,6 +4613,30 @@ EC_BOOL cxfs_read_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *o
 
     if(NULL_PTR != cbytes)
     {
+        if(NULL_PTR != cxfsdn
+        && SWITCH_ON == CXFS_CAMD_OVERHEAD_SWITCH
+        && EC_TRUE == camd_is_overhead(CXFSDN_CAMD_MD(cxfsdn)))
+        {
+            CXFS_MD_OVERHEAD_COUNTER(cxfs_md) ++;
+
+            if(0 == (CXFS_MD_OVERHEAD_COUNTER(cxfs_md) % CXFS_CAMD_DISCARD_RATIO)) /*discard 10% reading*/
+            {
+                e_msec = c_get_cur_time_msec();
+                cost_msec = e_msec - s_msec;
+
+                CXFS_STAT_READ_COST_MSEC(CXFS_MD_STAT(cxfs_md)) += cost_msec;
+                CXFS_STAT_READ_DN_FAIL_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+                dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "error:cxfs_read_e: offset read file %s from dn failed due to camd overload\n",
+                                                     (char *)cstring_get_str(file_path));
+                return (EC_FALSE);
+            }
+        }
+        else
+        {
+            CXFS_MD_OVERHEAD_COUNTER(cxfs_md) = 0; /*reset*/
+        }
+
         if(EC_FALSE == cxfs_read_e_dn(cxfs_md_id, &cxfsnp_fnode, offset, max_len, cbytes))
         {
             e_msec = c_get_cur_time_msec();

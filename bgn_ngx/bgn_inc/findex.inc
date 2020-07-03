@@ -182,6 +182,11 @@
 #define         FI_super_cmc_fifo_model_switch_on  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 163))
 #define          FI_super_cdc_lru_model_switch_on  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 164))
 #define         FI_super_cdc_fifo_model_switch_on  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 165))
+#define                    FI_super_show_task_cfg  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 166))
+#define              FI_super_delete_tasks_worker  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 167))
+#define     FI_super_cxfs_camd_overhead_switch_on  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 168))
+#define    FI_super_cxfs_camd_overhead_switch_off  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 169))
+#define      FI_super_cxfs_camd_discard_ratio_set  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 170))
 
 #define           FI_csession_print_module_status  ((UINT32) ((MD_CSESSION << (WORDSIZE/2)) +  0))
 #define        FI_csession_free_module_static_mem  ((UINT32) ((MD_CSESSION << (WORDSIZE/2)) +  1))

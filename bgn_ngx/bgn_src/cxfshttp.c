@@ -8800,6 +8800,10 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
 
         json_object_add_kv(cxfs_comm_obj      , "cxfs_fifo_model_switch_desc", c_switch_to_str(CXFS_FIFO_MODEL_SWITCH));
         json_object_add_k_int32(cxfs_comm_obj , "cxfs_fifo_model_switch"   , SWITCH_ON == CXFS_FIFO_MODEL_SWITCH?1:0);
+
+        json_object_add_kv(cxfs_comm_obj      , "cxfs_camd_overhead_switch_desc", c_switch_to_str(CXFS_CAMD_OVERHEAD_SWITCH));
+        json_object_add_k_int32(cxfs_comm_obj , "cxfs_camd_overhead_switch"   , SWITCH_ON == CXFS_CAMD_OVERHEAD_SWITCH?1:0);
+        json_object_add_k_int32(cxfs_comm_obj , "cxfs_camd_discard_ratio"     , (int64_t)CXFS_CAMD_DISCARD_RATIO);
     }
 
     if(NULL_PTR != cxfs_obj && NULL_PTR != cxfsnp_mgr)

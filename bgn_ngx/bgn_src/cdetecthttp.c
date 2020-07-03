@@ -440,6 +440,7 @@ EC_BOOL cdetecthttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result)
             CHTTP_NODE_CSOCKET_CNODE(chttp_node) = NULL_PTR;
 
             CSOCKET_CNODE_REUSING(csocket_cnode) = BIT_FALSE;
+
             csocket_cnode_close(csocket_cnode);
 
             /*free*/

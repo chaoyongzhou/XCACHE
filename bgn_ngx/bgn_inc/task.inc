@@ -53,7 +53,7 @@ extern "C"{
 #define TASK_CONFIG_XML_MAX_SIZE            ((UINT32) 64 * 1024) /*64KB*/
 
 /*on: send task over proc channel, off: send task over socket*/
-#define TASK_PROC_SEND_CHANNEL_SWITCH       (SWITCH_ON)
+#define TASK_PROC_SEND_CHANNEL_SWITCH       (SWITCH_OFF)
 
 /*TASK_TAG*/
 #define                     TAG_TASK_REQ    ((UINT32)  1)
