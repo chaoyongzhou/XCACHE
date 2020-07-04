@@ -1284,7 +1284,7 @@ void cxfsnp_print_del_list(LOG *log, const CXFSNP *cxfsnp)
     return;
 }
 
-CXFSNP_ITEM *cxfsnp_dnode_find(const CXFSNP *cxfsnp, const CXFSNP_DNODE *cxfsnp_dnode, const uint32_t second_hash, const uint32_t klen, const uint8_t *key)
+CXFSNP_ITEM *cxfsnp_dnode_find(const CXFSNP *cxfsnp, const CXFSNP_DNODE *cxfsnp_dnode, const uint32_t second_hash, const uint32_t klen, const uint8_t *key, const uint32_t dflag)
 {
     const CXFSNPRB_POOL *pool;
     uint32_t root_pos;
@@ -1301,11 +1301,11 @@ CXFSNP_ITEM *cxfsnp_dnode_find(const CXFSNP *cxfsnp, const CXFSNP_DNODE *cxfsnp_
         md5_str = (uint8_t *)c_md5_sum_to_hex_str(klen, key);
         md5_len = (uint32_t )(2 * CMD5_DIGEST_LEN);
 
-        node_pos = cxfsnprb_tree_search_data(pool, root_pos, second_hash, md5_len, md5_str);
+        node_pos = cxfsnprb_tree_search_data(pool, root_pos, second_hash, md5_len, md5_str, dflag);
     }
     else
     {
-        node_pos = cxfsnprb_tree_search_data(pool, root_pos, second_hash, klen, key);
+        node_pos = cxfsnprb_tree_search_data(pool, root_pos, second_hash, klen, key, dflag);
     }
 
     if(CXFSNPRB_ERR_POS != node_pos)
@@ -1322,7 +1322,7 @@ CXFSNP_ITEM *cxfsnp_dnode_find(const CXFSNP *cxfsnp, const CXFSNP_DNODE *cxfsnp_
     return (NULL_PTR);
 }
 
-uint32_t cxfsnp_dnode_search(const CXFSNP *cxfsnp, const CXFSNP_DNODE *cxfsnp_dnode, const uint32_t second_hash, const uint32_t klen, const uint8_t *key)
+uint32_t cxfsnp_dnode_search(const CXFSNP *cxfsnp, const CXFSNP_DNODE *cxfsnp_dnode, const uint32_t second_hash, const uint32_t klen, const uint8_t *key, const uint32_t dflag)
 {
     const CXFSNPRB_POOL *pool;
     uint32_t root_pos;
@@ -1338,10 +1338,10 @@ uint32_t cxfsnp_dnode_search(const CXFSNP *cxfsnp, const CXFSNP_DNODE *cxfsnp_dn
         md5_str = (uint8_t *)c_md5_sum_to_hex_str(klen, key);
         md5_len = (uint32_t )(2 * CMD5_DIGEST_LEN);
 
-        return cxfsnprb_tree_search_data(pool, root_pos, second_hash, md5_len, md5_str);
+        return cxfsnprb_tree_search_data(pool, root_pos, second_hash, md5_len, md5_str, dflag);
     }
 
-    return cxfsnprb_tree_search_data(pool, root_pos, second_hash, klen, key);
+    return cxfsnprb_tree_search_data(pool, root_pos, second_hash, klen, key, dflag);
 }
 
 uint32_t cxfsnp_dnode_match(CXFSNP *cxfsnp, const uint32_t root_pos, const uint32_t path_len, const uint8_t *path, const uint32_t dflag)
@@ -1384,7 +1384,8 @@ uint32_t cxfsnp_dnode_match(CXFSNP *cxfsnp, const uint32_t root_pos, const uint3
 uint32_t cxfsnp_dnode_insert(CXFSNP *cxfsnp, const uint32_t parent_pos,
                                     const uint32_t path_seg_second_hash,
                                     const uint32_t path_seg_len, const uint8_t *path_seg,
-                                    const uint32_t dir_flag)
+                                    const uint32_t dir_flag,
+                                    uint32_t *node_pos)
 {
     uint32_t insert_offset;
     uint32_t root_pos;
@@ -1394,24 +1395,27 @@ uint32_t cxfsnp_dnode_insert(CXFSNP *cxfsnp, const uint32_t parent_pos,
 
     CXFSNP_DNODE *cxfsnp_dnode_parent;
 
+    ASSERT(NULL_PTR != node_pos);
+    (*node_pos) = CXFSNPRB_ERR_POS;
+
     if(CXFSNP_ITEM_FILE_IS_REG != dir_flag
     && CXFSNP_ITEM_FILE_IS_DIR != dir_flag)
     {
         dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_dnode_insert: invalid input dir flag %x\n", dir_flag);
-        return (CXFSNPRB_ERR_POS);
+        return (EC_FALSE);
     }
 
     if(EC_TRUE == cxfsnp_is_full(cxfsnp))
     {
         dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_dnode_insert: cxfsnp is full\n");
-        return (CXFSNPRB_ERR_POS);
+        return (EC_FALSE);
     }
 
     cxfsnp_item_parent = cxfsnp_fetch(cxfsnp, parent_pos);/*must be dnode*/
     if(NULL_PTR == cxfsnp_item_parent)
     {
         dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_dnode_insert: fetch parent item failed where parent offset %u\n", parent_pos);
-        return (CXFSNPRB_ERR_POS);
+        return (EC_FALSE);
     }
 
     cxfsnp_dnode_parent = CXFSNP_ITEM_DNODE(cxfsnp_item_parent);
@@ -1421,7 +1425,7 @@ uint32_t cxfsnp_dnode_insert(CXFSNP *cxfsnp, const uint32_t parent_pos,
         dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_dnode_insert: invalid dir flag %u or stat %u\n",
                             CXFSNP_ITEM_DIR_FLAG(cxfsnp_item_parent),
                             CXFSNP_ITEM_USED_FLAG(cxfsnp_item_parent));
-        return (CXFSNPRB_ERR_POS);
+        return (EC_FALSE);
     }
 
     /*insert the item to parent and update parent*/
@@ -1437,10 +1441,15 @@ uint32_t cxfsnp_dnode_insert(CXFSNP *cxfsnp, const uint32_t parent_pos,
         md5_str = (uint8_t *)c_md5_sum_to_hex_str(path_seg_len, path_seg);
         md5_len = (uint32_t )(2 * CMD5_DIGEST_LEN);
 
-        if(EC_FALSE == cxfsnprb_tree_insert_data(CXFSNP_ITEMS_POOL(cxfsnp), &root_pos, path_seg_second_hash, md5_len, md5_str, &insert_offset))
+        if(EC_FALSE == cxfsnprb_tree_insert_data(CXFSNP_ITEMS_POOL(cxfsnp), &root_pos,
+                                                 path_seg_second_hash,
+                                                 md5_len, md5_str,
+                                                 dir_flag,
+                                                 &insert_offset))
         {
             dbg_log(SEC_0197_CXFSNP, 1)(LOGSTDOUT, "warn:cxfsnp_dnode_insert: found duplicate rb node with root %u at node %u\n", root_pos, insert_offset);
-            return (insert_offset);
+            (*node_pos) = insert_offset;
+            return (EC_FALSE);
         }
         cxfsnp_item_insert = cxfsnp_fetch(cxfsnp, insert_offset);
 
@@ -1451,10 +1460,15 @@ uint32_t cxfsnp_dnode_insert(CXFSNP *cxfsnp, const uint32_t parent_pos,
     }
     else
     {
-        if(EC_FALSE == cxfsnprb_tree_insert_data(CXFSNP_ITEMS_POOL(cxfsnp), &root_pos, path_seg_second_hash, path_seg_len, path_seg, &insert_offset))
+        if(EC_FALSE == cxfsnprb_tree_insert_data(CXFSNP_ITEMS_POOL(cxfsnp), &root_pos,
+                                                 path_seg_second_hash,
+                                                 path_seg_len, path_seg,
+                                                 dir_flag,
+                                                 &insert_offset))
         {
             dbg_log(SEC_0197_CXFSNP, 1)(LOGSTDOUT, "warn:cxfsnp_dnode_insert: found duplicate rb node with root %u at node %u\n", root_pos, insert_offset);
-            return (insert_offset);
+            (*node_pos) = insert_offset;
+            return (EC_FALSE);
         }
         cxfsnp_item_insert = cxfsnp_fetch(cxfsnp, insert_offset);
 
@@ -1479,20 +1493,23 @@ uint32_t cxfsnp_dnode_insert(CXFSNP *cxfsnp, const uint32_t parent_pos,
 
     CXFSNP_DNODE_ROOT_POS(cxfsnp_dnode_parent) = root_pos;
     CXFSNP_DNODE_FILE_NUM(cxfsnp_dnode_parent) ++;
-    return (insert_offset);
+
+    (*node_pos) = insert_offset;
+
+    return (EC_TRUE);
 }
 
 /**
 * umount one son from cxfsnp_dnode,  where son is regular file item or dir item without any son
 * cxfsnp_dnode will be impacted on bucket and file num
 **/
-uint32_t cxfsnp_dnode_umount_son(const CXFSNP *cxfsnp, CXFSNP_DNODE *cxfsnp_dnode, const uint32_t son_node_pos, const uint32_t second_hash, const uint32_t klen, const uint8_t *key)
+uint32_t cxfsnp_dnode_umount_son(const CXFSNP *cxfsnp, CXFSNP_DNODE *cxfsnp_dnode, const uint32_t son_node_pos, const uint32_t second_hash, const uint32_t klen, const uint8_t *key, const uint32_t dflag)
 {
     CXFSNPRB_POOL *pool;
     uint32_t       root_pos;
     uint32_t       node_pos;
 
-    node_pos = cxfsnp_dnode_search(cxfsnp, cxfsnp_dnode, second_hash, klen, key);
+    node_pos = cxfsnp_dnode_search(cxfsnp, cxfsnp_dnode, second_hash, klen, key, dflag);
     if(CXFSNPRB_ERR_POS == node_pos)
     {
         return (CXFSNPRB_ERR_POS);
@@ -1637,7 +1654,7 @@ uint32_t cxfsnp_match_no_lock(CXFSNP *cxfsnp, const uint32_t root_pos, const uin
                                 "matched and reached end where path_len %u, len from path to path_seg_end is %u, node_pos %u [%.*s]\n",
                                 dflag, CXFSNP_ID(cxfsnp), path_len, (uint32_t)(path_seg_end - path), node_pos, path_len, path);
 
-            if(CXFSNP_ITEM_FILE_IS_ANY == dflag || dflag == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
+            if(dflag == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
             {
                 rlog(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_match_no_lock: np %u, return node_pos %u, target dflag %u, item dflag %u\n",
                                     CXFSNP_ID(cxfsnp), node_pos, dflag, CXFSNP_ITEM_DIR_FLAG(cxfsnp_item));
@@ -1683,7 +1700,8 @@ uint32_t cxfsnp_match_no_lock(CXFSNP *cxfsnp, const uint32_t root_pos, const uin
                 path_seg_2nd_hash = CXFSNP_2ND_CHASH_ALGO_COMPUTE(cxfsnp, path_seg_len, path_seg_beg);
                 node_pos          = cxfsnp_dnode_search(cxfsnp, CXFSNP_ITEM_DNODE(cxfsnp_item),
                                                            path_seg_2nd_hash,
-                                                           path_seg_len, path_seg_beg);
+                                                           path_seg_len, path_seg_beg,
+                                                           dflag);
 
                 rlog(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_match_no_lock: np %u, [searched] node_pos %u\n",
                                     CXFSNP_ID(cxfsnp), node_pos);
@@ -1743,7 +1761,8 @@ uint32_t cxfsnp_search_no_lock(CXFSNP *cxfsnp, const uint32_t path_len, const ui
             return (CXFSNPRB_ERR_POS);
         }
 
-        if(EC_FALSE == cxfsnp_item_is(cxfsnp_item, path_seg_len, path_seg_beg))
+        /*check validity and consistence*/
+        if(0 && EC_FALSE == cxfsnp_item_is(cxfsnp_item, path_seg_len, path_seg_beg))
         {
             dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_search_no_lock: np %u, check failed where path seg: %.*s\n",
                                 CXFSNP_ID(cxfsnp), path_seg_len, path_seg_beg);
@@ -1757,7 +1776,7 @@ uint32_t cxfsnp_search_no_lock(CXFSNP *cxfsnp, const uint32_t path_len, const ui
                                 "matched and reached end where path_len %u, len from path to path_seg_end is %u, node_pos %u [%.*s]\n",
                                 dflag, CXFSNP_ID(cxfsnp), path_len, (uint32_t)(path_seg_end - path), node_pos, path_len, path);
 
-            if(CXFSNP_ITEM_FILE_IS_ANY == dflag || dflag == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
+            if(dflag == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
             {
                 return (node_pos);
             }
@@ -1779,9 +1798,22 @@ uint32_t cxfsnp_search_no_lock(CXFSNP *cxfsnp, const uint32_t path_len, const ui
             path_seg_end = path_seg_beg + path_seg_len + 1;
 
             path_seg_2nd_hash = CXFSNP_2ND_CHASH_ALGO_COMPUTE(cxfsnp, path_seg_len, path_seg_beg);
-            node_pos          = cxfsnp_dnode_search(cxfsnp, CXFSNP_ITEM_DNODE(cxfsnp_item),
-                                                       path_seg_2nd_hash,
-                                                       path_seg_len, path_seg_beg);
+
+            if(path_len <= (uint32_t)(path_seg_end - path)) /*last seg*/
+            {
+                node_pos = cxfsnp_dnode_search(cxfsnp, CXFSNP_ITEM_DNODE(cxfsnp_item),
+                                               path_seg_2nd_hash,
+                                               path_seg_len, path_seg_beg,
+                                               dflag);
+            }
+            else /*not last seg*/
+            {
+                node_pos = cxfsnp_dnode_search(cxfsnp, CXFSNP_ITEM_DNODE(cxfsnp_item),
+                                               path_seg_2nd_hash,
+                                               path_seg_len, path_seg_beg,
+                                               CXFSNP_ITEM_FILE_IS_DIR);
+            }
+
             if(CXFSNPRB_ERR_POS == node_pos)/*Oops!*/
             {
                 return (CXFSNPRB_ERR_POS);
@@ -1807,12 +1839,6 @@ uint32_t cxfsnp_search(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *p
     return (node_pos);
 }
 
-/**
-*
-* if dflag is DIR or REG or BIG, ignore seg_no
-* if dlfag is SEG, seg_no will be used
-*
-**/
 uint32_t cxfsnp_insert_no_lock(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag)
 {
     uint32_t node_pos;
@@ -1822,97 +1848,130 @@ uint32_t cxfsnp_insert_no_lock(CXFSNP *cxfsnp, const uint32_t path_len, const ui
 
     if('/' != (*path))
     {
-        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_insert_no_lock: np %u, invalid path %.*s\n",
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_insert_no_lock: "
+                            "np %u, invalid path %.*s\n",
                             CXFSNP_ID(cxfsnp), path_len, path);
         return (CXFSNPRB_ERR_POS);
     }
 
-    path_seg_end = (uint8_t *)(path + 1);/*path always start with '/'*/
+    path_seg_beg = (uint8_t *)path;
+    path_seg_len = 0;
+    path_seg_end = (uint8_t *)(path_seg_beg + path_seg_len + 1);/*path always start with '/'*/
 
     node_pos = 0;/*the first item is root directory*/
-    dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_insert_no_lock: np %u, node_pos %u [%.*s]\n", CXFSNP_ID(cxfsnp), node_pos, path_len, path);
+    dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_insert_no_lock: "
+                        "np %u, item pos %u [%.*s]\n",
+                        CXFSNP_ID(cxfsnp), node_pos, path_len, path);
     while(CXFSNPRB_ERR_POS != node_pos)
     {
         CXFSNP_ITEM *cxfsnp_item;
 
-        dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_insert_no_lock: np %u, node_pos %u\n", CXFSNP_ID(cxfsnp), node_pos);
+        dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDNULL, "[DEBUG] cxfsnp_insert_no_lock: "
+                            "np %u, node_pos %u, item pos %u\n",
+                            CXFSNP_ID(cxfsnp), node_pos, (uint32_t)(node_pos / sizeof(CXFSNP_ITEM)));
 
         cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
-        dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_insert_no_lock: np %u, node_pos %u, dir flag %u\n",
-                            CXFSNP_ID(cxfsnp), node_pos, CXFSNP_ITEM_DIR_FLAG(cxfsnp_item));
+        if(CXFSNP_ITEM_IS_NOT_USED == CXFSNP_ITEM_USED_FLAG(cxfsnp_item))
+        {
+            dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_insert_no_lock: "
+                                "np %u, item was not used at node_pos %u\n",
+                                CXFSNP_ID(cxfsnp), node_pos);
+            return (CXFSNPRB_ERR_POS);
+        }
+
+        /*check validity and consistence*/
+        if(0 && EC_FALSE == cxfsnp_item_is(cxfsnp_item, path_seg_len, path_seg_beg))
+        {
+            dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_insert_no_lock: "
+                                "np %u, check failed where path seg: %.*s\n",
+                                CXFSNP_ID(cxfsnp), path_seg_len, path_seg_beg);
+            return (CXFSNPRB_ERR_POS);
+        }
 
         if(CXFSNP_ITEM_FILE_IS_REG == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
         {
-            dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_insert_no_lock: np %u, find regular file at node_pos %u has same key: %.*s\n",
-                                CXFSNP_ID(cxfsnp), node_pos, CXFSNP_ITEM_KLEN(cxfsnp_item), CXFSNP_ITEM_KNAME(cxfsnp_item));
+            dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_insert_no_lock: "
+                                "np %u, find regular file has same key: %.*s at node_pos %u \n",
+                                CXFSNP_ID(cxfsnp),
+                                CXFSNP_ITEM_KLEN(cxfsnp_item), CXFSNP_ITEM_KNAME(cxfsnp_item),
+                                node_pos);
 
             return (CXFSNPRB_ERR_POS);
         }
 
-        else if(CXFSNP_ITEM_FILE_IS_DIR == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
+        if(CXFSNP_ITEM_FILE_IS_DIR == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))/*insert as son*/
         {
             uint32_t path_seg_2nd_hash;
-            uint32_t parent_node_pos;
 
             path_seg_beg = (uint8_t *)path_seg_end;
             path_seg_len = cxfsnp_path_seg_len(path, path_len, path_seg_beg);
             path_seg_end = path_seg_beg + path_seg_len + 1;
 
-            dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_insert_no_lock: path_seg_len %u\n", path_seg_len);
-#if 0
-            if(CXFSNP_KEY_MAX_SIZE < path_seg_len)
+            path_seg_2nd_hash = CXFSNP_2ND_CHASH_ALGO_COMPUTE(cxfsnp, path_seg_len, path_seg_beg);
+
+            if(path_len <= (uint32_t)(path_seg_end - path)) /*last seg*/
             {
-                dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_insert_no_lock: path_seg_len %u overflow\n", path_seg_len);
+                if(EC_TRUE == cxfsnp_dnode_insert(cxfsnp, node_pos,
+                                           path_seg_2nd_hash, path_seg_len, path_seg_beg,
+                                           dflag, &node_pos))
+                {
+                    dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_insert_no_lock: "
+                                        "np %u, insert [%.*s] done\n",
+                                        CXFSNP_ID(cxfsnp), path_len, path);
+
+                    return (node_pos);
+                }
+
+                /*else*/
+
+                if(CXFSNPRB_ERR_POS != node_pos)
+                {
+                    dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_insert_no_lock: "
+                                        "np %u, find duplicate key: %.*s\n",
+                                        CXFSNP_ID(cxfsnp),
+                                        CXFSNP_ITEM_KLEN(cxfsnp_item), CXFSNP_ITEM_KNAME(cxfsnp_item));
+                }
+
+                if(CXFSNPRB_ERR_POS == node_pos)
+                {
+                    dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_insert_no_lock: "
+                                        "np %u, insert key: %.*s failed\n",
+                                        CXFSNP_ID(cxfsnp),
+                                        CXFSNP_ITEM_KLEN(cxfsnp_item), CXFSNP_ITEM_KNAME(cxfsnp_item));
+                }
+
                 return (CXFSNPRB_ERR_POS);
             }
-#endif
-            path_seg_2nd_hash = CXFSNP_2ND_CHASH_ALGO_COMPUTE(cxfsnp, path_seg_len, path_seg_beg);
-            parent_node_pos   = cxfsnp_dnode_search(cxfsnp, CXFSNP_ITEM_DNODE(cxfsnp_item),
-                                                    path_seg_2nd_hash,
-                                                    path_seg_len, path_seg_beg);
-            dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_insert_no_lock: np %u, searched node_pos %u, path_seg_len %u, path_seg_beg: %s\n",
-                                CXFSNP_ID(cxfsnp),
-                                node_pos,
-                                path_seg_len, path_seg_beg
-                                );
-            if(CXFSNPRB_ERR_POS != parent_node_pos)
+            else /*not last seg*/
             {
-                node_pos = parent_node_pos;
-                continue;
-            }
+                if(EC_TRUE == cxfsnp_dnode_insert(cxfsnp, node_pos,
+                                          path_seg_2nd_hash, path_seg_len, path_seg_beg,
+                                          CXFSNP_ITEM_FILE_IS_DIR, &node_pos))
+                {
+                    continue;
+                }
 
-            if(path_len > (uint32_t)(path_seg_end - path))/*create dnode item under parent cxfsnp_item*/
-            {
-                node_pos = cxfsnp_dnode_insert(cxfsnp,
-                                            node_pos,
-                                            path_seg_2nd_hash,
-                                            path_seg_len,
-                                            path_seg_beg,
-                                            CXFSNP_ITEM_FILE_IS_DIR
-                                            );
-                continue;
-            }
-            else/*create fnode item under parent cxfsnp_item*/
-            {
-                node_pos = cxfsnp_dnode_insert(cxfsnp,
-                                            node_pos,
-                                            path_seg_2nd_hash,
-                                            path_seg_len,
-                                            path_seg_beg,
-                                            /*CXFSNP_ITEM_FILE_IS_REG*/dflag
-                                            );
+                /*else*/
 
-                dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_insert_no_lock: np %u, insert at node_pos %u [%.*s]\n",
-                                    CXFSNP_ID(cxfsnp), node_pos, path_len, path);
+                if(CXFSNPRB_ERR_POS != node_pos)
+                {
+                    continue;
+                }
 
-                return (node_pos);
+                dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_insert_no_lock: "
+                                    "np %u, insert dir key: %.*s failed\n",
+                                    CXFSNP_ID(cxfsnp),
+                                    CXFSNP_ITEM_KLEN(cxfsnp_item), CXFSNP_ITEM_KNAME(cxfsnp_item));
+
+                return (CXFSNPRB_ERR_POS);
             }
         }
-
         else
         {
-            dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_insert_no_lock: np %u, invalid item dir flag %u at node_pos %u\n",
-                                CXFSNP_ID(cxfsnp), CXFSNP_ITEM_DIR_FLAG(cxfsnp_item), node_pos);
+            dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_insert_no_lock: "
+                                "np %u, invalid item dir flag %u at node_pos %u\n",
+                                CXFSNP_ID(cxfsnp), CXFSNP_ITEM_DIR_FLAG(cxfsnp_item),
+                                node_pos);
             break;
         }
     }
@@ -2280,7 +2339,7 @@ CXFSNP_ITEM *cxfsnp_get(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *
 {
     if(path_len > 0 && '/' == *(path + path_len - 1))
     {
-        if(CXFSNP_ITEM_FILE_IS_DIR != dflag && CXFSNP_ITEM_FILE_IS_ANY != dflag)
+        if(CXFSNP_ITEM_FILE_IS_DIR != dflag)
         {
             return (NULL_PTR);
         }
@@ -2310,7 +2369,7 @@ EC_BOOL cxfsnp_delete(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *pa
 
     if(path_len > 0 && '/' == *(path + path_len - 1))
     {
-        if(CXFSNP_ITEM_FILE_IS_DIR != dflag && CXFSNP_ITEM_FILE_IS_ANY != dflag)
+        if(CXFSNP_ITEM_FILE_IS_DIR != dflag)
         {
             return (EC_FALSE);
         }
@@ -2339,7 +2398,9 @@ EC_BOOL cxfsnp_delete(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *pa
             cxfsnp_item_parent = cxfsnp_fetch(cxfsnp, CXFSNP_ITEM_PARENT_POS(cxfsnp_item));
             node_pos_t    = cxfsnp_dnode_umount_son(cxfsnp, CXFSNP_ITEM_DNODE(cxfsnp_item_parent), node_pos,
                                                   CXFSNP_ITEM_SECOND_HASH(cxfsnp_item),
-                                                  CXFSNP_ITEM_KLEN(cxfsnp_item), CXFSNP_ITEM_KNAME(cxfsnp_item));
+                                                  CXFSNP_ITEM_KLEN(cxfsnp_item),
+                                                  CXFSNP_ITEM_KNAME(cxfsnp_item),
+                                                  CXFSNP_ITEM_DIR_FLAG(cxfsnp_item));
 
             //ASSERT(CXFSNPRB_ERR_POS != node_pos_t && node_pos == node_pos_t);
             if(CXFSNPRB_ERR_POS != node_pos_t && node_pos == node_pos_t)
@@ -2372,7 +2433,9 @@ EC_BOOL cxfsnp_delete(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *pa
 
             node_pos_t    = cxfsnp_dnode_umount_son(cxfsnp, CXFSNP_ITEM_DNODE(cxfsnp_item_parent), node_pos,
                                                   CXFSNP_ITEM_SECOND_HASH(cxfsnp_item),
-                                                  CXFSNP_ITEM_KLEN(cxfsnp_item), CXFSNP_ITEM_KNAME(cxfsnp_item));
+                                                  CXFSNP_ITEM_KLEN(cxfsnp_item),
+                                                  CXFSNP_ITEM_KNAME(cxfsnp_item),
+                                                  CXFSNP_ITEM_DIR_FLAG(cxfsnp_item));
 
             //ASSERT(CXFSNPRB_ERR_POS != node_pos_t && node_pos == node_pos_t);
             if(CXFSNPRB_ERR_POS != node_pos_t && node_pos == node_pos_t)
@@ -2418,7 +2481,7 @@ EC_BOOL cxfsnp_expire(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *pa
 
     if(path_len > 0 && '/' == *(path + path_len - 1))
     {
-        if(CXFSNP_ITEM_FILE_IS_DIR != dflag && CXFSNP_ITEM_FILE_IS_ANY != dflag)
+        if(CXFSNP_ITEM_FILE_IS_DIR != dflag)
         {
             return (EC_FALSE);
         }
@@ -2531,7 +2594,7 @@ EC_BOOL cxfsnp_walk(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path
 
     if(path_len > 0 && '/' == *(path + path_len - 1))
     {
-        if(CXFSNP_ITEM_FILE_IS_DIR != dflag && CXFSNP_ITEM_FILE_IS_ANY != dflag)
+        if(CXFSNP_ITEM_FILE_IS_DIR != dflag)
         {
             return (EC_FALSE);
         }
@@ -2622,7 +2685,9 @@ EC_BOOL cxfsnp_umount_item(CXFSNP *cxfsnp, const uint32_t node_pos)
 
             node_pos_t  = cxfsnp_dnode_umount_son(cxfsnp, parent_dnode, first_node_pos,
                                                   CXFSNP_ITEM_SECOND_HASH(cxfsnp_item_first),
-                                                  CXFSNP_ITEM_KLEN(cxfsnp_item_first), CXFSNP_ITEM_KNAME(cxfsnp_item_first));
+                                                  CXFSNP_ITEM_KLEN(cxfsnp_item_first),
+                                                  CXFSNP_ITEM_KNAME(cxfsnp_item_first),
+                                                  CXFSNP_ITEM_DIR_FLAG(cxfsnp_item_first));
 
             //ASSERT(CXFSNPRB_ERR_POS != node_pos_t && first_node_pos == node_pos_t);
 
@@ -2668,7 +2733,10 @@ EC_BOOL cxfsnp_umount_item(CXFSNP *cxfsnp, const uint32_t node_pos)
 
             node_pos_t    = cxfsnp_dnode_umount_son(cxfsnp, parent_dnode, node_pos,
                                                   CXFSNP_ITEM_SECOND_HASH(cxfsnp_item),
-                                                  CXFSNP_ITEM_KLEN(cxfsnp_item), CXFSNP_ITEM_KNAME(cxfsnp_item));
+                                                  CXFSNP_ITEM_KLEN(cxfsnp_item),
+                                                  CXFSNP_ITEM_KNAME(cxfsnp_item),
+                                                  CXFSNP_ITEM_DIR_FLAG(cxfsnp_item));
+
             //ASSERT(CXFSNPRB_ERR_POS != node_pos_t && node_pos == node_pos_t);
 
             if(CXFSNPRB_ERR_POS != node_pos_t && node_pos == node_pos_t)
@@ -2711,7 +2779,9 @@ EC_BOOL cxfsnp_umount_item(CXFSNP *cxfsnp, const uint32_t node_pos)
 
             node_pos_t    = cxfsnp_dnode_umount_son(cxfsnp, parent_dnode, node_pos,
                                                   CXFSNP_ITEM_SECOND_HASH(cxfsnp_item),
-                                                  CXFSNP_ITEM_KLEN(cxfsnp_item), CXFSNP_ITEM_KNAME(cxfsnp_item));
+                                                  CXFSNP_ITEM_KLEN(cxfsnp_item),
+                                                  CXFSNP_ITEM_KNAME(cxfsnp_item),
+                                                  CXFSNP_ITEM_DIR_FLAG(cxfsnp_item));
 
             //ASSERT(CXFSNPRB_ERR_POS != node_pos_t && node_pos == node_pos_t);
 
@@ -2802,7 +2872,9 @@ EC_BOOL cxfsnp_umount_item_deep(CXFSNP *cxfsnp, const uint32_t node_pos)
 
             node_pos_t  = cxfsnp_dnode_umount_son(cxfsnp, parent_dnode, first_node_pos,
                                                   CXFSNP_ITEM_SECOND_HASH(cxfsnp_item_first),
-                                                  CXFSNP_ITEM_KLEN(cxfsnp_item_first), CXFSNP_ITEM_KNAME(cxfsnp_item_first));
+                                                  CXFSNP_ITEM_KLEN(cxfsnp_item_first),
+                                                  CXFSNP_ITEM_KNAME(cxfsnp_item_first),
+                                                  CXFSNP_ITEM_DIR_FLAG(cxfsnp_item_first));
 
             //ASSERT(CXFSNPRB_ERR_POS != node_pos_t && first_node_pos == node_pos_t);
 
@@ -2858,7 +2930,9 @@ EC_BOOL cxfsnp_umount_item_deep(CXFSNP *cxfsnp, const uint32_t node_pos)
 
             node_pos_t    = cxfsnp_dnode_umount_son(cxfsnp, parent_dnode, node_pos,
                                                   CXFSNP_ITEM_SECOND_HASH(cxfsnp_item),
-                                                  CXFSNP_ITEM_KLEN(cxfsnp_item), CXFSNP_ITEM_KNAME(cxfsnp_item));
+                                                  CXFSNP_ITEM_KLEN(cxfsnp_item),
+                                                  CXFSNP_ITEM_KNAME(cxfsnp_item),
+                                                  CXFSNP_ITEM_DIR_FLAG(cxfsnp_item));
             //ASSERT(CXFSNPRB_ERR_POS != node_pos_t && node_pos == node_pos_t);
 
             if(CXFSNPRB_ERR_POS != node_pos_t && node_pos == node_pos_t)
@@ -2907,7 +2981,9 @@ EC_BOOL cxfsnp_umount_item_deep(CXFSNP *cxfsnp, const uint32_t node_pos)
 
             node_pos_t    = cxfsnp_dnode_umount_son(cxfsnp, parent_dnode, node_pos,
                                                   CXFSNP_ITEM_SECOND_HASH(cxfsnp_item),
-                                                  CXFSNP_ITEM_KLEN(cxfsnp_item), CXFSNP_ITEM_KNAME(cxfsnp_item));
+                                                  CXFSNP_ITEM_KLEN(cxfsnp_item),
+                                                  CXFSNP_ITEM_KNAME(cxfsnp_item),
+                                                  CXFSNP_ITEM_DIR_FLAG(cxfsnp_item));
 
             //ASSERT(CXFSNPRB_ERR_POS != node_pos_t && node_pos == node_pos_t);
 
@@ -2964,7 +3040,7 @@ EC_BOOL cxfsnp_umount(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *pa
 
     if(path_len > 0 && '/' == *(path + path_len - 1))/*directory*/
     {
-        if(CXFSNP_ITEM_FILE_IS_DIR != dflag && CXFSNP_ITEM_FILE_IS_ANY != dflag)
+        if(CXFSNP_ITEM_FILE_IS_DIR != dflag)
         {
             return (EC_FALSE);
         }
@@ -3003,7 +3079,7 @@ EC_BOOL cxfsnp_umount_deep(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_
 
     if(path_len > 0 && '/' == *(path + path_len - 1))/*directory*/
     {
-        if(CXFSNP_ITEM_FILE_IS_DIR != dflag && CXFSNP_ITEM_FILE_IS_ANY != dflag)
+        if(CXFSNP_ITEM_FILE_IS_DIR != dflag)
         {
             return (EC_FALSE);
         }
@@ -3044,7 +3120,7 @@ EC_BOOL cxfsnp_umount_wildcard(CXFSNP *cxfsnp, const uint32_t path_len, const ui
 
     if(path_len > 0 && '/' == *(path + path_len - 1))/*directory*/
     {
-        if(CXFSNP_ITEM_FILE_IS_DIR != dflag && CXFSNP_ITEM_FILE_IS_ANY != dflag)
+        if(CXFSNP_ITEM_FILE_IS_DIR != dflag)
         {
             return (EC_FALSE);
         }
@@ -3083,7 +3159,7 @@ EC_BOOL cxfsnp_umount_wildcard_deep(CXFSNP *cxfsnp, const uint32_t path_len, con
 
     if(path_len > 0 && '/' == *(path + path_len - 1))/*directory*/
     {
-        if(CXFSNP_ITEM_FILE_IS_DIR != dflag && CXFSNP_ITEM_FILE_IS_ANY != dflag)
+        if(CXFSNP_ITEM_FILE_IS_DIR != dflag)
         {
             return (EC_FALSE);
         }
@@ -3364,15 +3440,67 @@ EC_BOOL cxfsnp_list_path_vec(const CXFSNP *cxfsnp, const uint32_t node_pos, CVEC
         son_node_pos = CXFSNP_DNODE_ROOT_POS(cxfsnp_dnode);
         dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDNULL, "[DEBUG] cxfsnp_list_path_vec: np %u, node_pos son %u\n",
                             CXFSNP_ID(cxfsnp), son_node_pos);
+
         __cxfsnp_list_path_vec(cxfsnp, son_node_pos, cstring_get_str(path_cstr), path_cstr_vec);
 
-
         cstring_free(path_cstr);
+
         return (EC_TRUE);
     }
 
     /*never reach here*/
     return (EC_FALSE);
+}
+
+STATIC_CAST static EC_BOOL __cxfsnp_list_seg_vec(const CXFSNP *cxfsnp, const uint32_t node_pos, CVECTOR *path_cstr_vec)
+{
+    const CXFSNPRB_POOL *pool;
+    const CXFSNPRB_NODE *node;
+    CSTRING *seg_name_cstr;
+
+    if(CXFSNPRB_ERR_POS == node_pos)
+    {
+        return (EC_TRUE);
+    }
+
+    pool = CXFSNP_ITEMS_POOL(cxfsnp);
+
+    node  = CXFSNPRB_POOL_NODE(pool, node_pos);
+    if(CXFSNPRB_ERR_POS != CXFSNPRB_NODE_LEFT_POS(node))
+    {
+        __cxfsnp_list_seg_vec(cxfsnp, CXFSNPRB_NODE_LEFT_POS(node), path_cstr_vec);
+    }
+
+    seg_name_cstr = cstring_new(NULL_PTR, LOC_CXFSNP_0022);
+    if(NULL_PTR == seg_name_cstr)
+    {
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:__cxfsnp_list_seg_vec: "
+                            "np %u, new cstring failed\n",
+                            CXFSNP_ID(cxfsnp));
+        return (EC_FALSE);
+    }
+
+    cxfsnp_seg_name_cstr(cxfsnp, node_pos, seg_name_cstr);
+
+    dbg_log(SEC_0197_CXFSNP, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_list_path_vec: "
+                        "np %u, node_pos son %u\n",
+                        CXFSNP_ID(cxfsnp), node_pos);
+
+    if(CVECTOR_ERR_POS == cvector_search_front(path_cstr_vec, (void *)seg_name_cstr, (CVECTOR_DATA_CMP)cstring_is_equal))
+    {
+        cvector_push(path_cstr_vec, (void *)seg_name_cstr);
+    }
+    else
+    {
+        cstring_free(seg_name_cstr);
+    }
+
+    if(CXFSNPRB_ERR_POS != CXFSNPRB_NODE_RIGHT_POS(node))
+    {
+        __cxfsnp_list_seg_vec(cxfsnp, CXFSNPRB_NODE_RIGHT_POS(node), path_cstr_vec);
+    }
+
+    return (EC_TRUE);
 }
 
 EC_BOOL cxfsnp_list_seg_vec(const CXFSNP *cxfsnp, const uint32_t node_pos, CVECTOR *seg_cstr_vec)
@@ -3427,7 +3555,7 @@ EC_BOOL cxfsnp_list_seg_vec(const CXFSNP *cxfsnp, const uint32_t node_pos, CVECT
         cxfsnp_dnode = (CXFSNP_DNODE *)CXFSNP_ITEM_DNODE(cxfsnp_item);
 
         son_node_pos = CXFSNP_DNODE_ROOT_POS(cxfsnp_dnode);
-        cxfsnp_list_path_vec(cxfsnp, son_node_pos, seg_cstr_vec);
+        __cxfsnp_list_seg_vec(cxfsnp, son_node_pos, seg_cstr_vec);
 
         return (EC_TRUE);
     }
@@ -3440,20 +3568,15 @@ EC_BOOL cxfsnp_file_num(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *
 {
     CXFSNP_ITEM *cxfsnp_item;
 
-    cxfsnp_item = cxfsnp_get(cxfsnp, path_len, path, CXFSNP_ITEM_FILE_IS_ANY);
-    if(NULL_PTR == cxfsnp_item)
-    {
-        (*file_num) = 0;
-        return (EC_FALSE);
-    }
-
-    if(CXFSNP_ITEM_FILE_IS_REG == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
+    cxfsnp_item = cxfsnp_get(cxfsnp, path_len, path, CXFSNP_ITEM_FILE_IS_REG);
+    if(NULL_PTR != cxfsnp_item)
     {
         (*file_num) = 1;
         return (EC_TRUE);
     }
 
-    if(CXFSNP_ITEM_FILE_IS_DIR == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
+    cxfsnp_item = cxfsnp_get(cxfsnp, path_len, path, CXFSNP_ITEM_FILE_IS_DIR);
+    if(NULL_PTR != cxfsnp_item)
     {
         CXFSNP_DNODE *cxfsnp_dnode;
         cxfsnp_dnode = CXFSNP_ITEM_DNODE(cxfsnp_item);
@@ -3462,7 +3585,7 @@ EC_BOOL cxfsnp_file_num(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_file_num: np %u, invalid dflg %x\n", CXFSNP_ID(cxfsnp), CXFSNP_ITEM_DIR_FLAG(cxfsnp_item));
+    (*file_num) = 0;
     return (EC_FALSE);
 }
 
@@ -3470,14 +3593,8 @@ EC_BOOL cxfsnp_file_size(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t 
 {
     CXFSNP_ITEM *cxfsnp_item;
 
-    cxfsnp_item = cxfsnp_get(cxfsnp, path_len, path, CXFSNP_ITEM_FILE_IS_ANY);
-    if(NULL_PTR == cxfsnp_item)
-    {
-        (*file_size) = 0;
-        return (EC_FALSE);
-    }
-
-    if(CXFSNP_ITEM_FILE_IS_REG == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
+    cxfsnp_item = cxfsnp_get(cxfsnp, path_len, path, CXFSNP_ITEM_FILE_IS_REG);
+    if(NULL_PTR != cxfsnp_item)
     {
         CXFSNP_FNODE *cxfsnp_fnode;
         cxfsnp_fnode = CXFSNP_ITEM_FNODE(cxfsnp_item);
@@ -3486,7 +3603,7 @@ EC_BOOL cxfsnp_file_size(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t 
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_file_size: np %u, invalid dflg %x\n", CXFSNP_ID(cxfsnp), CXFSNP_ITEM_DIR_FLAG(cxfsnp_item));
+    (*file_size) = 0;
     return (EC_FALSE);
 }
 
@@ -3577,7 +3694,11 @@ EC_BOOL cxfsnp_create_root_item(CXFSNP *cxfsnp)
     klen = 0;
     key[0] = '\0';
 
-    if(EC_FALSE == cxfsnprb_tree_insert_data(CXFSNP_ITEMS_POOL(cxfsnp), &root_pos, second_hash, klen, (uint8_t *)key, &insert_pos))
+    if(EC_FALSE == cxfsnprb_tree_insert_data(CXFSNP_ITEMS_POOL(cxfsnp), &root_pos,
+                                             second_hash,
+                                             klen, (uint8_t *)key,
+                                             CXFSNP_ITEM_FILE_IS_DIR,
+                                             &insert_pos))
     {
         dbg_log(SEC_0197_CXFSNP, 1)(LOGSTDOUT, "warn:cxfsnp_create_root_item: insert create item failed\n");
         return (EC_FALSE);
@@ -3923,174 +4044,6 @@ EC_BOOL cxfsnp_show_dir(LOG *log, const CXFSNP *cxfsnp, const CXFSNP_ITEM  *cxfs
     return (EC_TRUE);
 }
 
-EC_BOOL cxfsnp_show_dir_depth(LOG *log, const CXFSNP *cxfsnp, const CXFSNP_ITEM  *cxfsnp_item)
-{
-    CXFSNP_DNODE *cxfsnp_dnode;
-    uint32_t root_pos;
-
-    cxfsnp_dnode = (CXFSNP_DNODE *)CXFSNP_ITEM_DNODE(cxfsnp_item);
-    root_pos = CXFSNP_DNODE_ROOT_POS(cxfsnp_dnode);
-    cxfsnp_show_item_depth(log, cxfsnp, root_pos);
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cxfsnp_show_item_depth(LOG *log, const CXFSNP *cxfsnp, const uint32_t node_pos)
-{
-    const CXFSNPRB_POOL *pool;
-    const CXFSNP_ITEM   *cxfsnp_item;
-    const CXFSNPRB_NODE *node;
-
-    if(CXFSNPRB_ERR_POS == node_pos)
-    {
-        return (EC_TRUE);
-    }
-
-    pool = CXFSNP_ITEMS_POOL(cxfsnp);
-
-    node = CXFSNPRB_POOL_NODE(pool, node_pos);
-
-    /*left subtree*/
-    if(CXFSNPRB_ERR_POS != CXFSNPRB_NODE_LEFT_POS(node))
-    {
-        cxfsnp_show_item_depth(log, cxfsnp, CXFSNPRB_NODE_LEFT_POS(node));
-    }
-
-    /*itself*/
-    cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
-    if(CXFSNP_ITEM_IS_NOT_USED == CXFSNP_ITEM_USED_FLAG(cxfsnp_item))
-    {
-        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_show_item_depth: item not used\n");
-        return (EC_FALSE);
-    }
-
-    if(CXFSNP_ITEM_FILE_IS_DIR != CXFSNP_ITEM_DIR_FLAG(cxfsnp_item)
-    && CXFSNP_ITEM_FILE_IS_REG != CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
-    {
-        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_show_item_depth: invalid dir flag %u\n", CXFSNP_ITEM_DIR_FLAG(cxfsnp_item));
-        return (EC_FALSE);
-    }
-
-    cxfsnp_show_item_full_path(log, cxfsnp, node_pos);
-    if(CXFSNP_ITEM_FILE_IS_DIR == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
-    {
-        cxfsnp_show_dir_depth(log, cxfsnp, cxfsnp_item);
-    }
-
-    /*right subtree*/
-    if(CXFSNPRB_ERR_POS != CXFSNPRB_NODE_RIGHT_POS(node))
-    {
-        cxfsnp_show_item_depth(log, cxfsnp, CXFSNPRB_NODE_RIGHT_POS(node));
-    }
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cxfsnp_show_path_depth(LOG *log, CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path)
-{
-    uint32_t node_pos;
-
-    node_pos = cxfsnp_search(cxfsnp, path_len, path, CXFSNP_ITEM_FILE_IS_ANY);
-    if(CXFSNPRB_ERR_POS == node_pos)
-    {
-        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_show_path_depth: not found path %.*s\n", path_len, (char *)path);
-        return (EC_FALSE);
-    }
-
-    return cxfsnp_show_item_depth(log, cxfsnp, node_pos);
-}
-
-EC_BOOL cxfsnp_show_path(LOG *log, CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path)
-{
-    uint32_t node_pos;
-
-    node_pos = cxfsnp_search(cxfsnp, path_len, path, CXFSNP_ITEM_FILE_IS_ANY);
-    if(CXFSNPRB_ERR_POS == node_pos)
-    {
-        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_show_path: not found path %.*s\n", path_len, (char *)path);
-        return (EC_FALSE);
-    }
-
-    return cxfsnp_show_item(log, cxfsnp, node_pos);
-}
-
-STATIC_CAST static EC_BOOL __cxfsnp_get_first_fname_of_item(const CXFSNP *cxfsnp, const uint32_t node_pos, uint8_t **fname, uint32_t *dflag)
-{
-    //const CXFSNPRB_POOL *pool;
-    const CXFSNP_ITEM   *cxfsnp_item;
-    //const CXFSNPRB_NODE *node;
-
-    if(CXFSNPRB_ERR_POS == node_pos)
-    {
-        return (EC_FALSE);
-    }
-
-    //pool = CXFSNP_ITEMS_POOL(cxfsnp);
-
-    //node = CXFSNPRB_POOL_NODE(pool, node_pos);
-
-    /*itself*/
-    cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
-    if(CXFSNP_ITEM_IS_NOT_USED == CXFSNP_ITEM_USED_FLAG(cxfsnp_item))
-    {
-        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:__cxfsnp_get_first_fname_of_item: item not used\n");
-        return (EC_FALSE);
-    }
-
-    if(CXFSNP_ITEM_FILE_IS_DIR != CXFSNP_ITEM_DIR_FLAG(cxfsnp_item)
-    && CXFSNP_ITEM_FILE_IS_REG != CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
-    {
-        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:__cxfsnp_get_first_fname_of_item: invalid dir flag %u\n", CXFSNP_ITEM_DIR_FLAG(cxfsnp_item));
-        return (EC_FALSE);
-    }
-
-    if(CXFSNP_ITEM_FILE_IS_DIR == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
-    {
-        if(EC_TRUE == cxfsnp_get_first_fname_of_dir(cxfsnp, cxfsnp_item, fname, dflag))
-        {
-            return (EC_TRUE);
-        }
-
-        /*else: fall through ...*/
-    }
-
-    if(EC_FALSE == __cxfsnp_get_item_full_path(cxfsnp, node_pos, fname, dflag))
-    {
-        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:__cxfsnp_get_first_fname_of_item: get full path of item %u failed\n", node_pos);
-        return (EC_FALSE);
-    }
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cxfsnp_get_first_fname_of_dir(const CXFSNP *cxfsnp, const CXFSNP_ITEM  *cxfsnp_item, uint8_t **fname, uint32_t *dflag)
-{
-    CXFSNP_DNODE *cxfsnp_dnode;
-    uint32_t root_pos;
-
-    cxfsnp_dnode = (CXFSNP_DNODE *)CXFSNP_ITEM_DNODE(cxfsnp_item);
-    root_pos = CXFSNP_DNODE_ROOT_POS(cxfsnp_dnode);
-    if(EC_TRUE == __cxfsnp_get_first_fname_of_item(cxfsnp, root_pos, fname, dflag))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfsnp_get_first_fname_of_path(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path, uint8_t **fname, uint32_t *dflag)
-{
-    uint32_t node_pos;
-
-    node_pos = cxfsnp_search(cxfsnp, path_len, path, CXFSNP_ITEM_FILE_IS_ANY);
-    if(CXFSNPRB_ERR_POS == node_pos)
-    {
-        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_get_first_fname_of_path: not found path %.*s\n", path_len, (char *)path);
-        return (EC_FALSE);
-    }
-
-    return __cxfsnp_get_first_fname_of_item(cxfsnp, node_pos, fname, dflag);
-}
 
 /*------------------------------------------------ recycle -----------------------------------------*/
 /*recycle dn only!*/

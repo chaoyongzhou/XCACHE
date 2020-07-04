@@ -332,7 +332,6 @@ EC_BOOL api_cmd_ui_cxfs_close(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_read(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_write(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_mkdir(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_cxfs_search(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_count_file_num(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_count_file_size(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_qfile(CMD_PARA_VEC * param);
@@ -349,7 +348,6 @@ EC_BOOL api_cmd_ui_cxfs_delete_dir(CMD_PARA_VEC * param);
 /* for deleting root dir / only! */
 EC_BOOL api_cmd_ui_cxfs_delete_root_dir(CMD_PARA_VEC * param);
 
-EC_BOOL api_cmd_ui_cxfs_delete_path(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_recycle(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_retire(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_flush(CMD_PARA_VEC * param);

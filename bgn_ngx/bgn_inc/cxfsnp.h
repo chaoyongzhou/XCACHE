@@ -177,19 +177,19 @@ void cxfsnp_print_que_list(LOG *log, const CXFSNP *cxfsnp);
 
 void cxfsnp_print_del_list(LOG *log, const CXFSNP *cxfsnp);
 
-CXFSNP_ITEM *cxfsnp_dnode_find(const CXFSNP *cxfsnp, const CXFSNP_DNODE *cxfsnp_dnode, const uint32_t second_hash, const uint32_t klen, const uint8_t *key);
+CXFSNP_ITEM *cxfsnp_dnode_find(const CXFSNP *cxfsnp, const CXFSNP_DNODE *cxfsnp_dnode, const uint32_t second_hash, const uint32_t klen, const uint8_t *key, const uint32_t dflag);
 
-uint32_t cxfsnp_dnode_search(const CXFSNP *cxfsnp, const CXFSNP_DNODE *cxfsnp_dnode, const uint32_t second_hash, const uint32_t klen, const uint8_t *key);
+uint32_t cxfsnp_dnode_search(const CXFSNP *cxfsnp, const CXFSNP_DNODE *cxfsnp_dnode, const uint32_t second_hash, const uint32_t klen, const uint8_t *key, const uint32_t dflag);
 
 uint32_t cxfsnp_dnode_match(CXFSNP *cxfsnp, const uint32_t root_pos, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
 
-uint32_t cxfsnp_dnode_insert(CXFSNP *cxfsnp, const uint32_t parent_pos, const uint32_t path_seg_second_hash, const uint32_t path_seg_len, const uint8_t *path_seg, const uint32_t dir_flag);
+uint32_t cxfsnp_dnode_insert(CXFSNP *cxfsnp, const uint32_t parent_pos, const uint32_t path_seg_second_hash, const uint32_t path_seg_len, const uint8_t *path_seg, const uint32_t dir_flag, uint32_t *node_pos);
 
 /**
 * umount one son from cxfsnp_dnode,  where son is regular file item or dir item without any son
 * cxfsnp_dnode will be impacted on bucket and file num
 **/
-uint32_t cxfsnp_dnode_umount_son(const CXFSNP *cxfsnp, CXFSNP_DNODE *cxfsnp_dnode, const uint32_t son_node_pos, const uint32_t second_hash, const uint32_t klen, const uint8_t *key);
+uint32_t cxfsnp_dnode_umount_son(const CXFSNP *cxfsnp, CXFSNP_DNODE *cxfsnp_dnode, const uint32_t son_node_pos, const uint32_t second_hash, const uint32_t klen, const uint8_t *key, const uint32_t dflag);
 EC_BOOL cxfsnp_dnode_delete_dir_son(const CXFSNP *cxfsnp, CXFSNP_DNODE *cxfsnp_dnode);
 
 uint32_t cxfsnp_match_no_lock(CXFSNP *cxfsnp, const uint32_t root_pos, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
@@ -314,18 +314,6 @@ EC_BOOL cxfsnp_show_item_full_path(LOG *log, const CXFSNP *cxfsnp, const uint32_
 EC_BOOL cxfsnp_show_item(LOG *log, const CXFSNP *cxfsnp, const uint32_t node_pos);
 
 EC_BOOL cxfsnp_show_dir(LOG *log, const CXFSNP *cxfsnp, const CXFSNP_ITEM  *cxfsnp_item);
-
-EC_BOOL cxfsnp_show_path(LOG *log, CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path);
-
-EC_BOOL cxfsnp_show_dir_depth(LOG *log, const CXFSNP *cxfsnp, const CXFSNP_ITEM  *cxfsnp_item);
-
-EC_BOOL cxfsnp_show_item_depth(LOG *log, const CXFSNP *cxfsnp, const uint32_t node_pos);
-
-EC_BOOL cxfsnp_show_path_depth(LOG *log, CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path);
-
-EC_BOOL cxfsnp_get_first_fname_of_dir(const CXFSNP *cxfsnp, const CXFSNP_ITEM  *cxfsnp_item, uint8_t **fname, uint32_t *dflag);
-
-EC_BOOL cxfsnp_get_first_fname_of_path(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path, uint8_t **fname, uint32_t *dflag);
 
 #endif/* _CXFSNP_H */
 

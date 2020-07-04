@@ -3196,59 +3196,6 @@ EC_BOOL cxfs_find_file(const UINT32 cxfs_md_id, const CSTRING *file_path)
 
 /**
 *
-*  check existing of a file or a dir
-*
-**/
-EC_BOOL cxfs_find(const UINT32 cxfs_md_id, const CSTRING *path)
-{
-    CXFS_MD   *cxfs_md;
-    EC_BOOL    ret;
-
-#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
-    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:cxfs_find: cxfs module #%ld not started.\n",
-                cxfs_md_id);
-        dbg_exit(MD_CXFS, cxfs_md_id);
-    }
-#endif/*CXFS_DEBUG_SWITCH*/
-
-    cxfs_md = CXFS_MD_GET(cxfs_md_id);
-
-    if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
-    {
-        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_find: npp was not open\n");
-        return (EC_FALSE);
-    }
-
-    ret = cxfsnp_mgr_find(CXFS_MD_NPP(cxfs_md), path, CXFSNP_ITEM_FILE_IS_ANY/*xxx*/);
-
-    return (ret);
-}
-
-/**
-*
-*  check existing of a file or a dir
-*
-**/
-EC_BOOL cxfs_exists(const UINT32 cxfs_md_id, const CSTRING *path)
-{
-#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
-    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:cxfs_exists: cxfs module #%ld not started.\n",
-                cxfs_md_id);
-        dbg_exit(MD_CXFS, cxfs_md_id);
-    }
-#endif/*CXFS_DEBUG_SWITCH*/
-
-    return cxfs_find(cxfs_md_id, path);
-}
-
-/**
-*
 *  check existing of a file
 *
 **/
@@ -4225,16 +4172,6 @@ EC_BOOL cxfs_read_safe(const UINT32 cxfs_md_id, const CSTRING *file_path, CBYTES
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_safe: read file %s from npp failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
-
-#if 0
-    else
-    {
-        dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_read_safe: read file %s from npp and fnode %p is \n",
-                           (char *)cstring_get_str(file_path),
-                           &cxfsnp_fnode);
-        cxfsnp_fnode_print(LOGSTDOUT, &cxfsnp_fnode);
-    }
-#endif
 
     /*exception*/
     if(0 == CXFSNP_FNODE_FILESZ(&cxfsnp_fnode))
@@ -6933,117 +6870,6 @@ EC_BOOL cxfs_delete_dir_wildcard(const UINT32 cxfs_md_id, const CSTRING *path)
 
 /**
 *
-*  delete a file or dir from all npp and all dn
-*
-**/
-EC_BOOL cxfs_delete(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 dflag)
-{
-    CXFS_MD      *cxfs_md;
-
-#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
-    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:cxfs_delete: cxfs module #%ld not started.\n",
-                cxfs_md_id);
-        dbg_exit(MD_CXFS, cxfs_md_id);
-    }
-#endif/*CXFS_DEBUG_SWITCH*/
-
-    cxfs_md = CXFS_MD_GET(cxfs_md_id);
-
-    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete: wait syncing timeout\n");
-        return (EC_FALSE);
-    }
-
-    if(BIT_TRUE == CXFS_MD_READ_ONLY_FLAG(cxfs_md))
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete: cxfs is read-only\n");
-        return (EC_FALSE);
-    }
-
-    if(CXFSNP_ITEM_FILE_IS_REG == dflag)
-    {
-        return cxfs_delete_file(cxfs_md_id, path);
-    }
-
-    if(CXFSNP_ITEM_FILE_IS_DIR == dflag)
-    {
-        return cxfs_delete_dir(cxfs_md_id, path);
-    }
-
-    if(CXFSNP_ITEM_FILE_IS_ANY == dflag)
-    {
-        cxfs_delete_file(cxfs_md_id, path);
-        cxfs_delete_dir(cxfs_md_id, path);
-
-        return (EC_TRUE);
-    }
-
-    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete: "
-                                         "cxfs_md_id %ld, path [invalid 0x%lx] %s\n",
-                                         cxfs_md_id, dflag, (char *)cstring_get_str(path));
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfs_delete_no_lock(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 dflag)
-{
-    CXFS_MD      *cxfs_md;
-
-#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
-    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:cxfs_delete_no_lock: cxfs module #%ld not started.\n",
-                cxfs_md_id);
-        dbg_exit(MD_CXFS, cxfs_md_id);
-    }
-#endif/*CXFS_DEBUG_SWITCH*/
-
-    cxfs_md = CXFS_MD_GET(cxfs_md_id);
-
-    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_no_lock: wait syncing timeout\n");
-        return (EC_FALSE);
-    }
-
-    if(BIT_TRUE == CXFS_MD_READ_ONLY_FLAG(cxfs_md))
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_no_lock: cxfs is read-only\n");
-        return (EC_FALSE);
-    }
-
-    if(CXFSNP_ITEM_FILE_IS_REG == dflag)
-    {
-        return cxfs_delete_file_no_lock(cxfs_md_id, path);
-    }
-
-    if(CXFSNP_ITEM_FILE_IS_DIR == dflag)
-    {
-        return cxfs_delete_dir_no_lock(cxfs_md_id, path);
-    }
-
-    if(CXFSNP_ITEM_FILE_IS_ANY == dflag)
-    {
-        cxfs_delete_file_no_lock(cxfs_md_id, path);
-        cxfs_delete_dir_no_lock(cxfs_md_id, path);
-
-        return (EC_TRUE);
-    }
-
-    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_delete_no_lock: "
-                                         "cxfs_md_id %ld, path [invalid 0x%lx] %s\n",
-                                         cxfs_md_id, dflag, (char *)cstring_get_str(path));
-
-    return (EC_FALSE);
-}
-
-/**
-*
 *  update a file
 *  (atomic operation)
 *
@@ -7158,7 +6984,7 @@ EC_BOOL cxfs_update_no_lock(const UINT32 cxfs_md_id, const CSTRING *file_path, c
     }
 
     /*file exist, update it*/
-    if(EC_FALSE == cxfs_delete_no_lock(cxfs_md_id, file_path, CXFSNP_ITEM_FILE_IS_REG))
+    if(EC_FALSE == cxfs_delete_file_no_lock(cxfs_md_id, file_path))
     {
         e_msec = c_get_cur_time_msec();
         cost_msec = e_msec - s_msec;
@@ -7379,10 +7205,11 @@ EC_BOOL cxfs_qlist_path(const UINT32 cxfs_md_id, const CSTRING *file_path, CVECT
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfsnp_mgr_list_path(CXFS_MD_NPP(cxfs_md), file_path, path_cstr_vec))
+    if(EC_FALSE == cxfsnp_mgr_list_path(CXFS_MD_NPP(cxfs_md), file_path, CXFSNP_ITEM_FILE_IS_DIR,
+                                        path_cstr_vec))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_path: "
-                                             "list path '%s' failed\n",
+                                             "list dir '%s' failed\n",
                                              (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
@@ -7420,10 +7247,21 @@ EC_BOOL cxfs_qlist_path_of_np(const UINT32 cxfs_md_id, const CSTRING *file_path,
 
     cxfsnp_id_t = (uint32_t)cxfsnp_id;
 
-    if(EC_FALSE == cxfsnp_mgr_list_path_of_np(CXFS_MD_NPP(cxfs_md), file_path, cxfsnp_id_t, path_cstr_vec))
+    if(EC_FALSE == cxfsnp_mgr_list_path_of_np(CXFS_MD_NPP(cxfs_md), file_path, CXFSNP_ITEM_FILE_IS_REG,
+                                                cxfsnp_id_t, path_cstr_vec))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_path_of_np: "
-                                             "list path '%s' of np %u failed\n",
+                                             "list file '%s' of np %u failed\n",
+                                             (char *)cstring_get_str(file_path),
+                                             cxfsnp_id_t);
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfsnp_mgr_list_path_of_np(CXFS_MD_NPP(cxfs_md), file_path, CXFSNP_ITEM_FILE_IS_DIR,
+                                                cxfsnp_id_t, path_cstr_vec))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_path_of_np: "
+                                             "list dir '%s' of np %u failed\n",
                                              (char *)cstring_get_str(file_path),
                                              cxfsnp_id_t);
         return (EC_FALSE);
@@ -7459,10 +7297,11 @@ EC_BOOL cxfs_qlist_seg(const UINT32 cxfs_md_id, const CSTRING *file_path, CVECTO
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfsnp_mgr_list_seg(CXFS_MD_NPP(cxfs_md), file_path, seg_cstr_vec))
+    if(EC_FALSE == cxfsnp_mgr_list_seg(CXFS_MD_NPP(cxfs_md), file_path, CXFSNP_ITEM_FILE_IS_DIR,
+                                        seg_cstr_vec))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_seg: "
-                                             "list seg of path '%s' failed\n",
+                                             "list seg of dir '%s' failed\n",
                                              (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
@@ -7500,10 +7339,11 @@ EC_BOOL cxfs_qlist_seg_of_np(const UINT32 cxfs_md_id, const CSTRING *file_path, 
 
     cxfsnp_id_t = (uint32_t)cxfsnp_id;
 
-    if(EC_FALSE == cxfsnp_mgr_list_seg_of_np(CXFS_MD_NPP(cxfs_md), file_path, cxfsnp_id_t, seg_cstr_vec))
+    if(EC_FALSE == cxfsnp_mgr_list_seg_of_np(CXFS_MD_NPP(cxfs_md), file_path, CXFSNP_ITEM_FILE_IS_DIR,
+                                            cxfsnp_id_t, seg_cstr_vec))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_seg_of_np: "
-                                             "list seg of path '%s' failed\n",
+                                             "list seg of dir '%s' failed\n",
                                              (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
@@ -7570,7 +7410,7 @@ STATIC_CAST static EC_BOOL __cxfs_qlist_tree(CXFSNP_DIT_NODE *cxfsnp_dit_node, C
 
 /**
 *
-*  query and list full path of a file or  all files under a dir recursively
+*  query and list full path of a file or all files under a dir recursively
 *  (looks like shell command: tree)
 *
 **/
@@ -7615,20 +7455,20 @@ EC_BOOL cxfs_qlist_tree(const UINT32 cxfs_md_id, const CSTRING *file_path, CVECT
     CXFSNP_DIT_NODE_ARG(&cxfsnp_dit_node, 1)  = (void *)base_dir;
     CXFSNP_DIT_NODE_ARG(&cxfsnp_dit_node, 2)  = (void *)path_cstr_vec;
 
-    if(EC_FALSE == cxfsnp_mgr_walk(CXFS_MD_NPP(cxfs_md), file_path, CXFSNP_ITEM_FILE_IS_ANY, &cxfsnp_dit_node))
+    if(EC_FALSE == cxfsnp_mgr_walk(CXFS_MD_NPP(cxfs_md), file_path, CXFSNP_ITEM_FILE_IS_DIR, &cxfsnp_dit_node))
     {
         cstring_free(base_dir);
         cxfsnp_dit_node_clean(&cxfsnp_dit_node);
 
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_path: "
-                                             "list path '%s' failed\n",
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_tree: "
+                                             "list dir '%s' failed\n",
                                              (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
 
     if(do_log(SEC_0192_CXFS, 9))
     {
-        sys_log(LOGSTDOUT, "[DEBUG] cxfs_qlist_path: after walk, stack is:\n");
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_qlist_tree: after walk, stack is:\n");
         cstack_print(LOGSTDOUT, CXFSNP_DIT_NODE_STACK(&cxfsnp_dit_node),
                                 (CSTACK_DATA_DATA_PRINT)cxfsnp_item_and_key_print);
     }
@@ -7689,13 +7529,24 @@ EC_BOOL cxfs_qlist_tree_of_np(const UINT32 cxfs_md_id, const UINT32 cxfsnp_id, c
     CXFSNP_DIT_NODE_ARG(&cxfsnp_dit_node, 1)  = (void *)file_path;
     CXFSNP_DIT_NODE_ARG(&cxfsnp_dit_node, 2)  = (void *)path_cstr_vec;
 
-    if(EC_FALSE == cxfsnp_mgr_walk_of_np(CXFS_MD_NPP(cxfs_md), cxfsnp_id_t, file_path, CXFSNP_ITEM_FILE_IS_ANY, &cxfsnp_dit_node))
+    if(EC_FALSE == cxfsnp_mgr_walk_of_np(CXFS_MD_NPP(cxfs_md), cxfsnp_id_t, file_path, CXFSNP_ITEM_FILE_IS_REG, &cxfsnp_dit_node))
     {
         cstring_free(base_dir);
         cxfsnp_dit_node_clean(&cxfsnp_dit_node);
 
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_tree_of_np: "
-                                             "list tree of path '%s' failed\n",
+                                             "list tree of file '%s' failed\n",
+                                             (char *)cstring_get_str(file_path));
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfsnp_mgr_walk_of_np(CXFS_MD_NPP(cxfs_md), cxfsnp_id_t, file_path, CXFSNP_ITEM_FILE_IS_DIR, &cxfsnp_dit_node))
+    {
+        cstring_free(base_dir);
+        cxfsnp_dit_node_clean(&cxfsnp_dit_node);
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_qlist_tree_of_np: "
+                                             "list tree of dir '%s' failed\n",
                                              (char *)cstring_get_str(file_path));
         return (EC_FALSE);
     }
@@ -8034,50 +7885,6 @@ EC_BOOL cxfs_mkdir(const UINT32 cxfs_md_id, const CSTRING *path_cstr)
                                       (uint32_t )cstring_get_len(path_cstr),
                                       (uint8_t *)cstring_get_str(path_cstr));
     }
-    return (EC_TRUE);
-}
-
-/**
-*
-*  search in current name node pool
-*
-**/
-EC_BOOL cxfs_search(const UINT32 cxfs_md_id, const CSTRING *path_cstr, const UINT32 dflag)
-{
-    CXFS_MD      *cxfs_md;
-    uint32_t      cxfsnp_id;
-
-#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
-    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:cxfs_search: cxfs module #%ld not started.\n",
-                cxfs_md_id);
-        dbg_exit(MD_CXFS, cxfs_md_id);
-    }
-#endif/*CXFS_DEBUG_SWITCH*/
-
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_search: "
-                                         "cxfs_md_id %ld, path %s, dflag %lx\n",
-                                         cxfs_md_id,
-                                         (char *)cstring_get_str(path_cstr), dflag);
-
-    cxfs_md = CXFS_MD_GET(cxfs_md_id);
-
-    if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
-    {
-        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_search: npp was not open\n");
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == cxfsnp_mgr_search(CXFS_MD_NPP(cxfs_md), (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), dflag, &cxfsnp_id))
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_search: "
-                                             "search '%s' with dflag %lx failed\n",
-                                             (char *)cstring_get_str(path_cstr), dflag);
-        return (EC_FALSE);
-    }
-
     return (EC_TRUE);
 }
 
@@ -8877,70 +8684,6 @@ EC_BOOL cxfs_show_specific_np_del_list(const UINT32 cxfs_md_id, const UINT32 cxf
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_show_specific_np_del_list: "
                                              "show np %ld but failed\n",
                                              cxfsnp_id);
-        return (EC_FALSE);
-    }
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cxfs_show_path_depth(const UINT32 cxfs_md_id, const CSTRING *path, LOG *log)
-{
-    CXFS_MD *cxfs_md;
-
-#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
-    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:cxfs_show_path_depth: cxfs module #%ld not started.\n",
-                cxfs_md_id);
-        dbg_exit(MD_CXFS, cxfs_md_id);
-    }
-#endif/*CXFS_DEBUG_SWITCH*/
-
-    cxfs_md = CXFS_MD_GET(cxfs_md_id);
-
-    if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
-    {
-        sys_log(log, "error:cxfs_show_path_depth: npp was not open\n");
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == cxfsnp_mgr_show_path_depth(log, CXFS_MD_NPP(cxfs_md), path))
-    {
-        sys_log(log, "error:cxfs_show_path_depth: "
-                     "show path %s in depth failed\n",
-                     (char *)cstring_get_str(path));
-        return (EC_FALSE);
-    }
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cxfs_show_path(const UINT32 cxfs_md_id, const CSTRING *path, LOG *log)
-{
-    CXFS_MD *cxfs_md;
-
-#if ( SWITCH_ON == CXFS_DEBUG_SWITCH )
-    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:cxfs_show_path: cxfs module #%ld not started.\n",
-                cxfs_md_id);
-        dbg_exit(MD_CXFS, cxfs_md_id);
-    }
-#endif/*CXFS_DEBUG_SWITCH*/
-
-    cxfs_md = CXFS_MD_GET(cxfs_md_id);
-
-    if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
-    {
-        sys_log(log, "error:cxfs_show_path: npp was not open\n");
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == cxfsnp_mgr_show_path(log, CXFS_MD_NPP(cxfs_md), path))
-    {
-        sys_log(log, "error:cxfs_show_path: show path %s failed\n", (char *)cstring_get_str(path));
         return (EC_FALSE);
     }
 
@@ -10453,17 +10196,7 @@ EC_BOOL cxfs_file_unlock(const UINT32 cxfs_md_id, const CSTRING *file_path, cons
 
     cbase64_decode((UINT8 *)CSTRING_STR(token_str), CSTRING_LEN(token_str), auth_token, sizeof(auth_token), &auth_token_len);
     cbytes_mount(&token_cbyte, auth_token_len, auth_token);
-#if 0
-    if(do_log(SEC_0192_CXFS, 9))
-    {
-        sys_log(LOGSTDOUT, "[DEBUG] cxfs_file_unlock: auth_token str: %.*s\n", (uint32_t)CSTRING_LEN(token_str), CSTRING_STR(token_str));
-        sys_log(LOGSTDOUT, "[DEBUG] cxfs_file_unlock: auth_token str => token: ");
-        cbytes_print_chars(LOGSTDOUT, &token_cbyte);
 
-        sys_log(LOGSTDOUT, "[DEBUG] cxfs_file_unlock: all locked files are: \n");
-        cxfs_locked_files_print(cxfs_md_id, LOGSTDOUT);
-    }
-#endif
     if(EC_FALSE == __cxfs_file_unlock(cxfs_md_id, file_path, &token_cbyte))
     {
         cbytes_umount(&token_cbyte, NULL_PTR, NULL_PTR);

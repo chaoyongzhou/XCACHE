@@ -148,11 +148,11 @@ uint32_t cxfsnprb_tree_prev_node(const CXFSNPRB_POOL *pool, const uint32_t node_
 /* Fast replacement of a single node without remove/rebalance/add/rebalance */
 void cxfsnprb_tree_replace_node(CXFSNPRB_POOL *pool, const uint32_t victim_pos, const uint32_t new_pos, uint32_t *root_pos);
 
-uint32_t cxfsnprb_tree_search_data(const CXFSNPRB_POOL *pool, const uint32_t root_pos, const uint32_t data, const uint32_t klen, const uint8_t *key);
+uint32_t cxfsnprb_tree_search_data(const CXFSNPRB_POOL *pool, const uint32_t root_pos, const uint32_t data, const uint32_t klen, const uint8_t *key, const uint32_t dflag);
 
-EC_BOOL cxfsnprb_tree_insert_data(CXFSNPRB_POOL *pool, uint32_t *root_pos, const uint32_t data, const uint32_t klen, const uint8_t *key, uint32_t *insert_pos);
+EC_BOOL cxfsnprb_tree_insert_data(CXFSNPRB_POOL *pool, uint32_t *root_pos, const uint32_t data, const uint32_t klen, const uint8_t *key, const uint32_t dflag, uint32_t *insert_pos);
 
-EC_BOOL cxfsnprb_tree_delete_data(CXFSNPRB_POOL *pool, uint32_t *root_pos, const uint32_t data, const uint32_t klen, const uint8_t *key, uint32_t *delete_pos);
+EC_BOOL cxfsnprb_tree_delete_data(CXFSNPRB_POOL *pool, uint32_t *root_pos, const uint32_t data, const uint32_t klen, const uint8_t *key, const uint32_t dflag, uint32_t *delete_pos);
 
 EC_BOOL cxfsnprb_tree_delete(CXFSNPRB_POOL *pool, uint32_t *root_pos, const uint32_t node_pos);
 

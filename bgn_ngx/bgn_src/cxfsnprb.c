@@ -871,7 +871,7 @@ void cxfsnprb_tree_replace_node(CXFSNPRB_POOL *pool, const uint32_t victim_pos, 
 *   return  0 if node == (data, key)
 *
 **/
-STATIC_CAST static int __cxfsnprb_node_data_cmp(const CXFSNPRB_NODE *node, const uint32_t data, const uint32_t klen, const uint8_t *key)
+STATIC_CAST static int __cxfsnprb_node_data_cmp(const CXFSNPRB_NODE *node, const uint32_t data, const uint32_t klen, const uint8_t *key, const uint32_t dflag)
 {
     const CXFSNP_ITEM *item;
 
@@ -896,11 +896,21 @@ STATIC_CAST static int __cxfsnprb_node_data_cmp(const CXFSNPRB_NODE *node, const
         return (1);
     }
 
+    if(CXFSNP_ITEM_DIR_FLAG(item) < dflag)
+    {
+        return (-1);
+    }
+
+    if(CXFSNP_ITEM_DIR_FLAG(item) > dflag)
+    {
+        return (1);
+    }
+
     return BCMP(CXFSNP_ITEM_KNAME(item), key, klen);
 }
 
 /*return the searched pos*/
-uint32_t cxfsnprb_tree_search_data(const CXFSNPRB_POOL *pool, const uint32_t root_pos, const uint32_t data, const uint32_t klen, const uint8_t *key)
+uint32_t cxfsnprb_tree_search_data(const CXFSNPRB_POOL *pool, const uint32_t root_pos, const uint32_t data, const uint32_t klen, const uint8_t *key, const uint32_t dflag)
 {
     uint32_t node_pos;
 
@@ -912,7 +922,7 @@ uint32_t cxfsnprb_tree_search_data(const CXFSNPRB_POOL *pool, const uint32_t roo
         int cmp_ret;
 
         node = CXFSNPRB_POOL_NODE(pool, node_pos);
-        cmp_ret = __cxfsnprb_node_data_cmp(node, data, klen, key);
+        cmp_ret = __cxfsnprb_node_data_cmp(node, data, klen, key, dflag);
 
         if (0 < cmp_ret)/*node > (data, key)*/
         {
@@ -932,7 +942,7 @@ uint32_t cxfsnprb_tree_search_data(const CXFSNPRB_POOL *pool, const uint32_t roo
 }
 
 /*if found duplicate node, return EC_FALSE, otherwise return EC_TRUE*/
-EC_BOOL cxfsnprb_tree_insert_data(CXFSNPRB_POOL *pool, uint32_t *root_pos, const uint32_t data, const uint32_t klen, const uint8_t *key, uint32_t *insert_pos)
+EC_BOOL cxfsnprb_tree_insert_data(CXFSNPRB_POOL *pool, uint32_t *root_pos, const uint32_t data, const uint32_t klen, const uint8_t *key, const uint32_t dflag, uint32_t *insert_pos)
 {
     uint32_t  node_pos_t;
     uint32_t  new_pos_t;
@@ -949,7 +959,7 @@ EC_BOOL cxfsnprb_tree_insert_data(CXFSNPRB_POOL *pool, uint32_t *root_pos, const
         int cmp_ret;
 
         node = CXFSNPRB_POOL_NODE(pool, node_pos_t);
-        cmp_ret = __cxfsnprb_node_data_cmp(node, data, klen, key);
+        cmp_ret = __cxfsnprb_node_data_cmp(node, data, klen, key, dflag);
 
         parent_pos_t = node_pos_t;
 
@@ -1015,11 +1025,11 @@ EC_BOOL cxfsnprb_tree_insert_data(CXFSNPRB_POOL *pool, uint32_t *root_pos, const
     return (EC_TRUE); /*it is new node*/
 }
 
-EC_BOOL cxfsnprb_tree_delete_data(CXFSNPRB_POOL *pool, uint32_t *root_pos, const uint32_t data, const uint32_t klen, const uint8_t *key, uint32_t *delete_pos)
+EC_BOOL cxfsnprb_tree_delete_data(CXFSNPRB_POOL *pool, uint32_t *root_pos, const uint32_t data, const uint32_t klen, const uint8_t *key, const uint32_t dflag, uint32_t *delete_pos)
 {
     uint32_t node_pos;
 
-    node_pos = cxfsnprb_tree_search_data(pool, *root_pos, data, klen, key);
+    node_pos = cxfsnprb_tree_search_data(pool, *root_pos, data, klen, key, dflag);
     if(CXFSNPRB_ERR_POS == node_pos)
     {
         return (EC_FALSE);

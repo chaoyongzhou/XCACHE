@@ -1490,20 +1490,6 @@ EC_BOOL cxfsnp_mgr_find_file(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path)
                                     NULL_PTR);
 }
 
-EC_BOOL cxfsnp_mgr_find(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const UINT32 dflag)
-{
-    if(0 == strcmp("/", (char *)cstring_get_str(path)))/*patch*/
-    {
-        if(CXFSNP_ITEM_FILE_IS_ANY == dflag || CXFSNP_ITEM_FILE_IS_DIR == dflag)
-        {
-            return (EC_TRUE);
-        }
-        return (EC_FALSE);
-    }
-
-    return cxfsnp_mgr_search(cxfsnp_mgr, (uint32_t)cstring_get_len(path), cstring_get_str(path), dflag, NULL_PTR);
-}
-
 CXFSNP_FNODE *cxfsnp_mgr_reserve(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path)
 {
     CXFSNP *cxfsnp;
@@ -2078,7 +2064,7 @@ EC_BOOL cxfsnp_mgr_mkdir(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfsnp_mgr_list_path_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const uint32_t cxfsnp_id, CVECTOR  *path_cstr_vec)
+EC_BOOL cxfsnp_mgr_list_path_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const uint32_t dflag, const uint32_t cxfsnp_id, CVECTOR  *path_cstr_vec)
 {
     CXFSNP   *cxfsnp;
     CVECTOR  *cur_path_cstr_vec;
@@ -2091,7 +2077,7 @@ EC_BOOL cxfsnp_mgr_list_path_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, 
         return (EC_FALSE);
     }
 
-    node_pos = cxfsnp_search_no_lock(cxfsnp, cstring_get_len(path), cstring_get_str(path), CXFSNP_ITEM_FILE_IS_ANY);
+    node_pos = cxfsnp_search_no_lock(cxfsnp, cstring_get_len(path), cstring_get_str(path), dflag);
     if(CXFSNPRB_ERR_POS == node_pos)
     {
         return (EC_TRUE);
@@ -2124,7 +2110,7 @@ EC_BOOL cxfsnp_mgr_list_path_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfsnp_mgr_list_path(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, CVECTOR  *path_cstr_vec)
+EC_BOOL cxfsnp_mgr_list_path(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const uint32_t dflag, CVECTOR  *path_cstr_vec)
 {
     uint32_t cxfsnp_num;
     uint32_t cxfsnp_id;
@@ -2132,7 +2118,7 @@ EC_BOOL cxfsnp_mgr_list_path(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, CVECTO
     cxfsnp_num = CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr);
     for(cxfsnp_id = 0; cxfsnp_id < cxfsnp_num; cxfsnp_id ++)
     {
-        if(EC_FALSE == cxfsnp_mgr_list_path_of_np(cxfsnp_mgr, path, cxfsnp_id, path_cstr_vec))
+        if(EC_FALSE == cxfsnp_mgr_list_path_of_np(cxfsnp_mgr, path, dflag, cxfsnp_id, path_cstr_vec))
         {
             dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_list_path: list path '%s' of np %u failed\n",
                                (char *)cstring_get_str(path), cxfsnp_id);
@@ -2143,7 +2129,7 @@ EC_BOOL cxfsnp_mgr_list_path(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, CVECTO
     return (EC_TRUE);
 }
 
-EC_BOOL cxfsnp_mgr_list_seg_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const uint32_t cxfsnp_id, CVECTOR  *seg_cstr_vec)
+EC_BOOL cxfsnp_mgr_list_seg_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const uint32_t dflag, const uint32_t cxfsnp_id, CVECTOR  *seg_cstr_vec)
 {
     CXFSNP   *cxfsnp;
     CVECTOR  *cur_seg_cstr_vec;
@@ -2156,7 +2142,7 @@ EC_BOOL cxfsnp_mgr_list_seg_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, c
         return (EC_FALSE);
     }
 
-    node_pos = cxfsnp_search_no_lock(cxfsnp, cstring_get_len(path), cstring_get_str(path), CXFSNP_ITEM_FILE_IS_ANY);
+    node_pos = cxfsnp_search_no_lock(cxfsnp, cstring_get_len(path), cstring_get_str(path), dflag);
     if(CXFSNPRB_ERR_POS == node_pos)
     {
         return (EC_TRUE);
@@ -2189,7 +2175,7 @@ EC_BOOL cxfsnp_mgr_list_seg_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, c
     return (EC_TRUE);
 }
 
-EC_BOOL cxfsnp_mgr_list_seg(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, CVECTOR  *seg_cstr_vec)
+EC_BOOL cxfsnp_mgr_list_seg(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const uint32_t dflag, CVECTOR  *seg_cstr_vec)
 {
     uint32_t cxfsnp_num;
     uint32_t cxfsnp_id;
@@ -2197,7 +2183,7 @@ EC_BOOL cxfsnp_mgr_list_seg(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, CVECTOR
     cxfsnp_num = CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr);
     for(cxfsnp_id = 0; cxfsnp_id < cxfsnp_num; cxfsnp_id ++)
     {
-        if(EC_FALSE == cxfsnp_mgr_list_seg_of_np(cxfsnp_mgr, path, cxfsnp_id, seg_cstr_vec))
+        if(EC_FALSE == cxfsnp_mgr_list_seg_of_np(cxfsnp_mgr, path, dflag, cxfsnp_id, seg_cstr_vec))
         {
             dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_list_seg: list path '%s' of np %u failed\n",
                                (char *)cstring_get_str(path), cxfsnp_id);
@@ -2607,62 +2593,6 @@ EC_BOOL cxfsnp_mgr_show_cached_np_del_list(LOG *log, const CXFSNP_MGR *cxfsnp_mg
             cxfsnp_print_del_list(log, cxfsnp);
         }
     }
-    return (EC_TRUE);
-}
-
-EC_BOOL cxfsnp_mgr_show_path_depth(LOG *log, CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path)
-{
-    CXFSNP *cxfsnp;
-    uint32_t cxfsnp_id;
-
-    cxfsnp = __cxfsnp_mgr_get_np(cxfsnp_mgr, (uint32_t)cstring_get_len(path), cstring_get_str(path), &cxfsnp_id);
-    if(NULL_PTR == cxfsnp)
-    {
-        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_show_path_depth: no np for path %s\n", (char *)cstring_get_str(path));
-        return (EC_FALSE);
-    }
-
-    dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_show_path_depth: cxfsnp %p, id %u\n", cxfsnp, cxfsnp_id);
-
-    return cxfsnp_show_path_depth(log, cxfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path));
-}
-
-EC_BOOL cxfsnp_mgr_show_path(LOG *log, CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path)
-{
-    CXFSNP *cxfsnp;
-    uint32_t cxfsnp_id;
-
-    cxfsnp = __cxfsnp_mgr_get_np(cxfsnp_mgr, (uint32_t)cstring_get_len(path), cstring_get_str(path), &cxfsnp_id);
-    if(NULL_PTR == cxfsnp)
-    {
-        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_show_path: no np for path %s\n", (char *)cstring_get_str(path));
-        return (EC_FALSE);
-    }
-
-    return cxfsnp_show_path(log, cxfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path));
-}
-
-EC_BOOL cxfsnp_mgr_get_first_fname_of_path(CXFSNP_MGR *cxfsnp_mgr, const uint32_t cxfsnp_id, const CSTRING *path, CSTRING *fname, uint32_t *dflag)
-{
-    CXFSNP  *cxfsnp;
-    uint8_t *fname_str;
-
-    cxfsnp = __cxfsnp_mgr_get_np_of_id(cxfsnp_mgr, cxfsnp_id);
-    if(NULL_PTR == cxfsnp)
-    {
-        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_get_first_fname_of_path: get np %u failed\n", cxfsnp_id);
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == cxfsnp_get_first_fname_of_path(cxfsnp, (uint32_t)cstring_get_len(path), cstring_get_str(path), &fname_str, dflag))
-    {
-        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_get_first_fname_of_path: get first fname of path %s from np %u failed\n",
-                            (char *)cstring_get_str(path), cxfsnp_id);
-        return (EC_FALSE);
-    }
-
-    cstring_set_str(fname, fname_str);
-
     return (EC_TRUE);
 }
 

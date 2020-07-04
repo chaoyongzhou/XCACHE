@@ -176,8 +176,6 @@ EC_BOOL cxfsnp_mgr_find_dir(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *dir_path);
 
 EC_BOOL cxfsnp_mgr_find_file(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path);
 
-EC_BOOL cxfsnp_mgr_find(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const UINT32 dflag);
-
 CXFSNP_FNODE *cxfsnp_mgr_reserve(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path);
 
 EC_BOOL cxfsnp_mgr_release(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path);
@@ -200,17 +198,17 @@ EC_BOOL cxfsnp_mgr_umount_wildcard_deep(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *p
 
 EC_BOOL cxfsnp_mgr_mkdir(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path);
 
-EC_BOOL cxfsnp_mgr_list_path_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const uint32_t cxfsnp_id, CVECTOR  *path_cstr_vec);
+EC_BOOL cxfsnp_mgr_list_path_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const uint32_t dflag, const uint32_t cxfsnp_id, CVECTOR  *path_cstr_vec);
 
-EC_BOOL cxfsnp_mgr_list_seg_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const uint32_t cxfsnp_id, CVECTOR  *seg_cstr_vec);
+EC_BOOL cxfsnp_mgr_list_seg_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const uint32_t dflag, const uint32_t cxfsnp_id, CVECTOR  *seg_cstr_vec);
 
 EC_BOOL cxfsnp_mgr_file_num_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cstr, const uint32_t cxfsnp_id, UINT32 *file_num);
 
 EC_BOOL cxfsnp_mgr_file_size_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cstr, const uint32_t cxfsnp_id, uint64_t *file_size);
 
-EC_BOOL cxfsnp_mgr_list_path(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, CVECTOR  *path_cstr_vec);
+EC_BOOL cxfsnp_mgr_list_path(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const uint32_t dflag, CVECTOR  *path_cstr_vec);
 
-EC_BOOL cxfsnp_mgr_list_seg(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, CVECTOR  *seg_cstr_vec);
+EC_BOOL cxfsnp_mgr_list_seg(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const uint32_t dflag, CVECTOR  *seg_cstr_vec);
 
 EC_BOOL cxfsnp_mgr_file_num(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cstr, UINT32 *file_num);
 
@@ -235,12 +233,6 @@ EC_BOOL cxfsnp_mgr_show_cached_np(LOG *log, const CXFSNP_MGR *cxfsnp_mgr);
 EC_BOOL cxfsnp_mgr_show_cached_np_que_list(LOG *log, const CXFSNP_MGR *cxfsnp_mgr);
 
 EC_BOOL cxfsnp_mgr_show_cached_np_del_list(LOG *log, const CXFSNP_MGR *cxfsnp_mgr);
-
-EC_BOOL cxfsnp_mgr_show_path_depth(LOG *log, CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path);
-
-EC_BOOL cxfsnp_mgr_show_path(LOG *log, CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path);
-
-EC_BOOL cxfsnp_mgr_get_first_fname_of_path(CXFSNP_MGR *cxfsnp_mgr, const uint32_t cxfsnp_id, const CSTRING *path, CSTRING *fname, uint32_t *dflag);
 
 EC_BOOL cxfsnp_mgr_recycle_np(CXFSNP_MGR *cxfsnp_mgr, const uint32_t cxfsnp_id, const UINT32 max_num, CXFSNP_RECYCLE_NP *cxfsnp_recycle_np, CXFSNP_RECYCLE_DN *cxfsnp_recycle_dn, UINT32 *complete_num);
 

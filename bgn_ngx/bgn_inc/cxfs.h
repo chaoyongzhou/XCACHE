@@ -590,20 +590,6 @@ EC_BOOL cxfs_find_file(const UINT32 cxfs_md_id, const CSTRING *file_path);
 
 /**
 *
-*  check existing of a file or a dir
-*
-**/
-EC_BOOL cxfs_find(const UINT32 cxfs_md_id, const CSTRING *path);
-
-/**
-*
-*  check existing of a file or a dir
-*
-**/
-EC_BOOL cxfs_exists(const UINT32 cxfs_md_id, const CSTRING *path);
-
-/**
-*
 *  check existing of a file
 *
 **/
@@ -848,14 +834,6 @@ EC_BOOL cxfs_delete_dir_wildcard(const UINT32 cxfs_md_id, const CSTRING *path);
 
 /**
 *
-*  delete a file or dir from all npp and all dn
-*
-**/
-EC_BOOL cxfs_delete(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 dflag);
-EC_BOOL cxfs_delete_no_lock(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 dflag);
-
-/**
-*
 *  update a file
 *
 **/
@@ -1056,13 +1034,6 @@ EC_BOOL cxfs_mkdir(const UINT32 cxfs_md_id, const CSTRING *path_cstr);
 
 /**
 *
-*  search in current name node pool
-*
-**/
-EC_BOOL cxfs_search(const UINT32 cxfs_md_id, const CSTRING *path_cstr, const UINT32 dflag);
-
-/**
-*
 *  empty recycle
 *
 **/
@@ -1142,10 +1113,6 @@ EC_BOOL cxfs_show_specific_np(const UINT32 cxfs_md_id, const UINT32 cxfsnp_id, L
 EC_BOOL cxfs_show_specific_np_que_list(const UINT32 cxfs_md_id, const UINT32 cxfsnp_id, LOG *log);
 
 EC_BOOL cxfs_show_specific_np_del_list(const UINT32 cxfs_md_id, const UINT32 cxfsnp_id, LOG *log);
-
-EC_BOOL cxfs_show_path_depth(const UINT32 cxfs_md_id, const CSTRING *path, LOG *log);
-
-EC_BOOL cxfs_show_path(const UINT32 cxfs_md_id, const CSTRING *path, LOG *log);
 
 EC_BOOL cxfs_retire(const UINT32 cxfs_md_id, const UINT32 expect_retire_num, UINT32 *complete_retire_num);
 

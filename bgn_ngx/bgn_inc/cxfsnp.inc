@@ -61,7 +61,6 @@ extern "C"{
 
 #define CXFSNP_ITEM_FILE_IS_DIR         ((uint32_t) 0x0001)  /*directory   */
 #define CXFSNP_ITEM_FILE_IS_REG         ((uint32_t) 0x0002)  /*regular file*/
-#define CXFSNP_ITEM_FILE_IS_ANY         ((uint32_t) 0x0004)  /*any file    */
 #define CXFSNP_ITEM_FILE_IS_ERR         ((uint32_t) 0x0000)  /*4 bits      */
 
 #define CXFSNP_ITEM_IS_NOT_USED         ((uint32_t) 0x0000)  /*2 bits*/

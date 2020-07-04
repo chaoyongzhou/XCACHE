@@ -246,7 +246,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
 
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs write"   , "hsxfs <id> write file <name> with content <string> on tcid <tcid> at <console|log>");
 
-    api_cmd_help_vec_create(cmd_help_vec, "hsxfs delete"  , "hsxfs <id> delete {file|dir|path} <name> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs delete"  , "hsxfs <id> delete {file|dir} <name> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs set"     , "hsxfs <id> <set|unset|check> <sata|ssd> bad page <page no> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show <sata|ssd> bad pages on tcid <tcid> at <console|log>");
 
@@ -261,7 +261,6 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs replay"  , "hsxfs <id> replay op on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs pop"     , "hsxfs <id> pop op <size> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs mkdir"   , "hsxfs <id> mkdir <path> on tcid <tcid> at <console|log>");
-    api_cmd_help_vec_create(cmd_help_vec, "hsxfs search"  , "hsxfs <id> search <path> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs count"   , "hsxfs <id> count file num of <path> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs count"   , "hsxfs <id> count file size of <path> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs qfile"   , "hsxfs <id> qfile <file> on tcid <tcid> at <console|log>");
@@ -618,10 +617,8 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_read             , "hsxfs %n read file %s on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_write            , "hsxfs %n write file %s with content %s on tcid %t at %s", rank, where, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_mkdir            , "hsxfs %n mkdir %s on tcid %t at %s", rank, where, tcid, where);
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_search           , "hsxfs %n search %s on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_delete_file      , "hsxfs %n delete file %s on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_delete_dir       , "hsxfs %n delete dir %s on tcid %t at %s", rank, where, tcid, where);
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_delete_path      , "hsxfs %n delete path %s on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_delete_root_dir  , "hsxfs %n delete root dir %s on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_recycle          , "hsxfs %n recycle on tcid %t at %s", rank, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_retire           , "hsxfs %n retire max %n files on tcid %t at %s", rank, rank, tcid, where);
@@ -14495,56 +14492,6 @@ EC_BOOL api_cmd_ui_cxfs_mkdir(CMD_PARA_VEC * param)
     return (EC_TRUE);
 }
 
-EC_BOOL api_cmd_ui_cxfs_search(CMD_PARA_VEC * param)
-{
-    UINT32   cxfs_modi;
-    CSTRING *path_name;
-    UINT32   cxfs_tcid;
-    CSTRING *where;
-
-    MOD_NODE   mod_node;
-    LOG       *des_log;
-    EC_BOOL    ret;
-
-    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
-    api_cmd_para_vec_get_cstring(param , 1, &path_name);
-    api_cmd_para_vec_get_tcid(param    , 2, &cxfs_tcid);
-    api_cmd_para_vec_get_cstring(param , 3, &where);
-
-    /*hsxfs <id> search <path> on tcid <tcid> at <where>*/
-    /*hsxfs %n search %s on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_search: hsxfs %ld search %s on tcid %s at %s\n",
-                        cxfs_modi,
-                        (char *)cstring_get_str(path_name),
-                        c_word_to_ipv4(cxfs_tcid),
-                        (char *)cstring_get_str(where));
-
-    ret = EC_FALSE;
-
-    MOD_NODE_TCID(&mod_node) = cxfs_tcid;
-    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
-    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
-    MOD_NODE_MODI(&mod_node) = cxfs_modi;
-
-    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             &mod_node,
-             &ret,
-             FI_cxfs_search, CMPI_ERROR_MODI, path_name, (UINT32)CXFSNP_ITEM_FILE_IS_ANY);
-
-    des_log = api_cmd_ui_get_log(where);
-
-    if(EC_TRUE == ret)
-    {
-        sys_log(des_log, "[SUCC] search %s\n", (char *)cstring_get_str(path_name));
-    }
-    else
-    {
-        sys_log(des_log, "[FAIL] search %s\n", (char *)cstring_get_str(path_name));
-    }
-
-    return (EC_TRUE);
-}
-
 EC_BOOL api_cmd_ui_cxfs_count_file_num(CMD_PARA_VEC * param)
 {
     UINT32   cxfs_modi;
@@ -15528,56 +15475,6 @@ EC_BOOL api_cmd_ui_cxfs_delete_root_dir(CMD_PARA_VEC * param)
     else
     {
         sys_log(des_log, "[FAIL] delete dir %s\n", (char *)cstring_get_str(dname));
-    }
-
-    return (EC_TRUE);
-}
-
-EC_BOOL api_cmd_ui_cxfs_delete_path(CMD_PARA_VEC * param)
-{
-    UINT32   cxfs_modi;
-    CSTRING *path_name;
-    UINT32   cxfs_tcid;
-    CSTRING *where;
-
-    MOD_NODE   mod_node;
-    LOG       *des_log;
-    EC_BOOL   ret;
-
-    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
-    api_cmd_para_vec_get_cstring(param , 1, &path_name);
-    api_cmd_para_vec_get_tcid(param    , 2, &cxfs_tcid);
-    api_cmd_para_vec_get_cstring(param , 3, &where);
-
-    /*hsxfs delete path <name> on tcid <tcid> at <where>*/
-    /*hsxfs delete path %s on tcid %t at %s*/
-    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_delete_path: hsxfs %ld delete path %s on tcid %s at %s\n",
-                        cxfs_modi,
-                        (char *)cstring_get_str(path_name),
-                        c_word_to_ipv4(cxfs_tcid),
-                        (char *)cstring_get_str(where));
-
-    MOD_NODE_TCID(&mod_node) = cxfs_tcid;
-    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
-    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
-    MOD_NODE_MODI(&mod_node) = cxfs_modi;
-
-    ret = EC_FALSE;
-
-    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             &mod_node,
-             &ret,
-             FI_cxfs_delete, CMPI_ERROR_MODI, path_name, (UINT32)CXFSNP_ITEM_FILE_IS_ANY);
-
-    des_log = api_cmd_ui_get_log(where);
-
-    if(EC_TRUE == ret)
-    {
-        sys_log(des_log, "[SUCC] delete path %s\n", (char *)cstring_get_str(path_name));
-    }
-    else
-    {
-        sys_log(des_log, "[FAIL] delete path %s\n", (char *)cstring_get_str(path_name));
     }
 
     return (EC_TRUE);

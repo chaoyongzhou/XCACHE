@@ -3487,7 +3487,7 @@ EC_BOOL cxfshttps_handle_dsmf_get_request(CHTTP_NODE *chttp_node)
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 #if 1
-        if(EC_FALSE == cxfs_delete(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, CXFSNP_ITEM_FILE_IS_REG))
+        if(EC_FALSE == cxfs_delete_file(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
         {
             dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_handle_dsmf_get_request: cxfs delete file %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
@@ -3682,7 +3682,7 @@ EC_BOOL cxfshttps_handle_ddir_get_request(CHTTP_NODE *chttp_node)
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 #if 1
-        if(EC_FALSE == cxfs_delete(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, CXFSNP_ITEM_FILE_IS_DIR))
+        if(EC_FALSE == cxfs_delete_dir(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
         {
             dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_handle_ddir_get_request: cxfs delete dir %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
@@ -4571,7 +4571,7 @@ EC_BOOL cxfshttps_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
             cstring_append_str(&path_cstr, (const UINT8 *)path);
             cstring_trim(&path_cstr, (UINT8)'"');
 
-            if(EC_FALSE == cxfs_delete(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, CXFSNP_ITEM_FILE_IS_REG))
+            if(EC_FALSE == cxfs_delete_file(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
             {
                 dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_handle_mdsmf_post_request: cxfs delete %s failed\n",
                                     (char *)cstring_get_str(&path_cstr));
@@ -4934,7 +4934,7 @@ EC_BOOL cxfshttps_handle_mddir_post_request(CHTTP_NODE *chttp_node)
             cstring_append_str(&path_cstr, (const UINT8 *)path);
             cstring_trim(&path_cstr, (UINT8)'"');
 
-            if(EC_FALSE == cxfs_delete(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, CXFSNP_ITEM_FILE_IS_DIR))
+            if(EC_FALSE == cxfs_delete_dir(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
             {
                 dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_handle_mddir_post_request: cxfs delete %s failed\n",
                                     (char *)cstring_get_str(&path_cstr));

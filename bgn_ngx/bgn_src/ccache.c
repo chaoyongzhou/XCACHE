@@ -959,7 +959,7 @@ EC_BOOL ccache_file_retire_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
     {
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
             &recv_mod_node,
-            &ret, FI_cxfs_delete, CMPI_ERROR_MODI, file_path, (UINT32)CRFSNP_ITEM_FILE_IS_REG);
+            &ret, FI_cxfs_delete_file, CMPI_ERROR_MODI, file_path);
     }
 
     e_time_msec = c_get_cur_time_msec();
