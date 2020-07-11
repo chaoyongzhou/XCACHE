@@ -926,7 +926,7 @@ EC_BOOL caio_disk_set_bad_page(CAIO_DISK *caio_disk, const uint32_t page_no)
     && CAIO_PAGE_NO_ERR != page_no)
     {
         dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "[DEBUG] caio_disk_set_bad_page: "
-                                             "set disk bad page: tag %s, fd %d, tag %s, page %u\n",
+                                             "set disk bad page: fd %d, tag %s, page %u\n",
                                              CAIO_DISK_FD(caio_disk),
                                              CAIO_DISK_TAG(caio_disk), page_no);
 

@@ -742,7 +742,7 @@ CMAGLEV_RNODE *cmaglev_lookup_rnode(CMAGLEV *cmaglev, const uint32_t hash)
     }
 
     dbg_log(SEC_0174_CMAGLEV, 9)(LOGSTDOUT, "[DEBUG] cmaglev_lookup_rnode: "
-                         "hash: %u, cur: %ld, pos: %ld, ring_size: %ld\n",
+                         "hash: %u, cur: %ld, pos: %d, ring_size: %ld\n",
                          hash, cur, pos, CMAGLEV_RING_SIZE(cmaglev));
 
     cmaglev_rnode = (CMAGLEV_RNODE *)cvector_get(CMAGLEV_RNODE_VEC(cmaglev), pos);

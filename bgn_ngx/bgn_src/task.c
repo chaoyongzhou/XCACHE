@@ -7639,7 +7639,7 @@ EC_BOOL task_brd_os_setting(TASK_BRD *task_brd)
         }
 
         dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "[DEBUG] task_brd_os_setting: "
-                                             "[RLIMIT_NOFILE] resource soft limit: %d, hard limit: %d\n",
+                                             "[RLIMIT_NOFILE] resource soft limit: %ld, hard limit: %ld\n",
                                              limit.rlim_cur, limit.rlim_max);
 
         limit.rlim_cur = 819200; /*Soft limit*/
@@ -7648,7 +7648,7 @@ EC_BOOL task_brd_os_setting(TASK_BRD *task_brd)
         if(0 != setrlimit(resource, &limit))
         {
             dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_os_setting: "
-                                                 "[RLIMIT_NOFILE] setrlimit soft limit %d or hard limit %d failed, "
+                                                 "[RLIMIT_NOFILE] setrlimit soft limit %ld or hard limit %ld failed, "
                                                  "errno = %d, errstr = %s\n",
                                                  limit.rlim_cur, limit.rlim_max,
                                                  errno, strerror(errno));
@@ -7668,7 +7668,7 @@ EC_BOOL task_brd_os_setting(TASK_BRD *task_brd)
         }
 
         dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "[DEBUG] task_brd_os_setting: "
-                                             "[RLIMIT_NOFILE] resource soft limit: %d, hard limit: %d\n",
+                                             "[RLIMIT_NOFILE] resource soft limit: %ld, hard limit: %ld\n",
                                              limit.rlim_cur, limit.rlim_max);
 
     }
@@ -7878,7 +7878,7 @@ void task_brd_stop_child(UINT32 arg)
 
     child_pid = (pid_t)arg;
 
-    dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "task_brd_stop_child: child pid = %ld\n", child_pid);
+    dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "task_brd_stop_child: child pid = %d\n", child_pid);
 
     kill(child_pid, SIGTERM);
     return;
@@ -7913,20 +7913,20 @@ EC_BOOL task_brd_wait_status(pid_t child_pid)
             || SIGTERM == WTERMSIG(status)
             || SIGINT  == WTERMSIG(status))
             {
-                dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "task_brd_wait_status: %ld exited on signal %d => stop\n",
+                dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "task_brd_wait_status: %d exited on signal %d => stop\n",
                                    pid, WTERMSIG(status));
                 return (EC_FALSE);
             }
             else
             {
-                dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "task_brd_wait_status: %ld exited on signal %d => restart\n",
+                dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "task_brd_wait_status: %d exited on signal %d => restart\n",
                                    pid, WTERMSIG(status));
                 return (EC_TRUE);
             }
         }
         else
         {
-            dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "task_brd_wait_status: %ld exited with code %d => restart\n",
+            dbg_log(SEC_0015_TASK, 9)(LOGCONSOLE, "task_brd_wait_status: %d exited with code %d => restart\n",
                                pid, WEXITSTATUS(status));
 
             return (EC_TRUE);
@@ -10665,7 +10665,7 @@ UINT32 task_req_decode_thread(TASK_BRD *task_brd, TASK_NODE *task_node)
 #if 1
 STATIC_CAST static void task_rsp_discard_dbg_info(const TASK_MGR *task_mgr, const TASK_RSP *task_rsp)
 {
-    dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "disc rsp: from (tcid %s,comm %ld,rank %ld,modi %ld) to (tcid %s,comm %ld,rank %ld,modi %ld) with priority %ld, type %ld, tag %ld, ldb %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx ==> task mgr %lx(%lx), fail %ld, succ %ld\n",
+    dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "disc rsp: from (tcid %s,comm %ld,rank %ld,modi %ld) to (tcid %s,comm %ld,rank %ld,modi %ld) with priority %ld, type %ld, tag %ld, ldb %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx ==> task mgr %p(%p), fail %ld, succ %ld\n",
                     TASK_RSP_SEND_TCID_STR(task_rsp), TASK_RSP_SEND_COMM(task_rsp), TASK_RSP_SEND_RANK(task_rsp), TASK_RSP_SEND_MODI(task_rsp),
                     TASK_RSP_RECV_TCID_STR(task_rsp), TASK_RSP_RECV_COMM(task_rsp), TASK_RSP_RECV_RANK(task_rsp), TASK_RSP_RECV_MODI(task_rsp),
                     TASK_RSP_PRIO(task_rsp), TASK_RSP_TYPE(task_rsp),
@@ -10682,7 +10682,7 @@ STATIC_CAST static void task_rsp_discard_dbg_info(const TASK_MGR *task_mgr, cons
 
 STATIC_CAST static void task_rsp_succ_dbg_info(const TASK_MGR *task_mgr, const TASK_RSP *task_rsp)
 {
-    dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "succ rsp: from (tcid %s,comm %ld,rank %ld,modi %ld) to (tcid %s,comm %ld,rank %ld,modi %ld) with priority %ld, type %ld, tag %ld, ldb %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx ==> task mgr %lx(%lx), succ %ld, fail %ld\n",
+    dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "succ rsp: from (tcid %s,comm %ld,rank %ld,modi %ld) to (tcid %s,comm %ld,rank %ld,modi %ld) with priority %ld, type %ld, tag %ld, ldb %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx ==> task mgr %p(%p), succ %ld, fail %ld\n",
                     TASK_RSP_SEND_TCID_STR(task_rsp), TASK_RSP_SEND_COMM(task_rsp), TASK_RSP_SEND_RANK(task_rsp), TASK_RSP_SEND_MODI(task_rsp),
                     TASK_RSP_RECV_TCID_STR(task_rsp), TASK_RSP_RECV_COMM(task_rsp), TASK_RSP_RECV_RANK(task_rsp), TASK_RSP_RECV_MODI(task_rsp),
                     TASK_RSP_PRIO(task_rsp), TASK_RSP_TYPE(task_rsp),
@@ -10698,7 +10698,7 @@ STATIC_CAST static void task_rsp_succ_dbg_info(const TASK_MGR *task_mgr, const T
 
 STATIC_CAST static void task_rsp_fail_dbg_info(const TASK_MGR *task_mgr, const TASK_RSP *task_rsp)
 {
-    dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "fail rsp: from (tcid %s,comm %ld,rank %ld,modi %ld) to (tcid %s,comm %ld,rank %ld,modi %ld) with priority %ld, type %ld, tag %ld, ldb %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx ==> task mgr %lx(%lx), fail %ld, succ %ld\n",
+    dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "fail rsp: from (tcid %s,comm %ld,rank %ld,modi %ld) to (tcid %s,comm %ld,rank %ld,modi %ld) with priority %ld, type %ld, tag %ld, ldb %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx ==> task mgr %p(%p), fail %ld, succ %ld\n",
                     TASK_RSP_SEND_TCID_STR(task_rsp), TASK_RSP_SEND_COMM(task_rsp), TASK_RSP_SEND_RANK(task_rsp), TASK_RSP_SEND_MODI(task_rsp),
                     TASK_RSP_RECV_TCID_STR(task_rsp), TASK_RSP_RECV_COMM(task_rsp), TASK_RSP_RECV_RANK(task_rsp), TASK_RSP_RECV_MODI(task_rsp),
                     TASK_RSP_PRIO(task_rsp), TASK_RSP_TYPE(task_rsp),
@@ -12461,7 +12461,7 @@ EC_BOOL task_mgr_print(LOG *log, TASK_MGR *task_mgr)
 
         task_req = TASK_NODE_REQ(task_node);
 
-        sys_log(log, "[task_mgr %lx, task_queue %lx] No. %ld: node tag %ld, node status %ld: (tcid %s,comm %ld,rank %ld,modi %ld) -> (tcid %s,comm %ld,rank %ld,modi %ld),tag %ld,seqno %lx.%lx.%lx,subseqno %ld: func id %lx\n",
+        sys_log(log, "[task_mgr %p, task_queue %lx] No. %ld: node tag %ld, node status %ld: (tcid %s,comm %ld,rank %ld,modi %ld) -> (tcid %s,comm %ld,rank %ld,modi %ld),tag %ld,seqno %lx.%lx.%lx,subseqno %ld: func id %lx\n",
                         task_mgr, task_queue, idx, TASK_NODE_TAG(task_node), TASK_NODE_STATUS(task_node),
                         TASK_REQ_SEND_TCID_STR(task_req), TASK_REQ_SEND_COMM(task_req), TASK_REQ_SEND_RANK(task_req), TASK_REQ_SEND_MODI(task_req),
                         TASK_REQ_RECV_TCID_STR(task_req), TASK_REQ_RECV_COMM(task_req), TASK_REQ_RECV_RANK(task_req), TASK_REQ_RECV_MODI(task_req),
@@ -12605,7 +12605,7 @@ void task_brd_aging_task_mgr_list(TASK_BRD *task_brd)
         }
         else
         {
-            //dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "task_brd_aging_task_mgr_list: task_mgr %lx  reserved by %ld threads\n", task_mgr, TASK_MGR_COUNTER(task_mgr, TASK_MGR_COUNTER_TASK_RSP_RESERVD));
+            //dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "task_brd_aging_task_mgr_list: task_mgr %p  reserved by %ld threads\n", task_mgr, TASK_MGR_COUNTER(task_mgr, TASK_MGR_COUNTER_TASK_RSP_RESERVD));
         }
     }
 
@@ -13761,7 +13761,7 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
     COROUTINE_POOL *coroutine_pool;
 
 #if (SWITCH_OFF == NGX_BGN_SWITCH)
-    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] do_slave_enhanced is running on tid %d\n", CTHREAD_GET_TID());
+    dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "[DEBUG] do_slave_enhanced is running on tid %ld\n", CTHREAD_GET_TID());
 #endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
 
     if(ERR_PID == TASK_BRD_DO_SLAVE_PID(task_brd))
@@ -14387,7 +14387,7 @@ EC_BOOL task_wait(TASK_MGR *task_mgr, const UINT32 time_to_live, const UINT32 ta
     /*if no task req in task mgr, then return after clean up task mgr*/
     if(EC_TRUE == clist_is_empty(TASK_MGR_QUEUE(task_mgr)))
     {
-        //dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "task_wait: task_mgr %lx is empty\n", task_mgr);
+        //dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT, "task_wait: task_mgr %p is empty\n", task_mgr);
         clist_del(TASK_MGR_QUEUE(task_mgr), (void *)task_mgr, NULL_PTR);
         task_mgr_free(task_mgr);
         return (EC_FALSE);

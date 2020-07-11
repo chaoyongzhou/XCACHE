@@ -5208,7 +5208,7 @@ UINT32 c_cond_spy(CCOND *ccond, const UINT32 location)
 
 #if defined(REG_RIP)
 #define CMISC_PLATFORM __IA64
-#define CMISC_REG_FORMAT "%016lx"
+#define CMISC_REG_FORMAT "%016llx"
 #define CMISC_REG_RIP   REG_RIP
 #define CMISC_REG_RBP   REG_RBP
 #elif defined(REG_EIP)

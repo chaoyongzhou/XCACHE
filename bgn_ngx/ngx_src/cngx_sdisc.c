@@ -122,7 +122,7 @@ static EC_BOOL cngx_sdisc_recver(void *UNUSED(cycle), CSDISC_NODE *csdisc_node)
 
         dbg_log(SEC_0176_CNGX, 5)(LOGSTDOUT, "[DEBUG] cngx_sdisc_recver: "
                                              "recv '%.*s' done\n",
-                                             c_buff - s_buff + 1, (char *)s_buff);
+                                             (uint32_t)(c_buff - s_buff + 1), (char *)s_buff);
 
         s_buff ++;
         *c_buff = '\0';

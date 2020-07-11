@@ -697,14 +697,22 @@ uint16_t cdcpgd_page_model(const CDCPGD *cdcpgd)
 
 EC_BOOL cdcpgd_max_size(UINT32 *size)
 {
-    uint16_t block_no;
+    UINT32   block_size;
+    //uint16_t block_no;
 
     cdcpgd_hdr_max_size(size);
 
+    block_size = 0;
+    cdcpgb_max_size(&block_size);
+
+    (*size) += block_size * CDCPGD_MAX_BLOCK_NUM;
+
+#if 0
     for(block_no = 0; block_no < CDCPGD_MAX_BLOCK_NUM; block_no ++)
     {
         cdcpgb_max_size(size);
     }
+#endif
     return (EC_TRUE);
 }
 

@@ -8504,7 +8504,7 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_set_cc_cache_control(CHTTP
         }
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
-        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_set_cc_cache_control: sockfd %d, seg_id %u, cache_ctrl: 0x%lx\n",
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_set_cc_cache_control: sockfd %d, seg_id %u, cache_ctrl: %#x\n",
                         CSOCKET_CNODE_SOCKFD(csocket_cnode),
                         CHTTP_STORE_SEG_ID(CHTTP_NODE_STORE(chttp_node)),
                         cache_control);
@@ -8528,7 +8528,7 @@ STATIC_CAST static EC_BOOL __chttp_node_filter_header_set_override_expires(CHTTP
     if(CHTTP_STORE_CACHE_ERR == cache_control || CHTTP_STORE_CACHE_NONE == cache_control)
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_node_filter_header_set_override_expires: "
-                                              "not add 'Expires' due to cache_ctrl 0x%lx\n",
+                                              "not add 'Expires' due to cache_ctrl %#x\n",
                                               cache_control);
         return(EC_TRUE);
     }
@@ -11080,7 +11080,7 @@ STATIC_CAST static EC_BOOL __chttp_request_header_file_read(const CHTTP_REQ *cht
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_request_header_file_read: "
                                               "header '\n%.*s\n' => \n",
-                                              CBYTES_LEN(&cbytes),
+                                              (uint32_t)CBYTES_LEN(&cbytes),
                                               (char *)CBYTES_BUF(&cbytes));
 
         chttp_rsp_print_plain(LOGSTDOUT, chttp_rsp);
@@ -11211,7 +11211,7 @@ STATIC_CAST static EC_BOOL __chttp_request_header_file_wait(const CHTTP_REQ *cht
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_request_header_file_wait: "
                                               "header '\n%.*s\n' => \n",
-                                              CBYTES_LEN(&content_cbytes),
+                                              (uint32_t)CBYTES_LEN(&content_cbytes),
                                               (char *)CBYTES_BUF(&content_cbytes));
 
         chttp_rsp_print_plain(LOGSTDOUT, chttp_rsp);

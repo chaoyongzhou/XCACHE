@@ -74,6 +74,16 @@ extern "C"{
 #define CAMD_NOT_RETRIEVE_BAD_BITMAP                    ((UINT32)0)
 #define CAMD_RETRIEVE_BAD_BITMAP                        ((UINT32)1)
 
+typedef EC_BOOL (*CAMD_CHECK_PAGE_USED)(const UINT32, const UINT32, const UINT32, const UINT32, const UINT32);
+typedef struct
+{
+    void                       *func;     /*callback function address*/
+    void                       *data;     /*arg*/
+}CAMD_CB;
+
+#define CAMD_CB_FUNC(camd_cb)           ((camd_cb)->func)
+#define CAMD_CB_DATA(camd_cb)           ((camd_cb)->data)
+
 typedef struct
 {
     char            *camd_dir;
@@ -82,6 +92,8 @@ typedef struct
     CMC_MD          *cmc_md;
     CDC_MD          *cdc_md;
     CDIO_MD         *cdio_md;
+
+    CAMD_CB          check_page_used_cb;
 
     UINT32           seq_no;            /*sequence number factory*/
 
@@ -100,7 +112,9 @@ typedef struct
     uint32_t         rsvd02;
 
     int              sata_disk_fd;
+    int              ssd_meta_fd;
     int              ssd_disk_fd;
+    int              rsvd03;
 
     CPG_BITMAP      *ssd_bad_bitmap;    /*ssd bad aio-page bitmap*/
     CPG_BITMAP      *sata_bad_bitmap;   /*sata bad aio-page bitmap*/
@@ -126,6 +140,7 @@ typedef struct
 #define CAMD_MD_CMC_MD(camd_md)                         ((camd_md)->cmc_md)
 #define CAMD_MD_CDC_MD(camd_md)                         ((camd_md)->cdc_md)
 #define CAMD_MD_CDIO_MD(camd_md)                        ((camd_md)->cdio_md)
+#define CAMD_MD_CHECK_PAGE_USED_CB(camd_md)             (&((camd_md)->check_page_used_cb))
 #define CAMD_MD_SEQ_NO(camd_md)                         ((camd_md)->seq_no)
 #define CAMD_MD_REQ_LIST(camd_md)                       (&((camd_md)->req_list))
 #define CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md)           ((camd_md)->page_tree_idx)
@@ -138,6 +153,7 @@ typedef struct
 #define CAMD_MD_RESTART_FLAG(camd_md)                   ((camd_md)->restart_flag)
 #define CAMD_MD_DONTDUMP_FLAG(camd_md)                  ((camd_md)->dontdump_flag)
 #define CAMD_MD_SATA_DISK_FD(camd_md)                   ((camd_md)->sata_disk_fd)
+#define CAMD_MD_SSD_META_FD(camd_md)                    ((camd_md)->ssd_meta_fd)
 #define CAMD_MD_SSD_DISK_FD(camd_md)                    ((camd_md)->ssd_disk_fd)
 #define CAMD_MD_SSD_BAD_BITMAP(camd_md)                 ((camd_md)->ssd_bad_bitmap)
 #define CAMD_MD_SATA_BAD_BITMAP(camd_md)                ((camd_md)->sata_bad_bitmap)
@@ -431,6 +447,13 @@ typedef struct
 #define CAMD_COND_CCOND(camd_cond)                    (&((camd_cond)->ccond))
 #define CAMD_COND_RESULT(camd_cond)                   ((camd_cond)->result)
 
+/*----------------------------------- camd callback interface -----------------------------------*/
+EC_BOOL camd_cb_init(CAMD_CB *camd_cb);
+
+EC_BOOL camd_cb_clean(CAMD_CB *camd_cb);
+
+EC_BOOL camd_cb_set(CAMD_CB *camd_cb, void *data, void *func);
+
 /*----------------------------------- camd page interface -----------------------------------*/
 
 void camd_mem_cache_counter_print(LOG *log);
@@ -599,9 +622,12 @@ void camd_file_req_print(LOG *log, const CAMD_FILE_REQ *camd_file_req);
 /*----------------------------------- camd module interface -----------------------------------*/
 
 CAMD_MD *camd_start(const char *camd_shm_root_dir,
+                       const int sata_meta_fd,
                        const int sata_disk_fd, const UINT32 sata_disk_size /*in byte*/,
                        const UINT32 mem_disk_size /*in byte*/,
-                       const int ssd_disk_fd, const UINT32 ssd_disk_offset, const UINT32 ssd_disk_size/*in byte*/);
+                       const int ssd_meta_fd,
+                       const int ssd_disk_fd, const UINT32 ssd_disk_offset, const UINT32 ssd_disk_size/*in byte*/
+                       );
 
 void camd_end(CAMD_MD *camd_md);
 
@@ -801,6 +827,8 @@ EC_BOOL camd_sata_degrade_complete(CAMD_SATA *camd_sata);
 /*flush one page to sata when cmc scan deg list*/
 EC_BOOL camd_sata_degrade(CAMD_MD *camd_md, const CMCNP_KEY *cmcnp_key, const CMCNP_ITEM *cmcnp_item,
                             const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no);
+
+EC_BOOL camd_set_check_page_used_cb(CAMD_MD *camd_md, void *data, void *func);
 
 EC_BOOL camd_create_ssd_bad_bitmap(CAMD_MD *camd_md);
 

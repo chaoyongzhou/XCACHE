@@ -202,6 +202,8 @@ EC_BOOL cxfspgv_reserve_space(CXFSPGV *cxfspgv, const uint32_t size, const uint1
 
 EC_BOOL cxfspgv_release_space(CXFSPGV *cxfspgv, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no, const uint32_t size);
 
+EC_BOOL cxfspgv_check_space_used(const CXFSPGV *cxfspgv, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no);
+
 EC_BOOL cxfspgv_is_full(const CXFSPGV *cxfspgv);
 
 EC_BOOL cxfspgv_is_empty(const CXFSPGV *cxfspgv);

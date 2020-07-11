@@ -145,7 +145,7 @@ EC_BOOL cxfsop_mgr_make(CXFSOP_MGR *cxfsop_mgr, const uint64_t size)
     if(NULL_PTR == data)
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_make: "
-                                               "alloc %ld bytes failed\n",
+                                               "alloc %lu bytes failed\n",
                                                size);
 
         return (EC_FALSE);
@@ -158,7 +158,7 @@ EC_BOOL cxfsop_mgr_make(CXFSOP_MGR *cxfsop_mgr, const uint64_t size)
     CXFSOP_MGR_DATA(cxfsop_mgr)      = data;
 
     dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_make: "
-                                           "make size %ld done\n",
+                                           "make size %lu done\n",
                                            size);
 
     return (EC_TRUE);
@@ -179,14 +179,14 @@ CXFSOP_MGR *cxfsop_mgr_create(const uint32_t size)
     if(EC_FALSE == cxfsop_mgr_make(cxfsop_mgr, size))
     {
         dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "error:cxfsop_mgr_create: "
-                                               "make size %ld failed\n",
+                                               "make size %u failed\n",
                                                size);
         cxfsop_mgr_free(cxfsop_mgr);
         return (NULL_PTR);
     }
 
     dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_create: "
-                                           "create size %ld done\n",
+                                           "create size %u done\n",
                                            size);
 
     return (cxfsop_mgr);
@@ -242,7 +242,7 @@ EC_BOOL cxfsop_mgr_umount_data(CXFSOP_MGR *cxfsop_mgr, uint64_t *size, void **da
 void cxfsop_mgr_print(LOG *log, const CXFSOP_MGR *cxfsop_mgr)
 {
     sys_log(log, "[DEBUG] cxfsop_mgr_print: "
-                 "cxfsop_mgr %p, size %u, used %u, data %p, camd %p\n",
+                 "cxfsop_mgr %p, size %lu, used %lu, data %p, camd %p\n",
                  cxfsop_mgr,
                  CXFSOP_MGR_SIZE(cxfsop_mgr),
                  CXFSOP_MGR_USED(cxfsop_mgr),
@@ -617,7 +617,7 @@ EC_BOOL cxfsop_mgr_scan(CXFSOP_MGR *cxfsop_mgr,
         if(CXFSOP_MAGIC_VAL != CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr))
         {
             dbg_log(SEC_0213_CXFSOP, 0)(LOGSTDOUT, "warn:cxfsop_mgr_scan: "
-                                                   "invalid magic num %lx\n",
+                                                   "invalid magic num %#x\n",
                                                    CXFSOP_COMM_HDR_MAGIC(cxfsop_comm_hdr));
             cur = cxfsop_mgr_search(cxfsop_mgr, cur, CXFSOP_SEARCH_MAX_LEN);
             continue;
@@ -944,7 +944,7 @@ EC_BOOL cxfsop_mgr_np_push_dir_add_op(CXFSOP_MGR         *cxfsop_mgr,
     }
 
     dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_np_push_dir_add_op: "
-                                           "[NP][D] [ADD] %.*s => used %u\n",
+                                           "[NP][D] [ADD] %.*s => used %lu\n",
                                            klen, key, CXFSOP_MGR_USED(cxfsop_mgr));
 
     return (EC_TRUE);
@@ -1012,7 +1012,7 @@ EC_BOOL cxfsop_mgr_np_push_dir_delete_op(CXFSOP_MGR         *cxfsop_mgr,
     }
 
     dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_np_push_dir_delete_op: "
-                                           "[NP][D] [DEL] %.*s => used %u\n",
+                                           "[NP][D] [DEL] %.*s => used %lu\n",
                                            klen, key, CXFSOP_MGR_USED(cxfsop_mgr));
     return (EC_TRUE);
 }
@@ -1079,7 +1079,7 @@ EC_BOOL cxfsop_mgr_np_push_dir_wildcard_delete_op(CXFSOP_MGR      *cxfsop_mgr,
     }
 
     dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_np_push_dir_wildcard_delete_op: "
-                                           "[NP][D] [DEL] %.*s => used %u\n",
+                                           "[NP][D] [DEL] %.*s => used %lu\n",
                                            klen, key, CXFSOP_MGR_USED(cxfsop_mgr));
     return (EC_TRUE);
 }
@@ -1160,7 +1160,7 @@ EC_BOOL cxfsop_mgr_np_push_file_add_op(CXFSOP_MGR      *cxfsop_mgr,
     }
 
     dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_np_push_file_add_op: "
-                                           "[NP][F] [ADD] %.*s, (disk %u, block %u, page %u, size %u) => used %u\n",
+                                           "[NP][F] [ADD] %.*s, (disk %u, block %u, page %u, size %u) => used %lu\n",
                                            klen, key,
                                            disk_no, block_no, page_no, file_size, CXFSOP_MGR_USED(cxfsop_mgr));
     return (EC_TRUE);
@@ -1228,7 +1228,7 @@ EC_BOOL cxfsop_mgr_np_push_file_delete_op(CXFSOP_MGR        *cxfsop_mgr,
     }
 
     dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_np_push_file_delete_op: "
-                                           "[NP][F] [DEL] %.*s => used %u\n",
+                                           "[NP][F] [DEL] %.*s => used %lu\n",
                                            klen, key, CXFSOP_MGR_USED(cxfsop_mgr));
     return (EC_TRUE);
 }
@@ -1295,7 +1295,7 @@ EC_BOOL cxfsop_mgr_np_push_file_wildcard_delete_op(CXFSOP_MGR       *cxfsop_mgr,
     }
 
     dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_np_push_file_wildcard_delete_op: "
-                                           "[NP][F] [DEL] %.*s => used %u\n",
+                                           "[NP][F] [DEL] %.*s => used %lu\n",
                                            klen, key, CXFSOP_MGR_USED(cxfsop_mgr));
 
     return (EC_TRUE);
@@ -1377,7 +1377,7 @@ EC_BOOL cxfsop_mgr_np_push_file_update_op(CXFSOP_MGR      *cxfsop_mgr,
     }
 
     dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_np_push_file_update_op: "
-                                           "[NP][F][UPD] %.*s, (disk %u, block %u, page %u, size %u) => used %u\n",
+                                           "[NP][F][UPD] %.*s, (disk %u, block %u, page %u, size %u) => used %lu\n",
                                            klen, key,
                                            disk_no, block_no, page_no, file_size, CXFSOP_MGR_USED(cxfsop_mgr));
     return (EC_TRUE);
@@ -1418,7 +1418,7 @@ EC_BOOL cxfsop_mgr_np_push_item_retire(CXFSOP_MGR      *cxfsop_mgr,
 
 
    dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_np_push_item_retire: "
-                                           "[NP][I][RET] np %u, node %u => used %u\n",
+                                           "[NP][I][RET] np %u, node %u => used %lu\n",
                                            np_id, node_pos,
                                            CXFSOP_MGR_USED(cxfsop_mgr));
 
@@ -1460,7 +1460,7 @@ EC_BOOL cxfsop_mgr_np_push_item_recycle(CXFSOP_MGR      *cxfsop_mgr,
 
 
    dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_np_push_item_recycle: "
-                                           "[NP][I][REC] np %u, node %u => used %u\n",
+                                           "[NP][I][REC] np %u, node %u => used %lu\n",
                                            np_id, node_pos,
                                            CXFSOP_MGR_USED(cxfsop_mgr));
     return (EC_TRUE);
@@ -1504,7 +1504,7 @@ EC_BOOL cxfsop_mgr_dn_push_reserve_op(CXFSOP_MGR      *cxfsop_mgr,
     CXFSOP_MGR_USED(cxfsop_mgr)              += CXFSOP_DN_NODE_SIZE(cxfsop_dn_node);
 
     dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_dn_push_reserve_op: "
-                                           "[DN][RSV] (disk %u, block %u, page %u, size %u) => used %u\n",
+                                           "[DN][RSV] (disk %u, block %u, page %u, size %u) => used %lu\n",
                                            disk_no, block_no, page_no, data_size,
                                            CXFSOP_MGR_USED(cxfsop_mgr));
 
@@ -1549,7 +1549,7 @@ EC_BOOL cxfsop_mgr_dn_push_release_op(CXFSOP_MGR *cxfsop_mgr,
     CXFSOP_MGR_USED(cxfsop_mgr)              += CXFSOP_DN_NODE_SIZE(cxfsop_dn_node);
 
     dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_dn_push_release_op: "
-                                           "[DN][REL] (disk %u, block %u, page %u, size %u) => used %u\n",
+                                           "[DN][REL] (disk %u, block %u, page %u, size %u) => used %lu\n",
                                            disk_no, block_no, page_no, data_size,
                                            CXFSOP_MGR_USED(cxfsop_mgr));
 
@@ -1594,7 +1594,7 @@ EC_BOOL cxfsop_mgr_dn_push_recycle_op(CXFSOP_MGR *cxfsop_mgr,
     CXFSOP_MGR_USED(cxfsop_mgr)              += CXFSOP_DN_NODE_SIZE(cxfsop_dn_node);
 
     dbg_log(SEC_0213_CXFSOP, 9)(LOGSTDOUT, "[DEBUG] cxfsop_mgr_dn_push_release_op: "
-                                           "[DN][REC] (disk %u, block %u, page %u, size %u) => used %u\n",
+                                           "[DN][REC] (disk %u, block %u, page %u, size %u) => used %lu\n",
                                            disk_no, block_no, page_no, data_size,
                                            CXFSOP_MGR_USED(cxfsop_mgr));
     return (EC_TRUE);

@@ -52,8 +52,14 @@ EC_BOOL cxfscfg_init(CXFSCFG *cxfscfg)
 {
     CXFSCFG_MAGIC(cxfscfg)                = 0;
 
+    CXFSCFG_OFFSET(cxfscfg)               = ERR_OFFSET;
+
+    CXFSCFG_SATA_META_SIZE(cxfscfg)       = 0;
     CXFSCFG_SATA_DISK_SIZE(cxfscfg)       = 0;
     CXFSCFG_SATA_DISK_OFFSET(cxfscfg)     = ERR_OFFSET;
+
+    CXFSCFG_SATA_VDISK_SIZE(cxfscfg)      = 0;
+    CXFSCFG_SATA_VDISK_NUM(cxfscfg)       = 0;
 
     CXFSCFG_NP_SIZE(cxfscfg)              = 0;
     CXFSCFG_NP_MODEL(cxfscfg)             = CXFSNP_ERR_MODEL;
@@ -78,6 +84,7 @@ EC_BOOL cxfscfg_init(CXFSCFG *cxfscfg)
     CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg)     = ERR_OFFSET;
     CXFSCFG_DN_ZONE_E_OFFSET(cxfscfg)     = ERR_OFFSET;
 
+    CXFSCFG_SSD_META_SIZE(cxfscfg)        = 0;
     CXFSCFG_SSD_DISK_SIZE(cxfscfg)        = 0;
     CXFSCFG_SSD_DISK_OFFSET(cxfscfg)      = ERR_OFFSET;
 
@@ -89,8 +96,14 @@ EC_BOOL cxfscfg_clean(CXFSCFG *cxfscfg)
 {
     CXFSCFG_MAGIC(cxfscfg)                = 0;
 
+    CXFSCFG_OFFSET(cxfscfg)               = ERR_OFFSET;
+
+    CXFSCFG_SATA_META_SIZE(cxfscfg)       = 0;
     CXFSCFG_SATA_DISK_SIZE(cxfscfg)       = 0;
     CXFSCFG_SATA_DISK_OFFSET(cxfscfg)     = ERR_OFFSET;
+
+    CXFSCFG_SATA_VDISK_SIZE(cxfscfg)      = 0;
+    CXFSCFG_SATA_VDISK_NUM(cxfscfg)       = 0;
 
     CXFSCFG_NP_SIZE(cxfscfg)              = 0;
     CXFSCFG_NP_MODEL(cxfscfg)             = CXFSNP_ERR_MODEL;
@@ -115,6 +128,7 @@ EC_BOOL cxfscfg_clean(CXFSCFG *cxfscfg)
     CXFSCFG_DN_ZONE_S_OFFSET(cxfscfg)     = ERR_OFFSET;
     CXFSCFG_DN_ZONE_E_OFFSET(cxfscfg)     = ERR_OFFSET;
 
+    CXFSCFG_SSD_META_SIZE(cxfscfg)        = 0;
     CXFSCFG_SSD_DISK_SIZE(cxfscfg)        = 0;
     CXFSCFG_SSD_DISK_OFFSET(cxfscfg)      = ERR_OFFSET;
 
@@ -125,15 +139,27 @@ EC_BOOL cxfscfg_clean(CXFSCFG *cxfscfg)
 void cxfscfg_print(LOG *log, const CXFSCFG *cxfscfg)
 {
     sys_print(log, "cxfscfg_print: cxfscfg %p, "
-                   "magic %#lx\n",
+                   "magic %#lx, offset %ld\n",
                    cxfscfg,
-                   CXFSCFG_MAGIC(cxfscfg));
+                   CXFSCFG_MAGIC(cxfscfg),
+                   CXFSCFG_OFFSET(cxfscfg));
 
     sys_print(log, "cxfscfg_print: cxfscfg %p, "
-                   "sata: size %ld, offset %ld\n",
+                   "sata meta: size %ld\n",
+                   cxfscfg,
+                   CXFSCFG_SATA_META_SIZE(cxfscfg));
+
+    sys_print(log, "cxfscfg_print: cxfscfg %p, "
+                   "sata disk: size %ld, offset %ld\n",
                    cxfscfg,
                    CXFSCFG_SATA_DISK_SIZE(cxfscfg),
                    CXFSCFG_SATA_DISK_OFFSET(cxfscfg));
+
+    sys_print(log, "cxfscfg_print: cxfscfg %p, "
+                   "sata vdisk: size %ld, num %ld\n",
+                   cxfscfg,
+                   CXFSCFG_SATA_VDISK_SIZE(cxfscfg),
+                   CXFSCFG_SATA_VDISK_NUM(cxfscfg));
 
     sys_print(log, "cxfscfg_print: cxfscfg %p, "
                    "np: size %ld, model %u, algo %u, "
@@ -191,7 +217,12 @@ void cxfscfg_print(LOG *log, const CXFSCFG *cxfscfg)
     cxfszone_print(log, CXFSCFG_DN_ZONE(cxfscfg, 1));
 
     sys_print(log, "cxfscfg_print: cxfscfg %p, "
-                   "ssd: size %ld, offset %ld\n",
+                   "ssd meta: size %ld\n",
+                   cxfscfg,
+                   CXFSCFG_SSD_META_SIZE(cxfscfg));
+
+    sys_print(log, "cxfscfg_print: cxfscfg %p, "
+                   "ssd disk: size %ld, offset %ld\n",
                    cxfscfg,
                    CXFSCFG_SSD_DISK_SIZE(cxfscfg),
                    CXFSCFG_SSD_DISK_OFFSET(cxfscfg));
@@ -204,23 +235,64 @@ void cxfscfg_print(LOG *log, const CXFSCFG *cxfscfg)
    return;
 }
 
-EC_BOOL cxfscfg_load(CXFSCFG *cxfscfg, int fd)
+/*determine cxfscfg offset if cxfscfg is on sata disk*/
+EC_BOOL cxfscfg_compute_offset(const UINT32 sata_disk_size, const UINT32 vdisk_size, UINT32 *offset)
+{
+    UINT32      tail_size;
+
+    ASSERT(0 < vdisk_size);
+    ASSERT(NULL_PTR != offset);
+
+    /*vdisk_size <= tail_size < 2*vdisk_size*/
+    tail_size   = vdisk_size + (sata_disk_size % vdisk_size);
+    while(tail_size < CXFSCFG_TAIL_SIZE_MIN)
+    {
+        tail_size += vdisk_size;
+    }
+
+    if(tail_size >= sata_disk_size)
+    {
+        return (EC_FALSE);
+    }
+
+    (*offset) = (sata_disk_size - tail_size);
+
+    dbg_log(SEC_0205_CXFSCFG, 0)(LOGSTDOUT, "[DEBUG] cxfscfg_compute_offset: "
+                                            "sata_disk_size %ld, vdisk_size %ld, "
+                                            "tail_size %ld, offset %ld\n",
+                                            sata_disk_size, vdisk_size,
+                                            tail_size, (*offset));
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfscfg_load(CXFSCFG *cxfscfg, int fd, const UINT32 offset)
 {
     void       *data; /*256KB*/
-    UINT32      offset;
+    UINT32      offset_t;
+
+    if(ERR_FD == fd)
+    {
+        dbg_log(SEC_0205_CXFSCFG, 0)(LOGSTDOUT, "error:cxfscfg_load: "
+                                                "no fd\n");
+
+        return (EC_FALSE);
+    }
 
     data = c_memalign_new(CXFSCFG_SIZE, CXFSCFG_ALIGNMENT);
     if(NULL_PTR == data)
     {
-        dbg_log(SEC_0205_CXFSCFG, 0)(LOGSTDOUT, "error:cxfscfg_load: memory insufficient\n");
+        dbg_log(SEC_0205_CXFSCFG, 0)(LOGSTDOUT, "error:cxfscfg_load: "
+                                                "memory insufficient\n");
         return (EC_FALSE);
     }
 
     /*load config*/
-    offset = 0;
-    if(EC_FALSE == c_file_pread(fd, &offset, CXFSCFG_SIZE, (UINT8 *)data))
+    offset_t = offset;
+    if(EC_FALSE == c_file_pread(fd, &offset_t, CXFSCFG_SIZE, (UINT8 *)data))
     {
-        dbg_log(SEC_0205_CXFSCFG, 0)(LOGSTDOUT, "error:cxfscfg_load: load cfg failed\n");
+        dbg_log(SEC_0205_CXFSCFG, 0)(LOGSTDOUT, "error:cxfscfg_load: "
+                                                "load cfg from offset %ld failed\n",
+                                                offset);
 
         c_memalign_free(data);
         return (EC_FALSE);
@@ -238,20 +310,40 @@ EC_BOOL cxfscfg_flush(const CXFSCFG *cxfscfg, int fd)
     void       *data; /*256KB*/
     UINT32      offset;
 
+    if(ERR_FD == fd)
+    {
+        dbg_log(SEC_0205_CXFSCFG, 0)(LOGSTDOUT, "error:cxfscfg_flush: "
+                                                "no fd\n");
+
+        return (EC_FALSE);
+    }
+
+    if(ERR_OFFSET == CXFSCFG_OFFSET(cxfscfg))
+    {
+        dbg_log(SEC_0205_CXFSCFG, 0)(LOGSTDOUT, "error:cxfscfg_flush: "
+                                                "invalid offset %ld\n",
+                                                CXFSCFG_OFFSET(cxfscfg));
+
+        return (EC_FALSE);
+    }
+
     data = c_memalign_new(CXFSCFG_SIZE, CXFSCFG_ALIGNMENT);
     if(NULL_PTR == data)
     {
-        dbg_log(SEC_0205_CXFSCFG, 0)(LOGSTDOUT, "error:cxfscfg_flush: memory insufficient\n");
+        dbg_log(SEC_0205_CXFSCFG, 0)(LOGSTDOUT, "error:cxfscfg_flush: "
+                                                "memory insufficient\n");
         return (EC_FALSE);
     }
 
     BCOPY(cxfscfg, data, sizeof(CXFSCFG));
 
     /*flush config*/
-    offset = 0;
+    offset = CXFSCFG_OFFSET(cxfscfg);
     if(EC_FALSE == c_file_pwrite(fd, &offset, CXFSCFG_SIZE, (UINT8 *)data))
     {
-        dbg_log(SEC_0205_CXFSCFG, 0)(LOGSTDOUT, "error:cxfscfg_flush: flush cfg failed\n");
+        dbg_log(SEC_0205_CXFSCFG, 0)(LOGSTDOUT, "error:cxfscfg_flush: "
+                                                "flush cfg at offset %ld failed\n",
+                                                CXFSCFG_OFFSET(cxfscfg));
 
         c_memalign_free(data);
         return (EC_FALSE);
@@ -261,7 +353,7 @@ EC_BOOL cxfscfg_flush(const CXFSCFG *cxfscfg, int fd)
 
     dbg_log(SEC_0205_CXFSCFG, 9)(LOGSTDOUT, "[DEBUG] cxfscfg_flush: "
                                             "flush %ld bytes to offset %ld done\n",
-                                            (UINT32)CXFSCFG_SIZE, (UINT32)0);
+                                            (UINT32)CXFSCFG_SIZE, CXFSCFG_OFFSET(cxfscfg));
 
     return (EC_TRUE);
 }
@@ -277,18 +369,29 @@ EC_BOOL cxfscfg_dump(const CXFSCFG *cxfscfg, CAMD_MD *camd_md)
         return (EC_FALSE);
     }
 
+    if(ERR_OFFSET == CXFSCFG_OFFSET(cxfscfg))
+    {
+        dbg_log(SEC_0205_CXFSCFG, 0)(LOGSTDOUT, "error:cxfscfg_dump: "
+                                                "invalid offset %ld\n",
+                                                CXFSCFG_OFFSET(cxfscfg));
+
+        return (EC_FALSE);
+    }
+
     /*dump config*/
-    offset = 0;
+    offset = CXFSCFG_OFFSET(cxfscfg);
 
     if(EC_FALSE == camd_file_write_dio(camd_md, &offset, sizeof(CXFSCFG), (UINT8 *)cxfscfg))
     {
         dbg_log(SEC_0205_CXFSCFG, 0)(LOGSTDOUT, "error:cxfscfg_dump: "
-                                                "dump cxfscfg failed\n");
+                                                "dump cxfscfg at offset %ld failed\n",
+                                                CXFSCFG_OFFSET(cxfscfg));
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0205_CXFSCFG, 0)(LOGSTDOUT, "[DEBUG] cxfscfg_dump: "
-                                            "dump cxfscfg done\n");
+                                            "dump cxfscfg at offset %ld done\n",
+                                            CXFSCFG_OFFSET(cxfscfg));
     return (EC_TRUE);
 }
 

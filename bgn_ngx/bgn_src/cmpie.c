@@ -3130,7 +3130,7 @@ UINT32 cmpi_decode_crfsnp_fnode(const UINT32 comm, const UINT8 *in_buff, const U
 
     if(CRFSNP_FILE_REPLICA_MAX_NUM < (replica_num))
     {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_crfsnp_fnode: replica num %ld overflow\n", replica_num);
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_crfsnp_fnode: replica num %u overflow\n", replica_num);
         return ((UINT32)-1);
     }
 
@@ -4927,7 +4927,6 @@ UINT32 cmpi_decode_cxfsnp_fnode(const UINT32 comm, const UINT8 *in_buff, const U
 {
     uint32_t file_size;
     uint32_t replica_num;
-    uint32_t hash;
 
     uint32_t cxfsnp_inode_pos;
 
@@ -4951,11 +4950,10 @@ UINT32 cmpi_decode_cxfsnp_fnode(const UINT32 comm, const UINT8 *in_buff, const U
 
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(file_size));
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(replica_num));
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(hash));
 
     if(CXFSNP_FILE_REPLICA_MAX_NUM < (replica_num))
     {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cxfsnp_fnode: replica num %ld overflow\n", replica_num);
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cxfsnp_fnode: replica num %u overflow\n", replica_num);
         return ((UINT32)-1);
     }
 

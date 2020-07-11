@@ -200,7 +200,7 @@ CPGD_HDR *cpgd_hdr_new(CPGD *cpgd, const uint16_t block_num)
     address = c_mmap_aligned_addr(CPGD_FSIZE(cpgd), align);
     if(NULL_PTR == address)
     {
-        dbg_log(SEC_0041_CPGD, 0)(LOGSTDOUT, "error:cpgd_hdr_new: fetch mmap aligned addr of file %s with fd %d fsize %ld align %ld failed\n",
+        dbg_log(SEC_0041_CPGD, 0)(LOGSTDOUT, "error:cpgd_hdr_new: fetch mmap aligned addr of file %s with fd %d fsize %u align %ld failed\n",
                            (char *)CPGD_FNAME(cpgd), CPGD_FD(cpgd), CPGD_FSIZE(cpgd), align);
         return (NULL_PTR);
     }
@@ -274,7 +274,7 @@ STATIC_CAST static CPGD_HDR *__cpgd_hdr_open(CPGD *cpgd)
     address = c_mmap_aligned_addr(CPGD_FSIZE(cpgd), align);
     if(NULL_PTR == address)
     {
-        dbg_log(SEC_0041_CPGD, 0)(LOGSTDOUT, "error:__cpgd_hdr_open: fetch mmap aligned addr of file %s with fd %d fsize %ld align %ld failed\n",
+        dbg_log(SEC_0041_CPGD, 0)(LOGSTDOUT, "error:__cpgd_hdr_open: fetch mmap aligned addr of file %s with fd %d fsize %u align %ld failed\n",
                            (char *)CPGD_FNAME(cpgd), CPGD_FD(cpgd), CPGD_FSIZE(cpgd), align);
         return (NULL_PTR);
     }

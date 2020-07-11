@@ -990,7 +990,7 @@ CDCNP_HEADER *cdcnp_header_new(const uint32_t np_id, const UINT32 fsize, const u
     uint32_t node_max_num;
     uint32_t node_sizeof;
 
-    node_max_num = 0;
+    node_max_num = 0; /*make GCC happy*/
 
     cdcnp_model_item_max_num(np_model, &node_max_num);
     node_sizeof = sizeof(CDCNP_ITEM);
@@ -1128,7 +1128,7 @@ EC_BOOL cdcnp_init(CDCNP *cdcnp)
 {
     CDCNP_RDONLY_FLAG(cdcnp)     = BIT_FALSE;
     CDCNP_DONTDUMP_FLAG(cdcnp)   = BIT_FALSE;
-    CDCNP_FD(cdcnp)              = ERR_FD;
+    CDCNP_SSD_META_FD(cdcnp)     = ERR_FD;
     CDCNP_SATA_DISK_SIZE(cdcnp)  = 0;
     CDCNP_S_OFFSET(cdcnp)        = CDCNP_OFFSET_ERR;
     CDCNP_E_OFFSET(cdcnp)        = CDCNP_OFFSET_ERR;
@@ -1157,7 +1157,7 @@ EC_BOOL cdcnp_clean(CDCNP *cdcnp)
 
     CDCNP_RDONLY_FLAG(cdcnp)     = BIT_FALSE;
     CDCNP_DONTDUMP_FLAG(cdcnp)   = BIT_FALSE;
-    CDCNP_FD(cdcnp)              = ERR_FD;
+    CDCNP_SSD_META_FD(cdcnp)     = ERR_FD;
     CDCNP_SATA_DISK_SIZE(cdcnp)  = 0;
     CDCNP_S_OFFSET(cdcnp)        = CDCNP_OFFSET_ERR;
     CDCNP_E_OFFSET(cdcnp)        = CDCNP_OFFSET_ERR;
@@ -1368,7 +1368,7 @@ void cdcnp_print(LOG *log, const CDCNP *cdcnp)
                  cdcnp,
                  CDCNP_ID(cdcnp),
                  CDCNP_FNAME(cdcnp),
-                 CDCNP_FD(cdcnp));
+                 CDCNP_SSD_META_FD(cdcnp));
 
     sys_log(log, "cdcnp %p: np %u, range [%ld, %ld), file size %ld, del size %llu, recycle size %llu\n",
                  cdcnp,
@@ -2594,24 +2594,11 @@ EC_BOOL cdcnp_retire(CDCNP *cdcnp, const UINT32 scan_max_num, const UINT32 expec
             CDCNP_KEY      *cdcnp_key; /*for debug*/
             UINT32          f_s_offset;
             UINT32          f_e_offset;
-            UINT32          vm_s_offset;
 
             cdcnp_key = CDCNP_ITEM_KEY(cdcnp_item);
 
             f_s_offset = (((UINT32)CDCNP_KEY_S_PAGE(cdcnp_key)) << CDCPGB_PAGE_SIZE_NBITS);
             f_e_offset = (((UINT32)CDCNP_KEY_E_PAGE(cdcnp_key)) << CDCPGB_PAGE_SIZE_NBITS);
-
-            vm_s_offset = CAMD_SATA_DISK_VM_S_OFFSET;
-            vm_s_offset = VAL_ALIGN_NEXT(vm_s_offset, ((UINT32)CDCPGB_PAGE_SIZE_NBITS));
-
-            if(0 < vm_s_offset && vm_s_offset <= f_s_offset)
-            {
-                dbg_log(SEC_0129_CDCNP, 2)(LOGSTDOUT, "info:cdcnp_retire: is vm space data, do not retire.\n");
-                /*avoid always scaned*/
-                cdcnpque_node_move_head(cdcnp, CDCNP_ITEM_QUE_NODE(cdcnp_item), node_pos);
-
-                continue;
-            }
 
             if(BIT_TRUE == CDCNP_ITEM_SATA_DIRTY_FLAG(cdcnp_item))
             {
@@ -3164,13 +3151,22 @@ EC_BOOL cdcnp_recycle(CDCNP *cdcnp, const UINT32 max_num, CDCNP_RECYCLE_NP *cdcn
 
 EC_BOOL cdcnp_header_load(CDCNP_HEADER *cdcnp_header, const uint32_t np_id, int fd, UINT32 *offset, const UINT32 fsize)
 {
+    UINT32  offset_saved;
+
+    offset_saved = (*offset);
     if(EC_FALSE == c_file_pread(fd, offset, fsize, (UINT8 *)cdcnp_header))
     {
         dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_header_load: "
-                                              "load %ld bytes failed of np %u from fd %d\n",
-                                              fsize, np_id, fd);
+                                              "load %ld bytes of np %u from fd %d, offset %ld, size %ld failed\n",
+                                              fsize, np_id,
+                                              fd, offset_saved, fsize);
         return (EC_FALSE);
     }
+
+    dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_header_load: "
+                                          "load %ld bytes of np %u from fd %d, offset %ld, size %ld done\n",
+                                          fsize, np_id,
+                                          fd, offset_saved, fsize);
 
     return (EC_TRUE);
 }
@@ -3179,17 +3175,22 @@ EC_BOOL cdcnp_header_flush(CDCNP_HEADER *cdcnp_header, const uint32_t np_id, int
 {
     if(NULL_PTR != cdcnp_header)
     {
+        UINT32  offset_saved;
+
+        offset_saved = (*offset);
         if(EC_FALSE == c_file_pwrite(fd, offset, fsize, (const UINT8 *)cdcnp_header))
         {
             dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_header_flush: "
-                                                  "flush cdcnp_hdr %p of np %u to fd %d with fsize %ld failed\n",
-                                                  cdcnp_header, np_id, fd, fsize);
+                                                  "flush cdcnp_hdr %p of np %u to fd %d, offset %ld, size %ld failed\n",
+                                                  cdcnp_header, np_id,
+                                                  fd, offset_saved, fsize);
             return (EC_FALSE);
         }
 
-        dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_header_flush: "
-                                              "flush cdcnp_hdr %p of np %u (magic %#x) to fd %d with size %ld done\n",
-                                              cdcnp_header, np_id, CDCNP_HEADER_MAGIC(cdcnp_header), fd, fsize);
+        dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "[DEBUG] cdcnp_header_flush: "
+                                              "flush cdcnp_hdr %p of np %u (magic %#x) to fd %d offset %ld, size %ld done\n",
+                                              cdcnp_header, np_id, CDCNP_HEADER_MAGIC(cdcnp_header),
+                                              fd, offset_saved, fsize);
         return (EC_TRUE);
     }
     return (EC_TRUE);
@@ -3381,6 +3382,8 @@ EC_BOOL cdcnp_load(CDCNP *cdcnp, const uint32_t np_id, int fd, UINT32 *s_offset,
     dbg_log(SEC_0129_CDCNP, 9)(LOGSTDOUT, "[DEBUG] cdcnp_load: "
                                           "np_id %u, np_model %u from fd %d, offset %ld\n",
                                           np_id, np_model_t, fd, f_s_offset);
+
+    np_size = 0; /*make GCC happy*/
 
     if(EC_FALSE == cdcnp_model_file_size(np_model_t, &np_size))
     {
@@ -3587,6 +3590,8 @@ EC_BOOL cdcnp_load_shm(CDCNP *cdcnp, CMMAP_NODE *cmmap_node, const uint32_t np_i
                                           "np_id %u, np_model %u\n",
                                           np_id_t, np_model_t);
 
+    np_size = 0; /*make GCC happy*/
+
     if(EC_FALSE == cdcnp_model_file_size(np_model_t, &np_size))
     {
         dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_load_shm: invalid np_model %u\n", np_model_t);
@@ -3752,6 +3757,8 @@ EC_BOOL cdcnp_retrieve_shm(CDCNP *cdcnp, CMMAP_NODE *cmmap_node, const uint32_t 
                                           "np_id %u, np_model %u\n",
                                           np_id_t, np_model_t);
 
+    np_size = 0; /*make GCC happy*/
+
     if(EC_FALSE == cdcnp_model_file_size(np_model_t, &np_size))
     {
         dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_retrieve_shm: invalid np_model %u\n", np_model_t);
@@ -3871,7 +3878,7 @@ EC_BOOL cdcnp_flush(CDCNP *cdcnp)
             return (EC_FALSE);
         }
 
-        if(ERR_FD == CDCNP_FD(cdcnp))
+        if(ERR_FD == CDCNP_SSD_META_FD(cdcnp))
         {
             dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_flush: no fd\n");
             return (EC_FALSE);
@@ -3892,12 +3899,12 @@ EC_BOOL cdcnp_flush(CDCNP *cdcnp)
 
         if(EC_FALSE == cdcnp_header_flush(cdcnp_header,
                                           CDCNP_HEADER_NP_ID(cdcnp_header),
-                                          CDCNP_FD(cdcnp), &offset, size))
+                                          CDCNP_SSD_META_FD(cdcnp), &offset, size))
         {
             dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_flush: "
                                                   "flush np %u to fd %d, offset %ld, size %ld failed\n",
                                                   CDCNP_HEADER_NP_ID(cdcnp_header),
-                                                  CDCNP_FD(cdcnp),
+                                                  CDCNP_SSD_META_FD(cdcnp),
                                                   CDCNP_S_OFFSET(cdcnp),
                                                   size);
             return (EC_FALSE);
@@ -3909,7 +3916,7 @@ EC_BOOL cdcnp_flush(CDCNP *cdcnp)
                                               "flush np %u (magic %#x) to fd %d, offset %ld => %ld, size %ld done\n",
                                               CDCNP_HEADER_NP_ID(cdcnp_header),
                                               CDCNP_HEADER_MAGIC(cdcnp_header),
-                                              CDCNP_FD(cdcnp),
+                                              CDCNP_SSD_META_FD(cdcnp),
                                               CDCNP_S_OFFSET(cdcnp), offset,
                                               size);
         return (EC_TRUE);
@@ -3927,6 +3934,8 @@ CDCNP *cdcnp_create(const uint32_t np_id, const uint8_t np_model, const uint32_t
     UINT32           f_s_offset;
     UINT32           f_e_offset;
     UINT32           np_size;
+
+    np_size = 0; /*make GCC happy*/
 
     if(EC_FALSE == cdcnp_model_file_size(np_model, &np_size))
     {
@@ -3987,7 +3996,7 @@ CDCNP *cdcnp_create(const uint32_t np_id, const uint8_t np_model, const uint32_t
     CDCNP_DEL_LIST(cdcnp) = CDCNP_ITEM_DEL_NODE(cdcnp_fetch(cdcnp, CDCNPDEL_ROOT_POS));
     CDCNP_DEG_LIST(cdcnp) = CDCNP_ITEM_DEG_NODE(cdcnp_fetch(cdcnp, CDCNPDEG_ROOT_POS));
 
-    CDCNP_FD(cdcnp)                = ERR_FD;
+    CDCNP_SSD_META_FD(cdcnp)       = ERR_FD;
     CDCNP_SATA_DISK_SIZE(cdcnp)    = 0;
     CDCNP_S_OFFSET(cdcnp)          = f_s_offset;
     CDCNP_E_OFFSET(cdcnp)          = f_s_offset + np_size;
@@ -4016,6 +4025,8 @@ CDCNP *cdcnp_create_shm(CMMAP_NODE *cmmap_node, const uint32_t np_id, const uint
     uint32_t         node_max_num;
     uint32_t         node_sizeof;
 
+    np_size = 0; /*make GCC happy*/
+
     if(EC_FALSE == cdcnp_model_file_size(np_model, &np_size))
     {
         dbg_log(SEC_0129_CDCNP, 0)(LOGSTDOUT, "error:cdcnp_create_shm: invalid np_model %u\n", np_model);
@@ -4040,6 +4051,8 @@ CDCNP *cdcnp_create_shm(CMMAP_NODE *cmmap_node, const uint32_t np_id, const uint
                                               f_s_offset, f_e_offset);
         return (NULL_PTR);
     }
+
+    node_max_num = 0;  /*make GCC happy*/
 
     cdcnp_model_item_max_num(np_model, &node_max_num);
     node_sizeof = sizeof(CDCNP_ITEM);
@@ -4106,11 +4119,11 @@ CDCNP *cdcnp_create_shm(CMMAP_NODE *cmmap_node, const uint32_t np_id, const uint
     CDCNP_DEL_LIST(cdcnp) = CDCNP_ITEM_DEL_NODE(cdcnp_fetch(cdcnp, CDCNPDEL_ROOT_POS));
     CDCNP_DEG_LIST(cdcnp) = CDCNP_ITEM_DEG_NODE(cdcnp_fetch(cdcnp, CDCNPDEG_ROOT_POS));
 
-    CDCNP_FD(cdcnp)                = ERR_FD;
+    CDCNP_SSD_META_FD(cdcnp)       = ERR_FD;
     CDCNP_SATA_DISK_SIZE(cdcnp)    = 0;
-    CDCNP_S_OFFSET(cdcnp)  = f_s_offset;
-    CDCNP_E_OFFSET(cdcnp)  = f_s_offset + np_size;
-    CDCNP_FNAME(cdcnp)     = NULL_PTR;
+    CDCNP_S_OFFSET(cdcnp)          = f_s_offset;
+    CDCNP_E_OFFSET(cdcnp)          = f_s_offset + np_size;
+    CDCNP_FNAME(cdcnp)             = NULL_PTR;
 
     (*s_offset) = f_s_offset + np_size;
 

@@ -201,7 +201,7 @@ UINT32 cflv_start(ngx_http_request_t *r)
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)cflv_end, cflv_md_id);
 
-    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_start: start CFLV module #%u\n", cflv_md_id);
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_start: start CFLV module #%ld\n", cflv_md_id);
 
     return ( cflv_md_id );
 }
@@ -220,7 +220,7 @@ void cflv_end(const UINT32 cflv_md_id)
     cflv_md = CFLV_MD_GET(cflv_md_id);
     if(NULL_PTR == cflv_md)
     {
-        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_end: cflv_md_id = %u not exist.\n", cflv_md_id);
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_end: cflv_md_id = %ld not exist.\n", cflv_md_id);
         dbg_exit(MD_CFLV, cflv_md_id);
     }
 
@@ -233,7 +233,7 @@ void cflv_end(const UINT32 cflv_md_id)
 
     if ( 0 == cflv_md->usedcounter )
     {
-        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_end: cflv_md_id = %u is not started.\n", cflv_md_id);
+        dbg_log(SEC_0146_CFLV, 0)(LOGSTDOUT, "error:cflv_end: cflv_md_id = %ld is not started.\n", cflv_md_id);
         dbg_exit(MD_CFLV, cflv_md_id);
     }
 
@@ -303,7 +303,7 @@ void cflv_end(const UINT32 cflv_md_id)
     /* free module */
     cflv_md->usedcounter = 0;
 
-    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "cflv_end: stop CFLV module #%u\n", cflv_md_id);
+    dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "cflv_end: stop CFLV module #%ld\n", cflv_md_id);
     cbc_md_free(MD_CFLV, cflv_md_id);
 
     return ;
@@ -359,7 +359,7 @@ EC_BOOL cflv_set_ngx_rc(const UINT32 cflv_md_id, const ngx_int_t rc, const UINT3
     if(NGX_OK != CFLV_MD_NGX_RC(cflv_md))
     {
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_set_ngx_rc: "
-                                             "ignore rc %d due to its %d now\n",
+                                             "ignore rc %ld due to its %ld now\n",
                                              rc, CFLV_MD_NGX_RC(cflv_md));
         return (EC_TRUE);
     }
@@ -368,7 +368,7 @@ EC_BOOL cflv_set_ngx_rc(const UINT32 cflv_md_id, const ngx_int_t rc, const UINT3
     if(EC_FALSE == cngx_need_send_header(r))
     {
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_set_ngx_rc: "
-                                             "ignore rc %d due to header had sent out\n",
+                                             "ignore rc %ld due to header had sent out\n",
                                              rc);
         cngx_disable_keepalive(r);
         return (EC_TRUE);
@@ -378,7 +378,7 @@ EC_BOOL cflv_set_ngx_rc(const UINT32 cflv_md_id, const ngx_int_t rc, const UINT3
     CFLV_MD_NGX_LOC(cflv_md) = location;
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_set_ngx_rc: "
-                                         "set rc %d\n",
+                                         "set rc %ld\n",
                                          rc);
 
     return (EC_TRUE);
@@ -405,7 +405,7 @@ EC_BOOL cflv_override_ngx_rc(const UINT32 cflv_md_id, const ngx_int_t rc, const 
     if(rc == CFLV_MD_NGX_RC(cflv_md))
     {
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_override_ngx_rc: "
-                                             "ignore same rc %d\n",
+                                             "ignore same rc %ld\n",
                                              rc);
         return (EC_TRUE);
     }
@@ -414,7 +414,7 @@ EC_BOOL cflv_override_ngx_rc(const UINT32 cflv_md_id, const ngx_int_t rc, const 
     if(EC_FALSE == cngx_need_send_header(r))
     {
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_override_ngx_rc: "
-                                             "ignore rc %d due to header had sent out\n",
+                                             "ignore rc %ld due to header had sent out\n",
                                              rc);
         cngx_disable_keepalive(r);
         return (EC_TRUE);
@@ -423,7 +423,7 @@ EC_BOOL cflv_override_ngx_rc(const UINT32 cflv_md_id, const ngx_int_t rc, const 
     if(NGX_OK != CFLV_MD_NGX_RC(cflv_md))
     {
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_override_ngx_rc: "
-                                             "modify rc %d => %d\n",
+                                             "modify rc %ld => %ld\n",
                                              CFLV_MD_NGX_RC(cflv_md), rc);
         CFLV_MD_NGX_RC(cflv_md)  = rc;
         CFLV_MD_NGX_LOC(cflv_md) = location;
@@ -432,7 +432,7 @@ EC_BOOL cflv_override_ngx_rc(const UINT32 cflv_md_id, const ngx_int_t rc, const 
     }
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_override_ngx_rc: "
-                                         "set rc %d\n",
+                                         "set rc %ld\n",
                                          rc);
 
     CFLV_MD_NGX_RC(cflv_md)  = rc;
@@ -1754,7 +1754,7 @@ EC_BOOL cflv_filter_header_out_multi_range(const UINT32 cflv_md_id)
         chttp_rsp_renew_header(CFLV_MD_CHTTP_RSP(cflv_md), k, v);
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_filter_header_out_multi_range: "
-                                             "renew '%s' done\n",
+                                             "renew '%s':'%s' done\n",
                                              k, v);
     }
 
@@ -3020,7 +3020,7 @@ EC_BOOL cflv_content_head_header_out_rsp_status_filter(const UINT32 cflv_md_id)
 
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_head_header_out_rsp_status_filter: "
-                                                 "[cngx] found 404 => response status = %ld [after]\n",
+                                                 "[cngx] found 404 => response status = %u [after]\n",
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
             return (EC_TRUE);
         }
@@ -4431,7 +4431,7 @@ EC_BOOL cflv_content_direct_header_out_rsp_status_filter(const UINT32 cflv_md_id
 
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_direct_header_out_rsp_status_filter: "
-                                                 "[cngx] found 404 => response status = %ld [after]\n",
+                                                 "[cngx] found 404 => response status = %u [after]\n",
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
             return (EC_TRUE);
         }
@@ -6605,7 +6605,7 @@ EC_BOOL cflv_content_repair_header_out_rsp_status_filter(const UINT32 cflv_md_id
 
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_repair_header_out_rsp_status_filter: "
-                                                 "[cngx] found 404 => response status = %ld\n",
+                                                 "[cngx] found 404 => response status = %u\n",
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
             return (EC_TRUE);
         }
@@ -8682,7 +8682,7 @@ EC_BOOL cflv_content_orig_header_out_rsp_status_filter(const UINT32 cflv_md_id)
 
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_rsp_status_filter: "
-                                                 "[cngx] found 404 => response status = %ld\n",
+                                                 "[cngx] found 404 => response status = %u\n",
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
             return (EC_TRUE);
         }
@@ -8728,7 +8728,7 @@ EC_BOOL cflv_content_orig_header_out_rsp_status_filter(const UINT32 cflv_md_id)
         CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_rsp_status_filter: "
-                                             "'%s' exist => response status = %ld [after]\n",
+                                             "'%s' exist => response status = %u [after]\n",
                                              k, CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
         return (EC_TRUE);
     }
@@ -8738,7 +8738,7 @@ EC_BOOL cflv_content_orig_header_out_rsp_status_filter(const UINT32 cflv_md_id)
         CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_rsp_status_filter: "
-                                             "[cngx] multi range => response status = %ld [after]\n",
+                                             "[cngx] multi range => response status = %u [after]\n",
                                              CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
         return (EC_TRUE);
     }
@@ -8746,7 +8746,7 @@ EC_BOOL cflv_content_orig_header_out_rsp_status_filter(const UINT32 cflv_md_id)
     CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_OK;
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_orig_header_out_rsp_status_filter: "
-                                         "response status = %ld [after]\n",
+                                         "response status = %u [after]\n",
                                          CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
 
     return (EC_TRUE);
@@ -10989,7 +10989,7 @@ EC_BOOL cflv_content_ms_header_out_rsp_status_filter(const UINT32 cflv_md_id)
 
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_out_rsp_status_filter: "
-                                                 "[cngx] found 404 => response status = %ld [after]\n",
+                                                 "[cngx] found 404 => response status = %u [after]\n",
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
             return (EC_TRUE);
         }
@@ -11035,7 +11035,7 @@ EC_BOOL cflv_content_ms_header_out_rsp_status_filter(const UINT32 cflv_md_id)
         CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_out_rsp_status_filter: "
-                                             "'%s' exist => response status = %ld [after]\n",
+                                             "'%s' exist => response status = %u [after]\n",
                                              k, CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
         return (EC_TRUE);
     }
@@ -11045,7 +11045,7 @@ EC_BOOL cflv_content_ms_header_out_rsp_status_filter(const UINT32 cflv_md_id)
         CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_out_rsp_status_filter: "
-                                             "[cngx] multi range => response status = %ld [after]\n",
+                                             "[cngx] multi range => response status = %u [after]\n",
                                              CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
         return (EC_TRUE);
     }
@@ -11053,7 +11053,7 @@ EC_BOOL cflv_content_ms_header_out_rsp_status_filter(const UINT32 cflv_md_id)
     CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_OK;
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_ms_header_out_rsp_status_filter: "
-                                         "response status = %ld [after]\n",
+                                         "response status = %u [after]\n",
                                          CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
 
     return (EC_TRUE);
@@ -12173,7 +12173,7 @@ EC_BOOL cflv_content_preload_parse_header(const UINT32 cflv_md_id, const CBYTES 
     {
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_preload_parse_header: "
                                              "header '\n%.*s\n' => \n",
-                                             CBYTES_LEN(header_cbytes),
+                                             (uint32_t)CBYTES_LEN(header_cbytes),
                                              (char *)CBYTES_BUF(header_cbytes));
 
         chttp_rsp_print_plain(LOGSTDOUT, CFLV_MD_CHTTP_RSP(cflv_md));
@@ -12325,7 +12325,7 @@ EC_BOOL cflv_content_preload_header_out_rsp_status_filter(const UINT32 cflv_md_i
 
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_preload_header_out_rsp_status_filter: "
-                                                 "[cngx] found 404 => response status = %ld [after]\n",
+                                                 "[cngx] found 404 => response status = %u [after]\n",
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
             return (EC_TRUE);
         }
@@ -12336,7 +12336,7 @@ EC_BOOL cflv_content_preload_header_out_rsp_status_filter(const UINT32 cflv_md_i
         {
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_preload_header_out_rsp_status_filter: "
-                                                 "[cngx] found 301/302 and '%s' => response status = %ld [after]\n",
+                                                 "[cngx] found 301/302 and '%s' => response status = %u [after]\n",
                                                  k,
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
             return (EC_TRUE);
@@ -12351,7 +12351,7 @@ EC_BOOL cflv_content_preload_header_out_rsp_status_filter(const UINT32 cflv_md_i
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_PARTIAL_CONTENT;
 
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_preload_header_out_rsp_status_filter: "
-                                                 "[cngx] flv start %ld => response status = %ld [after]\n",
+                                                 "[cngx] flv start %ld => response status = %u [after]\n",
                                                  CFLV_MD_FLV_START(cflv_md),
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
             return (EC_TRUE);
@@ -12359,7 +12359,7 @@ EC_BOOL cflv_content_preload_header_out_rsp_status_filter(const UINT32 cflv_md_i
 #endif
         CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_OK;
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_preload_header_out_rsp_status_filter: "
-                                             "[cngx] no range => response status = %ld [after]\n",
+                                             "[cngx] no range => response status = %u [after]\n",
                                              CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
         return (EC_TRUE);
     }
@@ -12370,7 +12370,7 @@ EC_BOOL cflv_content_preload_header_out_rsp_status_filter(const UINT32 cflv_md_i
         CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_preload_header_out_rsp_status_filter: "
-                                             "'Content-Range' exist => response status = %ld [after]\n",
+                                             "'Content-Range' exist => response status = %u [after]\n",
                                              CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
         return (EC_TRUE);
     }
@@ -12380,7 +12380,7 @@ EC_BOOL cflv_content_preload_header_out_rsp_status_filter(const UINT32 cflv_md_i
         CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_preload_header_out_rsp_status_filter: "
-                                             "[cngx] multi range => response status = %ld [after]\n",
+                                             "[cngx] multi range => response status = %u [after]\n",
                                              CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
         return (EC_TRUE);
     }
@@ -12388,7 +12388,7 @@ EC_BOOL cflv_content_preload_header_out_rsp_status_filter(const UINT32 cflv_md_i
     CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_OK;
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_preload_header_out_rsp_status_filter: "
-                                         "response status = %ld\n",
+                                         "response status = %u\n",
                                          CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
 
     return (EC_TRUE);
@@ -12775,7 +12775,7 @@ EC_BOOL cflv_content_redirect_procedure(const UINT32 cflv_md_id)
     dbg_log(SEC_0146_CFLV, 5)(LOGSTDOUT, "[DEBUG] cflv_content_redirect_procedure: redirect ctrl '%s'\n",
                         c_bit_bool_str(CHTTP_STORE_REDIRECT_CTRL(CFLV_MD_CHTTP_STORE(cflv_md))));
 
-    dbg_log(SEC_0146_CFLV, 5)(LOGSTDOUT, "[DEBUG] cflv_content_redirect_procedure: redirect max times '%u'\n",
+    dbg_log(SEC_0146_CFLV, 5)(LOGSTDOUT, "[DEBUG] cflv_content_redirect_procedure: redirect max times '%ld'\n",
                         CHTTP_STORE_REDIRECT_MAX_TIMES(CFLV_MD_CHTTP_STORE(cflv_md)));
 
     for(redirect_times = 0;
@@ -15675,7 +15675,7 @@ EC_BOOL cflv_content_cache_parse_header(const UINT32 cflv_md_id, const CBYTES *h
     {
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_parse_header: "
                                              "header '\n%.*s\n' => \n",
-                                             CBYTES_LEN(header_cbytes),
+                                             (uint32_t)CBYTES_LEN(header_cbytes),
                                              (char *)CBYTES_BUF(header_cbytes));
 
         chttp_rsp_print_plain(LOGSTDOUT, CFLV_MD_CHTTP_RSP(cflv_md));
@@ -16081,7 +16081,7 @@ EC_BOOL cflv_content_cache_header_out_rsp_status_filter(const UINT32 cflv_md_id)
 
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_rsp_status_filter: "
-                                                 "[cngx] found 404 => response status = %ld [after]\n",
+                                                 "[cngx] found 404 => response status = %u [after]\n",
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
             return (EC_TRUE);
         }
@@ -16092,7 +16092,7 @@ EC_BOOL cflv_content_cache_header_out_rsp_status_filter(const UINT32 cflv_md_id)
         {
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = response_status;
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_rsp_status_filter: "
-                                                 "[cngx] found 301/302 and '%s' => response status = %ld [after]\n",
+                                                 "[cngx] found 301/302 and '%s' => response status = %u [after]\n",
                                                  k,
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
             return (EC_TRUE);
@@ -16107,7 +16107,7 @@ EC_BOOL cflv_content_cache_header_out_rsp_status_filter(const UINT32 cflv_md_id)
             CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_PARTIAL_CONTENT;
 
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_rsp_status_filter: "
-                                                 "[cngx] flv start %ld => response status = %ld [after]\n",
+                                                 "[cngx] flv start %ld => response status = %u [after]\n",
                                                  CFLV_MD_FLV_START(cflv_md),
                                                  CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
             return (EC_TRUE);
@@ -16115,7 +16115,7 @@ EC_BOOL cflv_content_cache_header_out_rsp_status_filter(const UINT32 cflv_md_id)
 #endif
         CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_OK;
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_rsp_status_filter: "
-                                             "[cngx] no range => response status = %ld [after]\n",
+                                             "[cngx] no range => response status = %u [after]\n",
                                              CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
         return (EC_TRUE);
     }
@@ -16126,7 +16126,7 @@ EC_BOOL cflv_content_cache_header_out_rsp_status_filter(const UINT32 cflv_md_id)
         CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_rsp_status_filter: "
-                                             "'Content-Range' exist => response status = %ld [after]\n",
+                                             "'Content-Range' exist => response status = %u [after]\n",
                                              CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
         return (EC_TRUE);
     }
@@ -16136,7 +16136,7 @@ EC_BOOL cflv_content_cache_header_out_rsp_status_filter(const UINT32 cflv_md_id)
         CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_rsp_status_filter: "
-                                             "[cngx] multi range => response status = %ld [after]\n",
+                                             "[cngx] multi range => response status = %u [after]\n",
                                              CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
         return (EC_TRUE);
     }
@@ -16144,7 +16144,7 @@ EC_BOOL cflv_content_cache_header_out_rsp_status_filter(const UINT32 cflv_md_id)
     CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)) = CHTTP_OK;
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_rsp_status_filter: "
-                                         "response status = %ld\n",
+                                         "response status = %u\n",
                                          CHTTP_RSP_STATUS(CFLV_MD_CHTTP_RSP(cflv_md)));
 
     return (EC_TRUE);
@@ -16195,19 +16195,19 @@ EC_BOOL cflv_content_cache_header_out_expires_filter(const UINT32 cflv_md_id)
     {
         expires = c_parse_http_time((uint8_t *)v, strlen(v));
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_expires_filter: "
-                                             "'%s' => %d\n",
+                                             "'%s' => %ld\n",
                                              v, expires);
         if(expires >= curtime)
         {
             dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_expires_filter: "
-                                                 "expires '%d' >= curtime '%d'\n",
+                                                 "expires '%ld' >= curtime '%ld'\n",
                                                  expires, curtime);
             /*not expired yet*/
             return (EC_TRUE);
         }
 
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_expires_filter: "
-                                             "expires '%d' < curtime '%d' => set cache_expired_flag to true\n",
+                                             "expires '%ld' < curtime '%ld' => set cache_expired_flag to true\n",
                                              expires, curtime);
 
         /*REFRESH_HIT or REFRESH_MISS*/
@@ -16242,7 +16242,7 @@ EC_BOOL cflv_content_cache_header_out_expires_filter(const UINT32 cflv_md_id)
     if(0 == expires)
     {
         dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_expires_filter: "
-                                             "expires = %d => set cache_expired_flag to true\n",
+                                             "expires = %ld => set cache_expired_flag to true\n",
                                              expires);
 
         /*REFRESH_HIT or REFRESH_MISS*/
@@ -16274,7 +16274,7 @@ EC_BOOL cflv_content_cache_header_out_expires_filter(const UINT32 cflv_md_id)
     }
 
     dbg_log(SEC_0146_CFLV, 9)(LOGSTDOUT, "[DEBUG] cflv_content_cache_header_out_expires_filter: "
-                                         "expires = %d\n",
+                                         "expires = %ld\n",
                                          expires);
 
     v = c_http_time(curtime + expires);

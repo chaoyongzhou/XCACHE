@@ -23,6 +23,8 @@ extern "C"{
 
 #define CXFSCFG_ALIGNMENT                  (1 << 20)    /*1MB*/
 
+#define CXFSCFG_TAIL_SIZE_MIN              (1 << 30)    /*1GB*/
+
 typedef struct
 {
     UINT32           s_offset;               /*zone start offset on sata disk*/
@@ -36,8 +38,14 @@ typedef struct
 {
     UINT32           magic;                     /*magic number*/
 
+    UINT32           offset;                    /*cfg offset on disk*/
+
+    UINT32           sata_meta_size;            /*sata meta size in bytes*/
     UINT32           sata_disk_size;            /*sata disk size in bytes*/
     UINT32           sata_disk_offset;          /*sata data cache start offset in sata disk. align to 32G*/
+
+    UINT32           sata_vdisk_size;           /*sata virtual disk size in bytes*/
+    UINT32           sata_vdisk_num;            /*sata virtual disk num*/
 
     UINT32           np_size;                   /*size per np*/
     uint8_t          np_model;                  /*cxfsnp model, e.g, CXFSNP_001G_MODEL*/
@@ -61,6 +69,7 @@ typedef struct
     CXFSZONE         dn_zone[2];                /*active dn and standby dn*/
     UINT32           dn_zone_idx;               /*active dn zone index, range in [0, 1]*/
 
+    UINT32           ssd_meta_size;             /*ssd meta size in bytes*/
     UINT32           ssd_disk_size;             /*ssd disk size in bytes*/
     UINT32           ssd_disk_offset;           /*ssd cache start offset in ssd disk*/
 
@@ -70,8 +79,14 @@ typedef struct
 
 #define CXFSCFG_MAGIC(cxfscfg)                         ((cxfscfg)->magic)
 
+#define CXFSCFG_OFFSET(cxfscfg)                        ((cxfscfg)->offset)
+
+#define CXFSCFG_SATA_META_SIZE(cxfscfg)                ((cxfscfg)->sata_meta_size)
 #define CXFSCFG_SATA_DISK_SIZE(cxfscfg)                ((cxfscfg)->sata_disk_size)
 #define CXFSCFG_SATA_DISK_OFFSET(cxfscfg)              ((cxfscfg)->sata_disk_offset)
+
+#define CXFSCFG_SATA_VDISK_SIZE(cxfscfg)               ((cxfscfg)->sata_vdisk_size)
+#define CXFSCFG_SATA_VDISK_NUM(cxfscfg)                ((cxfscfg)->sata_vdisk_num)
 
 #define CXFSCFG_NP_SIZE(cxfscfg)                       ((cxfscfg)->np_size)
 #define CXFSCFG_NP_MODEL(cxfscfg)                      ((cxfscfg)->np_model)
@@ -107,6 +122,7 @@ typedef struct
     }while(0)
 
 
+#define CXFSCFG_SSD_META_SIZE(cxfscfg)                 ((cxfscfg)->ssd_meta_size)
 #define CXFSCFG_SSD_DISK_SIZE(cxfscfg)                 ((cxfscfg)->ssd_disk_size)
 #define CXFSCFG_SSD_DISK_OFFSET(cxfscfg)               ((cxfscfg)->ssd_disk_offset)
 
@@ -120,7 +136,9 @@ EC_BOOL cxfscfg_clean(CXFSCFG *cxfscfg);
 
 void cxfscfg_print(LOG *log, const CXFSCFG *cxfscfg);
 
-EC_BOOL cxfscfg_load(CXFSCFG *cxfscfg, int fd);
+EC_BOOL cxfscfg_compute_offset(const UINT32 sata_disk_size, const UINT32 vdisk_size, UINT32 *offset);
+
+EC_BOOL cxfscfg_load(CXFSCFG *cxfscfg, int fd, const UINT32 offset);
 
 EC_BOOL cxfscfg_flush(const CXFSCFG *cxfscfg, int fd);
 

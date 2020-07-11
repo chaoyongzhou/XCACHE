@@ -241,6 +241,8 @@ EC_BOOL cxfspgd_reserve_space(CXFSPGD *cxfspgd, const uint32_t size, const uint1
 
 EC_BOOL cxfspgd_release_space(CXFSPGD *cxfspgd, const uint16_t block_no, const uint16_t page_no, const uint32_t size);
 
+EC_BOOL cxfspgd_check_space_used(const CXFSPGD *cxfspgd, const uint16_t block_no, const uint16_t page_no);
+
 EC_BOOL cxfspgd_is_full(const CXFSPGD *cxfspgd);
 
 EC_BOOL cxfspgd_is_empty(const CXFSPGD *cxfspgd);

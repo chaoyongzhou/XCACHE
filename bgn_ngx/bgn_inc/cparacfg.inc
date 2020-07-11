@@ -92,10 +92,7 @@ typedef struct
     UINT32    cxfsdn_cache_in_mem_switch    ; /* CXFSDN_CACHE_IN_MEM_SWITCH */
 
     UINT32    cxfsdn_camd_switch            ; /* CXFSDN_CAMD_SWITCH*/
-    //UINT32    cxfsdn_camd_sata_disk_size    ; /* CXFSDN_CAMD_SATA_DISK_SIZE  */
     UINT32    cxfsdn_camd_mem_disk_size     ; /* CXFSDN_CAMD_MEM_DISK_SIZE   */
-    UINT32    cxfsdn_camd_ssd_disk_offset   ; /* CXFSDN_CAMD_SSD_DISK_OFFSET */
-    //UINT32    cxfsdn_camd_ssd_disk_size     ; /* CXFSDN_CAMD_SSD_DISK_SIZE   */
 
     UINT32    cxfs_lru_model_switch         ; /* CXFS_LRU_MODEL_SWITCH */
     UINT32    cxfs_fifo_model_switch        ; /* CXFS_FIFO_MODEL_SWITCH */
@@ -131,7 +128,9 @@ typedef struct
 
     UINT32    camd_ssd_upgrade_mem_switch; /*default: on*/
     UINT32    camd_sata_upgrade_mem_switch;/*default: on*/
-    UINT32    camd_sata_disk_vm_s_offset;  /*default: 0*/
+
+    UINT32    camd_check_page_used_switch; /*default: off*/
+
     UINT32    cmc_try_retire_max_num;      /*default: 8*/
     UINT32    cmc_try_recycle_max_num;     /*default: 128*/
     UINT32    cmc_scan_retire_max_num;     /*default: 256*/
@@ -241,10 +240,7 @@ typedef struct
 #define CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH(cparacfg)               ((cparacfg)->cxfsdn_cache_in_mem_switch)
 
 #define CPARACFG_CXFSDN_CAMD_SWITCH(cparacfg)                       ((cparacfg)->cxfsdn_camd_switch)
-//#define CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE(cparacfg)               ((cparacfg)->cxfsdn_camd_sata_disk_size)
 #define CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg)                ((cparacfg)->cxfsdn_camd_mem_disk_size)
-#define CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg)              ((cparacfg)->cxfsdn_camd_ssd_disk_offset)
-//#define CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg)                ((cparacfg)->cxfsdn_camd_ssd_disk_size)
 
 #define CPARACFG_CXFS_LRU_MODEL_SWITCH(cparacfg)                    ((cparacfg)->cxfs_lru_model_switch)
 #define CPARACFG_CXFS_FIFO_MODEL_SWITCH(cparacfg)                   ((cparacfg)->cxfs_fifo_model_switch)
@@ -283,7 +279,9 @@ typedef struct
 
 #define CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH(cparacfg)              ((cparacfg)->camd_ssd_upgrade_mem_switch)
 #define CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH(cparacfg)             ((cparacfg)->camd_sata_upgrade_mem_switch)
-#define CPARACFG_CAMD_SATA_DISK_VM_S_OFFSET(cparacfg)               ((cparacfg)->camd_sata_disk_vm_s_offset)
+
+#define CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH(cparacfg)              ((cparacfg)->camd_check_page_used_switch)
+
 #define CPARACFG_CMC_TRY_RETIRE_MAX_NUM(cparacfg)                   ((cparacfg)->cmc_try_retire_max_num)
 #define CPARACFG_CMC_TRY_RECYCLE_MAX_NUM(cparacfg)                  ((cparacfg)->cmc_try_recycle_max_num)
 #define CPARACFG_CMC_SCAN_RETIRE_MAX_NUM(cparacfg)                  ((cparacfg)->cmc_scan_retire_max_num)
@@ -357,6 +355,8 @@ typedef struct
 #define CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH_STR(cparacfg)         (c_switch_to_str(CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH(cparacfg)))
 #define CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH_STR(cparacfg)          (c_switch_to_str(CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH(cparacfg)))
 #define CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH_STR(cparacfg)         (c_switch_to_str(CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH(cparacfg)))
+
+#define CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH_STR(cparacfg)          (c_switch_to_str(CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH(cparacfg)))
 
 #define CPARACFG_DNS_CACHE_SWITCH_STR(cparacfg)                     (c_switch_to_str(CPARACFG_DNS_CACHE_SWITCH(cparacfg)))
 
@@ -484,10 +484,7 @@ typedef struct
 #define CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH_DEF                  SWITCH_OFF
 
 #define CPARACFG_CXFSDN_CAMD_SWITCH_DEF                          SWITCH_OFF
-//#define CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE_DEF                  0
 #define CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE_DEF                   0
-#define CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET_DEF                 0
-//#define CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE_DEF                   0
 
 #define CPARACFG_CXFS_LRU_MODEL_SWITCH_DEF                       SWITCH_OFF
 #define CPARACFG_CXFS_FIFO_MODEL_SWITCH_DEF                      SWITCH_ON
@@ -519,7 +516,8 @@ typedef struct
 
 #define CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH_DEF                 SWITCH_ON
 #define CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH_DEF                SWITCH_ON
-#define CPARACFG_CAMD_SATA_DISK_VM_S_OFFSET_DEF                  0
+
+#define CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH_DEF                 SWITCH_OFF
 
 #define CPARACFG_CMC_TRY_RETIRE_MAX_NUM_DEF                      8
 #define CPARACFG_CMC_TRY_RECYCLE_MAX_NUM_DEF                     128
@@ -642,10 +640,7 @@ typedef struct
 #define    CXFSDN_CACHE_IN_MEM_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH)
 
 #define    CXFSDN_CAMD_SWITCH                            CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SWITCH)
-//#define    CXFSDN_CAMD_SATA_DISK_SIZE                    CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE)
 #define    CXFSDN_CAMD_MEM_DISK_SIZE                     CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE)
-#define    CXFSDN_CAMD_SSD_DISK_OFFSET                   CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET)
-//#define    CXFSDN_CAMD_SSD_DISK_SIZE                     CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE)
 
 #define    CXFS_LRU_MODEL_SWITCH                         CPARACFG_DEFAULT_MAP(CPARACFG_CXFS_LRU_MODEL_SWITCH)
 #define    CXFS_FIFO_MODEL_SWITCH                        CPARACFG_DEFAULT_MAP(CPARACFG_CXFS_FIFO_MODEL_SWITCH)
@@ -681,7 +676,9 @@ typedef struct
 
 #define    CAMD_SSD_UPGRADE_MEM_SWITCH                   CPARACFG_DEFAULT_MAP(CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH)
 #define    CAMD_SATA_UPGRADE_MEM_SWITCH                  CPARACFG_DEFAULT_MAP(CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH)
-#define    CAMD_SATA_DISK_VM_S_OFFSET                    CPARACFG_DEFAULT_MAP(CPARACFG_CAMD_SATA_DISK_VM_S_OFFSET)
+
+#define    CAMD_CHECK_PAGE_USED_SWITCH                   CPARACFG_DEFAULT_MAP(CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH)
+
 #define    CMC_TRY_RETIRE_MAX_NUM                        CPARACFG_DEFAULT_MAP(CPARACFG_CMC_TRY_RETIRE_MAX_NUM)
 #define    CMC_TRY_RECYCLE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CMC_TRY_RECYCLE_MAX_NUM)
 #define    CMC_SCAN_RETIRE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CMC_SCAN_RETIRE_MAX_NUM)

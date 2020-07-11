@@ -167,6 +167,8 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "flow control" , "cmc switch <on|off> flow control on {all | tcid <tcid> rank <rank>} at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "flow control" , "cdc switch <on|off> flow control on {all | tcid <tcid> rank <rank>} at <console|log>");
 
+    api_cmd_help_vec_create(cmd_help_vec, "check page"   , "camd switch <on|off> page used check on {all | tcid <tcid> rank <rank>} at <console|log>");
+
     api_cmd_help_vec_create(cmd_help_vec, "cxfs model"   , "cxfs set <lru|fifo> model on {all | tcid <tcid> rank <rank>} at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "cmc model"    , "cmc set <lru|fifo> model on {all | tcid <tcid> rank <rank>} at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "cdc model"    , "cdc set <lru|fifo> model on {all | tcid <tcid> rank <rank>} at <console|log>");
@@ -270,6 +272,8 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show dn on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show specific np <id> [<que | del>] on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show <locked | wait> files on tcid <tcid> at <console|log>");
+
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs check"   , "hsxfs <id> check space <start offset> <end offset> on tcid <tcid> at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "hsxfs md5sum"  , "hsxfs <id> md5sum file <name> on tcid <tcid> at <console|log>");
     //api_cmd_help_vec_create(cmd_help_vec, "hsxfs md5sum"  , "hsxfs <id> md5sum bigfile <name> seg <no> on tcid <tcid> at <console|log>");
 #endif
@@ -443,6 +447,12 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cdc_flow_control_switch_off_all, "cdc switch off flow control on all at %s"             , where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cdc_flow_control_switch_off    , "cdc switch off flow control on tcid %t rank %n at %s" , tcid, rank, where);
+
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_camd_check_page_used_switch_on_all, "camd switch on page used check on all at %s"             , where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_camd_check_page_used_switch_on    , "camd switch on page used check on tcid %t rank %n at %s" , tcid, rank, where);
+
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_camd_check_page_used_switch_off_all, "camd switch off page used check on all at %s"             , where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_camd_check_page_used_switch_off    , "camd switch off page used check on tcid %t rank %n at %s" , tcid, rank, where);
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_lru_model_switch_on_all , "cxfs set lru model on all at %s"             , where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_lru_model_switch_on     , "cxfs set lru model on tcid %t rank %n at %s" , tcid, rank, where);
@@ -651,6 +661,7 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_qlist_path       , "hsxfs %n qlist %s full on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_qlist_seg        , "hsxfs %n qlist %s short on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_qlist_tree       , "hsxfs %n qlist %s tree on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_check_space_used , "hsxfs %n check space %n %n on tcid %t at %s", rank, rank, rank, tcid, where);
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_create_npp       , "tdns create np model %n max num %n with root %s on tcid %t at %s", rank, rank, rank, rank, rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_start            , "tdns start from root %s on tcid %t", where, where, tcid);
@@ -5297,6 +5308,299 @@ EC_BOOL api_cmd_ui_cdc_flow_control_switch_off_all(CMD_PARA_VEC * param)
     return (EC_TRUE);
 }
 
+/*camd switch off page used check on {all | tcid <tcid> rank <rank>} at <console|log>*/
+EC_BOOL api_cmd_ui_camd_check_page_used_switch_off(CMD_PARA_VEC * param)
+{
+    UINT32 tcid;
+    UINT32 rank;
+
+    CSTRING *where;
+
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_tcid(param, 0, &tcid);
+    api_cmd_para_vec_get_uint32(param, 1, &rank);
+    api_cmd_para_vec_get_cstring(param, 2, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "camd switch off page used check on tcid %s, rank %ld at %s\n",
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(tcid, rank, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_camd_check_page_used_switch_off beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_camd_check_page_used_switch_off end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0198);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        EC_BOOL *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0199);
+        cvector_push_no_lock(report_vec, (void *)ret);
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret,
+                    FI_super_camd_check_page_used_switch_off, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        EC_BOOL *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (EC_BOOL *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),
+                         EC_TRUE == (*ret) ? "SUCC":"FAIL");
+
+        cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0200);
+    }
+
+    cvector_free(report_vec, LOC_API_0201);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+
+/*camd switch off page used check on {all | tcid <tcid> rank <rank>} at <console|log>*/
+EC_BOOL api_cmd_ui_camd_check_page_used_switch_off_all(CMD_PARA_VEC * param)
+{
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    CSTRING *where;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_cstring(param, 0, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "camd switch off page used check on all at %s\n",
+                                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_camd_check_page_used_switch_off_all beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_camd_check_page_used_switch_off_all end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0202);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        EC_BOOL *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0203);
+        cvector_push_no_lock(report_vec, (void *)ret);
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret,
+                    FI_super_camd_check_page_used_switch_off, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        EC_BOOL *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (EC_BOOL *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),
+                        EC_TRUE == (*ret) ? "SUCC":"FAIL");
+
+        cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0204);
+    }
+
+    cvector_free(report_vec, LOC_API_0205);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+/*camd switch on page used check on {all | tcid <tcid> rank <rank>} at <console|log>*/
+EC_BOOL api_cmd_ui_camd_check_page_used_switch_on(CMD_PARA_VEC * param)
+{
+    UINT32 tcid;
+    UINT32 rank;
+
+    CSTRING *where;
+
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_tcid(param, 0, &tcid);
+    api_cmd_para_vec_get_uint32(param, 1, &rank);
+    api_cmd_para_vec_get_cstring(param, 2, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "camd switch on page used check on tcid %s, rank %ld at %s\n",
+                        c_word_to_ipv4(tcid),
+                        rank,
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(tcid, rank, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_camd_check_page_used_switch_on beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_camd_check_page_used_switch_on end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0198);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        EC_BOOL *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0199);
+        cvector_push_no_lock(report_vec, (void *)ret);
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret,
+                    FI_super_camd_check_page_used_switch_on, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        EC_BOOL *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (EC_BOOL *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),
+                         EC_TRUE == (*ret) ? "SUCC":"FAIL");
+
+        cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0200);
+    }
+
+    cvector_free(report_vec, LOC_API_0201);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+
+/*camd switch on page used check on {all | tcid <tcid> rank <rank>} at <console|log>*/
+EC_BOOL api_cmd_ui_camd_check_page_used_switch_on_all(CMD_PARA_VEC * param)
+{
+    MOD_MGR  *mod_mgr;
+    TASK_MGR *task_mgr;
+
+    CSTRING *where;
+
+    UINT32 remote_mod_node_num;
+    UINT32 remote_mod_node_idx;
+
+    CVECTOR *report_vec;
+    LOG   *des_log;
+
+    api_cmd_para_vec_get_cstring(param, 0, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "camd switch on page used check on all at %s\n",
+                                        (char *)cstring_get_str(where));
+
+    mod_mgr = api_cmd_ui_gen_mod_mgr(CMPI_ANY_TCID, CMPI_ANY_RANK, CMPI_ERROR_TCID, CMPI_ERROR_RANK, 0);/*super_md_id = 0*/
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_camd_check_page_used_switch_on_all beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_camd_check_page_used_switch_on_all end ----------------------------------\n");
+    }
+#endif
+
+    report_vec = cvector_new(0, MM_UINT32, LOC_API_0202);
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    remote_mod_node_num = MOD_MGR_REMOTE_NUM(mod_mgr);
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        EC_BOOL *ret;
+
+        alloc_static_mem(MM_UINT32, &ret, LOC_API_0203);
+        cvector_push_no_lock(report_vec, (void *)ret);
+        (*ret) = EC_FALSE;
+
+        task_pos_inc(task_mgr, remote_mod_node_idx, ret,
+                    FI_super_camd_check_page_used_switch_on, CMPI_ERROR_MODI);
+    }
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    for(remote_mod_node_idx = 0; remote_mod_node_idx < remote_mod_node_num; remote_mod_node_idx ++)
+    {
+        MOD_NODE *mod_node;
+        EC_BOOL *ret;
+
+        mod_node = MOD_MGR_REMOTE_MOD(mod_mgr, remote_mod_node_idx);
+        ret = (EC_BOOL *)cvector_get(report_vec, remote_mod_node_idx);
+
+        sys_log(des_log, "[rank_%s_%ld] %s\n", MOD_NODE_TCID_STR(mod_node),MOD_NODE_RANK(mod_node),
+                        EC_TRUE == (*ret) ? "SUCC":"FAIL");
+
+        cvector_set_no_lock(report_vec, remote_mod_node_idx, NULL_PTR);
+        free_static_mem(MM_UINT32, ret, LOC_API_0204);
+    }
+
+    cvector_free(report_vec, LOC_API_0205);
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+
 #if 1
 /*cxfs set lru model on {all | tcid <tcid> rank <rank>} at <console|log>*/
 EC_BOOL api_cmd_ui_cxfs_lru_model_switch_on(CMD_PARA_VEC * param)
@@ -6028,6 +6332,7 @@ EC_BOOL api_cmd_ui_cxfs_camd_discard_ratio_set_all(CMD_PARA_VEC * param)
 
     return (EC_TRUE);
 }
+
 #endif
 
 /*cmc set lru model on {all | tcid <tcid> rank <rank>} at <console|log>*/
@@ -15329,28 +15634,10 @@ EC_BOOL api_cmd_ui_cxfs_delete_file(CMD_PARA_VEC * param)
     if(EC_TRUE == ret)
     {
         sys_log(des_log, "[SUCC] delete file %s\n", (char *)cstring_get_str(fname));
-        sys_log(LOGCONSOLE, "[SUCC] delete file %s\n", (char *)cstring_get_str(fname));
-        if(des_log == LOGCONSOLE)
-        {
-            sys_log(LOGCONSOLE, "[SUCC] des_log is CONSOLE\n");
-        }
-        else
-        {
-            sys_log(LOGCONSOLE, "[SUCC] des_log is NOT CONSOLE\n");
-        }
     }
     else
     {
         sys_log(des_log, "[FAIL] delete file %s\n", (char *)cstring_get_str(fname));
-        sys_log(LOGCONSOLE, "[FAIL] delete file %s\n", (char *)cstring_get_str(fname));
-        if(des_log == LOGCONSOLE)
-        {
-            sys_log(LOGCONSOLE, "[FAIL] des_log is CONSOLE\n");
-        }
-        else
-        {
-            sys_log(LOGCONSOLE, "[FAIL] des_log is NOT CONSOLE\n");
-        }
     }
 
     return (EC_TRUE);
@@ -16546,6 +16833,64 @@ EC_BOOL api_cmd_ui_cxfs_md5sum(CMD_PARA_VEC * param)
                            CMPI_CXFS_RANK,
                            (char *)cstring_get_str(fname)
                            );
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_check_space_used(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    UINT32   s_offset;
+    UINT32   e_offset;
+    UINT32   cxfs_tcid;
+    CSTRING *where;
+
+    MOD_NODE   mod_node;
+    LOG       *des_log;
+
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_uint32(param  , 1, &s_offset);
+    api_cmd_para_vec_get_uint32(param  , 2, &e_offset);
+    api_cmd_para_vec_get_tcid(param    , 3, &cxfs_tcid);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    /*hsxfs <id> md5sum file <name> on tcid <tcid> at <where>*/
+    /*hsxfs %n md5sum file %s on tcid %t at %s*/
+    dbg_log(SEC_0010_API, 9)(LOGSTDOUT, "[DEBUG] api_cmd_ui_cxfs_check_space_used: "
+                        "hsxfs %ld check space %ld:%ld on tcid %s at %s\n",
+                        cxfs_modi,
+                        s_offset, e_offset,
+                        c_word_to_ipv4(cxfs_tcid),
+                        (char *)cstring_get_str(where));
+
+    MOD_NODE_TCID(&mod_node) = cxfs_tcid;
+    MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
+    MOD_NODE_RANK(&mod_node) = CMPI_CXFS_RANK;
+    MOD_NODE_MODI(&mod_node) = cxfs_modi;
+
+    ret = EC_FALSE;
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             &mod_node,
+             &ret,
+             FI_cxfs_check_space_used, CMPI_ERROR_MODI, s_offset, e_offset);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[rank_%s_%ld] space %ld:%ld used\n",
+                           c_word_to_ipv4(cxfs_tcid), CMPI_CXFS_RANK,
+                           s_offset, e_offset);
+    }
+    else
+    {
+        sys_log(des_log, "[rank_%s_%ld] space %ld:%ld not used\n",
+                           c_word_to_ipv4(cxfs_tcid), CMPI_CXFS_RANK,
+                           s_offset, e_offset);
     }
 
     return (EC_TRUE);

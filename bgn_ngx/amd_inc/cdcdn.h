@@ -120,10 +120,13 @@ extern "C"{
 
 typedef struct
 {
-    int                fd;
+    int                ssd_meta_fd;
+    int                ssd_disk_fd;
+
     uint32_t           read_only_flag   :1;/*dn is read-only if set*/
     uint32_t           dontdump_flag    :1;/*dn not flush or dump if set*/
     uint32_t           rsvd01           :30;
+    uint32_t           rsvd02;
 
     UINT32             node_num;
 
@@ -139,7 +142,8 @@ typedef struct
 
 #define CDCDN_RDONLY_FLAG(cdcdn)                         ((cdcdn)->read_only_flag)
 #define CDCDN_DONTDUMP_FLAG(cdcdn)                       ((cdcdn)->dontdump_flag)
-#define CDCDN_NODE_FD(cdcdn)                             ((cdcdn)->fd)
+#define CDCDN_NODE_SSD_META_FD(cdcdn)                    ((cdcdn)->ssd_meta_fd)
+#define CDCDN_NODE_SSD_DISK_FD(cdcdn)                    ((cdcdn)->ssd_disk_fd)
 #define CDCDN_NODE_NUM(cdcdn)                            ((cdcdn)->node_num)
 #define CDCDN_BASE_S_OFFSET(cdcdn)                       ((cdcdn)->base_s_offset)
 #define CDCDN_BASE_E_OFFSET(cdcdn)                       ((cdcdn)->base_e_offset)
@@ -157,9 +161,17 @@ EC_BOOL cdcdn_node_write(CDCDN *cdcdn, const UINT32 node_id, const UINT32 data_m
 
 EC_BOOL cdcdn_node_read(CDCDN *cdcdn, const UINT32 node_id, const UINT32 data_max_len, UINT8 *data_buff, UINT32 *offset);
 
-CDCDN *cdcdn_create(UINT32 *s_offset, const UINT32 e_offset);
+EC_BOOL cdcdn_compute_disk(const UINT32 ssd_disk_size, UINT32 *disk_num, UINT32 *node_num, UINT32 *block_num);
 
-CDCDN *cdcdn_create_shm(CMMAP_NODE *cmmap_node, UINT32 *s_offset, const UINT32 e_offset);
+EC_BOOL cdcdn_compute_meta(const UINT32 ssd_disk_size, UINT32 *disk_num, UINT32 *node_num, UINT32 *block_num);
+
+CDCDN *cdcdn_create(UINT32 *meta_s_offset, const UINT32 meta_e_offset,
+                        const UINT32 data_s_offset, const UINT32 data_e_offset,
+                        const uint16_t disk_num, const UINT32 node_num, const UINT32 block_num);
+
+CDCDN *cdcdn_create_shm(CMMAP_NODE *cmmap_node, UINT32 *meta_s_offset, const UINT32 meta_e_offset,
+                                const UINT32 data_s_offset, const UINT32 data_e_offset,
+                                const uint16_t disk_num, const UINT32 node_num, const UINT32 block_num);
 
 EC_BOOL cdcdn_add_disk(CDCDN *cdcdn, const uint16_t disk_no, UINT8 *base, UINT32 *pos);
 

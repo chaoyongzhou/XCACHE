@@ -3280,7 +3280,7 @@ EC_BOOL cxfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttp_node_recv_chunks(chttp_node); ;
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setsmf_post_request: path %.*s, invalid content length %"PRId64"\n",
                                                  (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf")),
@@ -3315,7 +3315,7 @@ EC_BOOL cxfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttp_node_recv_chunks(chttp_node); ;
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setsmf_post_request: path %s, invalid body length %"PRId64"\n",
                                                  (char *)cstring_get_str(&path_cstr),
@@ -3747,7 +3747,7 @@ EC_BOOL cxfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttp_node_recv_chunks(chttp_node); ;
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_update_post_request: path %.*s, invalid content length %"PRId64"\n",
                                                  (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/update")),
@@ -3784,7 +3784,7 @@ EC_BOOL cxfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
     {
         CHUNK_MGR *req_body_chunks;
 
-        req_body_chunks = chttp_node_recv_chunks(chttp_node); ;
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
         dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_update_post_request: path %s, invalid body length %"PRId64"\n",
                                                  (char *)cstring_get_str(&path_cstr),

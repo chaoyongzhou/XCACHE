@@ -100,7 +100,7 @@ STATIC_CAST static EC_BOOL __cxfspgb_page_model_cxfspgrb_bitmap_set(CXFSPGB *cxf
 
     CXFSPGB_ASSERT(CXFSPGB_MODEL_NUM > page_model);
 
-    cxfspgb_conf = &(g_cxfspgb_conf[ page_model ]);
+    cxfspgb_conf        = &(g_cxfspgb_conf[ page_model ]);
     pgc_cxfspgrb_bitmap = CXFSPGB_PAGE_MODEL_CXFSPGRB_BITMAP(cxfspgb, page_model);
 
     byte_nth = (bit_pos >> 3); /*bit_pos / 8*/
@@ -132,7 +132,7 @@ STATIC_CAST static EC_BOOL __cxfspgb_page_model_cxfspgrb_bitmap_clear(CXFSPGB *c
 
     CXFSPGB_ASSERT(CXFSPGB_MODEL_NUM > page_model);
 
-    cxfspgb_conf = &(g_cxfspgb_conf[ page_model ]);
+    cxfspgb_conf        = &(g_cxfspgb_conf[ page_model ]);
     pgc_cxfspgrb_bitmap = CXFSPGB_PAGE_MODEL_CXFSPGRB_BITMAP(cxfspgb, page_model);
 
     byte_nth = (bit_pos >> 3); /*bit_pos / 8*/
@@ -164,7 +164,7 @@ STATIC_CAST static EC_BOOL __cxfspgb_page_model_cxfspgrb_bitmap_get(const CXFSPG
 
     CXFSPGB_ASSERT(CXFSPGB_MODEL_NUM > page_model);
 
-    cxfspgb_conf = &(g_cxfspgb_conf[ page_model ]);
+    cxfspgb_conf        = &(g_cxfspgb_conf[ page_model ]);
     pgc_cxfspgrb_bitmap = CXFSPGB_PAGE_MODEL_CXFSPGRB_BITMAP(cxfspgb, page_model);
 
     byte_nth = (bit_pos >> 3); /*bit_pos / 8*/
@@ -198,7 +198,7 @@ STATIC_CAST static EC_BOOL __cxfspgb_page_model_cxfspgrb_bitmap_is(const CXFSPGB
 
     CXFSPGB_ASSERT(CXFSPGB_MODEL_NUM > page_model);
 
-    cxfspgb_conf = &(g_cxfspgb_conf[ page_model ]);
+    cxfspgb_conf        = &(g_cxfspgb_conf[ page_model ]);
     pgc_cxfspgrb_bitmap = CXFSPGB_PAGE_MODEL_CXFSPGRB_BITMAP(cxfspgb, page_model);
 
     byte_nth = (bit_pos >> 3); /*bit_pos / 8*/
@@ -234,7 +234,7 @@ STATIC_CAST static EC_BOOL __cxfspgb_page_model_cxfspgrb_bitmap_check(const CXFS
 
     CXFSPGB_ASSERT(CXFSPGB_MODEL_NUM > page_model);
 
-    cxfspgb_conf = &(g_cxfspgb_conf[ page_model ]);
+    cxfspgb_conf        = &(g_cxfspgb_conf[ page_model ]);
     pgc_cxfspgrb_bitmap = CXFSPGB_PAGE_MODEL_CXFSPGRB_BITMAP(cxfspgb, page_model);
 
     for(byte_nth = 0; byte_nth < CXFSPGB_CONF_CXFSPGRB_BITMAP_SIZE(cxfspgb_conf); byte_nth ++)
@@ -270,7 +270,7 @@ STATIC_CAST static void __cxfspgb_page_model_cxfspgrb_bitmap_print(LOG *log, con
 
     CXFSPGB_ASSERT(CXFSPGB_MODEL_NUM > page_model);
 
-    cxfspgb_conf      = &(g_cxfspgb_conf[ page_model ]);
+    cxfspgb_conf        = &(g_cxfspgb_conf[ page_model ]);
     pgc_cxfspgrb_bitmap = CXFSPGB_PAGE_MODEL_CXFSPGRB_BITMAP(cxfspgb, page_model);
 
     for(byte_nth = 0; byte_nth < CXFSPGB_CONF_CXFSPGRB_BITMAP_SIZE(cxfspgb_conf); byte_nth ++)
@@ -308,9 +308,9 @@ STATIC_CAST static uint16_t __cxfspgb_page_model_cxfspgrb_bitmap_count_bits(cons
 
     CXFSPGB_ASSERT(CXFSPGB_MODEL_NUM > page_model);
 
-    cxfspgb_conf      = &(g_cxfspgb_conf[ page_model ]);
+    cxfspgb_conf        = &(g_cxfspgb_conf[ page_model ]);
     pgc_cxfspgrb_bitmap = CXFSPGB_PAGE_MODEL_CXFSPGRB_BITMAP(cxfspgb, page_model);
-    bits_count     = 0;
+    bits_count          = 0;
 
     for(byte_nth = 0; byte_nth < CXFSPGB_CONF_CXFSPGRB_BITMAP_SIZE(cxfspgb_conf); byte_nth ++)
     {
@@ -359,8 +359,8 @@ STATIC_CAST static EC_BOOL __cxfspgb_page_model_check(const CXFSPGB *cxfspgb, co
 
     const CXFSPGRB_POOL *cxfspgrb_pool;
 
-    cxfspgrb_pool    = CXFSPGB_CXFSPGRB_POOL(cxfspgb);
-    root_pos    = CXFSPGB_PAGE_MODEL_CXFSPGRB_ROOT_POS(cxfspgb, page_model);
+    cxfspgrb_pool = CXFSPGB_CXFSPGRB_POOL(cxfspgb);
+    root_pos      = CXFSPGB_PAGE_MODEL_CXFSPGRB_ROOT_POS(cxfspgb, page_model);
 
     /*check consistency of bit count and node count*/
     bits_count  = __cxfspgb_page_model_cxfspgrb_bitmap_count_bits(cxfspgb, page_model);
@@ -467,7 +467,7 @@ EC_BOOL cxfspgb_init(CXFSPGB *cxfspgb, const uint16_t page_model_target)
         return (EC_FALSE);
     }
 
-    cxfspgb_conf    = &(g_cxfspgb_conf[ page_model_target ]);
+    cxfspgb_conf = &(g_cxfspgb_conf[ page_model_target ]);
     page_max_num = CXFSPGB_CONF_PAGE_NUM(cxfspgb_conf);
 
     page_max_num_t = ((page_max_num + 1) >> 1); /*optimize, use half of rb nodes to represent all pages*/
@@ -479,7 +479,7 @@ EC_BOOL cxfspgb_init(CXFSPGB *cxfspgb, const uint16_t page_model_target)
     }
     dbg_log(SEC_0201_CXFSPGB, 9)(LOGSTDNULL, "[DEBUG] cxfspgb_init: init cxfspgrb pool done where page_max_num_t = %u derived from page_max_num %u\n", page_max_num_t, page_max_num);
 
-    BSET(CXFSPGB_PAGE_MODEL_CXFSPGRB_BITMAP_BUFF(cxfspgb), CXFSPGB_PAGE_IS_NOT_FREE, CXFSPGB_RB_BITMAP_SIZE); /*mark as non-free page*/
+    BSET(CXFSPGB_PAGE_MODEL_CXFSPGRB_BITMAP_BUFF(cxfspgb), 0 /*not free*/, CXFSPGB_RB_BITMAP_SIZE); /*mark as non-free page*/
 
     for(page_model = 0; CXFSPGB_MODEL_MAX_NUM > page_model; page_model ++)
     {
@@ -1146,6 +1146,50 @@ EC_BOOL cxfspgb_reserve_page(CXFSPGB *cxfspgb, const uint32_t size, const uint16
 EC_BOOL cxfspgb_release_page(CXFSPGB *cxfspgb, const uint16_t page_no, const uint32_t size)
 {
     return cxfspgb_free_space(cxfspgb, page_no, size);
+}
+
+EC_BOOL cxfspgb_check_page_used(const CXFSPGB *cxfspgb, const uint16_t page_model, const uint16_t page_no)
+{
+    uint16_t page_no_max;
+    uint16_t page_no_t;
+    uint16_t page_model_t;
+
+    CXFSPGB_ASSERT(CXFSPGB_MODEL_NUM > page_model);
+
+    page_no_max = (uint16_t)(1 << page_model);
+    if(page_no >= page_no_max)
+    {
+        dbg_log(SEC_0201_CXFSPGB, 0)(LOGSTDOUT, "error:cxfspgb_check_page_used: "
+                            "page_no_max %u but page_no to add is %u, overflow!\n",
+                            page_no_max, page_no);
+        return (EC_FALSE);
+    }
+
+    /*page_model .. 0*/
+    for(page_no_t = page_no, page_model_t = page_model + 1; page_model_t -- > 0; page_no_t >>= 1)
+    {
+        const CXFSPGB_CONF  *cxfspgb_conf; /*debug*/
+
+        cxfspgb_conf  = &(g_cxfspgb_conf[ page_model_t ]);
+
+        /*check it is free-page or not*/
+        if(EC_TRUE == __cxfspgb_page_model_cxfspgrb_bitmap_is(cxfspgb, page_model_t, page_no_t, (uint8_t)1))
+        {
+            dbg_log(SEC_0201_CXFSPGB, 9)(LOGSTDOUT, "[DEBUG] cxfspgb_check_page_used: "
+                                "page_model_t %u (%s), page_no_t %u => not used\n",
+                                page_model_t, CXFSPGB_CONF_NAME(cxfspgb_conf), page_no);
+
+            /*free page*/
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0201_CXFSPGB, 9)(LOGSTDOUT, "[DEBUG] cxfspgb_check_page_used: "
+                            "page_model_t %u (%s), page_no_t %u => used\n",
+                            page_model_t, CXFSPGB_CONF_NAME(cxfspgb_conf), page_no);
+    }
+
+    /*used*/
+    return (EC_TRUE);
 }
 
 /*return true if all pages in block are used, otherwise return false*/

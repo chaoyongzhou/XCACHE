@@ -195,7 +195,7 @@ UINT32 cvendor_start(ngx_http_request_t *r)
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)cvendor_end, cvendor_md_id);
 
-    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_start: start CVENDOR module #%u\n", cvendor_md_id);
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_start: start CVENDOR module #%ld\n", cvendor_md_id);
 
     return ( cvendor_md_id );
 }
@@ -214,7 +214,7 @@ void cvendor_end(const UINT32 cvendor_md_id)
     cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
     if(NULL_PTR == cvendor_md)
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_end: cvendor_md_id = %u not exist.\n", cvendor_md_id);
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_end: cvendor_md_id = %ld not exist.\n", cvendor_md_id);
         dbg_exit(MD_CVENDOR, cvendor_md_id);
     }
 
@@ -227,7 +227,7 @@ void cvendor_end(const UINT32 cvendor_md_id)
 
     if ( 0 == cvendor_md->usedcounter )
     {
-        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_end: cvendor_md_id = %u is not started.\n", cvendor_md_id);
+        dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_end: cvendor_md_id = %ld is not started.\n", cvendor_md_id);
         dbg_exit(MD_CVENDOR, cvendor_md_id);
     }
 
@@ -298,7 +298,7 @@ void cvendor_end(const UINT32 cvendor_md_id)
     /* free module */
     cvendor_md->usedcounter = 0;
 
-    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "cvendor_end: stop CVENDOR module #%u\n", cvendor_md_id);
+    dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "cvendor_end: stop CVENDOR module #%ld\n", cvendor_md_id);
     cbc_md_free(MD_CVENDOR, cvendor_md_id);
 
     return ;
@@ -354,7 +354,7 @@ EC_BOOL cvendor_set_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, const
     if(NGX_OK != CVENDOR_MD_NGX_RC(cvendor_md))
     {
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_set_ngx_rc: "
-                                                "ignore rc %d due to its %d now\n",
+                                                "ignore rc %ld due to its %ld now\n",
                                                 rc, CVENDOR_MD_NGX_RC(cvendor_md));
         return (EC_TRUE);
     }
@@ -363,7 +363,7 @@ EC_BOOL cvendor_set_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, const
     if(EC_FALSE == cngx_need_send_header(r))
     {
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_set_ngx_rc: "
-                                                "ignore rc %d due to header had sent out\n",
+                                                "ignore rc %ld due to header had sent out\n",
                                                 rc);
         cngx_disable_keepalive(r);
         return (EC_TRUE);
@@ -373,7 +373,7 @@ EC_BOOL cvendor_set_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, const
     CVENDOR_MD_NGX_LOC(cvendor_md) = location;
 
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_set_ngx_rc: "
-                                            "set rc %d\n",
+                                            "set rc %ld\n",
                                             rc);
 
     return (EC_TRUE);
@@ -400,7 +400,7 @@ EC_BOOL cvendor_override_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, 
     if(rc == CVENDOR_MD_NGX_RC(cvendor_md))
     {
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_override_ngx_rc: "
-                                                "ignore same rc %d\n",
+                                                "ignore same rc %ld\n",
                                                 rc);
         return (EC_TRUE);
     }
@@ -409,7 +409,7 @@ EC_BOOL cvendor_override_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, 
     if(EC_FALSE == cngx_need_send_header(r))
     {
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_override_ngx_rc: "
-                                                "ignore rc %d due to header had sent out\n",
+                                                "ignore rc %ld due to header had sent out\n",
                                                 rc);
         cngx_disable_keepalive(r);
         return (EC_TRUE);
@@ -418,7 +418,7 @@ EC_BOOL cvendor_override_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, 
     if(NGX_OK != CVENDOR_MD_NGX_RC(cvendor_md))
     {
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_override_ngx_rc: "
-                                                "modify rc %d => %d\n",
+                                                "modify rc %ld => %ld\n",
                                                 CVENDOR_MD_NGX_RC(cvendor_md), rc);
         CVENDOR_MD_NGX_RC(cvendor_md)  = rc;
         CVENDOR_MD_NGX_LOC(cvendor_md) = location;
@@ -427,7 +427,7 @@ EC_BOOL cvendor_override_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, 
     }
 
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_override_ngx_rc: "
-                                            "set rc %d\n",
+                                            "set rc %ld\n",
                                             rc);
 
     CVENDOR_MD_NGX_RC(cvendor_md)  = rc;
@@ -1836,7 +1836,7 @@ EC_BOOL cvendor_filter_header_out_multi_range(const UINT32 cvendor_md_id)
         chttp_rsp_renew_header(CVENDOR_MD_CHTTP_RSP(cvendor_md), k, v);
 
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_filter_header_out_multi_range: "
-                                                "renew '%s' done\n",
+                                                "renew '%s':'%s' done\n",
                                                 k, v);
     }
 
@@ -3095,7 +3095,7 @@ EC_BOOL cvendor_content_head_header_out_rsp_status_filter(const UINT32 cvendor_m
 
             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_out_rsp_status_filter: "
-                                                    "[cngx] found 404 => response status = %ld [after]\n",
+                                                    "[cngx] found 404 => response status = %u [after]\n",
                                                     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
             return (EC_TRUE);
         }
@@ -4526,7 +4526,7 @@ EC_BOOL cvendor_content_direct_header_out_rsp_status_filter(const UINT32 cvendor
 
             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_out_rsp_status_filter: "
-                                                    "[cngx] found 404 => response status = %ld [after]\n",
+                                                    "[cngx] found 404 => response status = %u [after]\n",
                                                     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
             return (EC_TRUE);
         }
@@ -6667,7 +6667,7 @@ EC_BOOL cvendor_content_repair_header_out_rsp_status_filter(const UINT32 cvendor
 
             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_out_rsp_status_filter: "
-                                                    "[cngx] found 404 => response status = %ld [after]\n",
+                                                    "[cngx] found 404 => response status = %u [after]\n",
                                                     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
             return (EC_TRUE);
         }
@@ -7568,7 +7568,7 @@ EC_BOOL cvendor_content_chunk_header_out_filter(const UINT32 cvendor_md_id)
 
             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_chunk_header_out_filter: "
-                                                    "[cngx] found 404 => response status = %ld [after]\n",
+                                                    "[cngx] found 404 => response status = %u [after]\n",
                                                     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
             return (EC_TRUE);
         }
@@ -9238,7 +9238,7 @@ EC_BOOL cvendor_content_orig_header_out_rsp_status_filter(const UINT32 cvendor_m
 
             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_rsp_status_filter: "
-                                                    "[cngx] found 404 => response status = %ld [after]\n",
+                                                    "[cngx] found 404 => response status = %u [after]\n",
                                                     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
             return (EC_TRUE);
         }
@@ -9284,7 +9284,7 @@ EC_BOOL cvendor_content_orig_header_out_rsp_status_filter(const UINT32 cvendor_m
         CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_rsp_status_filter: "
-                                                "'%s' exist => response status = %ld [after]\n",
+                                                "'%s' exist => response status = %u [after]\n",
                                                 k, CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
         return (EC_TRUE);
     }
@@ -9294,7 +9294,7 @@ EC_BOOL cvendor_content_orig_header_out_rsp_status_filter(const UINT32 cvendor_m
         CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_rsp_status_filter: "
-                                                "[cngx] multi range => response status = %ld [after]\n",
+                                                "[cngx] multi range => response status = %u [after]\n",
                                                 CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
         return (EC_TRUE);
     }
@@ -9302,7 +9302,7 @@ EC_BOOL cvendor_content_orig_header_out_rsp_status_filter(const UINT32 cvendor_m
     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_OK;
 
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_orig_header_out_rsp_status_filter: "
-                                            "response status = %ld [after]\n",
+                                            "response status = %u [after]\n",
                                             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
 
     return (EC_TRUE);
@@ -11457,7 +11457,7 @@ EC_BOOL cvendor_content_ms_header_out_rsp_status_filter(const UINT32 cvendor_md_
 
             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_out_rsp_status_filter: "
-                                                    "[cngx] found 404 => response status = %ld [after]\n",
+                                                    "[cngx] found 404 => response status = %u [after]\n",
                                                     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
             return (EC_TRUE);
         }
@@ -11503,7 +11503,7 @@ EC_BOOL cvendor_content_ms_header_out_rsp_status_filter(const UINT32 cvendor_md_
         CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_out_rsp_status_filter: "
-                                                "'%s' exist => response status = %ld [after]\n",
+                                                "'%s' exist => response status = %u [after]\n",
                                                 k, CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
         return (EC_TRUE);
     }
@@ -11513,7 +11513,7 @@ EC_BOOL cvendor_content_ms_header_out_rsp_status_filter(const UINT32 cvendor_md_
         CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_out_rsp_status_filter: "
-                                                "[cngx] multi range => response status = %ld [after]\n",
+                                                "[cngx] multi range => response status = %u [after]\n",
                                                 CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
         return (EC_TRUE);
     }
@@ -11521,7 +11521,7 @@ EC_BOOL cvendor_content_ms_header_out_rsp_status_filter(const UINT32 cvendor_md_
     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_OK;
 
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ms_header_out_rsp_status_filter: "
-                                            "response status = %ld [after]\n",
+                                            "response status = %u [after]\n",
                                             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
 
     return (EC_TRUE);
@@ -12766,7 +12766,7 @@ EC_BOOL cvendor_content_preload_parse_header(const UINT32 cvendor_md_id, const C
     {
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_preload_parse_header: "
                                                 "header '\n%.*s\n' => \n",
-                                                CBYTES_LEN(header_cbytes),
+                                                (uint32_t)CBYTES_LEN(header_cbytes),
                                                 (char *)CBYTES_BUF(header_cbytes));
 
         chttp_rsp_print_plain(LOGSTDOUT, CVENDOR_MD_CHTTP_RSP(cvendor_md));
@@ -12942,7 +12942,7 @@ EC_BOOL cvendor_content_preload_header_out_rsp_status_filter(const UINT32 cvendo
 
             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_preload_header_out_rsp_status_filter: "
-                                                    "[cngx] found 404 => response status = %ld [after]\n",
+                                                    "[cngx] found 404 => response status = %u [after]\n",
                                                     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
             return (EC_TRUE);
         }
@@ -12953,7 +12953,7 @@ EC_BOOL cvendor_content_preload_header_out_rsp_status_filter(const UINT32 cvendo
         {
             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_preload_header_out_rsp_status_filter: "
-                                                    "[cngx] found 301/302 and '%s' => response status = %ld [after]\n",
+                                                    "[cngx] found 301/302 and '%s' => response status = %u [after]\n",
                                                     k,
                                                     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
             return (EC_TRUE);
@@ -12965,7 +12965,7 @@ EC_BOOL cvendor_content_preload_header_out_rsp_status_filter(const UINT32 cvendo
     {
         CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_OK;
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_preload_header_out_rsp_status_filter: "
-                                                "[cngx] no range => response status = %ld [after]\n",
+                                                "[cngx] no range => response status = %u [after]\n",
                                                 CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
         return (EC_TRUE);
     }
@@ -12976,7 +12976,7 @@ EC_BOOL cvendor_content_preload_header_out_rsp_status_filter(const UINT32 cvendo
         CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_preload_header_out_rsp_status_filter: "
-                                                "'Content-Range' exist => response status = %ld [after]\n",
+                                                "'Content-Range' exist => response status = %u [after]\n",
                                                 CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
         return (EC_TRUE);
     }
@@ -12986,7 +12986,7 @@ EC_BOOL cvendor_content_preload_header_out_rsp_status_filter(const UINT32 cvendo
         CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_preload_header_out_rsp_status_filter: "
-                                                "[cngx] multi range => response status = %ld [after]\n",
+                                                "[cngx] multi range => response status = %u [after]\n",
                                                 CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
         return (EC_TRUE);
     }
@@ -12994,7 +12994,7 @@ EC_BOOL cvendor_content_preload_header_out_rsp_status_filter(const UINT32 cvendo
     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_OK;
 
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_preload_header_out_rsp_status_filter: "
-                                            "response status = %ld\n",
+                                            "response status = %u\n",
                                             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
 
     return (EC_TRUE);
@@ -13256,7 +13256,7 @@ EC_BOOL cvendor_content_redirect_procedure(const UINT32 cvendor_md_id)
     dbg_log(SEC_0175_CVENDOR, 5)(LOGSTDOUT, "[DEBUG] cvendor_content_redirect_procedure: redirect ctrl '%s'\n",
                         c_bit_bool_str(CHTTP_STORE_REDIRECT_CTRL(CVENDOR_MD_CHTTP_STORE(cvendor_md))));
 
-    dbg_log(SEC_0175_CVENDOR, 5)(LOGSTDOUT, "[DEBUG] cvendor_content_redirect_procedure: redirect max times '%u'\n",
+    dbg_log(SEC_0175_CVENDOR, 5)(LOGSTDOUT, "[DEBUG] cvendor_content_redirect_procedure: redirect max times '%ld'\n",
                         CHTTP_STORE_REDIRECT_MAX_TIMES(CVENDOR_MD_CHTTP_STORE(cvendor_md)));
 
     for(redirect_times = 0;
@@ -14593,7 +14593,7 @@ EC_BOOL cvendor_content_ims_header_out_304_content_range_filter(const UINT32 cve
     {
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_ims_header_out_304_content_range_filter: "
                                                 "[status %u] ims rsp has no header '%s' => done\n",
-                                                status, k, v);
+                                                status, k);
         return (EC_TRUE);
     }
 
@@ -16167,7 +16167,7 @@ EC_BOOL cvendor_content_cache_parse_header(const UINT32 cvendor_md_id, const CBY
     {
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_parse_header: "
                                                 "header '\n%.*s\n' => \n",
-                                                CBYTES_LEN(header_cbytes),
+                                                (uint32_t)CBYTES_LEN(header_cbytes),
                                                 (char *)CBYTES_BUF(header_cbytes));
 
         chttp_rsp_print_plain(LOGSTDOUT, CVENDOR_MD_CHTTP_RSP(cvendor_md));
@@ -16597,7 +16597,7 @@ EC_BOOL cvendor_content_cache_header_out_rsp_status_filter(const UINT32 cvendor_
 
             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_rsp_status_filter: "
-                                                    "[cngx] found 404 => response status = %ld [after]\n",
+                                                    "[cngx] found 404 => response status = %u [after]\n",
                                                     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
             return (EC_TRUE);
         }
@@ -16608,7 +16608,7 @@ EC_BOOL cvendor_content_cache_header_out_rsp_status_filter(const UINT32 cvendor_
         {
             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = response_status;
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_rsp_status_filter: "
-                                                    "[cngx] found 301/302 and '%s' => response status = %ld [after]\n",
+                                                    "[cngx] found 301/302 and '%s' => response status = %u [after]\n",
                                                     k,
                                                     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
             return (EC_TRUE);
@@ -16620,7 +16620,7 @@ EC_BOOL cvendor_content_cache_header_out_rsp_status_filter(const UINT32 cvendor_
     {
         CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_OK;
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_rsp_status_filter: "
-                                                "[cngx] no range => response status = %ld [after]\n",
+                                                "[cngx] no range => response status = %u [after]\n",
                                                 CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
         return (EC_TRUE);
     }
@@ -16631,7 +16631,7 @@ EC_BOOL cvendor_content_cache_header_out_rsp_status_filter(const UINT32 cvendor_
         CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_rsp_status_filter: "
-                                                "'Content-Range' exist => response status = %ld [after]\n",
+                                                "'Content-Range' exist => response status = %u [after]\n",
                                                 CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
         return (EC_TRUE);
     }
@@ -16641,7 +16641,7 @@ EC_BOOL cvendor_content_cache_header_out_rsp_status_filter(const UINT32 cvendor_
         CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_rsp_status_filter: "
-                                                "[cngx] multi range => response status = %ld [after]\n",
+                                                "[cngx] multi range => response status = %u [after]\n",
                                                 CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
         return (EC_TRUE);
     }
@@ -16649,7 +16649,7 @@ EC_BOOL cvendor_content_cache_header_out_rsp_status_filter(const UINT32 cvendor_
     CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)) = CHTTP_OK;
 
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_rsp_status_filter: "
-                                            "response status = %ld\n",
+                                            "response status = %u\n",
                                             CHTTP_RSP_STATUS(CVENDOR_MD_CHTTP_RSP(cvendor_md)));
 
     return (EC_TRUE);
@@ -16700,19 +16700,19 @@ EC_BOOL cvendor_content_cache_header_out_expires_filter(const UINT32 cvendor_md_
     {
         expires = c_parse_http_time((uint8_t *)v, strlen(v));
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
-                                                "'%s' => %d\n",
+                                                "'%s' => %ld\n",
                                                 v, expires);
         if(expires >= curtime)
         {
             dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
-                                                    "expires '%d' >= curtime '%d'\n",
+                                                    "expires '%ld' >= curtime '%ld'\n",
                                                     expires, curtime);
             /*not expired yet*/
             return (EC_TRUE);
         }
 
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
-                                                "expires '%d' < curtime '%d' => set cache_expired_flag to true\n",
+                                                "expires '%ld' < curtime '%ld' => set cache_expired_flag to true\n",
                                                 expires, curtime);
 
         /*REFRESH_HIT or REFRESH_MISS*/
@@ -16746,7 +16746,7 @@ EC_BOOL cvendor_content_cache_header_out_expires_filter(const UINT32 cvendor_md_
     if(0 == expires)
     {
         dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
-                                                "expires = %d => set cache_expired_flag to true\n",
+                                                "expires = %ld => set cache_expired_flag to true\n",
                                                 expires);
 
         /*REFRESH_HIT or REFRESH_MISS*/
@@ -16776,7 +16776,7 @@ EC_BOOL cvendor_content_cache_header_out_expires_filter(const UINT32 cvendor_md_
     }
 
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_cache_header_out_expires_filter: "
-                                            "expires = %d\n",
+                                            "expires = %ld\n",
                                             expires);
 
     k = (const char *)"Date";

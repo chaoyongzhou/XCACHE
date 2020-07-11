@@ -10080,6 +10080,65 @@ EC_BOOL super_cdc_fifo_model_switch_on(const UINT32 super_md_id)
     return (EC_FALSE);
 }
 
+/**
+*
+* set camd:check_page_used:switch:on
+*
+**/
+EC_BOOL super_camd_check_page_used_switch_on(const UINT32 super_md_id)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_camd_check_page_used_switch_on: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    if(NULL_PTR != cparacfg)
+    {
+        CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH(cparacfg)  = SWITCH_ON;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+/**
+*
+* set camd:check_page_used:switch:off
+*
+**/
+EC_BOOL super_camd_check_page_used_switch_off(const UINT32 super_md_id)
+{
+    CPARACFG        *cparacfg;
+
+#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
+    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:super_camd_check_page_used_switch_off: super module #0x%lx not started.\n",
+                super_md_id);
+        dbg_exit(MD_SUPER, super_md_id);
+    }
+#endif/*SUPER_DEBUG_SWITCH*/
+
+    cparacfg = CPARACFG_DEFAULT_GET();
+
+    if(NULL_PTR != cparacfg)
+    {
+        CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH(cparacfg)  = SWITCH_OFF;
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
 
 #ifdef __cplusplus
 }

@@ -549,19 +549,21 @@ EC_BOOL cxfsnp_mgr_load(CXFSNP_MGR *cxfsnp_mgr, const int cxfsnp_dev_fd, const C
         if(EC_FALSE == c_file_pread(cxfsnp_dev_fd, &np_offset, np_mem_size, np_mem_cache))
         {
             dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_load: "
-                                                      "load %ld bytes from active zone %ld, offset %ld failed\n",
+                                                      "load %ld bytes from fd %d, active zone %ld, offset %ld, size %ld failed\n",
                                                       np_mem_size,
+                                                      cxfsnp_dev_fd,
                                                       CXFSCFG_NP_ZONE_ACTIVE_IDX(cxfscfg),
-                                                      CXFSZONE_S_OFFSET(cxfszone));
+                                                      CXFSZONE_S_OFFSET(cxfszone), np_mem_size);
             c_memalign_free(np_mem_cache);
             return (EC_FALSE);
         }
 
         dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_load: "
-                                                  "load %ld bytes from active zone %ld, offset %ld done\n",
+                                                  "load %ld bytes from fd %d, active zone %ld, offset %ld, size %ld done\n",
                                                   np_mem_size,
+                                                  cxfsnp_dev_fd,
                                                   CXFSCFG_NP_ZONE_ACTIVE_IDX(cxfscfg),
-                                                  CXFSZONE_S_OFFSET(cxfszone));
+                                                  CXFSZONE_S_OFFSET(cxfszone), np_mem_size);
     }
 
     if(SWITCH_ON == CXFS_NP_MMAP_SWITCH)
@@ -591,10 +593,11 @@ EC_BOOL cxfsnp_mgr_load(CXFSNP_MGR *cxfsnp_mgr, const int cxfsnp_dev_fd, const C
         }
 
         dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_load: "
-                                                  "mmap %ld bytes from active zone %ld, offset %ld done\n",
+                                                  "mmap %ld bytes from fd %d, active zone %ld, offset %ld, size %ld done\n",
                                                   np_mem_size,
+                                                  cxfsnp_dev_fd,
                                                   CXFSCFG_NP_ZONE_ACTIVE_IDX(cxfscfg),
-                                                  CXFSZONE_S_OFFSET(cxfszone));
+                                                  CXFSZONE_S_OFFSET(cxfszone), np_mem_size);
     }
 
     /*init*/
@@ -908,10 +911,10 @@ CXFSNP_MGR *cxfsnp_mgr_create(const uint8_t cxfsnp_model,
 
     np_total_size = ((UINT32)cxfsnp_max_num) * np_size;
 
-    if(cxfsnp_dev_size <= np_total_size + cxfsnp_dev_offset)
+    if(cxfsnp_dev_size <= cxfsnp_dev_offset + np_total_size)
     {
         dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_create: size %ld <= %ld\n",
-                                                  cxfsnp_dev_size, np_total_size + cxfsnp_dev_offset);
+                                                  cxfsnp_dev_size, cxfsnp_dev_offset + np_total_size);
         return (NULL_PTR);
     }
 

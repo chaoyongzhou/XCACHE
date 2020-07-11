@@ -187,6 +187,8 @@
 #define     FI_super_cxfs_camd_overhead_switch_on  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 168))
 #define    FI_super_cxfs_camd_overhead_switch_off  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 169))
 #define      FI_super_cxfs_camd_discard_ratio_set  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 170))
+#define   FI_super_camd_check_page_used_switch_on  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 171))
+#define  FI_super_camd_check_page_used_switch_off  ((UINT32) ((MD_SUPER << (WORDSIZE/2)) + 172))
 
 #define           FI_csession_print_module_status  ((UINT32) ((MD_CSESSION << (WORDSIZE/2)) +  0))
 #define        FI_csession_free_module_static_mem  ((UINT32) ((MD_CSESSION << (WORDSIZE/2)) +  1))
@@ -434,6 +436,8 @@
 #define                    FI_cxfs_deactivate_ngx  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 112))
 #define                      FI_cxfs_process_stat  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 113))
 #define                  FI_cxfs_wait_file_retire  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 114))
+#define                  FI_cxfs_check_space_used  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 115))
+#define               FI_cxfs_check_adjacent_used  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 116))
 
 #define               FI_cmon_print_module_status  ((UINT32) ((MD_CMON << (WORDSIZE/2)) +  0))
 #define            FI_cmon_free_module_static_mem  ((UINT32) ((MD_CMON << (WORDSIZE/2)) +  1))

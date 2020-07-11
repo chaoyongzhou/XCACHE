@@ -148,6 +148,11 @@ EC_BOOL api_cmd_ui_cdc_flow_control_switch_on_all(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cdc_flow_control_switch_off(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cdc_flow_control_switch_off_all(CMD_PARA_VEC * param);
 
+EC_BOOL api_cmd_ui_camd_check_page_used_switch_off(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_camd_check_page_used_switch_off_all(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_camd_check_page_used_switch_on(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_camd_check_page_used_switch_on_all(CMD_PARA_VEC * param);
+
 EC_BOOL api_cmd_ui_cxfs_lru_model_switch_on(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_lru_model_switch_on_all(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_fifo_model_switch_on(CMD_PARA_VEC * param);
@@ -369,6 +374,7 @@ EC_BOOL api_cmd_ui_cxfs_show_specific_np(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_show_locked_files(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_show_wait_files(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_md5sum(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_check_space_used(CMD_PARA_VEC * param);
 #endif
 
 #if 1

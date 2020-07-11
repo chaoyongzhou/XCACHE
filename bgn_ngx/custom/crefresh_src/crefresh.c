@@ -155,7 +155,7 @@ UINT32 crefresh_start(ngx_http_request_t *r)
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)crefresh_end, crefresh_md_id);
 
-    dbg_log(SEC_0179_CREFRESH, 9)(LOGSTDOUT, "[DEBUG] crefresh_start: start CREFRESH module #%u\n", crefresh_md_id);
+    dbg_log(SEC_0179_CREFRESH, 9)(LOGSTDOUT, "[DEBUG] crefresh_start: start CREFRESH module #%ld\n", crefresh_md_id);
 
     return ( crefresh_md_id );
 }
@@ -174,7 +174,7 @@ void crefresh_end(const UINT32 crefresh_md_id)
     crefresh_md = CREFRESH_MD_GET(crefresh_md_id);
     if(NULL_PTR == crefresh_md)
     {
-        dbg_log(SEC_0179_CREFRESH, 0)(LOGSTDOUT, "error:crefresh_end: crefresh_md_id = %u not exist.\n", crefresh_md_id);
+        dbg_log(SEC_0179_CREFRESH, 0)(LOGSTDOUT, "error:crefresh_end: crefresh_md_id = %ld not exist.\n", crefresh_md_id);
         dbg_exit(MD_CREFRESH, crefresh_md_id);
     }
 
@@ -187,7 +187,7 @@ void crefresh_end(const UINT32 crefresh_md_id)
 
     if ( 0 == crefresh_md->usedcounter )
     {
-        dbg_log(SEC_0179_CREFRESH, 0)(LOGSTDOUT, "error:crefresh_end: crefresh_md_id = %u is not started.\n", crefresh_md_id);
+        dbg_log(SEC_0179_CREFRESH, 0)(LOGSTDOUT, "error:crefresh_end: crefresh_md_id = %ld is not started.\n", crefresh_md_id);
         dbg_exit(MD_CREFRESH, crefresh_md_id);
     }
 
@@ -207,7 +207,7 @@ void crefresh_end(const UINT32 crefresh_md_id)
     /* free module */
     crefresh_md->usedcounter = 0;
 
-    dbg_log(SEC_0179_CREFRESH, 9)(LOGSTDOUT, "crefresh_end: stop CREFRESH module #%u\n", crefresh_md_id);
+    dbg_log(SEC_0179_CREFRESH, 9)(LOGSTDOUT, "crefresh_end: stop CREFRESH module #%ld\n", crefresh_md_id);
     cbc_md_free(MD_CREFRESH, crefresh_md_id);
 
     return ;
@@ -262,8 +262,8 @@ EC_BOOL crefresh_set_ngx_rc(const UINT32 crefresh_md_id, const ngx_int_t rc, con
     if(NGX_OK != CREFRESH_MD_NGX_RC(crefresh_md))
     {
         dbg_log(SEC_0179_CREFRESH, 9)(LOGSTDOUT, "[DEBUG] crefresh_override_ngx_rc: "
-                                                "ignore rc %d due to its %d now\n",
-                                                rc, CREFRESH_MD_NGX_RC(crefresh_md));
+                                                 "ignore rc %ld due to its %ld now\n",
+                                                 rc, CREFRESH_MD_NGX_RC(crefresh_md));
         return (EC_TRUE);
     }
 
@@ -271,8 +271,8 @@ EC_BOOL crefresh_set_ngx_rc(const UINT32 crefresh_md_id, const ngx_int_t rc, con
     CREFRESH_MD_NGX_LOC(crefresh_md) = location;
 
     dbg_log(SEC_0179_CREFRESH, 9)(LOGSTDOUT, "[DEBUG] crefresh_set_ngx_rc: "
-                                            "set rc %d\n",
-                                            rc);
+                                             "set rc %ld\n",
+                                             rc);
 
     return (EC_TRUE);
 }
@@ -297,16 +297,16 @@ EC_BOOL crefresh_override_ngx_rc(const UINT32 crefresh_md_id, const ngx_int_t rc
     if(rc == CREFRESH_MD_NGX_RC(crefresh_md))
     {
         dbg_log(SEC_0179_CREFRESH, 9)(LOGSTDOUT, "[DEBUG] crefresh_override_ngx_rc: "
-                                                "ignore same rc %d\n",
-                                                rc);
+                                                 "ignore same rc %ld\n",
+                                                 rc);
         return (EC_TRUE);
     }
 
     if(NGX_OK != CREFRESH_MD_NGX_RC(crefresh_md))
     {
         dbg_log(SEC_0179_CREFRESH, 9)(LOGSTDOUT, "[DEBUG] crefresh_override_ngx_rc: "
-                                                "modify rc %d => %d\n",
-                                                CREFRESH_MD_NGX_RC(crefresh_md), rc);
+                                                 "modify rc %ld => %ld\n",
+                                                 CREFRESH_MD_NGX_RC(crefresh_md), rc);
         CREFRESH_MD_NGX_RC(crefresh_md)  = rc;
         CREFRESH_MD_NGX_LOC(crefresh_md) = location;
 
@@ -314,8 +314,8 @@ EC_BOOL crefresh_override_ngx_rc(const UINT32 crefresh_md_id, const ngx_int_t rc
     }
 
     dbg_log(SEC_0179_CREFRESH, 9)(LOGSTDOUT, "[DEBUG] crefresh_override_ngx_rc: "
-                                            "set rc %d\n",
-                                            rc);
+                                             "set rc %ld\n",
+                                             rc);
 
     CREFRESH_MD_NGX_RC(crefresh_md)  = rc;
     CREFRESH_MD_NGX_LOC(crefresh_md) = location;
@@ -362,7 +362,7 @@ EC_BOOL crefresh_parse_cache_path_list(const UINT32 crefresh_md_id, CBYTES *cbyt
 
     path_obj_len = json_object_array_length(path_objs);
     dbg_log(SEC_0179_CREFRESH, 9)(LOGSTDOUT, "[DEBUG] crefresh_parse_cache_path_list: "
-                                             "path_obj_len = %d\n",
+                                             "path_obj_len = %ld\n",
                                              path_obj_len);
 
     for(path_obj_idx = 0; path_obj_idx < path_obj_len; path_obj_idx ++)

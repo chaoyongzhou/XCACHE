@@ -820,6 +820,8 @@ EC_BOOL cxfspgb_reserve_page(CXFSPGB *cxfspgb, const uint32_t size, const uint16
 
 EC_BOOL cxfspgb_release_page(CXFSPGB *cxfspgb, const uint16_t page_no, const uint32_t size);
 
+EC_BOOL cxfspgb_check_page_used(const CXFSPGB *cxfspgb, const uint16_t page_model, const uint16_t page_no);
+
 /*return true if all pages in block are used, otherwise return false*/
 EC_BOOL cxfspgb_is_full(const CXFSPGB *cxfspgb);
 

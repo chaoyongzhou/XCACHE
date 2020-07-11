@@ -184,11 +184,13 @@ typedef struct
 
     CXFSPGV           *cxfspgv;
 
+    int                ssd_meta_fd;
     int                ssd_disk_fd;
+    int                sata_meta_fd;
     int                sata_disk_fd;
 
-    UINT32             offset;
-    UINT32             size;
+    UINT32             dn_data_offset;  /*data base offset on disk*/
+    UINT32             dn_zone_size;    /*single data zone size*/
 
     UINT8             *mem_cache;
 
@@ -201,10 +203,12 @@ typedef struct
 #define CXFSDN_WRITER_NUM(cxfsdn)                          ((cxfsdn)->writer_num)
 #define CXFSDN_READER_NUM(cxfsdn)                          ((cxfsdn)->reader_num)
 #define CXFSDN_CXFSPGV(cxfsdn)                             ((cxfsdn)->cxfspgv)
+#define CXFSDN_SSD_META_FD(cxfsdn)                         ((cxfsdn)->ssd_meta_fd)
 #define CXFSDN_SSD_DISK_FD(cxfsdn)                         ((cxfsdn)->ssd_disk_fd)
+#define CXFSDN_SATA_META_FD(cxfsdn)                        ((cxfsdn)->sata_meta_fd)
 #define CXFSDN_SATA_DISK_FD(cxfsdn)                        ((cxfsdn)->sata_disk_fd)
-#define CXFSDN_OFFSET(cxfsdn)                              ((cxfsdn)->offset)
-#define CXFSDN_SIZE(cxfsdn)                                ((cxfsdn)->size)
+#define CXFSDN_DATA_OFFSET(cxfsdn)                         ((cxfsdn)->dn_data_offset)
+#define CXFSDN_ZONE_SIZE(cxfsdn)                           ((cxfsdn)->dn_zone_size)
 #define CXFSDN_MEM_CACHE(cxfsdn)                           ((cxfsdn)->mem_cache)
 #define CXFSDN_CAMD_MD(cxfsdn)                             ((cxfsdn)->camd_md)
 #define CXFSDN_SATA_BAD_BITMAP(cxfsdn)                     ((cxfsdn)->sata_bad_bitmap)
@@ -213,15 +217,14 @@ EC_BOOL cxfsdn_node_write(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 dat
 
 EC_BOOL cxfsdn_node_read(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data_max_len, UINT8 *data_buff, UINT32 *offset);
 
-EC_BOOL cxfsdn_compute(const UINT32 cxfsdn_sata_size,   /*whole sata disk size*/
-                            const UINT32 cxfsdn_sata_offset, /*dn meta data start offset*/
-                            UINT32      *cxfsdn_disk_size,   /*dn virtaul disk size*/
-                            UINT32      *cxfsdn_zone_size);  /*dn meta data size*/
+EC_BOOL cxfsdn_set_check_page_used_cb(CXFSDN *cxfsdn, void *data, void *func);
 
 CXFSDN *cxfsdn_create(const CXFSCFG *cxfscfg,
-                         const int      cxfsdn_sata_fd,
+                         const int      cxfsdn_sata_meta_fd,
+                         const int      cxfsdn_sata_disk_fd,
                          const UINT32   cxfsdn_mem_size,
-                         const int      cxfsdn_ssd_fd);
+                         const int      cxfsdn_ssd_meta_fd,
+                         const int      cxfsdn_ssd_disk_fd);
 
 EC_BOOL cxfsdn_add_disk(CXFSDN *cxfsdn, const uint16_t disk_no);
 
@@ -264,11 +267,17 @@ EC_BOOL cxfsdn_is_read_only(CXFSDN *cxfsdn);
 EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg);
 
 EC_BOOL cxfsdn_load(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg,
-                       const int cxfsdn_sata_fd,
+                       const int cxfsdn_sata_meta_fd,
+                       const int cxfsdn_sata_disk_fd,
                        const UINT32 cxfsdn_mem_size,
-                       const int cxfsdn_ssd_fd);
+                       const int cxfsdn_ssd_meta_fd,
+                       const int cxfsdn_ssd_disk_fd);
 
-CXFSDN *cxfsdn_open(const CXFSCFG *cxfscfg, const int cxfsdn_sata_fd, const int cxfsdn_ssd_fd);
+CXFSDN *cxfsdn_open(const CXFSCFG *cxfscfg,
+                        const int cxfsdn_sata_meta_fd,
+                        const int cxfsdn_sata_disk_fd,
+                        const int cxfsdn_ssd_meta_fd,
+                        const int cxfsdn_ssd_disk_fd);
 
 EC_BOOL cxfsdn_close(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg);
 
@@ -308,6 +317,8 @@ EC_BOOL cxfsdn_remove(CXFSDN *cxfsdn, const uint16_t disk_no, const uint16_t blo
 EC_BOOL cxfsdn_reserve_space(CXFSDN *cxfsdn, const uint32_t size, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no);
 
 EC_BOOL cxfsdn_release_space(CXFSDN *cxfsdn, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no, const uint32_t size);
+
+EC_BOOL cxfsdn_check_space_used(CXFSDN *cxfsdn, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no);
 
 #endif/* _CXFSDN_H */
 

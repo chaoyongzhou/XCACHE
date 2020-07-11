@@ -2188,7 +2188,7 @@ EC_BOOL csocket_sendto(const int sockfd, struct sockaddr_in *addr, socklen_t add
         if(EAGAIN != errno)
         {
             dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_sendto: "
-                                                    "udp sockfd %u send data %p, len %u failed, "
+                                                    "udp sockfd %d send data %p, len %u failed, "
                                                     "errno = %d, errstr = %s\n",
                                                     sockfd, data, len,
                                                     errno, strerror(errno));
@@ -2203,7 +2203,7 @@ EC_BOOL csocket_sendto(const int sockfd, struct sockaddr_in *addr, socklen_t add
     }
 
     dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_sendto: "
-                                            "udp sockfd %u send data %p, len %u done\n",
+                                            "udp sockfd %d send data %p, len %u done\n",
                                             sockfd, data, len);
     return (EC_TRUE);
 }
@@ -2221,7 +2221,7 @@ EC_BOOL csocket_recvfrom(const int sockfd, uint8_t *data, const uint32_t data_ma
         if(EAGAIN != errno)
         {
             dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_recvfrom: "
-                                                    "udp sockfd %u recv failed, "
+                                                    "udp sockfd %d recv failed, "
                                                     "errno = %d, errstr = %s\n",
                                                     sockfd,
                                                     errno, strerror(errno));
@@ -2245,12 +2245,13 @@ EC_BOOL csocket_recvfrom(const int sockfd, uint8_t *data, const uint32_t data_ma
     if (0 == o_len)
     {
         dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "[DEBUG] csocket_recvfrom: "
-                                                "udp sockfd %u recv nothing\n");
+                                                "udp sockfd %d recv nothing\n",
+                                                sockfd);
     }
     else
     {
         dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_recvfrom: "
-                                                "udp sockfd %u recv len %u done\n",
+                                                "udp sockfd %d recv len %ld done\n",
                                                 sockfd, o_len);
     }
 

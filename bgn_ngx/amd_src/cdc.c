@@ -167,8 +167,10 @@ EC_BOOL cdc_stat_clean(CDC_STAT  *cdc_stat)
 * start CDC module
 *
 **/
-CDC_MD *cdc_start(const int ssd_fd, const UINT32 ssd_offset, const UINT32 ssd_disk_size/*in byte*/,
-                    const int sata_fd, const UINT32 sata_disk_size/*in byte*/)
+CDC_MD *cdc_start(const int ssd_meta_fd,
+                    const int ssd_disk_fd, const UINT32 ssd_offset, const UINT32 ssd_disk_size/*in byte*/,
+                    const int sata_disk_fd, const UINT32 sata_disk_size/*in byte*/,
+                    const UINT32 ssd_bad_bitmap_size /*in byte*/)
 {
     CDC_MD  *cdc_md;
 
@@ -177,54 +179,66 @@ CDC_MD *cdc_start(const int ssd_fd, const UINT32 ssd_offset, const UINT32 ssd_di
     UINT32   f_size;
     UINT32   key_max_num;
 
+    UINT32   ssd_meta_f_size;
+    UINT32   ssd_meta_s_offset;
+
     init_static_mem();
 
     if(1)
     {
-        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_start: ssd_fd            = %d\n" , ssd_fd);
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_start: ssd_disk_fd       = %d\n" , ssd_disk_fd);
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_start: ssd_offset        = %ld\n", ssd_offset);
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_start: ssd_disk_size     = %ld\n", ssd_disk_size);
-        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_start: sata_fd           = %d\n" , sata_fd);
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_start: sata_disk_fd      = %d\n" , sata_disk_fd);
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_start: sata_disk_size    = %ld\n", sata_disk_size);
     }
 
-    if(ERR_FD == ssd_fd)
+    if(ERR_FD == ssd_meta_fd)
     {
-        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_start: no ssd_fd\n");
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_start: no ssd_meta_fd\n");
         return (NULL_PTR);
     }
+
+    if(ERR_FD == ssd_disk_fd)
+    {
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_start: no ssd_disk_fd\n");
+        return (NULL_PTR);
+    }
+
+    if(EC_FALSE == c_file_size(ssd_meta_fd, &ssd_meta_f_size))
+    {
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_start: "
+                                            "file size of ssd_meta_fd %d failed\n",
+                                            ssd_meta_fd);
+        return (NULL_PTR);
+    }
+    dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_start: "
+                                        "ssd_meta_fd %d => ssd meta size %ld\n",
+                                        ssd_meta_fd, ssd_meta_f_size);
 
     f_s_offset  = ssd_offset;
     f_e_offset  = f_s_offset + ssd_disk_size;
 
     /*adjust f_e_offset*/
-    if(EC_FALSE == c_file_size(ssd_fd, &f_size))
+    if(EC_FALSE == c_file_size(ssd_disk_fd, &f_size))
     {
-        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_start: file size of ssd_fd %d failed\n", ssd_fd);
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_start: file size of ssd_disk_fd %d failed\n", ssd_disk_fd);
         return (NULL_PTR);
     }
-    dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_start: ssd_fd %d => ssd size %ld\n", ssd_fd, f_size);
+    dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_start: ssd_disk_fd %d => ssd size %ld\n", ssd_disk_fd, f_size);
 
     if(f_s_offset >= f_size)
     {
-        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_start: f_s_offset %ld >= f_size %ld of ssd_fd %d\n",
-                                            f_s_offset, f_size, ssd_fd);
+        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_start: f_s_offset %ld >= f_size %ld of ssd_disk_fd %d\n",
+                                            f_s_offset, f_size, ssd_disk_fd);
         return (NULL_PTR);
     }
 
     if(f_e_offset > f_size)
     {
-        dbg_log(SEC_0182_CDC, 9)(LOGSTDOUT, "[DEBUG] cdc_start: f_e_offset: %ld => %ld of ssd_fd %d\n",
-                                            f_e_offset, f_size, ssd_fd);
+        dbg_log(SEC_0182_CDC, 9)(LOGSTDOUT, "[DEBUG] cdc_start: f_e_offset: %ld => %ld of ssd_disk_fd %d\n",
+                                            f_e_offset, f_size, ssd_disk_fd);
         f_e_offset = f_size;
-    }
-
-    /*sata disk vm size must less than sata disk size*/
-    if(sata_disk_size <= CAMD_SATA_DISK_VM_S_OFFSET)
-    {
-        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_start: sata disk vm start offset %ld greater than sata disk size %ld\n",
-                                            CAMD_SATA_DISK_VM_S_OFFSET, sata_disk_size);
-        return (NULL_PTR);
     }
 
     /*one key for one page in sata disk*/
@@ -242,12 +256,22 @@ CDC_MD *cdc_start(const int ssd_fd, const UINT32 ssd_offset, const UINT32 ssd_di
     }
 
     /* initialize new one CDC module */
-    CDC_MD_SSD_FD(cdc_md)                       = ssd_fd;
-    CDC_MD_SATA_FD(cdc_md)                      = sata_fd;
+    CDC_MD_SSD_META_FD(cdc_md)                  = ssd_meta_fd;
+    CDC_MD_SSD_DISK_FD(cdc_md)                  = ssd_disk_fd;
+    CDC_MD_SATA_DISK_FD(cdc_md)                 = sata_disk_fd;
     CDC_MD_SATA_DISK_SIZE(cdc_md)               = sata_disk_size;
-    CDC_MD_S_OFFSET(cdc_md)                     = f_s_offset;
-    CDC_MD_E_OFFSET(cdc_md)                     = f_e_offset;
-    CDC_MD_C_OFFSET(cdc_md)                     = CDC_ERR_OFFSET;
+
+    CDC_MD_SSD_VDISK_NUM(cdc_md)                = 0;
+    CDC_MD_SSD_VNODE_NUM(cdc_md)                = 0;
+    CDC_MD_SSD_BLOCK_NUM(cdc_md)                = 0;
+
+    CDC_MD_META_S_OFFSET(cdc_md)                = CDC_ERR_OFFSET;
+    CDC_MD_META_E_OFFSET(cdc_md)                = CDC_ERR_OFFSET;
+    CDC_MD_META_C_OFFSET(cdc_md)                = CDC_ERR_OFFSET;
+
+    CDC_MD_DATA_S_OFFSET(cdc_md)                = f_s_offset;
+    CDC_MD_DATA_E_OFFSET(cdc_md)                = f_e_offset;
+
     CDC_MD_KEY_MAX_NUM(cdc_md)                  = key_max_num;
     CDC_MD_LOCKED_PAGE_NUM(cdc_md)              = 0;
     CDC_MD_DN(cdc_md)                           = NULL_PTR;
@@ -284,6 +308,49 @@ CDC_MD *cdc_start(const int ssd_fd, const UINT32 ssd_offset, const UINT32 ssd_di
     clist_init(CDC_MD_POST_EVENT_REQS(cdc_md), MM_CDC_REQ, LOC_CDC_0003);
 
     cdcnp_degrade_cb_init(CDC_MD_NP_DEGRADE_CB(cdc_md));
+
+    if(ssd_meta_fd == ssd_disk_fd)
+    {
+        if(EC_FALSE == cdc_compute_meta_offset(cdc_md, &ssd_meta_s_offset))
+        {
+            dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_start: compute meta offset failed\n");
+            cdc_end(cdc_md);
+            return (NULL_PTR);
+        }
+
+        if(EC_FALSE == cdcdn_compute_disk(ssd_disk_size - ssd_meta_s_offset,
+                                          &CDC_MD_SSD_VDISK_NUM(cdc_md),
+                                          &CDC_MD_SSD_VNODE_NUM(cdc_md),
+                                          &CDC_MD_SSD_BLOCK_NUM(cdc_md)))
+        {
+            dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_start: compute vdisk/vnode/block num failed\n");
+            cdc_end(cdc_md);
+            return (NULL_PTR);
+        }
+
+        CDC_MD_META_S_OFFSET(cdc_md)                = ssd_meta_s_offset;
+        CDC_MD_META_E_OFFSET(cdc_md)                = CDC_MD_DATA_E_OFFSET(cdc_md);
+        CDC_MD_META_Z_OFFSET(cdc_md)                = ssd_meta_s_offset + ssd_bad_bitmap_size;
+
+        /*adjust*/
+        CDC_MD_DATA_E_OFFSET(cdc_md)                = ssd_meta_s_offset;
+    }
+    else
+    {
+        CDC_MD_META_S_OFFSET(cdc_md)                = 0;
+        CDC_MD_META_E_OFFSET(cdc_md)                = ssd_meta_f_size;
+        CDC_MD_META_Z_OFFSET(cdc_md)                = 0 + ssd_bad_bitmap_size;
+
+        if(EC_FALSE == cdcdn_compute_meta(ssd_disk_size,
+                                          &CDC_MD_SSD_VDISK_NUM(cdc_md),
+                                          &CDC_MD_SSD_VNODE_NUM(cdc_md),
+                                          &CDC_MD_SSD_BLOCK_NUM(cdc_md)))
+        {
+            dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_start: compute vdisk/vnode/block num failed\n");
+            cdc_end(cdc_md);
+            return (NULL_PTR);
+        }
+    }
 
     if(SWITCH_OFF == CAMD_SYNC_CDC_SWITCH
     && SWITCH_OFF == CDC_BIND_AIO_SWITCH)
@@ -333,9 +400,18 @@ void cdc_end(CDC_MD *cdc_md)
         cdc_close_np(cdc_md);
         cdc_close_dn(cdc_md);
 
-        CDC_MD_S_OFFSET(cdc_md)                     = CDC_ERR_OFFSET;
-        CDC_MD_E_OFFSET(cdc_md)                     = CDC_ERR_OFFSET;
-        CDC_MD_C_OFFSET(cdc_md)                     = CDC_ERR_OFFSET;
+        CDC_MD_META_S_OFFSET(cdc_md)                = CDC_ERR_OFFSET;
+        CDC_MD_META_E_OFFSET(cdc_md)                = CDC_ERR_OFFSET;
+        CDC_MD_META_C_OFFSET(cdc_md)                = CDC_ERR_OFFSET;
+        CDC_MD_META_Z_OFFSET(cdc_md)                = CDC_ERR_OFFSET;
+
+        CDC_MD_DATA_S_OFFSET(cdc_md)                = CDC_ERR_OFFSET;
+        CDC_MD_DATA_E_OFFSET(cdc_md)                = CDC_ERR_OFFSET;
+
+        CDC_MD_SSD_VDISK_NUM(cdc_md)                = 0;
+        CDC_MD_SSD_VNODE_NUM(cdc_md)                = 0;
+        CDC_MD_SSD_BLOCK_NUM(cdc_md)                = 0;
+
         CDC_MD_KEY_MAX_NUM(cdc_md)                  = 0;
         CDC_MD_LOCKED_PAGE_NUM(cdc_md)              = 0;
 
@@ -354,8 +430,9 @@ void cdc_end(CDC_MD *cdc_md)
 
         CDC_MD_SEQ_NO(cdc_md)                       = 0;
 
-        CDC_MD_SSD_FD(cdc_md)                       = ERR_FD;
-        CDC_MD_SATA_FD(cdc_md)                      = ERR_FD;
+        CDC_MD_SSD_META_FD(cdc_md)                  = ERR_FD;
+        CDC_MD_SSD_DISK_FD(cdc_md)                  = ERR_FD;
+        CDC_MD_SATA_DISK_FD(cdc_md)                 = ERR_FD;
 
         CDC_MD_FC_MAX_SPEED_FLAG(cdc_md)            = BIT_FALSE;
         CDC_MD_SHM_NP_FLAG(cdc_md)                  = BIT_FALSE;
@@ -394,8 +471,8 @@ EC_BOOL cdc_erase(CDC_MD *cdc_md)
     UINT32   f_s_offset;
     UINT32   f_e_offset;
 
-    f_s_offset  = CDC_MD_S_OFFSET(cdc_md);
-    f_e_offset  = CDC_MD_E_OFFSET(cdc_md);
+    f_s_offset  = CDC_MD_DATA_S_OFFSET(cdc_md);
+    f_e_offset  = CDC_MD_DATA_E_OFFSET(cdc_md);
 
     if(EC_FALSE == cdc_erase_np(cdc_md, f_s_offset, f_e_offset))
     {
@@ -431,6 +508,42 @@ EC_BOOL cdc_clean(CDC_MD *cdc_md)
 
 /**
 *
+* compute CDC meta offset when both meta and data in ssd
+*
+**/
+EC_BOOL cdc_compute_meta_offset(CDC_MD *cdc_md, UINT32 *offset)
+{
+    UINT32  vdisk_size;
+    UINT32  ssd_disk_size;
+    UINT32  tail_size;
+
+    vdisk_size = (((UINT32)1) << CDCPGD_SIZE_NBITS);
+
+    ssd_disk_size = (CDC_MD_DATA_E_OFFSET(cdc_md) - CDC_MD_DATA_S_OFFSET(cdc_md));
+
+    tail_size  = vdisk_size + (ssd_disk_size % vdisk_size);
+    while(tail_size < CDC_TAIL_SIZE_MIN)
+    {
+        tail_size += vdisk_size;
+    }
+
+    if(tail_size >= ssd_disk_size)
+    {
+        return (EC_FALSE);
+    }
+
+    (*offset) = (CDC_MD_DATA_E_OFFSET(cdc_md) - tail_size);
+
+    dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_compute_meta_offset: "
+                                        "ssd_disk_size %ld, vdisk_size %ld, "
+                                        "tail_size %ld, offset %ld\n",
+                                        ssd_disk_size, vdisk_size,
+                                        tail_size, (*offset));
+    return (EC_TRUE);
+}
+
+/**
+*
 * create CDC
 *
 **/
@@ -440,8 +553,8 @@ EC_BOOL cdc_create(CDC_MD *cdc_md)
     UINT32   f_e_offset;
     UINT32   key_max_num;
 
-    f_s_offset  = CDC_MD_S_OFFSET(cdc_md);
-    f_e_offset  = CDC_MD_E_OFFSET(cdc_md);
+    f_s_offset  = CDC_MD_META_Z_OFFSET(cdc_md);
+    f_e_offset  = CDC_MD_META_E_OFFSET(cdc_md);
     key_max_num = CDC_MD_KEY_MAX_NUM(cdc_md);
 
     if(EC_FALSE == cdc_create_np(cdc_md, &f_s_offset, f_e_offset, key_max_num))
@@ -456,7 +569,12 @@ EC_BOOL cdc_create(CDC_MD *cdc_md)
                                         "after create np, f_s_offset = %ld\n",
                                         f_s_offset);
 
-    if(EC_FALSE == cdc_create_dn(cdc_md, &f_s_offset, f_e_offset))
+    if(EC_FALSE == cdc_create_dn(cdc_md, &f_s_offset, f_e_offset,
+                                    (UINT32  )CDC_MD_DATA_S_OFFSET(cdc_md),
+                                    (UINT32  )CDC_MD_DATA_E_OFFSET(cdc_md),
+                                    (uint16_t)CDC_MD_SSD_VDISK_NUM(cdc_md),
+                                    (UINT32  )CDC_MD_SSD_VNODE_NUM(cdc_md),
+                                    (UINT32  )CDC_MD_SSD_BLOCK_NUM(cdc_md)))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_create: "
                                             "cdc module %p create dn failed\n",
@@ -489,11 +607,12 @@ EC_BOOL cdc_create_shm(CDC_MD *cdc_md)
     UINT32   f_e_offset;
     UINT32   key_max_num;
 
-    f_s_offset  = CDC_MD_S_OFFSET(cdc_md);
-    f_e_offset  = CDC_MD_E_OFFSET(cdc_md);
+    f_s_offset  = CDC_MD_META_Z_OFFSET(cdc_md);
+    f_e_offset  = CDC_MD_META_E_OFFSET(cdc_md);
     key_max_num = CDC_MD_KEY_MAX_NUM(cdc_md);
 
-    if(EC_FALSE == cdc_create_np_shm(cdc_md, CDC_MD_CMMAP_NODE(cdc_md), &f_s_offset, f_e_offset, key_max_num))
+    if(EC_FALSE == cdc_create_np_shm(cdc_md, CDC_MD_CMMAP_NODE(cdc_md),
+                                      &f_s_offset, f_e_offset, key_max_num))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_create_shm: "
                                             "cdc module %p create np failed\n",
@@ -505,7 +624,13 @@ EC_BOOL cdc_create_shm(CDC_MD *cdc_md)
                                         "after create np, f_s_offset = %ld\n",
                                         f_s_offset);
 
-    if(EC_FALSE == cdc_create_dn_shm(cdc_md, CDC_MD_CMMAP_NODE(cdc_md), &f_s_offset, f_e_offset))
+    if(EC_FALSE == cdc_create_dn_shm(cdc_md, CDC_MD_CMMAP_NODE(cdc_md),
+                                      &f_s_offset, f_e_offset,
+                                      (UINT32  )CDC_MD_DATA_S_OFFSET(cdc_md),
+                                      (UINT32  )CDC_MD_DATA_E_OFFSET(cdc_md),
+                                      (uint16_t)CDC_MD_SSD_VDISK_NUM(cdc_md),
+                                      (UINT32  )CDC_MD_SSD_VNODE_NUM(cdc_md),
+                                      (UINT32  )CDC_MD_SSD_BLOCK_NUM(cdc_md)))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_create_shm: "
                                             "cdc module %p create dn failed\n",
@@ -540,16 +665,16 @@ EC_BOOL cdc_load(CDC_MD *cdc_md)
         return (EC_FALSE);
     }
 
-    CDC_MD_C_OFFSET(cdc_md) = CDC_MD_S_OFFSET(cdc_md);
+    CDC_MD_META_C_OFFSET(cdc_md) = CDC_MD_META_Z_OFFSET(cdc_md);
 
-    if(EC_FALSE == cdc_load_np(cdc_md, &CDC_MD_C_OFFSET(cdc_md), CDC_MD_E_OFFSET(cdc_md)))
+    if(EC_FALSE == cdc_load_np(cdc_md, &CDC_MD_META_C_OFFSET(cdc_md), CDC_MD_META_E_OFFSET(cdc_md)))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_load: load np failed\n");
         return (EC_FALSE);
     }
     dbg_log(SEC_0182_CDC, 9)(LOGSTDOUT, "[DEBUG] cdc_load: load np done\n");
 
-    if(EC_FALSE == cdc_load_dn(cdc_md, &CDC_MD_C_OFFSET(cdc_md), CDC_MD_E_OFFSET(cdc_md)))
+    if(EC_FALSE == cdc_load_dn(cdc_md, &CDC_MD_META_C_OFFSET(cdc_md), CDC_MD_META_E_OFFSET(cdc_md)))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_load: load dn failed\n");
 
@@ -575,16 +700,18 @@ EC_BOOL cdc_load_shm(CDC_MD *cdc_md)
         return (EC_FALSE);
     }
 
-    CDC_MD_C_OFFSET(cdc_md) = CDC_MD_S_OFFSET(cdc_md);
+    CDC_MD_META_C_OFFSET(cdc_md) = CDC_MD_META_Z_OFFSET(cdc_md);
 
-    if(EC_FALSE == cdc_load_np_shm(cdc_md, CDC_MD_CMMAP_NODE(cdc_md), &CDC_MD_C_OFFSET(cdc_md), CDC_MD_E_OFFSET(cdc_md)))
+    if(EC_FALSE == cdc_load_np_shm(cdc_md, CDC_MD_CMMAP_NODE(cdc_md),
+                                    &CDC_MD_META_C_OFFSET(cdc_md), CDC_MD_META_E_OFFSET(cdc_md)))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_load_shm: load np failed\n");
         return (EC_FALSE);
     }
     dbg_log(SEC_0182_CDC, 9)(LOGSTDOUT, "[DEBUG] cdc_load_shm: load np done\n");
 
-    if(EC_FALSE == cdc_load_dn_shm(cdc_md, CDC_MD_CMMAP_NODE(cdc_md), &CDC_MD_C_OFFSET(cdc_md), CDC_MD_E_OFFSET(cdc_md)))
+    if(EC_FALSE == cdc_load_dn_shm(cdc_md, CDC_MD_CMMAP_NODE(cdc_md),
+                                    &CDC_MD_META_C_OFFSET(cdc_md), CDC_MD_META_E_OFFSET(cdc_md)))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_load_shm: load dn failed\n");
 
@@ -610,16 +737,18 @@ EC_BOOL cdc_retrieve_shm(CDC_MD *cdc_md)
         return (EC_FALSE);
     }
 
-    CDC_MD_C_OFFSET(cdc_md) = CDC_MD_S_OFFSET(cdc_md);
+    CDC_MD_META_C_OFFSET(cdc_md) = CDC_MD_META_Z_OFFSET(cdc_md);
 
-    if(EC_FALSE == cdc_retrieve_np_shm(cdc_md, CDC_MD_CMMAP_NODE(cdc_md), &CDC_MD_C_OFFSET(cdc_md), CDC_MD_E_OFFSET(cdc_md)))
+    if(EC_FALSE == cdc_retrieve_np_shm(cdc_md, CDC_MD_CMMAP_NODE(cdc_md),
+                                        &CDC_MD_META_C_OFFSET(cdc_md), CDC_MD_META_E_OFFSET(cdc_md)))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_retrieve_shm: load np failed\n");
         return (EC_FALSE);
     }
     dbg_log(SEC_0182_CDC, 9)(LOGSTDOUT, "[DEBUG] cdc_retrieve_shm: load np done\n");
 
-    if(EC_FALSE == cdc_retrieve_dn_shm(cdc_md, CDC_MD_CMMAP_NODE(cdc_md), &CDC_MD_C_OFFSET(cdc_md), CDC_MD_E_OFFSET(cdc_md)))
+    if(EC_FALSE == cdc_retrieve_dn_shm(cdc_md, CDC_MD_CMMAP_NODE(cdc_md),
+                                        &CDC_MD_META_C_OFFSET(cdc_md), CDC_MD_META_E_OFFSET(cdc_md)))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_retrieve_shm: load dn failed\n");
 
@@ -1577,13 +1706,13 @@ EC_BOOL cdc_create_np(CDC_MD *cdc_md, UINT32 *s_offset, const UINT32 e_offset, c
     }
 
     /*inherit from cdc module*/
-    CDCNP_FD(cdcnp)             = CDC_MD_SSD_FD(cdc_md);
+    CDCNP_SSD_META_FD(cdcnp)    = CDC_MD_SSD_META_FD(cdc_md);
     CDCNP_SATA_DISK_SIZE(cdcnp) = CDC_MD_SATA_DISK_SIZE(cdc_md);
 
     CDC_MD_NP(cdc_md)           = cdcnp;
     CDC_MD_SHM_NP_FLAG(cdc_md)  = BIT_FALSE;
 
-    if(ERR_FD != CDC_MD_SATA_FD(cdc_md))
+    if(ERR_FD != CDC_MD_SATA_DISK_FD(cdc_md))
     {
         /*np inherit degrade callback from cdc module*/
         cdcnp_degrade_cb_clone(CDC_MD_NP_DEGRADE_CB(cdc_md), CDCNP_DEGRADE_CB(cdcnp));
@@ -1634,13 +1763,13 @@ EC_BOOL cdc_create_np_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offs
     }
 
     /*inherit from cdc module*/
-    CDCNP_FD(cdcnp)             = CDC_MD_SSD_FD(cdc_md);
+    CDCNP_SSD_META_FD(cdcnp)    = CDC_MD_SSD_META_FD(cdc_md);
     CDCNP_SATA_DISK_SIZE(cdcnp) = CDC_MD_SATA_DISK_SIZE(cdc_md);
 
     CDC_MD_NP(cdc_md)           = cdcnp;
     CDC_MD_SHM_NP_FLAG(cdc_md)  = BIT_TRUE;
 
-    if(ERR_FD != CDC_MD_SATA_FD(cdc_md))
+    if(ERR_FD != CDC_MD_SATA_DISK_FD(cdc_md))
     {
         /*np inherit degrade callback from cdc module*/
         cdcnp_degrade_cb_clone(CDC_MD_NP_DEGRADE_CB(cdc_md), CDCNP_DEGRADE_CB(cdcnp));
@@ -1656,7 +1785,7 @@ EC_BOOL cdc_create_np_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offs
 **/
 EC_BOOL cdc_erase_np(CDC_MD *cdc_md, const UINT32 s_offset, const UINT32 e_offset)
 {
-    if(EC_FALSE == cdcnp_erase(CDC_MD_NP(cdc_md), 0 /*np id*/, CDC_MD_SSD_FD(cdc_md), s_offset, e_offset))
+    if(EC_FALSE == cdcnp_erase(CDC_MD_NP(cdc_md), 0 /*np id*/, CDC_MD_SSD_META_FD(cdc_md), s_offset, e_offset))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_erase_np: load np failed\n");
 
@@ -1714,7 +1843,7 @@ EC_BOOL cdc_load_np(CDC_MD *cdc_md, UINT32 *s_offset, const UINT32 e_offset)
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cdcnp_load(cdcnp, 0 /*np id*/, CDC_MD_SSD_FD(cdc_md), s_offset, e_offset))
+    if(EC_FALSE == cdcnp_load(cdcnp, 0 /*np id*/, CDC_MD_SSD_META_FD(cdc_md), s_offset, e_offset))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_load_np: load np failed\n");
 
@@ -1731,13 +1860,13 @@ EC_BOOL cdc_load_np(CDC_MD *cdc_md, UINT32 *s_offset, const UINT32 e_offset)
     }
 
     /*inherit caio from cdc*/
-    CDCNP_FD(cdcnp)             = CDC_MD_SSD_FD(cdc_md);
+    CDCNP_SSD_META_FD(cdcnp)    = CDC_MD_SSD_META_FD(cdc_md);
     CDCNP_SATA_DISK_SIZE(cdcnp) = CDC_MD_SATA_DISK_SIZE(cdc_md);
 
     CDC_MD_NP(cdc_md)           = cdcnp;/*bind*/
     CDC_MD_SHM_NP_FLAG(cdc_md)  = BIT_FALSE;
 
-    if(ERR_FD != CDC_MD_SATA_FD(cdc_md))
+    if(ERR_FD != CDC_MD_SATA_DISK_FD(cdc_md))
     {
         /*np inherit degrade callback from cdc module*/
         cdcnp_degrade_cb_clone(CDC_MD_NP_DEGRADE_CB(cdc_md), CDCNP_DEGRADE_CB(cdcnp));
@@ -1776,7 +1905,7 @@ EC_BOOL cdc_load_np_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offset
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cdcnp_load_shm(cdcnp, cmmap_node, 0 /*np id*/, CDC_MD_SSD_FD(cdc_md), s_offset, e_offset))
+    if(EC_FALSE == cdcnp_load_shm(cdcnp, cmmap_node, 0 /*np id*/, CDC_MD_SSD_META_FD(cdc_md), s_offset, e_offset))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_load_np_shm: load np failed\n");
 
@@ -1793,13 +1922,13 @@ EC_BOOL cdc_load_np_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offset
     }
 
     /*inherit caio from cdc*/
-    CDCNP_FD(cdcnp)             = CDC_MD_SSD_FD(cdc_md);
+    CDCNP_SSD_META_FD(cdcnp)    = CDC_MD_SSD_META_FD(cdc_md);
     CDCNP_SATA_DISK_SIZE(cdcnp) = CDC_MD_SATA_DISK_SIZE(cdc_md);
 
     CDC_MD_NP(cdc_md)           = cdcnp;/*bind*/
     CDC_MD_SHM_NP_FLAG(cdc_md)  = BIT_TRUE;
 
-    if(ERR_FD != CDC_MD_SATA_FD(cdc_md))
+    if(ERR_FD != CDC_MD_SATA_DISK_FD(cdc_md))
     {
         /*np inherit degrade callback from cdc module*/
         cdcnp_degrade_cb_clone(CDC_MD_NP_DEGRADE_CB(cdc_md), CDCNP_DEGRADE_CB(cdcnp));
@@ -1832,7 +1961,7 @@ EC_BOOL cdc_retrieve_np_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_of
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cdcnp_retrieve_shm(cdcnp, cmmap_node, 0 /*np id*/, CDC_MD_SSD_FD(cdc_md), s_offset, e_offset))
+    if(EC_FALSE == cdcnp_retrieve_shm(cdcnp, cmmap_node, 0 /*np id*/, CDC_MD_SSD_META_FD(cdc_md), s_offset, e_offset))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_retrieve_np_shm: retrieve np failed\n");
 
@@ -1849,13 +1978,13 @@ EC_BOOL cdc_retrieve_np_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_of
     }
 
     /*inherit caio from cdc*/
-    CDCNP_FD(cdcnp)             = CDC_MD_SSD_FD(cdc_md);
+    CDCNP_SSD_META_FD(cdcnp)    = CDC_MD_SSD_META_FD(cdc_md);
     CDCNP_SATA_DISK_SIZE(cdcnp) = CDC_MD_SATA_DISK_SIZE(cdc_md);
 
     CDC_MD_NP(cdc_md)           = cdcnp;/*bind*/
     CDC_MD_SHM_NP_FLAG(cdc_md)  = BIT_TRUE;
 
-    if(ERR_FD != CDC_MD_SATA_FD(cdc_md))
+    if(ERR_FD != CDC_MD_SATA_DISK_FD(cdc_md))
     {
         /*np inherit degrade callback from cdc module*/
         cdcnp_degrade_cb_clone(CDC_MD_NP_DEGRADE_CB(cdc_md), CDCNP_DEGRADE_CB(cdcnp));
@@ -1905,7 +2034,9 @@ EC_BOOL cdc_flush_np(CDC_MD *cdc_md)
 *  create data node
 *
 **/
-EC_BOOL cdc_create_dn(CDC_MD *cdc_md, UINT32 *s_offset, const UINT32 e_offset)
+EC_BOOL cdc_create_dn(CDC_MD *cdc_md, UINT32 *meta_s_offset, const UINT32 meta_e_offset,
+                          const UINT32 data_s_offset, const UINT32 data_e_offset,
+                          const uint16_t disk_num, const UINT32 node_num, const UINT32 block_num)
 {
     CDCDN           *cdcdn;
 
@@ -1915,7 +2046,9 @@ EC_BOOL cdc_create_dn(CDC_MD *cdc_md, UINT32 *s_offset, const UINT32 e_offset)
         return (EC_FALSE);
     }
 
-    cdcdn = cdcdn_create(s_offset, e_offset);
+    cdcdn = cdcdn_create(meta_s_offset, meta_e_offset,
+                         data_s_offset, data_e_offset,
+                         disk_num, node_num, block_num);
     if(NULL_PTR == cdcdn)
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_create_dn: create dn failed\n");
@@ -1923,12 +2056,13 @@ EC_BOOL cdc_create_dn(CDC_MD *cdc_md, UINT32 *s_offset, const UINT32 e_offset)
     }
 
     /*inherit data from cdc module*/
-    CDCDN_RDONLY_FLAG(cdcdn)    = CDC_MD_RDONLY_FLAG(cdc_md);
-    CDCDN_DONTDUMP_FLAG(cdcdn)  = CDC_MD_DONTDUMP_FLAG(cdc_md);
-    CDCDN_NODE_FD(cdcdn)        = CDC_MD_SSD_FD(cdc_md);
+    CDCDN_RDONLY_FLAG(cdcdn)        = CDC_MD_RDONLY_FLAG(cdc_md);
+    CDCDN_DONTDUMP_FLAG(cdcdn)      = CDC_MD_DONTDUMP_FLAG(cdc_md);
+    CDCDN_NODE_SSD_META_FD(cdcdn)   = CDC_MD_SSD_META_FD(cdc_md);
+    CDCDN_NODE_SSD_DISK_FD(cdcdn)   = CDC_MD_SSD_DISK_FD(cdc_md);
 
-    CDC_MD_DN(cdc_md)           = cdcdn;
-    CDC_MD_SHM_DN_FLAG(cdc_md)  = BIT_FALSE;
+    CDC_MD_DN(cdc_md)               = cdcdn;
+    CDC_MD_SHM_DN_FLAG(cdc_md)      = BIT_FALSE;
 
     return (EC_TRUE);
 }
@@ -1938,7 +2072,10 @@ EC_BOOL cdc_create_dn(CDC_MD *cdc_md, UINT32 *s_offset, const UINT32 e_offset)
 *  create data node in shared memory
 *
 **/
-EC_BOOL cdc_create_dn_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offset, const UINT32 e_offset)
+EC_BOOL cdc_create_dn_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node,
+                                UINT32 *meta_s_offset, const UINT32 meta_e_offset,
+                                const UINT32 data_s_offset, const UINT32 data_e_offset,
+                                const uint16_t disk_num, const UINT32 node_num, const UINT32 block_num)
 {
     CDCDN           *cdcdn;
 
@@ -1948,7 +2085,10 @@ EC_BOOL cdc_create_dn_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offs
         return (EC_FALSE);
     }
 
-    cdcdn = cdcdn_create_shm(cmmap_node, s_offset, e_offset);
+    cdcdn = cdcdn_create_shm(cmmap_node,
+                            meta_s_offset, meta_e_offset,
+                            data_s_offset, data_e_offset,
+                            disk_num, node_num, block_num);
     if(NULL_PTR == cdcdn)
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_create_dn_shm: create dn failed\n");
@@ -1956,12 +2096,13 @@ EC_BOOL cdc_create_dn_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offs
     }
 
     /*inherit data from cdc module*/
-    CDCDN_RDONLY_FLAG(cdcdn)    = CDC_MD_RDONLY_FLAG(cdc_md);
-    CDCDN_DONTDUMP_FLAG(cdcdn)  = CDC_MD_DONTDUMP_FLAG(cdc_md);
-    CDCDN_NODE_FD(cdcdn)        = CDC_MD_SSD_FD(cdc_md);
+    CDCDN_RDONLY_FLAG(cdcdn)        = CDC_MD_RDONLY_FLAG(cdc_md);
+    CDCDN_DONTDUMP_FLAG(cdcdn)      = CDC_MD_DONTDUMP_FLAG(cdc_md);
+    CDCDN_NODE_SSD_META_FD(cdcdn)   = CDC_MD_SSD_META_FD(cdc_md);
+    CDCDN_NODE_SSD_DISK_FD(cdcdn)   = CDC_MD_SSD_DISK_FD(cdc_md);
 
-    CDC_MD_DN(cdc_md)           = cdcdn;
-    CDC_MD_SHM_DN_FLAG(cdc_md)  = BIT_TRUE;
+    CDC_MD_DN(cdc_md)               = cdcdn;
+    CDC_MD_SHM_DN_FLAG(cdc_md)      = BIT_TRUE;
 
     return (EC_TRUE);
 }
@@ -1992,27 +2133,28 @@ EC_BOOL cdc_load_dn(CDC_MD *cdc_md, UINT32 *s_offset, const UINT32 e_offset)
 
     f_s_offset = (*s_offset);/*save*/
 
-    if(EC_FALSE == cdcdn_load(cdcdn, CDC_MD_SSD_FD(cdc_md), s_offset, e_offset))
+    if(EC_FALSE == cdcdn_load(cdcdn, CDC_MD_SSD_META_FD(cdc_md), s_offset, e_offset))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_load_dn: "
                                             "load dn from fd %d, offset %ld failed\n",
-                                            CDC_MD_SSD_FD(cdc_md), f_s_offset);
+                                            CDC_MD_SSD_META_FD(cdc_md), f_s_offset);
 
         cdcdn_free(cdcdn);
         return (EC_FALSE);
     }
 
     /*inherit from cdc*/
-    CDCDN_RDONLY_FLAG(cdcdn)    = CDC_MD_RDONLY_FLAG(cdc_md);
-    CDCDN_DONTDUMP_FLAG(cdcdn)  = CDC_MD_DONTDUMP_FLAG(cdc_md);
-    CDCDN_NODE_FD(cdcdn)        = CDC_MD_SSD_FD(cdc_md);
+    CDCDN_RDONLY_FLAG(cdcdn)        = CDC_MD_RDONLY_FLAG(cdc_md);
+    CDCDN_DONTDUMP_FLAG(cdcdn)      = CDC_MD_DONTDUMP_FLAG(cdc_md);
+    CDCDN_NODE_SSD_META_FD(cdcdn)   = CDC_MD_SSD_META_FD(cdc_md);
+    CDCDN_NODE_SSD_DISK_FD(cdcdn)   = CDC_MD_SSD_DISK_FD(cdc_md);
 
-    CDC_MD_DN(cdc_md)           = cdcdn; /*bind*/
-    CDC_MD_SHM_DN_FLAG(cdc_md)  = BIT_FALSE;
+    CDC_MD_DN(cdc_md)               = cdcdn; /*bind*/
+    CDC_MD_SHM_DN_FLAG(cdc_md)      = BIT_FALSE;
 
     dbg_log(SEC_0182_CDC, 9)(LOGSTDOUT, "[DEBUG] cdc_load_dn: "
                                         "load dn from fd %d, offset %ld => %ld done\n",
-                                        CDC_MD_SSD_FD(cdc_md), f_s_offset, (*s_offset));
+                                        CDC_MD_SSD_META_FD(cdc_md), f_s_offset, (*s_offset));
 
     dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "[DEBUG] cdc_load_dn: load dn done\n");
 
@@ -2050,27 +2192,28 @@ EC_BOOL cdc_load_dn_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offset
 
     f_s_offset = (*s_offset);/*save*/
 
-    if(EC_FALSE == cdcdn_load_shm(cdcdn, cmmap_node, CDC_MD_SSD_FD(cdc_md), s_offset, e_offset))
+    if(EC_FALSE == cdcdn_load_shm(cdcdn, cmmap_node, CDC_MD_SSD_META_FD(cdc_md), s_offset, e_offset))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_load_dn_shm: "
                                             "load dn from fd %d, offset %ld failed\n",
-                                            CDC_MD_SSD_FD(cdc_md), f_s_offset);
+                                            CDC_MD_SSD_META_FD(cdc_md), f_s_offset);
 
         cdcdn_close(cdcdn);
         return (EC_FALSE);
     }
 
     /*inherit from cdc*/
-    CDCDN_RDONLY_FLAG(cdcdn)    = CDC_MD_RDONLY_FLAG(cdc_md);
-    CDCDN_DONTDUMP_FLAG(cdcdn)  = CDC_MD_DONTDUMP_FLAG(cdc_md);
-    CDCDN_NODE_FD(cdcdn)        = CDC_MD_SSD_FD(cdc_md);
+    CDCDN_RDONLY_FLAG(cdcdn)        = CDC_MD_RDONLY_FLAG(cdc_md);
+    CDCDN_DONTDUMP_FLAG(cdcdn)      = CDC_MD_DONTDUMP_FLAG(cdc_md);
+    CDCDN_NODE_SSD_META_FD(cdcdn)   = CDC_MD_SSD_META_FD(cdc_md);
+    CDCDN_NODE_SSD_DISK_FD(cdcdn)   = CDC_MD_SSD_DISK_FD(cdc_md);
 
-    CDC_MD_DN(cdc_md)           = cdcdn; /*bind*/
-    CDC_MD_SHM_DN_FLAG(cdc_md)  = BIT_TRUE;
+    CDC_MD_DN(cdc_md)               = cdcdn; /*bind*/
+    CDC_MD_SHM_DN_FLAG(cdc_md)      = BIT_TRUE;
 
     dbg_log(SEC_0182_CDC, 9)(LOGSTDOUT, "[DEBUG] cdc_load_dn_shm: "
                                         "load dn from fd %d, offset %ld => %ld done\n",
-                                        CDC_MD_SSD_FD(cdc_md), f_s_offset, (*s_offset));
+                                        CDC_MD_SSD_META_FD(cdc_md), f_s_offset, (*s_offset));
 
     dbg_log(SEC_0182_CDC, 9)(LOGSTDOUT, "[DEBUG] cdc_load_dn_shm: load dn done\n");
 
@@ -2102,27 +2245,27 @@ EC_BOOL cdc_retrieve_dn_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_of
 
     f_s_offset = (*s_offset);/*save*/
 
-    if(EC_FALSE == cdcdn_retrieve_shm(cdcdn, cmmap_node, CDC_MD_SSD_FD(cdc_md), s_offset, e_offset))
+    if(EC_FALSE == cdcdn_retrieve_shm(cdcdn, cmmap_node, CDC_MD_SSD_META_FD(cdc_md), s_offset, e_offset))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_retrieve_dn_shm: "
                                             "load dn from fd %d, offset %ld failed\n",
-                                            CDC_MD_SSD_FD(cdc_md), f_s_offset);
+                                            CDC_MD_SSD_META_FD(cdc_md), f_s_offset);
 
         cdcdn_close(cdcdn);
         return (EC_FALSE);
     }
 
     /*inherit from cdc*/
-    CDCDN_RDONLY_FLAG(cdcdn)    = CDC_MD_RDONLY_FLAG(cdc_md);
-    CDCDN_DONTDUMP_FLAG(cdcdn)  = CDC_MD_DONTDUMP_FLAG(cdc_md);
-    CDCDN_NODE_FD(cdcdn)        = CDC_MD_SSD_FD(cdc_md);
+    CDCDN_RDONLY_FLAG(cdcdn)        = CDC_MD_RDONLY_FLAG(cdc_md);
+    CDCDN_DONTDUMP_FLAG(cdcdn)      = CDC_MD_DONTDUMP_FLAG(cdc_md);
+    CDCDN_NODE_SSD_DISK_FD(cdcdn)   = CDC_MD_SSD_DISK_FD(cdc_md);
 
-    CDC_MD_DN(cdc_md)           = cdcdn; /*bind*/
-    CDC_MD_SHM_DN_FLAG(cdc_md)  = BIT_TRUE;
+    CDC_MD_DN(cdc_md)               = cdcdn; /*bind*/
+    CDC_MD_SHM_DN_FLAG(cdc_md)      = BIT_TRUE;
 
     dbg_log(SEC_0182_CDC, 9)(LOGSTDOUT, "[DEBUG] cdc_retrieve_dn_shm: "
                                         "load dn from fd %d, offset %ld => %ld done\n",
-                                        CDC_MD_SSD_FD(cdc_md), f_s_offset, (*s_offset));
+                                        CDC_MD_SSD_META_FD(cdc_md), f_s_offset, (*s_offset));
 
     dbg_log(SEC_0182_CDC, 9)(LOGSTDOUT, "[DEBUG] cdc_retrieve_dn_shm: load dn done\n");
 
@@ -9199,7 +9342,7 @@ EC_BOOL cdc_file_load_aio(CDC_MD *cdc_md, UINT32 *offset, const UINT32 rsize, UI
     CDC_REQ_SATA_DEG_FLAG(cdc_req)  = BIT_TRUE;
 
     CDC_REQ_CDC_MD(cdc_req)         = cdc_md;
-    CDC_REQ_FD(cdc_req)             = CDC_MD_SSD_FD(cdc_md);
+    CDC_REQ_FD(cdc_req)             = CDC_MD_SSD_DISK_FD(cdc_md);
     CDC_REQ_M_BUFF(cdc_req)         = buff;
     CDC_REQ_M_CACHE(cdc_req)        = NULL_PTR;
     CDC_REQ_OFFSET(cdc_req)         = offset;
@@ -9255,7 +9398,7 @@ EC_BOOL cdc_file_read_aio(CDC_MD *cdc_md, UINT32 *offset, const UINT32 rsize, UI
     CDC_REQ_KEEP_LRU_FLAG(cdc_req)  = BIT_FALSE; /*would impact on LRU*/
 
     CDC_REQ_CDC_MD(cdc_req)         = cdc_md;
-    CDC_REQ_FD(cdc_req)             = CDC_MD_SSD_FD(cdc_md);
+    CDC_REQ_FD(cdc_req)             = CDC_MD_SSD_DISK_FD(cdc_md);
     CDC_REQ_M_BUFF(cdc_req)         = buff;
     CDC_REQ_M_CACHE(cdc_req)        = NULL_PTR;
     CDC_REQ_OFFSET(cdc_req)         = offset;
@@ -9329,7 +9472,7 @@ EC_BOOL cdc_file_write_aio(CDC_MD *cdc_md, UINT32 *offset, const UINT32 wsize, U
     CDC_REQ_SATA_DIRTY_FLAG(cdc_req) = sata_dirty_flag;
 
     CDC_REQ_CDC_MD(cdc_req)          = cdc_md;
-    CDC_REQ_FD(cdc_req)              = CDC_MD_SSD_FD(cdc_md);
+    CDC_REQ_FD(cdc_req)              = CDC_MD_SSD_DISK_FD(cdc_md);
     CDC_REQ_M_BUFF(cdc_req)          = buff;
     CDC_REQ_M_CACHE(cdc_req)         = NULL_PTR;
 

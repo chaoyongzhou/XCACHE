@@ -1736,7 +1736,36 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32_ptr,},
 /*func para val   */     0, 0, {0},
 },
-
+{
+/* -- EC_BOOL cxfs_check_space_used(const UINT32 cxfs_md_id, const UINT32 s_offset, const UINT32 e_offset); -- */
+/*func module     */     MD_CXFS,
+/*func logic addr */     (UINT32)cxfs_check_space_used,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cxfs_check_space_used",
+/*func index      */     FI_cxfs_check_space_used,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     3,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN, },
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL cxfs_check_adjacent_used(const UINT32 cxfs_md_id, const UINT32 o_s_offset, const UINT32 o_e_offset, const UINT32 i_s_offset, const UINT32 i_e_offset); -- */
+/*func module     */     MD_CXFS,
+/*func logic addr */     (UINT32)cxfs_check_adjacent_used,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cxfs_check_adjacent_used",
+/*func index      */     FI_cxfs_check_adjacent_used,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN, },
+/*func para type  */     {e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,},
+/*func para val   */     0, 0, {0},
+},
 };
 
 UINT32 g_cxfs_func_addr_list_len = sizeof(g_cxfs_func_addr_list)/sizeof(g_cxfs_func_addr_list[0]);

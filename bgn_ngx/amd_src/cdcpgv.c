@@ -940,14 +940,21 @@ EC_BOOL cdcpgv_aligned_size(UINT32 *size, const UINT32 mask)
 
 EC_BOOL cdcpgv_max_size(UINT32 *size)
 {
-    uint16_t disk_no;
+    UINT32   disk_size;
+    //uint16_t disk_no;
 
     cdcpgv_hdr_max_size(size);
 
+    disk_size = 0;
+    cdcpgd_max_size(&disk_size);
+    (*size) += disk_size * CDCPGV_MAX_DISK_NUM;
+
+#if 0
     for(disk_no = 0; disk_no < CDCPGV_MAX_DISK_NUM; disk_no ++)
     {
         cdcpgd_max_size(size);
     }
+#endif
     return (EC_TRUE);
 }
 

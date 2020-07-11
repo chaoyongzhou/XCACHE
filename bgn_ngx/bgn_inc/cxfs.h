@@ -180,11 +180,11 @@ typedef struct
 
     CSTRING              sata_disk_path;
     int                  sata_disk_fd;
-    int                  rsvd03;
+    int                  sata_meta_fd;
 
     CSTRING              ssd_disk_path;
     int                  ssd_disk_fd;
-    int                  rsvd04;
+    int                  ssd_meta_fd;
 
     CXFSCFG              cxfscfg;
 
@@ -221,10 +221,15 @@ typedef struct
 #define CXFS_MD_OP_REPLAY_FLAG(cxfs_md)                 ((cxfs_md)->op_replay_flag)
 #define CXFS_MD_CUR_DISK_NO(cxfs_md)                    ((cxfs_md)->cur_disk_no)
 #define CXFS_MD_STATE(cxfs_md)                          ((cxfs_md)->state)
+
+#define CXFS_MD_SATA_META_FD(cxfs_md)                   ((cxfs_md)->sata_meta_fd)
 #define CXFS_MD_SATA_DISK_PATH(cxfs_md)                 (&((cxfs_md)->sata_disk_path))
 #define CXFS_MD_SATA_DISK_FD(cxfs_md)                   ((cxfs_md)->sata_disk_fd)
+
+#define CXFS_MD_SSD_META_FD(cxfs_md)                    ((cxfs_md)->ssd_meta_fd)
 #define CXFS_MD_SSD_DISK_PATH(cxfs_md)                  (&((cxfs_md)->ssd_disk_path))
 #define CXFS_MD_SSD_DISK_FD(cxfs_md)                    ((cxfs_md)->ssd_disk_fd)
+
 #define CXFS_MD_CFG(cxfs_md)                            (&((cxfs_md)->cxfscfg))
 #define CXFS_MD_LOCKED_FILES(cxfs_md)                   (&((cxfs_md)->locked_files))
 #define CXFS_MD_WAIT_FILES(cxfs_md)                     (&((cxfs_md)->wait_files))
@@ -1066,6 +1071,22 @@ EC_BOOL cxfs_check_file_content(const UINT32 cxfs_md_id, const UINT32 disk_no, c
 *
 **/
 EC_BOOL cxfs_check_file_is(const UINT32 cxfs_md_id, const CSTRING *file_path, const CBYTES *file_content);
+
+/**
+*
+*  check space [s_offset, e_offset) is used or not
+*
+**/
+EC_BOOL cxfs_check_space_used(const UINT32 cxfs_md_id, const UINT32 s_offset, const UINT32 e_offset);
+
+/**
+*
+*  check space [o_s_offset, o_e_offset) except [i_s_offset, i_e_offset) is used or not
+*  where
+*       o_s_offset <= i_s_offset <= i_e_offset <= o_e_offset
+*
+**/
+EC_BOOL cxfs_check_adjacent_used(const UINT32 cxfs_md_id, const UINT32 o_s_offset, const UINT32 o_e_offset, const UINT32 i_s_offset, const UINT32 i_e_offset);
 
 /**
 *

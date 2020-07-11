@@ -969,6 +969,20 @@ EC_BOOL super_cdc_lru_model_switch_on(const UINT32 super_md_id);
 EC_BOOL super_cdc_fifo_model_switch_on(const UINT32 super_md_id);
 
 
+/**
+*
+* set camd:check_page_used:switch:on
+*
+**/
+EC_BOOL super_camd_check_page_used_switch_on(const UINT32 super_md_id);
+
+/**
+*
+* set camd:check_page_used:switch:off
+*
+**/
+EC_BOOL super_camd_check_page_used_switch_off(const UINT32 super_md_id);
+
 /*------------------------------------------------------ test for ict -----------------------------------------------------------------------*/
 EC_BOOL super_set_zone_size(const UINT32 super_md_id, const UINT32 obj_zone_size);
 EC_BOOL super_load_data(const UINT32 super_md_id);

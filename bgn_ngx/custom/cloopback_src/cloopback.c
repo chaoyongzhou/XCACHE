@@ -124,7 +124,7 @@ UINT32 cloopback_start(ngx_http_request_t *r)
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)cloopback_end, cloopback_md_id);
 
-    dbg_log(SEC_0127_CLOOPBACK, 9)(LOGSTDOUT, "[DEBUG] cloopback_start: start CLOOPBACK module #%u\n", cloopback_md_id);
+    dbg_log(SEC_0127_CLOOPBACK, 9)(LOGSTDOUT, "[DEBUG] cloopback_start: start CLOOPBACK module #%ld\n", cloopback_md_id);
 
     return ( cloopback_md_id );
 }
@@ -143,7 +143,7 @@ void cloopback_end(const UINT32 cloopback_md_id)
     cloopback_md = CLOOPBACK_MD_GET(cloopback_md_id);
     if(NULL_PTR == cloopback_md)
     {
-        dbg_log(SEC_0127_CLOOPBACK, 0)(LOGSTDOUT, "error:cloopback_end: cloopback_md_id = %u not exist.\n", cloopback_md_id);
+        dbg_log(SEC_0127_CLOOPBACK, 0)(LOGSTDOUT, "error:cloopback_end: cloopback_md_id = %ld not exist.\n", cloopback_md_id);
         dbg_exit(MD_CLOOPBACK, cloopback_md_id);
     }
 
@@ -156,7 +156,7 @@ void cloopback_end(const UINT32 cloopback_md_id)
 
     if ( 0 == cloopback_md->usedcounter )
     {
-        dbg_log(SEC_0127_CLOOPBACK, 0)(LOGSTDOUT, "error:cloopback_end: cloopback_md_id = %u is not started.\n", cloopback_md_id);
+        dbg_log(SEC_0127_CLOOPBACK, 0)(LOGSTDOUT, "error:cloopback_end: cloopback_md_id = %ld is not started.\n", cloopback_md_id);
         dbg_exit(MD_CLOOPBACK, cloopback_md_id);
     }
 
@@ -168,7 +168,7 @@ void cloopback_end(const UINT32 cloopback_md_id)
     /* free module */
     cloopback_md->usedcounter = 0;
 
-    dbg_log(SEC_0127_CLOOPBACK, 9)(LOGSTDOUT, "cloopback_end: stop CLOOPBACK module #%u\n", cloopback_md_id);
+    dbg_log(SEC_0127_CLOOPBACK, 9)(LOGSTDOUT, "cloopback_end: stop CLOOPBACK module #%ld\n", cloopback_md_id);
     cbc_md_free(MD_CLOOPBACK, cloopback_md_id);
 
     return ;
@@ -224,8 +224,8 @@ EC_BOOL cloopback_set_ngx_rc(const UINT32 cloopback_md_id, const ngx_int_t rc, c
     if(NGX_OK != CLOOPBACK_MD_NGX_RC(cloopback_md))
     {
         dbg_log(SEC_0127_CLOOPBACK, 9)(LOGSTDOUT, "[DEBUG] cloopback_set_ngx_rc: "
-                                                 "ignore rc %d due to its %d now\n",
-                                                 rc, CLOOPBACK_MD_NGX_RC(cloopback_md));
+                                                  "ignore rc %ld due to its %ld now\n",
+                                                  rc, CLOOPBACK_MD_NGX_RC(cloopback_md));
         return (EC_TRUE);
     }
 
@@ -233,8 +233,8 @@ EC_BOOL cloopback_set_ngx_rc(const UINT32 cloopback_md_id, const ngx_int_t rc, c
     if(EC_FALSE == cngx_need_send_header(r))
     {
         dbg_log(SEC_0127_CLOOPBACK, 9)(LOGSTDOUT, "[DEBUG] cloopback_set_ngx_rc: "
-                                                 "ignore rc %d due to header had sent out\n",
-                                                 rc);
+                                                  "ignore rc %ld due to header had sent out\n",
+                                                  rc);
         cngx_disable_keepalive(r);
         return (EC_TRUE);
     }
@@ -243,8 +243,8 @@ EC_BOOL cloopback_set_ngx_rc(const UINT32 cloopback_md_id, const ngx_int_t rc, c
     CLOOPBACK_MD_NGX_LOC(cloopback_md) = location;
 
     dbg_log(SEC_0127_CLOOPBACK, 9)(LOGSTDOUT, "[DEBUG] cloopback_set_ngx_rc: "
-                                             "set rc %d\n",
-                                             rc);
+                                              "set rc %ld\n",
+                                              rc);
 
     return (EC_TRUE);
 }
@@ -270,8 +270,8 @@ EC_BOOL cloopback_override_ngx_rc(const UINT32 cloopback_md_id, const ngx_int_t 
     if(rc == CLOOPBACK_MD_NGX_RC(cloopback_md))
     {
         dbg_log(SEC_0127_CLOOPBACK, 9)(LOGSTDOUT, "[DEBUG] cloopback_override_ngx_rc: "
-                                                 "ignore same rc %d\n",
-                                                 rc);
+                                                  "ignore same rc %ld\n",
+                                                  rc);
         return (EC_TRUE);
     }
 
@@ -279,8 +279,8 @@ EC_BOOL cloopback_override_ngx_rc(const UINT32 cloopback_md_id, const ngx_int_t 
     if(EC_FALSE == cngx_need_send_header(r))
     {
         dbg_log(SEC_0127_CLOOPBACK, 9)(LOGSTDOUT, "[DEBUG] cloopback_override_ngx_rc: "
-                                                 "ignore rc %d due to header had sent out\n",
-                                                 rc);
+                                                  "ignore rc %ld due to header had sent out\n",
+                                                  rc);
         cngx_disable_keepalive(r);
         return (EC_TRUE);
     }
@@ -288,8 +288,8 @@ EC_BOOL cloopback_override_ngx_rc(const UINT32 cloopback_md_id, const ngx_int_t 
     if(NGX_OK != CLOOPBACK_MD_NGX_RC(cloopback_md))
     {
         dbg_log(SEC_0127_CLOOPBACK, 9)(LOGSTDOUT, "[DEBUG] cloopback_override_ngx_rc: "
-                                                 "modify rc %d => %d\n",
-                                                 CLOOPBACK_MD_NGX_RC(cloopback_md), rc);
+                                                  "modify rc %ld => %ld\n",
+                                                  CLOOPBACK_MD_NGX_RC(cloopback_md), rc);
         CLOOPBACK_MD_NGX_RC(cloopback_md)  = rc;
         CLOOPBACK_MD_NGX_LOC(cloopback_md) = location;
 
@@ -297,8 +297,8 @@ EC_BOOL cloopback_override_ngx_rc(const UINT32 cloopback_md_id, const ngx_int_t 
     }
 
     dbg_log(SEC_0127_CLOOPBACK, 9)(LOGSTDOUT, "[DEBUG] cloopback_override_ngx_rc: "
-                                             "set rc %d\n",
-                                             rc);
+                                              "set rc %ld\n",
+                                              rc);
 
     CLOOPBACK_MD_NGX_RC(cloopback_md)  = rc;
     CLOOPBACK_MD_NGX_LOC(cloopback_md) = location;

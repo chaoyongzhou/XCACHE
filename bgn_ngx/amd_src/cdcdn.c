@@ -112,7 +112,7 @@ EC_BOOL cdcdn_node_write(CDCDN *cdcdn, const UINT32 node_id, const UINT32 data_m
 
     offset_f = offset_n + offset_r;
 
-    if(EC_FALSE == c_file_pwrite(CDCDN_NODE_FD(cdcdn), &offset_f, data_max_len, data_buff))
+    if(EC_FALSE == c_file_pwrite(CDCDN_NODE_SSD_DISK_FD(cdcdn), &offset_f, data_max_len, data_buff))
     {
         dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_node_write: "
                                               "write node %ld to offset %ld, size %ld failed\n",
@@ -148,7 +148,7 @@ EC_BOOL cdcdn_node_read(CDCDN *cdcdn, const UINT32 node_id, const UINT32 data_ma
     offset_r = offset_b + (*offset);
 
     offset_f = offset_n + offset_r;
-    if(EC_FALSE == c_file_pread(CDCDN_NODE_FD(cdcdn), &offset_f, data_max_len, data_buff))
+    if(EC_FALSE == c_file_pread(CDCDN_NODE_SSD_DISK_FD(cdcdn), &offset_f, data_max_len, data_buff))
     {
         dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_node_read: "
                                               "read node %ld from offset %ld, size %ld failed\n",
@@ -164,25 +164,63 @@ EC_BOOL cdcdn_node_read(CDCDN *cdcdn, const UINT32 node_id, const UINT32 data_ma
     return (EC_TRUE);
 }
 
-CDCDN *cdcdn_create(UINT32 *s_offset, const UINT32 e_offset)
+/*meta and data in same disk*/
+EC_BOOL cdcdn_compute_disk(const UINT32 ssd_disk_size, UINT32 *disk_num, UINT32 *node_num, UINT32 *block_num)
+{
+    UINT32           cdcpgv_size;
+    UINT32           disk_max_size;
+    UINT32           block_max_num;
+
+    cdcpgv_aligned_size(&cdcpgv_size, (UINT32)CDCPGB_PAGE_SIZE_MASK);
+
+    if(ssd_disk_size <= cdcpgv_size)
+    {
+        return (EC_FALSE);
+    }
+
+    disk_max_size = (ssd_disk_size - cdcpgv_size);
+    block_max_num = (disk_max_size >> CDCPGB_SIZE_NBITS);
+
+    (*disk_num)   = (block_max_num / CDCPGD_MAX_BLOCK_NUM);
+    (*block_num)  = ((*disk_num) * ((UINT32)CDCPGD_MAX_BLOCK_NUM));
+    (*node_num)   = ((*block_num) >> CDCDN_SEG_NO_NBITS);/*num of nodes.  one node = several continuous blocks*/
+
+    ASSERT(0 == ((*block_num) % (*node_num)));
+    return (EC_TRUE);
+}
+
+/*meta and data in different disks*/
+EC_BOOL cdcdn_compute_meta(const UINT32 ssd_disk_size, UINT32 *disk_num, UINT32 *node_num, UINT32 *block_num)
+{
+    UINT32           disk_max_size;
+    UINT32           block_max_num;
+
+    disk_max_size = (ssd_disk_size - 0);
+    block_max_num = (disk_max_size >> CDCPGB_SIZE_NBITS);
+
+    (*disk_num)   = (block_max_num / CDCPGD_MAX_BLOCK_NUM);
+    (*block_num)  = ((*disk_num) * ((UINT32)CDCPGD_MAX_BLOCK_NUM));
+    (*node_num)   = ((*block_num) >> CDCDN_SEG_NO_NBITS);/*num of nodes.  one node = several continuous blocks*/
+
+    ASSERT(0 == ((*block_num) % (*node_num)));
+    return (EC_TRUE);
+}
+
+CDCDN *cdcdn_create(UINT32 *meta_s_offset, const UINT32 meta_e_offset,
+                        const UINT32 data_s_offset, const UINT32 data_e_offset,
+                        const uint16_t disk_num, const UINT32 node_num, const UINT32 block_num)
 {
     CDCDN           *cdcdn;
     CDCPGV_HDR      *cdcpgv_hdr;
 
-    UINT32           f_s_offset;
-    UINT32           f_e_offset;
+    UINT32           f_meta_s_offset;
+    UINT32           f_meta_e_offset;
 
     UINT8           *base;
     UINT32           pos;
 
-    UINT32           disk_max_size;
-    UINT32           block_max_num;
-
     UINT32           cdcpgv_size;
     UINT32           disk_size;
-    UINT32           node_num;
-    UINT32           block_num;
-    uint16_t         disk_num;
 
     uint16_t         disk_no;
 
@@ -225,22 +263,22 @@ CDCDN *cdcdn_create(UINT32 *s_offset, const UINT32 e_offset)
                                               CDCPGB_RB_BITMAP_PAD_SIZE);
     }
 
-    f_s_offset = VAL_ALIGN_NEXT(*s_offset, ((UINT32)CDCPGB_PAGE_SIZE_MASK)); /*align to one page*/
-    f_e_offset = VAL_ALIGN_HEAD(e_offset , ((UINT32)CDCPGB_SIZE_MASK));      /*align to one block*/
+    f_meta_s_offset = VAL_ALIGN_NEXT(*meta_s_offset, ((UINT32)CDCPGB_PAGE_SIZE_MASK)); /*align to one page*/
+    f_meta_e_offset = VAL_ALIGN_HEAD(meta_e_offset , ((UINT32)CDCPGB_SIZE_MASK));      /*align to one block*/
 
-    if(f_s_offset >= f_e_offset)
+    if(f_meta_s_offset >= f_meta_e_offset)
     {
         dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_create: "
                                               "range [%ld, %ld) aligned to invalid [%ld, %ld)\n",
-                                              (*s_offset), e_offset,
-                                              f_s_offset, f_e_offset);
+                                              (*meta_s_offset), meta_e_offset,
+                                              f_meta_s_offset, f_meta_e_offset);
         return (NULL_PTR);
     }
 
     dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create: "
                                           "range [%ld, %ld) aligned to [%ld, %ld)\n",
-                                          (*s_offset), e_offset,
-                                          f_s_offset, f_e_offset);
+                                          (*meta_s_offset), meta_e_offset,
+                                          f_meta_s_offset, f_meta_e_offset);
 
     /*determine data node header size in storage*/
     cdcpgv_aligned_size(&cdcpgv_size, (UINT32)CDCPGB_PAGE_SIZE_MASK);
@@ -251,40 +289,30 @@ CDCDN *cdcdn_create(UINT32 *s_offset, const UINT32 e_offset)
 
     //CDCDN_ASSERT(CDCPGB_SIZE_NBYTES >= cdcpgv_size);
 
-    if(f_s_offset + cdcpgv_size >= f_e_offset)
+    if(f_meta_s_offset + cdcpgv_size >= f_meta_e_offset)
     {
         dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_create: "
                                               "header size %ld >= range covers [%ld, %ld) "
                                               "which is aligned from range [%ld, %ld)\n",
                                               cdcpgv_size,
-                                              f_s_offset, f_e_offset,
-                                              (*s_offset), e_offset);
+                                              f_meta_s_offset, f_meta_e_offset,
+                                              (*meta_s_offset), meta_e_offset);
         return (NULL_PTR);
     }
-
-    disk_max_size = (f_e_offset - f_s_offset - cdcpgv_size);
-    block_max_num = (disk_max_size >> CDCPGB_SIZE_NBITS);
-
-    disk_num      = (uint16_t)(block_max_num / CDCPGD_MAX_BLOCK_NUM);
-    block_num     = ((UINT32)disk_num) * ((UINT32)CDCPGD_MAX_BLOCK_NUM);
-    node_num      = (block_num >> CDCDN_SEG_NO_NBITS);/*num of nodes.  one node = several continuous blocks*/
-
-    disk_size     = block_num * CDCPGB_SIZE_NBYTES;
 
     if(0 == disk_num)
     {
         dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_create: "
-                                              "no enough space for one disk: "
-                                              "disk_max_size %ld, block_max_num %ld => disk_num %u\n",
-                                              disk_max_size, block_max_num, disk_num);
+                                              "disk_num is %u\n",
+                                              disk_num);
         return (NULL_PTR);
     }
 
     dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create: "
-                                          "disk_max_size %ld, block_max_num %ld => disk_num %u\n",
-                                          disk_max_size, block_max_num, disk_num);
+                                          "disk_num %u, node_num %ld, block_num %ld\n",
+                                          disk_num, node_num, block_num);
 
-    CDCDN_ASSERT(0 == (block_num % node_num));
+    disk_size = block_num * CDCPGB_SIZE_NBYTES;
 
     base = cdcpgv_mcache_new(cdcpgv_size);
     if(NULL_PTR == base)
@@ -309,16 +337,17 @@ CDCDN *cdcdn_create(UINT32 *s_offset, const UINT32 e_offset)
         return (NULL_PTR);
     }
 
-    CDCDN_RDONLY_FLAG(cdcdn)   = BIT_FALSE;
-    CDCDN_DONTDUMP_FLAG(cdcdn) = BIT_FALSE;
-    CDCDN_NODE_FD(cdcdn)       = ERR_FD;
-    CDCDN_NODE_NUM(cdcdn)      = node_num;
-    CDCDN_BASE_S_OFFSET(cdcdn) = f_s_offset;
-    CDCDN_BASE_E_OFFSET(cdcdn) = f_s_offset + cdcpgv_size;
-    CDCDN_NODE_S_OFFSET(cdcdn) = VAL_ALIGN_NEXT(CDCDN_BASE_E_OFFSET(cdcdn), ((UINT32)CDCPGB_SIZE_MASK));
-    CDCDN_NODE_E_OFFSET(cdcdn) = CDCDN_NODE_S_OFFSET(cdcdn) + disk_size;
+    CDCDN_RDONLY_FLAG(cdcdn)        = BIT_FALSE;
+    CDCDN_DONTDUMP_FLAG(cdcdn)      = BIT_FALSE;
+    CDCDN_NODE_SSD_META_FD(cdcdn)   = ERR_FD;
+    CDCDN_NODE_SSD_DISK_FD(cdcdn)   = ERR_FD;
+    CDCDN_NODE_NUM(cdcdn)           = node_num;
+    CDCDN_BASE_S_OFFSET(cdcdn)      = f_meta_s_offset;
+    CDCDN_BASE_E_OFFSET(cdcdn)      = f_meta_s_offset + cdcpgv_size;
+    CDCDN_NODE_S_OFFSET(cdcdn)      = VAL_ALIGN_NEXT(data_s_offset, ((UINT32)CDCPGB_SIZE_MASK));
+    CDCDN_NODE_E_OFFSET(cdcdn)      = CDCDN_NODE_S_OFFSET(cdcdn) + disk_size;
 
-    CDCDN_ASSERT(f_e_offset >= CDCDN_NODE_E_OFFSET(cdcdn));
+    ASSERT(data_e_offset >= CDCDN_NODE_E_OFFSET(cdcdn));
 
     CDCDN_CDCPGV(cdcdn) = cdcpgv_new();
     if(NULL_PTR == CDCDN_CDCPGV(cdcdn))
@@ -370,32 +399,28 @@ CDCDN *cdcdn_create(UINT32 *s_offset, const UINT32 e_offset)
         }
     }
 
-    (*s_offset) = CDCDN_BASE_E_OFFSET(cdcdn);
+    (*meta_s_offset) = CDCDN_BASE_E_OFFSET(cdcdn);
 
     dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create: create vol done\n");
 
     return (cdcdn);
 }
 
-CDCDN *cdcdn_create_shm(CMMAP_NODE *cmmap_node, UINT32 *s_offset, const UINT32 e_offset)
+CDCDN *cdcdn_create_shm(CMMAP_NODE *cmmap_node, UINT32 *meta_s_offset, const UINT32 meta_e_offset,
+                                const UINT32 data_s_offset, const UINT32 data_e_offset,
+                                const uint16_t disk_num, const UINT32 node_num, const UINT32 block_num)
 {
     CDCDN           *cdcdn;
     CDCPGV_HDR      *cdcpgv_hdr;
 
-    UINT32           f_s_offset;
-    UINT32           f_e_offset;
+    UINT32           f_meta_s_offset;
+    UINT32           f_meta_e_offset;
 
     UINT8           *base;
     UINT32           pos;
 
-    UINT32           disk_max_size;
-    UINT32           block_max_num;
-
     UINT32           cdcpgv_size;
     UINT32           disk_size;
-    UINT32           node_num;
-    UINT32           block_num;
-    uint16_t         disk_num;
 
     uint16_t         disk_no;
 
@@ -438,22 +463,22 @@ CDCDN *cdcdn_create_shm(CMMAP_NODE *cmmap_node, UINT32 *s_offset, const UINT32 e
                                               CDCPGB_RB_BITMAP_PAD_SIZE);
     }
 
-    f_s_offset = VAL_ALIGN_NEXT(*s_offset, ((UINT32)CDCPGB_PAGE_SIZE_MASK)); /*align to one page*/
-    f_e_offset = VAL_ALIGN_HEAD(e_offset , ((UINT32)CDCPGB_SIZE_MASK));      /*align to one block*/
+    f_meta_s_offset = VAL_ALIGN_NEXT(*meta_s_offset, ((UINT32)CDCPGB_PAGE_SIZE_MASK)); /*align to one page*/
+    f_meta_e_offset = VAL_ALIGN_HEAD(meta_e_offset , ((UINT32)CDCPGB_SIZE_MASK));      /*align to one block*/
 
-    if(f_s_offset >= f_e_offset)
+    if(f_meta_s_offset >= f_meta_e_offset)
     {
         dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_create_shm: "
                                               "range [%ld, %ld) aligned to invalid [%ld, %ld)\n",
-                                              (*s_offset), e_offset,
-                                              f_s_offset, f_e_offset);
+                                              (*meta_s_offset), meta_e_offset,
+                                              f_meta_s_offset, f_meta_e_offset);
         return (NULL_PTR);
     }
 
     dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: "
                                           "range [%ld, %ld) aligned to [%ld, %ld)\n",
-                                          (*s_offset), e_offset,
-                                          f_s_offset, f_e_offset);
+                                          (*meta_s_offset), meta_e_offset,
+                                          f_meta_s_offset, f_meta_e_offset);
 
     /*determine data node header size in storage*/
     cdcpgv_aligned_size(&cdcpgv_size, (UINT32)CDCPGB_PAGE_SIZE_MASK);
@@ -464,40 +489,30 @@ CDCDN *cdcdn_create_shm(CMMAP_NODE *cmmap_node, UINT32 *s_offset, const UINT32 e
 
     //CDCDN_ASSERT(CDCPGB_SIZE_NBYTES >= cdcpgv_size);
 
-    if(f_s_offset + cdcpgv_size >= f_e_offset)
+    if(f_meta_s_offset + cdcpgv_size >= f_meta_e_offset)
     {
         dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_create_shm: "
                                               "header size %ld >= range covers [%ld, %ld) "
                                               "which is aligned from range [%ld, %ld)\n",
                                               cdcpgv_size,
-                                              f_s_offset, f_e_offset,
-                                              (*s_offset), e_offset);
+                                              f_meta_s_offset, f_meta_e_offset,
+                                              (*meta_s_offset), meta_e_offset);
         return (NULL_PTR);
     }
-
-    disk_max_size = (f_e_offset - f_s_offset - cdcpgv_size);
-    block_max_num = (disk_max_size >> CDCPGB_SIZE_NBITS);
-
-    disk_num      = (uint16_t)(block_max_num / CDCPGD_MAX_BLOCK_NUM);
-    block_num     = ((UINT32)disk_num) * ((UINT32)CDCPGD_MAX_BLOCK_NUM);
-    node_num      = (block_num >> CDCDN_SEG_NO_NBITS);/*num of nodes.  one node = several continuous blocks*/
-
-    disk_size     = block_num * CDCPGB_SIZE_NBYTES;
 
     if(0 == disk_num)
     {
         dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_create_shm: "
-                                              "no enough space for one disk: "
-                                              "disk_max_size %ld, block_max_num %ld => disk_num %u\n",
-                                              disk_max_size, block_max_num, disk_num);
+                                              "disk_num is %u\n",
+                                              disk_num);
         return (NULL_PTR);
     }
 
     dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: "
-                                          "disk_max_size %ld, block_max_num %ld => disk_num %u\n",
-                                          disk_max_size, block_max_num, disk_num);
+                                          "disk_num %u, node_num %ld, block_num %ld\n",
+                                          disk_num, node_num, block_num);
 
-    CDCDN_ASSERT(0 == (block_num % node_num));
+    disk_size = block_num * CDCPGB_SIZE_NBYTES;
 
     base = cmmap_node_alloc(cmmap_node, cdcpgv_size, CDCDN_MEM_ALIGNMENT, "cdc dn");
     if(NULL_PTR == base)
@@ -516,16 +531,17 @@ CDCDN *cdcdn_create_shm(CMMAP_NODE *cmmap_node, UINT32 *s_offset, const UINT32 e
         return (NULL_PTR);
     }
 
-    CDCDN_RDONLY_FLAG(cdcdn)   = BIT_FALSE;
-    CDCDN_DONTDUMP_FLAG(cdcdn) = BIT_FALSE;
-    CDCDN_NODE_FD(cdcdn)       = ERR_FD;
-    CDCDN_NODE_NUM(cdcdn)      = node_num;
-    CDCDN_BASE_S_OFFSET(cdcdn) = f_s_offset;
-    CDCDN_BASE_E_OFFSET(cdcdn) = f_s_offset + cdcpgv_size;
-    CDCDN_NODE_S_OFFSET(cdcdn) = VAL_ALIGN_NEXT(CDCDN_BASE_E_OFFSET(cdcdn), ((UINT32)CDCPGB_SIZE_MASK));
-    CDCDN_NODE_E_OFFSET(cdcdn) = CDCDN_NODE_S_OFFSET(cdcdn) + disk_size;
+    CDCDN_RDONLY_FLAG(cdcdn)        = BIT_FALSE;
+    CDCDN_DONTDUMP_FLAG(cdcdn)      = BIT_FALSE;
+    CDCDN_NODE_SSD_META_FD(cdcdn)   = ERR_FD;
+    CDCDN_NODE_SSD_DISK_FD(cdcdn)   = ERR_FD;
+    CDCDN_NODE_NUM(cdcdn)           = node_num;
+    CDCDN_BASE_S_OFFSET(cdcdn)      = f_meta_s_offset;
+    CDCDN_BASE_E_OFFSET(cdcdn)      = f_meta_s_offset + cdcpgv_size;
+    CDCDN_NODE_S_OFFSET(cdcdn)      = VAL_ALIGN_NEXT(data_s_offset, ((UINT32)CDCPGB_SIZE_MASK));
+    CDCDN_NODE_E_OFFSET(cdcdn)      = CDCDN_NODE_S_OFFSET(cdcdn) + disk_size;
 
-    CDCDN_ASSERT(f_e_offset >= CDCDN_NODE_E_OFFSET(cdcdn));
+    CDCDN_ASSERT(data_e_offset >= CDCDN_NODE_E_OFFSET(cdcdn));
 
     CDCDN_CDCPGV(cdcdn) = cdcpgv_open();
     if(NULL_PTR == CDCDN_CDCPGV(cdcdn))
@@ -578,7 +594,7 @@ CDCDN *cdcdn_create_shm(CMMAP_NODE *cmmap_node, UINT32 *s_offset, const UINT32 e
         }
     }
 
-    (*s_offset) = CDCDN_BASE_E_OFFSET(cdcdn);
+    (*meta_s_offset) = CDCDN_BASE_E_OFFSET(cdcdn);
 
     dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_create_shm: create vol done\n");
 
@@ -624,36 +640,38 @@ CDCDN *cdcdn_new()
 
 EC_BOOL cdcdn_init(CDCDN *cdcdn)
 {
-    CDCDN_RDONLY_FLAG(cdcdn)   = BIT_FALSE;
-    CDCDN_DONTDUMP_FLAG(cdcdn) = BIT_FALSE;
-    CDCDN_NODE_FD(cdcdn)       = ERR_FD;
+    CDCDN_RDONLY_FLAG(cdcdn)        = BIT_FALSE;
+    CDCDN_DONTDUMP_FLAG(cdcdn)      = BIT_FALSE;
+    CDCDN_NODE_SSD_META_FD(cdcdn)   = ERR_FD;
+    CDCDN_NODE_SSD_DISK_FD(cdcdn)   = ERR_FD;
 
-    CDCDN_NODE_NUM(cdcdn)      = 0;
+    CDCDN_NODE_NUM(cdcdn)           = 0;
 
-    CDCDN_BASE_S_OFFSET(cdcdn) = CDCDN_NODE_ERR_OFFSET;
-    CDCDN_BASE_E_OFFSET(cdcdn) = CDCDN_NODE_ERR_OFFSET;
+    CDCDN_BASE_S_OFFSET(cdcdn)      = CDCDN_NODE_ERR_OFFSET;
+    CDCDN_BASE_E_OFFSET(cdcdn)      = CDCDN_NODE_ERR_OFFSET;
 
-    CDCDN_NODE_S_OFFSET(cdcdn) = CDCDN_NODE_ERR_OFFSET;
-    CDCDN_NODE_E_OFFSET(cdcdn) = CDCDN_NODE_ERR_OFFSET;
+    CDCDN_NODE_S_OFFSET(cdcdn)      = CDCDN_NODE_ERR_OFFSET;
+    CDCDN_NODE_E_OFFSET(cdcdn)      = CDCDN_NODE_ERR_OFFSET;
 
-    CDCDN_CDCPGV(cdcdn)        = NULL_PTR;
+    CDCDN_CDCPGV(cdcdn)             = NULL_PTR;
 
     return (EC_TRUE);
 }
 
 EC_BOOL cdcdn_clean(CDCDN *cdcdn)
 {
-    CDCDN_RDONLY_FLAG(cdcdn)   = BIT_FALSE;
-    CDCDN_DONTDUMP_FLAG(cdcdn) = BIT_FALSE;
-    CDCDN_NODE_FD(cdcdn)       = ERR_FD;
+    CDCDN_RDONLY_FLAG(cdcdn)        = BIT_FALSE;
+    CDCDN_DONTDUMP_FLAG(cdcdn)      = BIT_FALSE;
+    CDCDN_NODE_SSD_META_FD(cdcdn)   = ERR_FD;
+    CDCDN_NODE_SSD_DISK_FD(cdcdn)   = ERR_FD;
 
-    CDCDN_NODE_NUM(cdcdn)      = 0;
+    CDCDN_NODE_NUM(cdcdn)           = 0;
 
-    CDCDN_BASE_S_OFFSET(cdcdn) = CDCDN_NODE_ERR_OFFSET;
-    CDCDN_BASE_E_OFFSET(cdcdn) = CDCDN_NODE_ERR_OFFSET;
+    CDCDN_BASE_S_OFFSET(cdcdn)      = CDCDN_NODE_ERR_OFFSET;
+    CDCDN_BASE_E_OFFSET(cdcdn)      = CDCDN_NODE_ERR_OFFSET;
 
-    CDCDN_NODE_S_OFFSET(cdcdn) = CDCDN_NODE_ERR_OFFSET;
-    CDCDN_NODE_E_OFFSET(cdcdn) = CDCDN_NODE_ERR_OFFSET;
+    CDCDN_NODE_S_OFFSET(cdcdn)      = CDCDN_NODE_ERR_OFFSET;
+    CDCDN_NODE_E_OFFSET(cdcdn)      = CDCDN_NODE_ERR_OFFSET;
 
     if(NULL_PTR != CDCDN_CDCPGV(cdcdn))
     {
@@ -785,10 +803,12 @@ void cdcdn_print(LOG *log, const CDCDN *cdcdn)
 {
     if(NULL_PTR != cdcdn)
     {
-        sys_log(log, "cdcdn_print: cdcdn %p: read-only %u, fd %d, node num %ld, base offset %ld, size %ld, range [%ld, %ld)\n",
+        sys_log(log, "cdcdn_print: cdcdn %p: read-only %u, ssd meta fd %d, ssd disk fd %d, "
+                     "node num %ld, base offset %ld, size %ld, range [%ld, %ld)\n",
                      cdcdn,
                      CDCDN_RDONLY_FLAG(cdcdn),
-                     CDCDN_NODE_FD(cdcdn),
+                     CDCDN_NODE_SSD_META_FD(cdcdn),
+                     CDCDN_NODE_SSD_DISK_FD(cdcdn),
                      CDCDN_NODE_NUM(cdcdn),
                      CDCDN_BASE_S_OFFSET(cdcdn),
                      CDCDN_NODE_E_OFFSET(cdcdn) - CDCDN_NODE_S_OFFSET(cdcdn),
@@ -1037,7 +1057,7 @@ EC_BOOL cdcdn_flush(CDCDN *cdcdn)
         return (EC_FALSE);
     }
 
-    if(ERR_FD == CDCDN_NODE_FD(cdcdn))
+    if(ERR_FD == CDCDN_NODE_SSD_META_FD(cdcdn))
     {
         dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_flush: no fd\n");
         return (EC_FALSE);
@@ -1088,7 +1108,7 @@ EC_BOOL cdcdn_flush(CDCDN *cdcdn)
     CDCDN_ASSERT(CDCPGV_HDR_NODE_S_OFFSET(cdcpgv_hdr) == CDCDN_NODE_S_OFFSET(cdcdn));
     CDCDN_ASSERT(CDCPGV_HDR_NODE_E_OFFSET(cdcpgv_hdr) == CDCDN_NODE_E_OFFSET(cdcdn));
 
-    if(EC_FALSE == c_file_pwrite(CDCDN_NODE_FD(cdcdn), &cdcpgv_offset, cdcpgv_size, base))
+    if(EC_FALSE == c_file_pwrite(CDCDN_NODE_SSD_META_FD(cdcdn), &cdcpgv_offset, cdcpgv_size, base))
     {
         dbg_log(SEC_0187_CDCDN, 0)(LOGSTDOUT, "error:cdcdn_flush: "
                                               "flush cdcpgv to offset %ld, size %ld failed\n",
@@ -1100,7 +1120,7 @@ EC_BOOL cdcdn_flush(CDCDN *cdcdn)
 
     dbg_log(SEC_0187_CDCDN, 9)(LOGSTDOUT, "[DEBUG] cdcdn_flush: "
                                           "flush cdcpgv to fd %d, offset %ld => %ld, size %ld done\n",
-                                          CDCDN_NODE_FD(cdcdn), f_s_offset, cdcpgv_offset, cdcpgv_size);
+                                          CDCDN_NODE_SSD_META_FD(cdcdn), f_s_offset, cdcpgv_offset, cdcpgv_size);
 
     return (EC_TRUE);
 }

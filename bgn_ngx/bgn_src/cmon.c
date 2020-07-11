@@ -1634,7 +1634,7 @@ EC_BOOL cmon_get_store_http_srv_of_hot(const UINT32 cmon_md_id, const CSTRING *p
 
     dbg_log(SEC_0023_CMON, 6)(LOGSTDOUT, "[DEBUG] cmon_get_store_http_srv_of_hot: "
                 "hot path '%s' => cmon_node (tcid %s, srv %s:%ld, modi %ld, state %s)\n",
-                path,
+                (char *)cstring_get_str(path),
                 c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)),
                 c_word_to_ipv4(CMON_NODE_IPADDR(&cmon_node)), CMON_NODE_PORT(&cmon_node),
                 CMON_NODE_MODI(&cmon_node),

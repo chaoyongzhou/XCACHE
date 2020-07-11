@@ -1929,7 +1929,7 @@ uint32_t cxfsnp_insert_no_lock(CXFSNP *cxfsnp, const uint32_t path_len, const ui
                     dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_insert_no_lock: "
                                         "np %u, find duplicate key: %.*s\n",
                                         CXFSNP_ID(cxfsnp),
-                                        CXFSNP_ITEM_KLEN(cxfsnp_item), CXFSNP_ITEM_KNAME(cxfsnp_item));
+                                        path_seg_len, path_seg_beg);
                 }
 
                 if(CXFSNPRB_ERR_POS == node_pos)
@@ -1937,7 +1937,7 @@ uint32_t cxfsnp_insert_no_lock(CXFSNP *cxfsnp, const uint32_t path_len, const ui
                     dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_insert_no_lock: "
                                         "np %u, insert key: %.*s failed\n",
                                         CXFSNP_ID(cxfsnp),
-                                        CXFSNP_ITEM_KLEN(cxfsnp_item), CXFSNP_ITEM_KNAME(cxfsnp_item));
+                                        path_seg_len, path_seg_beg);
                 }
 
                 return (CXFSNPRB_ERR_POS);
@@ -1961,7 +1961,7 @@ uint32_t cxfsnp_insert_no_lock(CXFSNP *cxfsnp, const uint32_t path_len, const ui
                 dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_insert_no_lock: "
                                     "np %u, insert dir key: %.*s failed\n",
                                     CXFSNP_ID(cxfsnp),
-                                    CXFSNP_ITEM_KLEN(cxfsnp_item), CXFSNP_ITEM_KNAME(cxfsnp_item));
+                                    path_seg_len, path_seg_beg);
 
                 return (CXFSNPRB_ERR_POS);
             }

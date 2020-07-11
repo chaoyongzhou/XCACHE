@@ -150,7 +150,7 @@ UINT32 crfsgw_start(ngx_http_request_t *r)
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)crfsgw_end, crfsgw_md_id);
 
-    dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_start: start CRFSGW module #%u\n", crfsgw_md_id);
+    dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_start: start CRFSGW module #%ld\n", crfsgw_md_id);
 
     return ( crfsgw_md_id );
 }
@@ -169,7 +169,7 @@ void crfsgw_end(const UINT32 crfsgw_md_id)
     crfsgw_md = CRFSGW_MD_GET(crfsgw_md_id);
     if(NULL_PTR == crfsgw_md)
     {
-        dbg_log(SEC_0034_CRFSGW, 0)(LOGSTDOUT, "error:crfsgw_end: crfsgw_md_id = %u not exist.\n", crfsgw_md_id);
+        dbg_log(SEC_0034_CRFSGW, 0)(LOGSTDOUT, "error:crfsgw_end: crfsgw_md_id = %ld not exist.\n", crfsgw_md_id);
         dbg_exit(MD_CRFSGW, crfsgw_md_id);
     }
 
@@ -182,7 +182,7 @@ void crfsgw_end(const UINT32 crfsgw_md_id)
 
     if ( 0 == crfsgw_md->usedcounter )
     {
-        dbg_log(SEC_0034_CRFSGW, 0)(LOGSTDOUT, "error:crfsgw_end: crfsgw_md_id = %u is not started.\n", crfsgw_md_id);
+        dbg_log(SEC_0034_CRFSGW, 0)(LOGSTDOUT, "error:crfsgw_end: crfsgw_md_id = %ld is not started.\n", crfsgw_md_id);
         dbg_exit(MD_CRFSGW, crfsgw_md_id);
     }
 
@@ -202,7 +202,7 @@ void crfsgw_end(const UINT32 crfsgw_md_id)
     /* free module */
     crfsgw_md->usedcounter = 0;
 
-    dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "crfsgw_end: stop CRFSGW module #%u\n", crfsgw_md_id);
+    dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "crfsgw_end: stop CRFSGW module #%ld\n", crfsgw_md_id);
     cbc_md_free(MD_CRFSGW, crfsgw_md_id);
 
     return ;
@@ -257,8 +257,8 @@ EC_BOOL crfsgw_set_ngx_rc(const UINT32 crfsgw_md_id, const ngx_int_t rc, const U
     if(NGX_OK != CRFSGW_MD_NGX_RC(crfsgw_md))
     {
         dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_override_ngx_rc: "
-                                                "ignore rc %d due to its %d now\n",
-                                                rc, CRFSGW_MD_NGX_RC(crfsgw_md));
+                                               "ignore rc %ld due to its %ld now\n",
+                                               rc, CRFSGW_MD_NGX_RC(crfsgw_md));
         return (EC_TRUE);
     }
 
@@ -266,8 +266,8 @@ EC_BOOL crfsgw_set_ngx_rc(const UINT32 crfsgw_md_id, const ngx_int_t rc, const U
     CRFSGW_MD_NGX_LOC(crfsgw_md) = location;
 
     dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_set_ngx_rc: "
-                                            "set rc %d\n",
-                                            rc);
+                                           "set rc %ld\n",
+                                           rc);
 
     return (EC_TRUE);
 }
@@ -293,16 +293,16 @@ EC_BOOL crfsgw_override_ngx_rc(const UINT32 crfsgw_md_id, const ngx_int_t rc, co
     if(rc == CRFSGW_MD_NGX_RC(crfsgw_md))
     {
         dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_override_ngx_rc: "
-                                                "ignore same rc %d\n",
-                                                rc);
+                                               "ignore same rc %ld\n",
+                                               rc);
         return (EC_TRUE);
     }
 
     if(NGX_OK != CRFSGW_MD_NGX_RC(crfsgw_md))
     {
         dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_override_ngx_rc: "
-                                                "modify rc %d => %d\n",
-                                                CRFSGW_MD_NGX_RC(crfsgw_md), rc);
+                                               "modify rc %ld => %ld\n",
+                                               CRFSGW_MD_NGX_RC(crfsgw_md), rc);
         CRFSGW_MD_NGX_RC(crfsgw_md)  = rc;
         CRFSGW_MD_NGX_LOC(crfsgw_md) = location;
 
@@ -310,8 +310,8 @@ EC_BOOL crfsgw_override_ngx_rc(const UINT32 crfsgw_md_id, const ngx_int_t rc, co
     }
 
     dbg_log(SEC_0034_CRFSGW, 9)(LOGSTDOUT, "[DEBUG] crfsgw_override_ngx_rc: "
-                                            "set rc %d\n",
-                                            rc);
+                                           "set rc %ld\n",
+                                           rc);
 
     CRFSGW_MD_NGX_RC(crfsgw_md)  = rc;
     CRFSGW_MD_NGX_LOC(crfsgw_md) = location;

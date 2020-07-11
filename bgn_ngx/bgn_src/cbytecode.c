@@ -270,7 +270,7 @@ EC_BOOL cbytecode_pack_uint16(const UINT16 *in_buff, const UINT32 data_num, UINT
     des_data = (UINT16 *)(out_buff + (*position));
 
 #if (SWITCH_ON == SBE_SWITCH)
-    BCOPY(src_data, des_data, data_num * sizeof(uint16_t));
+    BCOPY(src_data, des_data, data_num * sizeof(UINT16));
 #endif/*(SWITCH_ON == SBE_SWITCH)*/
 
 #if (SWITCH_OFF == SBE_SWITCH)
@@ -311,7 +311,7 @@ EC_BOOL cbytecode_unpack_uint16(const UINT8 *in_buff, const UINT32 in_buff_max_l
     des_data = (UINT16 *)(out_buff);
 
 #if (SWITCH_ON == SBE_SWITCH)
-    BCOPY(src_data, des_data, data_num * sizeof(uint16_t));
+    BCOPY(src_data, des_data, data_num * sizeof(UINT16));
 #endif/*(SWITCH_ON == SBE_SWITCH)*/
 
 #if (SWITCH_OFF == SBE_SWITCH)

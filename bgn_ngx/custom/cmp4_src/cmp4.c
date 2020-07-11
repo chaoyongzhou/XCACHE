@@ -198,7 +198,7 @@ UINT32 cmp4_start(ngx_http_request_t *r)
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)cmp4_end, cmp4_md_id);
 
-    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_start: start CMP4 module #%u\n", cmp4_md_id);
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_start: start CMP4 module #%ld\n", cmp4_md_id);
 
     return ( cmp4_md_id );
 }
@@ -217,7 +217,7 @@ void cmp4_end(const UINT32 cmp4_md_id)
     cmp4_md = CMP4_MD_GET(cmp4_md_id);
     if(NULL_PTR == cmp4_md)
     {
-        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_end: cmp4_md_id = %u not exist.\n", cmp4_md_id);
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_end: cmp4_md_id = %ld not exist.\n", cmp4_md_id);
         dbg_exit(MD_CMP4, cmp4_md_id);
     }
 
@@ -230,7 +230,7 @@ void cmp4_end(const UINT32 cmp4_md_id)
 
     if ( 0 == cmp4_md->usedcounter )
     {
-        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_end: cmp4_md_id = %u is not started.\n", cmp4_md_id);
+        dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_end: cmp4_md_id = %ld is not started.\n", cmp4_md_id);
         dbg_exit(MD_CMP4, cmp4_md_id);
     }
 
@@ -302,7 +302,7 @@ void cmp4_end(const UINT32 cmp4_md_id)
     /* free module */
     cmp4_md->usedcounter = 0;
 
-    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "cmp4_end: stop CMP4 module #%u\n", cmp4_md_id);
+    dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "cmp4_end: stop CMP4 module #%ld\n", cmp4_md_id);
     cbc_md_free(MD_CMP4, cmp4_md_id);
 
     return ;
@@ -358,7 +358,7 @@ EC_BOOL cmp4_set_ngx_rc(const UINT32 cmp4_md_id, const ngx_int_t rc, const UINT3
     if(NGX_OK != CMP4_MD_NGX_RC(cmp4_md))
     {
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_set_ngx_rc: "
-                                             "ignore rc %d due to its %d now\n",
+                                             "ignore rc %ld due to its %ld now\n",
                                              rc, CMP4_MD_NGX_RC(cmp4_md));
         return (EC_TRUE);
     }
@@ -367,7 +367,7 @@ EC_BOOL cmp4_set_ngx_rc(const UINT32 cmp4_md_id, const ngx_int_t rc, const UINT3
     if(EC_FALSE == cngx_need_send_header(r))
     {
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_set_ngx_rc: "
-                                             "ignore rc %d due to header had sent out\n",
+                                             "ignore rc %ld due to header had sent out\n",
                                              rc);
         cngx_disable_keepalive(r);
         return (EC_TRUE);
@@ -377,7 +377,7 @@ EC_BOOL cmp4_set_ngx_rc(const UINT32 cmp4_md_id, const ngx_int_t rc, const UINT3
     CMP4_MD_NGX_LOC(cmp4_md) = location;
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_set_ngx_rc: "
-                                         "set rc %d\n",
+                                         "set rc %ld\n",
                                          rc);
 
     return (EC_TRUE);
@@ -404,7 +404,7 @@ EC_BOOL cmp4_override_ngx_rc(const UINT32 cmp4_md_id, const ngx_int_t rc, const 
     if(rc == CMP4_MD_NGX_RC(cmp4_md))
     {
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_override_ngx_rc: "
-                                             "ignore same rc %d\n",
+                                             "ignore same rc %ld\n",
                                              rc);
         return (EC_TRUE);
     }
@@ -413,7 +413,7 @@ EC_BOOL cmp4_override_ngx_rc(const UINT32 cmp4_md_id, const ngx_int_t rc, const 
     if(EC_FALSE == cngx_need_send_header(r))
     {
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_override_ngx_rc: "
-                                             "ignore rc %d due to header had sent out\n",
+                                             "ignore rc %ld due to header had sent out\n",
                                              rc);
         cngx_disable_keepalive(r);
         return (EC_TRUE);
@@ -422,7 +422,7 @@ EC_BOOL cmp4_override_ngx_rc(const UINT32 cmp4_md_id, const ngx_int_t rc, const 
     if(NGX_OK != CMP4_MD_NGX_RC(cmp4_md))
     {
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_override_ngx_rc: "
-                                             "modify rc %d => %d\n",
+                                             "modify rc %ld => %ld\n",
                                              CMP4_MD_NGX_RC(cmp4_md), rc);
         CMP4_MD_NGX_RC(cmp4_md)  = rc;
         CMP4_MD_NGX_LOC(cmp4_md) = location;
@@ -431,7 +431,7 @@ EC_BOOL cmp4_override_ngx_rc(const UINT32 cmp4_md_id, const ngx_int_t rc, const 
     }
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_override_ngx_rc: "
-                                         "set rc %d\n",
+                                         "set rc %ld\n",
                                          rc);
 
     CMP4_MD_NGX_RC(cmp4_md)  = rc;
@@ -728,7 +728,7 @@ EC_BOOL cmp4_get_cache_file_e(const UINT32 cmp4_md_id, size_t size, off_t offset
     seg_no_end   = (((UINT32)(offset + size - 1)) / seg_size) + 1;
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_get_cache_file_e: "
-                                         "offset %ld, size %d => seg start %ld, seg end %ld\n",
+                                         "offset %ld, size %ld => seg start %ld, seg end %ld\n",
                                          (UINT32)offset, size,
                                          seg_no_start, seg_no_end);
 
@@ -2101,7 +2101,7 @@ EC_BOOL cmp4_filter_header_out_multi_range(const UINT32 cmp4_md_id)
         chttp_rsp_renew_header(CMP4_MD_CHTTP_RSP(cmp4_md), k, v);
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_filter_header_out_multi_range: "
-                                             "renew '%s' done\n",
+                                             "renew '%s':'%s' done\n",
                                              k, v);
     }
 
@@ -3354,7 +3354,7 @@ EC_BOOL cmp4_content_head_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
 
             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_head_header_out_rsp_status_filter: "
-                                                 "[cngx] found 404 => response status = %ld [after]\n",
+                                                 "[cngx] found 404 => response status = %u [after]\n",
                                                  CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
             return (EC_TRUE);
         }
@@ -4765,7 +4765,7 @@ EC_BOOL cmp4_content_direct_header_out_rsp_status_filter(const UINT32 cmp4_md_id
 
             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_direct_header_out_rsp_status_filter: "
-                                                 "[cngx] found 404 => response status = %ld [after]\n",
+                                                 "[cngx] found 404 => response status = %u [after]\n",
                                                  CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
             return (EC_TRUE);
         }
@@ -6908,7 +6908,7 @@ EC_BOOL cmp4_content_repair2_header_out_rsp_status_filter(const UINT32 cmp4_md_i
 
             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_repair2_header_out_rsp_status_filter: "
-                                                 "[cngx] found 404 => response status = %ld\n",
+                                                 "[cngx] found 404 => response status = %u\n",
                                                  CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
             return (EC_TRUE);
         }
@@ -8920,7 +8920,7 @@ EC_BOOL cmp4_content_orig_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
 
             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_rsp_status_filter: "
-                                                 "[cngx] found 404 => response status = %ld\n",
+                                                 "[cngx] found 404 => response status = %u\n",
                                                  CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
             return (EC_TRUE);
         }
@@ -8966,7 +8966,7 @@ EC_BOOL cmp4_content_orig_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
         CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_rsp_status_filter: "
-                                             "'%s' exist => response status = %ld [after]\n",
+                                             "'%s' exist => response status = %u [after]\n",
                                              k, CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
         return (EC_TRUE);
     }
@@ -8976,7 +8976,7 @@ EC_BOOL cmp4_content_orig_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
         CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_rsp_status_filter: "
-                                             "[cngx] multi range => response status = %ld [after]\n",
+                                             "[cngx] multi range => response status = %u [after]\n",
                                              CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
         return (EC_TRUE);
     }
@@ -8984,7 +8984,7 @@ EC_BOOL cmp4_content_orig_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
     CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_OK;
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_header_out_rsp_status_filter: "
-                                         "response status = %ld [after]\n",
+                                         "response status = %u [after]\n",
                                          CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
 
     return (EC_TRUE);
@@ -11358,7 +11358,7 @@ EC_BOOL cmp4_content_ms_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
 
             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_out_rsp_status_filter: "
-                                                 "[cngx] found 404 => response status = %ld [after]\n",
+                                                 "[cngx] found 404 => response status = %u [after]\n",
                                                  CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
             return (EC_TRUE);
         }
@@ -11404,7 +11404,7 @@ EC_BOOL cmp4_content_ms_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
         CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_out_rsp_status_filter: "
-                                             "'%s' exist => response status = %ld [after]\n",
+                                             "'%s' exist => response status = %u [after]\n",
                                              k, CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
         return (EC_TRUE);
     }
@@ -11414,7 +11414,7 @@ EC_BOOL cmp4_content_ms_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
         CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_out_rsp_status_filter: "
-                                             "[cngx] multi range => response status = %ld [after]\n",
+                                             "[cngx] multi range => response status = %u [after]\n",
                                              CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
         return (EC_TRUE);
     }
@@ -11422,7 +11422,7 @@ EC_BOOL cmp4_content_ms_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
     CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_OK;
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_ms_header_out_rsp_status_filter: "
-                                         "response status = %ld [after]\n",
+                                         "response status = %u [after]\n",
                                          CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
 
     return (EC_TRUE);
@@ -12543,7 +12543,7 @@ EC_BOOL cmp4_content_preload_parse_header(const UINT32 cmp4_md_id, const CBYTES 
     {
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_preload_parse_header: "
                                              "header '\n%.*s\n' => \n",
-                                             CBYTES_LEN(header_cbytes),
+                                             (uint32_t)CBYTES_LEN(header_cbytes),
                                              (char *)CBYTES_BUF(header_cbytes));
 
         chttp_rsp_print_plain(LOGSTDOUT, CMP4_MD_CHTTP_RSP(cmp4_md));
@@ -12694,7 +12694,7 @@ EC_BOOL cmp4_content_preload_header_out_rsp_status_filter(const UINT32 cmp4_md_i
 
             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_preload_header_out_rsp_status_filter: "
-                                                 "[cngx] found 404 => response status = %ld [after]\n",
+                                                 "[cngx] found 404 => response status = %u [after]\n",
                                                  CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
             return (EC_TRUE);
         }
@@ -12705,7 +12705,7 @@ EC_BOOL cmp4_content_preload_header_out_rsp_status_filter(const UINT32 cmp4_md_i
         {
             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_preload_header_out_rsp_status_filter: "
-                                                 "[cngx] found 301/302 and '%s' => response status = %ld [after]\n",
+                                                 "[cngx] found 301/302 and '%s' => response status = %u [after]\n",
                                                  k,
                                                  CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
             return (EC_TRUE);
@@ -12716,7 +12716,7 @@ EC_BOOL cmp4_content_preload_header_out_rsp_status_filter(const UINT32 cmp4_md_i
     {
         CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_OK;
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_preload_header_out_rsp_status_filter: "
-                                             "[cngx] no range => response status = %ld [after]\n",
+                                             "[cngx] no range => response status = %u [after]\n",
                                              CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
         return (EC_TRUE);
     }
@@ -12727,7 +12727,7 @@ EC_BOOL cmp4_content_preload_header_out_rsp_status_filter(const UINT32 cmp4_md_i
         CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_preload_header_out_rsp_status_filter: "
-                                             "'Content-Range' exist => response status = %ld [after]\n",
+                                             "'Content-Range' exist => response status = %u [after]\n",
                                              CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
         return (EC_TRUE);
     }
@@ -12737,7 +12737,7 @@ EC_BOOL cmp4_content_preload_header_out_rsp_status_filter(const UINT32 cmp4_md_i
         CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_preload_header_out_rsp_status_filter: "
-                                             "[cngx] multi range => response status = %ld [after]\n",
+                                             "[cngx] multi range => response status = %u [after]\n",
                                              CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
         return (EC_TRUE);
     }
@@ -12745,7 +12745,7 @@ EC_BOOL cmp4_content_preload_header_out_rsp_status_filter(const UINT32 cmp4_md_i
     CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_OK;
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_preload_header_out_rsp_status_filter: "
-                                         "response status = %ld\n",
+                                         "response status = %u\n",
                                          CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
 
     return (EC_TRUE);
@@ -13080,7 +13080,7 @@ EC_BOOL cmp4_content_redirect_procedure(const UINT32 cmp4_md_id)
     dbg_log(SEC_0147_CMP4, 5)(LOGSTDOUT, "[DEBUG] cmp4_content_redirect_procedure: redirect ctrl '%s'\n",
                         c_bit_bool_str(CHTTP_STORE_REDIRECT_CTRL(CMP4_MD_CHTTP_STORE(cmp4_md))));
 
-    dbg_log(SEC_0147_CMP4, 5)(LOGSTDOUT, "[DEBUG] cmp4_content_redirect_procedure: redirect max times '%u'\n",
+    dbg_log(SEC_0147_CMP4, 5)(LOGSTDOUT, "[DEBUG] cmp4_content_redirect_procedure: redirect max times '%ld'\n",
                         CHTTP_STORE_REDIRECT_MAX_TIMES(CMP4_MD_CHTTP_STORE(cmp4_md)));
 
     for(redirect_times = 0;
@@ -17232,7 +17232,7 @@ EC_BOOL cmp4_content_cache_parse_header(const UINT32 cmp4_md_id, const CBYTES *h
     {
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_parse_header: "
                                              "header '\n%.*s\n' => \n",
-                                             CBYTES_LEN(header_cbytes),
+                                             (uint32_t)CBYTES_LEN(header_cbytes),
                                              (char *)CBYTES_BUF(header_cbytes));
 
         chttp_rsp_print_plain(LOGSTDOUT, CMP4_MD_CHTTP_RSP(cmp4_md));
@@ -17637,7 +17637,7 @@ EC_BOOL cmp4_content_cache_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
 
             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_rsp_status_filter: "
-                                                 "[cngx] found 404 => response status = %ld [after]\n",
+                                                 "[cngx] found 404 => response status = %u [after]\n",
                                                  CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
             return (EC_TRUE);
         }
@@ -17648,7 +17648,7 @@ EC_BOOL cmp4_content_cache_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
         {
             CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = response_status;
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_rsp_status_filter: "
-                                                 "[cngx] found 301/302 and '%s' => response status = %ld [after]\n",
+                                                 "[cngx] found 301/302 and '%s' => response status = %u [after]\n",
                                                  k,
                                                  CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
             return (EC_TRUE);
@@ -17659,7 +17659,7 @@ EC_BOOL cmp4_content_cache_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
     {
         CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_OK;
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_rsp_status_filter: "
-                                             "[cngx] no range => response status = %ld [after]\n",
+                                             "[cngx] no range => response status = %u [after]\n",
                                              CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
         return (EC_TRUE);
     }
@@ -17670,7 +17670,7 @@ EC_BOOL cmp4_content_cache_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
         CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_rsp_status_filter: "
-                                             "'Content-Range' exist => response status = %ld [after]\n",
+                                             "'Content-Range' exist => response status = %u [after]\n",
                                              CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
         return (EC_TRUE);
     }
@@ -17680,7 +17680,7 @@ EC_BOOL cmp4_content_cache_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
         CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_PARTIAL_CONTENT;
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_rsp_status_filter: "
-                                             "[cngx] multi range => response status = %ld [after]\n",
+                                             "[cngx] multi range => response status = %u [after]\n",
                                              CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
         return (EC_TRUE);
     }
@@ -17688,7 +17688,7 @@ EC_BOOL cmp4_content_cache_header_out_rsp_status_filter(const UINT32 cmp4_md_id)
     CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)) = CHTTP_OK;
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_rsp_status_filter: "
-                                         "response status = %ld\n",
+                                         "response status = %u\n",
                                          CHTTP_RSP_STATUS(CMP4_MD_CHTTP_RSP(cmp4_md)));
 
     return (EC_TRUE);
@@ -17739,19 +17739,19 @@ EC_BOOL cmp4_content_cache_header_out_expires_filter(const UINT32 cmp4_md_id)
     {
         expires = c_parse_http_time((uint8_t *)v, strlen(v));
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_expires_filter: "
-                                             "'%s' => %d\n",
+                                             "'%s' => %ld\n",
                                              v, expires);
         if(expires >= curtime)
         {
             dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_expires_filter: "
-                                                 "expires '%d' >= curtime '%d'\n",
+                                                 "expires '%ld' >= curtime '%ld'\n",
                                                  expires, curtime);
             /*not expired yet*/
             return (EC_TRUE);
         }
 
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_expires_filter: "
-                                             "expires '%d' < curtime '%d' => set cache_expired_flag to true\n",
+                                             "expires '%ld' < curtime '%ld' => set cache_expired_flag to true\n",
                                              expires, curtime);
 
         /*REFRESH_HIT or REFRESH_MISS*/
@@ -17785,7 +17785,7 @@ EC_BOOL cmp4_content_cache_header_out_expires_filter(const UINT32 cmp4_md_id)
     if(0 == expires)
     {
         dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_expires_filter: "
-                                             "expires = %d => set cache_expired_flag to true\n",
+                                             "expires = %ld => set cache_expired_flag to true\n",
                                              expires);
 
         /*REFRESH_HIT or REFRESH_MISS*/
@@ -17816,7 +17816,7 @@ EC_BOOL cmp4_content_cache_header_out_expires_filter(const UINT32 cmp4_md_id)
     }
 
     dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_header_out_expires_filter: "
-                                         "expires = %d\n",
+                                         "expires = %ld\n",
                                          expires);
 
     v = c_http_time(curtime + expires);

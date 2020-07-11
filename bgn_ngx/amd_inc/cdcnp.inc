@@ -437,7 +437,7 @@ typedef struct
 
 typedef struct
 {
-    int              fd;           /* memcache namespace fd */
+    int              ssd_meta_fd;    /* ssd cache namespace fd */
 
     uint32_t         read_only_flag   :1;/*np is read-only if set*/
     uint32_t         dontdump_flag    :1;/*np not flush or dump if set*/
@@ -472,7 +472,7 @@ typedef struct
 #define CDCNP_RDONLY_FLAG(cdcnp)            ((cdcnp)->read_only_flag)
 #define CDCNP_DONTDUMP_FLAG(cdcnp)          ((cdcnp)->dontdump_flag)
 
-#define CDCNP_FD(cdcnp)                     ((cdcnp)->fd)
+#define CDCNP_SSD_META_FD(cdcnp)            ((cdcnp)->ssd_meta_fd)
 #define CDCNP_SATA_DISK_SIZE(cdcnp)         ((cdcnp)->sata_disk_size)
 #define CDCNP_S_OFFSET(cdcnp)               ((cdcnp)->s_offset)
 #define CDCNP_E_OFFSET(cdcnp)               ((cdcnp)->e_offset)

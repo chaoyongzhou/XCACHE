@@ -128,10 +128,7 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH);
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFSDN_CAMD_SWITCH);
-    //CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET);
-    //CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE);
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFS_LRU_MODEL_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFS_FIFO_MODEL_SWITCH);
@@ -164,7 +161,8 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CAMD_SATA_DISK_VM_S_OFFSET);
+    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH);
+
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CMC_TRY_RETIRE_MAX_NUM);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CMC_TRY_RECYCLE_MAX_NUM);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CMC_SCAN_RETIRE_MAX_NUM);
@@ -308,10 +306,7 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CXFSDN_CACHE_IN_MEM_SWITCH                 = %s\n" ,  CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg));
 
     sys_log(log, "CXFSDN_CAMD_SWITCH                         = %s\n" ,  CPARACFG_CXFSDN_CAMD_SWITCH_STR(cparacfg));
-    //sys_log(log, "CXFSDN_CAMD_SATA_DISK_SIZE        = %ld\n",  CPARACFG_CXFSDN_CAMD_SATA_DISK_SIZE(cparacfg));
     sys_log(log, "CXFSDN_CAMD_MEM_DISK_SIZE                  = %ld\n",  CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg));
-    sys_log(log, "CXFSDN_CAMD_SSD_DISK_OFFSET                = %ld\n",  CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg));
-    //sys_log(log, "CXFSDN_CAMD_SSD_DISK_SIZE         = %ld\n",  CPARACFG_CXFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
 
     sys_log(log, "CXFS_LRU_MODEL_SWITCH                      = %s\n",   CPARACFG_CXFS_LRU_MODEL_SWITCH_STR(cparacfg));
     sys_log(log, "CXFS_FIFO_MODEL_SWITCH                     = %s\n",   CPARACFG_CXFS_FIFO_MODEL_SWITCH_STR(cparacfg));
@@ -319,7 +314,6 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CXFS_CAMD_OVERHEAD_SWITCH                  = %s\n",   CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH_STR(cparacfg));
     sys_log(log, "CXFS_CAMD_DISCARD_RATIO                    = %ld\n",  CPARACFG_CXFS_CAMD_DISCARD_RATIO(cparacfg));
 
-    sys_log(log, "CAMD_SATA_DISK_VM_S_OFFSET                 = %ld\n" ,  CPARACFG_CAMD_SATA_DISK_VM_S_OFFSET(cparacfg));
     sys_log(log, "CMON_CONHASH_SWITCH                        = %s\n" ,  CPARACFG_CMON_CONHASH_SWITCH_STR(cparacfg));
     sys_log(log, "CMON_CONHASH_REPLICAS                      = %u\n" ,  CPARACFG_CMON_CONHASH_REPLICAS(cparacfg));
     sys_log(log, "CMON_MAGLEV_SWITCH                         = %s\n" ,  CPARACFG_CMON_MAGLEV_SWITCH_STR(cparacfg));
@@ -339,6 +333,8 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
 
     sys_log(log, "CAMD_SSD_UPGRADE_MEM_SWITCH                = %s\n"  ,  CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH_STR(cparacfg));
     sys_log(log, "CAMD_SATA_UPGRADE_MEM_SWITCH               = %s\n"  ,  CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH_STR(cparacfg));
+
+    sys_log(log, "CAMD_CHECK_PAGE_USED_SWITCH                = %s\n"  ,  CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH_STR(cparacfg));
 
     sys_log(log, "CMC_TRY_RETIRE_MAX_NUM_NUM                 = %ld\n" , CPARACFG_CMC_TRY_RETIRE_MAX_NUM(cparacfg));
     sys_log(log, "CMC_TRY_RECYCLE_MAX_NUM                    = %ld\n" , CPARACFG_CMC_TRY_RECYCLE_MAX_NUM(cparacfg));
@@ -445,8 +441,6 @@ void cparacfg_json(json_object *obj, const CPARACFG *cparacfg)
 
     json_object_add_kv(obj,      "CXFSDN_CAMD_SWITCH"         ,  CPARACFG_CXFSDN_CAMD_SWITCH_STR(cparacfg));
     json_object_add_k_int64(obj, "CXFSDN_CAMD_MEM_DISK_SIZE"  ,  CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg));
-    json_object_add_k_int64(obj, "CXFSDN_CAMD_SSD_DISK_OFFSET",  CPARACFG_CXFSDN_CAMD_SSD_DISK_OFFSET(cparacfg));
-    json_object_add_k_int64(obj, "CAMD_SATA_DISK_VM_S_OFFSET" ,  CPARACFG_CAMD_SATA_DISK_VM_S_OFFSET(cparacfg));
 
     json_object_add_kv(obj,      "CXFS_LRU_MODEL_SWITCH"      , CPARACFG_CXFS_LRU_MODEL_SWITCH_STR(cparacfg));
     json_object_add_kv(obj,      "CXFS_FIFO_MODEL_SWITCH"     , CPARACFG_CXFS_FIFO_MODEL_SWITCH_STR(cparacfg));
@@ -472,6 +466,8 @@ void cparacfg_json(json_object *obj, const CPARACFG *cparacfg)
 
     json_object_add_kv(obj, "CAMD_SSD_UPGRADE_MEM_SWITCH"  ,  CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH_STR(cparacfg));
     json_object_add_kv(obj, "CAMD_SATA_UPGRADE_MEM_SWITCH" ,  CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH_STR(cparacfg));
+
+    json_object_add_kv(obj, "CAMD_CHECK_PAGE_USED_SWITCH"  ,  CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH_STR(cparacfg));
 
     json_object_add_k_int64(obj, "CMC_TRY_RETIRE_MAX_NUM_NUM", CPARACFG_CMC_TRY_RETIRE_MAX_NUM(cparacfg));
     json_object_add_k_int64(obj, "CMC_TRY_RECYCLE_MAX_NUM"   , CPARACFG_CMC_TRY_RECYCLE_MAX_NUM(cparacfg));

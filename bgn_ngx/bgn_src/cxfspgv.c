@@ -1204,6 +1204,20 @@ EC_BOOL cxfspgv_release_space(CXFSPGV *cxfspgv, const uint16_t disk_no, const ui
     return cxfspgv_free_space(cxfspgv, disk_no, block_no, page_no, size);
 }
 
+EC_BOOL cxfspgv_check_space_used(const CXFSPGV *cxfspgv, const uint16_t disk_no, const uint16_t block_no, const uint16_t page_no)
+{
+    CXFSPGD    *cxfspgd;
+
+    cxfspgd = CXFSPGV_DISK_NODE(cxfspgv, disk_no);
+    if(NULL_PTR == cxfspgd)
+    {
+        dbg_log(SEC_0203_CXFSPGV, 0)(LOGSTDERR, "error:cxfspgv_check_space_used: no disk %u\n", disk_no);
+        return (EC_FALSE);
+    }
+
+    return cxfspgd_check_space_used(cxfspgd, block_no, page_no);
+}
+
 EC_BOOL cxfspgv_is_full(const CXFSPGV *cxfspgv)
 {
     if(CXFSPGV_PAGE_USED_NUM(cxfspgv) == CXFSPGV_PAGE_MAX_NUM(cxfspgv))

@@ -4937,7 +4937,7 @@ STATIC_CAST static EC_BOOL __chttps_request_header_file_read(const CHTTP_REQ *ch
     if(EC_FALSE == ccache_parse_http_header(&cbytes, chttp_rsp))
     {
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:__chttps_request_header_file_read: "
-                                              "parse header failed\n");
+                                               "parse header failed\n");
 
         cbytes_clean(&cbytes);
         return (EC_FALSE);
@@ -4946,9 +4946,9 @@ STATIC_CAST static EC_BOOL __chttps_request_header_file_read(const CHTTP_REQ *ch
     if(do_log(SEC_0157_CHTTPS, 9))
     {
         dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] __chttps_request_header_file_read: "
-                                              "header '\n%.*s\n' => \n",
-                                              CBYTES_LEN(&cbytes),
-                                              (char *)CBYTES_BUF(&cbytes));
+                                               "header '\n%.*s\n' => \n",
+                                               (uint32_t)CBYTES_LEN(&cbytes),
+                                               (char *)CBYTES_BUF(&cbytes));
 
         chttp_rsp_print_plain(LOGSTDOUT, chttp_rsp);
     }
@@ -5060,7 +5060,7 @@ STATIC_CAST static EC_BOOL __chttps_request_header_file_wait(const CHTTP_REQ *ch
     if(EC_FALSE == ccache_parse_http_header(&content_cbytes, chttp_rsp))
     {
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:__chttps_request_header_file_wait: "
-                                              "parse header failed\n");
+                                               "parse header failed\n");
 
         cbytes_clean(&content_cbytes);
         return (EC_FALSE);
@@ -5069,9 +5069,9 @@ STATIC_CAST static EC_BOOL __chttps_request_header_file_wait(const CHTTP_REQ *ch
     if(do_log(SEC_0157_CHTTPS, 9))
     {
         dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] __chttps_request_header_file_wait: "
-                                              "header '\n%.*s\n' => \n",
-                                              CBYTES_LEN(&content_cbytes),
-                                              (char *)CBYTES_BUF(&content_cbytes));
+                                               "header '\n%.*s\n' => \n",
+                                               (uint32_t)CBYTES_LEN(&content_cbytes),
+                                               (char *)CBYTES_BUF(&content_cbytes));
 
         chttp_rsp_print_plain(LOGSTDOUT, chttp_rsp);
     }

@@ -790,6 +790,15 @@ EC_BOOL cxfspgd_release_space(CXFSPGD *cxfspgd, const uint16_t block_no, const u
     return cxfspgd_free_space(cxfspgd, block_no, page_no, size);
 }
 
+EC_BOOL cxfspgd_check_space_used(const CXFSPGD *cxfspgd, const uint16_t block_no, const uint16_t page_no)
+{
+    CXFSPGB    *cxfspgb;
+
+    cxfspgb = CXFSPGD_BLOCK_NODE(cxfspgd, block_no);
+
+    return cxfspgb_check_page_used(cxfspgb, CXFSPGB_MODEL_NUM - 1, page_no);
+}
+
 EC_BOOL cxfspgd_is_full(const CXFSPGD *cxfspgd)
 {
     if(CXFSPGD_PAGE_USED_NUM(cxfspgd) == CXFSPGD_PAGE_MAX_NUM(cxfspgd))

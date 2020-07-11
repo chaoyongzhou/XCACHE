@@ -44,6 +44,8 @@ extern "C"{
 
 #define CDC_PROCESS_EVENT_ONCE_NUM                     (64)
 
+#define CDC_TAIL_SIZE_MIN                              (1 << 30)    /*1GB*/
+
 #if 0
 #define CDC_TRY_RETIRE_MAX_NUM                         (8)
 #define CDC_TRY_RECYCLE_MAX_NUM                        (128)
@@ -103,14 +105,27 @@ typedef struct
 
 typedef struct
 {
-    int                      ssd_fd;
-    int                      sata_fd;
+    int                      ssd_meta_fd;
+    int                      ssd_disk_fd;
+    int                      sata_disk_fd;
+    int                      rsvd01;
 
     UINT32                   sata_disk_size;
 
-    UINT32                   s_offset;
-    UINT32                   e_offset;
-    UINT32                   c_offset; /*temporary*/
+    UINT32                   ssd_vdisk_num;
+    UINT32                   ssd_vnode_num;
+    UINT32                   ssd_block_num;
+
+    /*meta zone offset info: BEG -------------------------------------------------*/
+    /*meta zone format: bad bitmap | np | dn*/
+    UINT32                   meta_s_offset;             /*meta zone*/
+    UINT32                   meta_e_offset;             /*meta zone*/
+    UINT32                   meta_c_offset;             /*temporary*/
+    UINT32                   meta_z_offset;             /*meta np + dn zone*/
+    /*meta zone offset info: END -------------------------------------------------*/
+
+    UINT32                   data_s_offset;
+    UINT32                   data_e_offset;
 
     UINT32                   key_max_num;
     UINT32                   locked_page_num;
@@ -143,19 +158,30 @@ typedef struct
     uint32_t                 read_only_flag   :1;/*cdc is read-only if set*/
     uint32_t                 restart_flag     :1;/*cdc is restarting if set*/
     uint32_t                 dontdump_flag    :1;/*cdc not flush or dump if set*/
-    uint32_t                 rsvd01           :26;
-    uint16_t                 rsvd02;
+    uint32_t                 rsvd02           :26;
+    uint16_t                 rsvd03;
     uint16_t                 cur_disk_no;     /*for cdc fifo model*/
 
     CDC_STAT                 stat;
 }CDC_MD;
 
-#define CDC_MD_SSD_FD(cdc_md)                         ((cdc_md)->ssd_fd)
-#define CDC_MD_SATA_FD(cdc_md)                        ((cdc_md)->sata_fd)
+#define CDC_MD_SSD_META_FD(cdc_md)                    ((cdc_md)->ssd_meta_fd)
+#define CDC_MD_SSD_DISK_FD(cdc_md)                    ((cdc_md)->ssd_disk_fd)
+#define CDC_MD_SATA_DISK_FD(cdc_md)                   ((cdc_md)->sata_disk_fd)
 #define CDC_MD_SATA_DISK_SIZE(cdc_md)                 ((cdc_md)->sata_disk_size)
-#define CDC_MD_S_OFFSET(cdc_md)                       ((cdc_md)->s_offset)
-#define CDC_MD_E_OFFSET(cdc_md)                       ((cdc_md)->e_offset)
-#define CDC_MD_C_OFFSET(cdc_md)                       ((cdc_md)->c_offset)
+
+#define CDC_MD_SSD_VDISK_NUM(cdc_md)                  ((cdc_md)->ssd_vdisk_num)
+#define CDC_MD_SSD_VNODE_NUM(cdc_md)                  ((cdc_md)->ssd_vnode_num)
+#define CDC_MD_SSD_BLOCK_NUM(cdc_md)                  ((cdc_md)->ssd_block_num)
+
+#define CDC_MD_META_S_OFFSET(cdc_md)                  ((cdc_md)->meta_s_offset)
+#define CDC_MD_META_E_OFFSET(cdc_md)                  ((cdc_md)->meta_e_offset)
+#define CDC_MD_META_C_OFFSET(cdc_md)                  ((cdc_md)->meta_c_offset)
+#define CDC_MD_META_Z_OFFSET(cdc_md)                  ((cdc_md)->meta_z_offset)
+
+#define CDC_MD_DATA_S_OFFSET(cdc_md)                  ((cdc_md)->data_s_offset)
+#define CDC_MD_DATA_E_OFFSET(cdc_md)                  ((cdc_md)->data_e_offset)
+
 #define CDC_MD_KEY_MAX_NUM(cdc_md)                    ((cdc_md)->key_max_num)
 #define CDC_MD_LOCKED_PAGE_NUM(cdc_md)                ((cdc_md)->locked_page_num)
 #define CDC_MD_DN(cdc_md)                             ((cdc_md)->cdcdn)
@@ -389,8 +415,10 @@ EC_BOOL cdc_stat_clean(CDC_STAT  *cdc_stat);
 * start CDC module
 *
 **/
-CDC_MD *cdc_start(const int ssd_fd, const UINT32 ssd_offset, const UINT32 ssd_disk_size/*in byte*/,
-                    const int sata_fd, const UINT32 sata_disk_size/*in byte*/);
+CDC_MD *cdc_start(const int ssd_meta_fd,
+                    const int ssd_disk_fd, const UINT32 ssd_offset, const UINT32 ssd_disk_size/*in byte*/,
+                    const int sata_disk_fd, const UINT32 sata_disk_size/*in byte*/,
+                    const UINT32 ssd_bad_bitmap_size /*in byte*/);
 
 /**
 *
@@ -412,6 +440,13 @@ EC_BOOL cdc_erase(CDC_MD *cdc_md);
 *
 **/
 EC_BOOL cdc_clean(CDC_MD *cdc_md);
+
+/**
+*
+* compute CDC meta offset when both meta and data in ssd
+*
+**/
+EC_BOOL cdc_compute_meta_offset(CDC_MD *cdc_md, UINT32 *offset);
 
 /**
 *
@@ -594,14 +629,19 @@ EC_BOOL cdc_flush_np(CDC_MD *cdc_md);
 *  create data node
 *
 **/
-EC_BOOL cdc_create_dn(CDC_MD *cdc_md, UINT32 *s_offset, const UINT32 e_offset);
+EC_BOOL cdc_create_dn(CDC_MD *cdc_md, UINT32 *meta_s_offset, const UINT32 meta_e_offset,
+                          const UINT32 data_s_offset, const UINT32 data_e_offset,
+                          const uint16_t disk_num, const UINT32 node_num, const UINT32 block_num);
 
 /**
 *
 *  create data node in shared memory
 *
 **/
-EC_BOOL cdc_create_dn_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node, UINT32 *s_offset, const UINT32 e_offset);
+EC_BOOL cdc_create_dn_shm(CDC_MD *cdc_md, CMMAP_NODE *cmmap_node,
+                                UINT32 *meta_s_offset, const UINT32 meta_e_offset,
+                                const UINT32 data_s_offset, const UINT32 data_e_offset,
+                                const uint16_t disk_num, const UINT32 node_num, const UINT32 block_num);
 
 /**
 *
