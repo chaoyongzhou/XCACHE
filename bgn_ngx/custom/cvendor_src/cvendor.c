@@ -372,6 +372,8 @@ EC_BOOL cvendor_set_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, const
     CVENDOR_MD_NGX_RC(cvendor_md)  = rc;
     CVENDOR_MD_NGX_LOC(cvendor_md) = location;
 
+    cngx_disable_keepalive(r);
+
     dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_set_ngx_rc: "
                                             "set rc %ld\n",
                                             rc);
@@ -432,6 +434,42 @@ EC_BOOL cvendor_override_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, 
 
     CVENDOR_MD_NGX_RC(cvendor_md)  = rc;
     CVENDOR_MD_NGX_LOC(cvendor_md) = location;
+
+    return (EC_TRUE);
+}
+
+/*only for failure!*/
+EC_BOOL cvendor_handover_ngx_rc(const UINT32 cvendor_md_id, const UINT32 location)
+{
+    CVENDOR_MD                  *cvendor_md;
+
+#if ( SWITCH_ON == CVENDOR_DEBUG_SWITCH )
+    if ( CVENDOR_MD_ID_CHECK_INVALID(cvendor_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cvendor_handover_ngx_rc: cvendor module #0x%lx not started.\n",
+                cvendor_md_id);
+        dbg_exit(MD_CVENDOR, cvendor_md_id);
+    }
+#endif/*CVENDOR_DEBUG_SWITCH*/
+
+    cvendor_md = CVENDOR_MD_GET(cvendor_md_id);
+
+    if(NULL_PTR != CVENDOR_MD_CHTTP_RSP(cvendor_md))
+    {
+        CHTTP_RSP                   *chttp_rsp;
+
+        chttp_rsp = CVENDOR_MD_CHTTP_RSP(cvendor_md);
+
+        if(CHTTP_STATUS_NONE != CHTTP_RSP_STATUS(chttp_rsp))
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_handover_ngx_rc: "
+                                                    "set rc to rsp status %u\n",
+                                                    CHTTP_RSP_STATUS(chttp_rsp));
+
+            cvendor_set_ngx_rc(cvendor_md_id, CHTTP_RSP_STATUS(chttp_rsp), location);
+        }
+    }
 
     return (EC_TRUE);
 }
@@ -9862,6 +9900,7 @@ EC_BOOL cvendor_content_orig_send_response(const UINT32 cvendor_md_id)
             dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_send_response: "
                                                     "header_out filter failed\n");
 
+            cvendor_handover_ngx_rc(cvendor_md_id, LOC_CVENDOR_0001);
             return (EC_FALSE);
         }
 

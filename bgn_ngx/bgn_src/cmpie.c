@@ -2522,21 +2522,146 @@ UINT32 cmpi_decode_cbytes(const UINT32 comm, const UINT8 *in_buff, const UINT32 
 
     if(NULL_PTR == CBYTES_BUF(cbytes))
     {
-        //dbg_log(SEC_0035_CMPIE, 1)(LOGSTDOUT, "warn:cmpi_decode_cbytes: len %ld but buff is null\n", len);
-        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(len, LOC_CMPIE_0013);
+        CBYTES_BUF(cbytes) = (UINT8 *)safe_malloc(len, LOC_CMPIE_0013);
+        if(NULL_PTR == CBYTES_BUF(cbytes))
+        {
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cbytes: "
+                                                  "no memory, len %ld\n",
+                                                  len);
+            exit( 3 );
+        }
+
         CBYTES_LEN(cbytes) = len;
     }
     else
     {
         if(CBYTES_LEN(cbytes) < len)
         {
-            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cbytes: buff room is %ld bytes, no enough memory to accept %ld bytes\n", CBYTES_LEN(cbytes), len);
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cbytes: "
+                                                  "buff room is %ld bytes, "
+                                                  "no enough memory to accept %ld bytes\n",
+                                                  CBYTES_LEN(cbytes), len);
             return ((UINT32)-1);
         }
         CBYTES_LEN(cbytes) = len;
     }
 
     cmpi_unpack(in_buff, in_buff_max_len, position, CBYTES_BUF(cbytes), len, CMPI_UCHAR, comm);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cbytes_ext(const UINT32 comm, const CBYTES *cbytes_ext, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == out_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cbytes_ext: out_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cbytes_ext: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    if(NULL_PTR == cbytes_ext)
+    {
+        cmpi_encode_uint32(comm, 0, out_buff, out_buff_max_len, position);
+        return ((UINT32)0);
+    }
+
+    cmpi_encode_uint8_array(comm, CBYTES_BUF(cbytes_ext), CBYTES_LEN(cbytes_ext), out_buff, out_buff_max_len, position);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_cbytes_ext_size(const UINT32 comm, const CBYTES *cbytes_ext, UINT32 *size)
+{
+    if(NULL_PTR == cbytes_ext)
+    {
+        cmpi_encode_uint32_size(comm, 0, size);
+        return ((UINT32)0);
+    }
+
+    cmpi_encode_uint8_array_size(comm, NULL_PTR, CBYTES_LEN(cbytes_ext), size);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_cbytes_ext(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CBYTES *cbytes_ext)
+{
+    UINT32 len;
+
+#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
+    if ( NULL_PTR == in_buff )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cbytes_ext: in_buff is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == position )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cbytes_ext: position is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+    if ( NULL_PTR == cbytes_ext )
+    {
+        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cbytes_ext: cbytes_ext is null.\n");
+        dbg_exit(MD_TBD, 0);
+    }
+#endif /* ENCODE_DEBUG_SWITCH */
+
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &len);
+    if(0 == len)
+    {
+        CBYTES_LEN(cbytes_ext) = len;
+        /*nothing to do*/
+        return ((UINT32)0);
+    }
+
+    if(NULL_PTR == CBYTES_BUF(cbytes_ext))
+    {
+#if (SWITCH_ON == NGX_BGN_SWITCH)
+        CBYTES_BUF(cbytes_ext) = (UINT8 *)safe_malloc(len, LOC_CMPIE_0013);
+        if(NULL_PTR == CBYTES_BUF(cbytes_ext))
+        {
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cbytes_ext: "
+                                                  "no memory, len %ld\n",
+                                                  len);
+            exit( 3 );
+        }
+
+        CBYTES_LEN(cbytes_ext) = len;
+#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
+
+#if (SWITCH_OFF == NGX_BGN_SWITCH)
+        void    *data;
+
+        data = c_memalign_new(len, CMCPGB_PAGE_SIZE_NBYTES);
+        if(NULL_PTR == data)
+        {
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cbytes_ext: "
+                                                  "no memory, len %ld, align %u\n",
+                                                  len, CMCPGB_PAGE_SIZE_NBYTES);
+            exit( 3 );
+        }
+
+        cbytes_mount(cbytes_ext, len, (UINT8 *)data, BIT_TRUE);
+#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
+
+    }
+    else
+    {
+        if(CBYTES_LEN(cbytes_ext) < len)
+        {
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cbytes_ext: "
+                                                  "buff room is %ld bytes, "
+                                                  "no enough memory to accept %ld bytes\n",
+                                                  CBYTES_LEN(cbytes_ext), len);
+            return ((UINT32)-1);
+        }
+        CBYTES_LEN(cbytes_ext) = len;
+    }
+
+    cmpi_unpack(in_buff, in_buff_max_len, position, CBYTES_BUF(cbytes_ext), len, CMPI_UCHAR, comm);
     return ((UINT32)0);
 }
 

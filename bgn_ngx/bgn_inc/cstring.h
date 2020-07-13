@@ -22,9 +22,6 @@ extern "C"{
 #define CSTRING_OVEC_COUNT   (3 * CSTRING_OVEC_SEGS)
 
 
-#define CSTRING_STR(cstring)  ((cstring)->str)
-#define CSTRING_LEN(cstring)  ((cstring)->len)
-
 CSTRING *cstring_new(const UINT8 *str, const UINT32 location);
 CSTRING *cstring_new_0();
 

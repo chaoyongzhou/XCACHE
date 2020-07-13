@@ -16,9 +16,6 @@ extern "C"{
 #include "log.h"
 
 
-#define CBYTES_LEN(cbytes)        ((cbytes)->len)
-#define CBYTES_BUF(cbytes)        ((cbytes)->buf)
-
 #define CBYTES_DEFAULT_LEN        (128)
 
 CBYTES *cbytes_new(const UINT32 len);
@@ -49,9 +46,11 @@ CBYTES *cbytes_dup(const CBYTES *cbytes_src);
 
 EC_BOOL cbytes_clone(const CBYTES *cbytes_src, CBYTES *cbytes_des);
 
-EC_BOOL cbytes_mount(CBYTES *cbytes, const UINT32 len, const UINT8 *buff);
+EC_BOOL cbytes_set_aligned(CBYTES *cbytes);
 
-EC_BOOL cbytes_umount(CBYTES *cbytes, UINT32 *len, UINT8 ** buff);
+EC_BOOL cbytes_mount(CBYTES *cbytes, const UINT32 len, const UINT8 *buff, const UINT32 aligned);
+
+EC_BOOL cbytes_umount(CBYTES *cbytes, UINT32 *len, UINT8 ** buff, UINT32 *aligned);
 
 EC_BOOL cbytes_umount_only(CBYTES *cbytes);
 

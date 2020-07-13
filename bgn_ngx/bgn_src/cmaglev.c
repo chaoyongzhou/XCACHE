@@ -674,7 +674,7 @@ EC_BOOL cmaglev_hash(CMAGLEV *cmaglev)
     if (0 == up_num)
     {
         dbg_log(SEC_0174_CMAGLEV, 0)(LOGSTDOUT, "[error] cmaglev_hash: "
-                                     "all nodes are down");
+                                                "all nodes are down\n");
         return (EC_FALSE);
     }
 

@@ -4802,7 +4802,7 @@ EC_BOOL super_download(const UINT32 super_md_id, const CSTRING *fname, CBYTES *c
 
     c_file_close(fd);
 
-    cbytes_mount(cbytes, fsize, fbuf);
+    cbytes_mount(cbytes, fsize, fbuf, BIT_FALSE);
 
     return (EC_TRUE);
 }
@@ -7680,7 +7680,7 @@ EC_BOOL super_http_store(const UINT32 super_md_id, const UINT32 tcid, const UINT
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
     chttp_req_add_header(&chttp_req, (const char *)"Content-Length", (char *)c_word_to_str(CBYTES_LEN(cbytes)));
 
-    cbytes_mount(CHTTP_REQ_BODY(&chttp_req), CBYTES_LEN(cbytes), CBYTES_BUF(cbytes));/*zero copy*/
+    cbytes_mount(CHTTP_REQ_BODY(&chttp_req), CBYTES_LEN(cbytes), CBYTES_BUF(cbytes), CBYTES_ALIGNED(cbytes));/*zero copy*/
 
     if(EC_FALSE == chttp_request(&chttp_req, NULL_PTR, &chttp_rsp, NULL_PTR))/*block*/
     {
@@ -7689,7 +7689,7 @@ EC_BOOL super_http_store(const UINT32 super_md_id, const UINT32 tcid, const UINT
                         CBYTES_LEN(cbytes),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
-        cbytes_umount(CHTTP_REQ_BODY(&chttp_req), NULL_PTR, NULL_PTR);
+        cbytes_umount(CHTTP_REQ_BODY(&chttp_req), NULL_PTR, NULL_PTR, NULL_PTR);
 
         chttp_req_clean(&chttp_req);
         chttp_rsp_clean(&chttp_rsp);
@@ -7709,7 +7709,7 @@ EC_BOOL super_http_store(const UINT32 super_md_id, const UINT32 tcid, const UINT
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port,
                     CHTTP_RSP_STATUS(&chttp_rsp));
 
-    cbytes_umount(CHTTP_REQ_BODY(&chttp_req), NULL_PTR, NULL_PTR);
+    cbytes_umount(CHTTP_REQ_BODY(&chttp_req), NULL_PTR, NULL_PTR, NULL_PTR);
 
     chttp_req_clean(&chttp_req);
     chttp_rsp_clean(&chttp_rsp);
@@ -8285,9 +8285,10 @@ STATIC_CAST static EC_BOOL __super_wait_data_e(const UINT32 super_md_id, const U
         /*mount data to reduce data copy*/
         UINT8    *data;
         UINT32    len;
+        UINT32    aligned;
 
-        cbytes_umount(CHTTP_RSP_BODY(&chttp_rsp), &len, &data);
-        cbytes_mount(cbytes, len, data);
+        cbytes_umount(CHTTP_RSP_BODY(&chttp_rsp), &len, &data, &aligned);
+        cbytes_mount(cbytes, len, data, aligned);
 
         chttp_req_clean(&chttp_req);
         chttp_rsp_clean(&chttp_rsp);
@@ -8309,6 +8310,7 @@ STATIC_CAST static EC_BOOL __super_read_data_e(const UINT32 super_md_id, const U
 
     UINT8       *data;
     UINT32       len;
+    UINT32       aligned;
 
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
@@ -8370,8 +8372,8 @@ STATIC_CAST static EC_BOOL __super_read_data_e(const UINT32 super_md_id, const U
                     (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
-    cbytes_umount(CHTTP_RSP_BODY(&chttp_rsp), &len, &data);
-    cbytes_mount(cbytes, len, data);
+    cbytes_umount(CHTTP_RSP_BODY(&chttp_rsp), &len, &data, &aligned);
+    cbytes_mount(cbytes, len, data, aligned);
 
     chttp_req_clean(&chttp_req);
     chttp_rsp_clean(&chttp_rsp);
@@ -8555,9 +8557,10 @@ STATIC_CAST static EC_BOOL __super_wait_data(const UINT32 super_md_id, const UIN
         /*mount data to reduce data copy*/
         UINT8    *data;
         UINT32    len;
+        UINT32    aligned;
 
-        cbytes_umount(CHTTP_RSP_BODY(&chttp_rsp), &len, &data);
-        cbytes_mount(cbytes, len, data);
+        cbytes_umount(CHTTP_RSP_BODY(&chttp_rsp), &len, &data, &aligned);
+        cbytes_mount(cbytes, len, data, aligned);
 
         chttp_req_clean(&chttp_req);
         chttp_rsp_clean(&chttp_rsp);
@@ -8579,6 +8582,7 @@ STATIC_CAST static EC_BOOL __super_read_data(const UINT32 super_md_id, const UIN
 
     UINT8       *data;
     UINT32       len;
+    UINT32       aligned;
 
     chttp_req_init(&chttp_req);
     chttp_rsp_init(&chttp_rsp);
@@ -8638,8 +8642,8 @@ STATIC_CAST static EC_BOOL __super_read_data(const UINT32 super_md_id, const UIN
                     (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
-    cbytes_umount(CHTTP_RSP_BODY(&chttp_rsp), &len, &data);
-    cbytes_mount(cbytes, len, data);
+    cbytes_umount(CHTTP_RSP_BODY(&chttp_rsp), &len, &data, &aligned);
+    cbytes_mount(cbytes, len, data, aligned);
 
     chttp_req_clean(&chttp_req);
     chttp_rsp_clean(&chttp_rsp);

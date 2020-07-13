@@ -44,9 +44,10 @@ EC_BOOL cbuffer_init(CBUFFER *cbuffer, const uint32_t size)
 
     if(0 == size)
     {
-        CBUFFER_DATA(cbuffer) = NULL_PTR;
-        CBUFFER_SIZE(cbuffer) = 0;
-        CBUFFER_USED(cbuffer) = 0;
+        CBUFFER_DATA(cbuffer)       = NULL_PTR;
+        CBUFFER_SIZE(cbuffer)       = 0;
+        CBUFFER_USED(cbuffer)       = 0;
+        CBUFFER_ALIGNED(cbuffer)    = BIT_FALSE;
 
         return (EC_TRUE);
     }
@@ -58,24 +59,36 @@ EC_BOOL cbuffer_init(CBUFFER *cbuffer, const uint32_t size)
         return (EC_FALSE);
     }
 
-    CBUFFER_DATA(cbuffer) = data;
-    CBUFFER_SIZE(cbuffer) = size;
-    CBUFFER_USED(cbuffer) = 0;
+    CBUFFER_DATA(cbuffer)       = data;
+    CBUFFER_SIZE(cbuffer)       = size;
+    CBUFFER_USED(cbuffer)       = 0;
+    CBUFFER_ALIGNED(cbuffer)    = BIT_FALSE;
 
     return (EC_TRUE);
 }
 
 EC_BOOL cbuffer_clean(CBUFFER *cbuffer)
 {
-    if(NULL_PTR != CBUFFER_DATA(cbuffer))
+    if(NULL_PTR != cbuffer)
     {
-        safe_free(CBUFFER_DATA(cbuffer), LOC_CBUFFER_0004);
-        CBUFFER_DATA(cbuffer) = NULL_PTR;
+        if(NULL_PTR != CBUFFER_DATA(cbuffer))
+        {
+            if(BIT_FALSE == CBUFFER_ALIGNED(cbuffer))
+            {
+                safe_free(CBUFFER_DATA(cbuffer), LOC_CBUFFER_0004);
+                CBUFFER_DATA(cbuffer) = NULL_PTR;
+            }
+            else
+            {
+                c_memalign_free(CBUFFER_DATA(cbuffer));
+                CBUFFER_DATA(cbuffer) = NULL_PTR;
+            }
+        }
+
+        CBUFFER_SIZE(cbuffer)       = 0;
+        CBUFFER_USED(cbuffer)       = 0;
+        CBUFFER_ALIGNED(cbuffer)    = BIT_FALSE;
     }
-
-    CBUFFER_SIZE(cbuffer) = 0;
-    CBUFFER_USED(cbuffer) = 0;
-
     return (EC_TRUE);
 }
 
@@ -102,12 +115,22 @@ EC_BOOL cbuffer_set(CBUFFER *cbuffer, const uint8_t *data, const uint32_t len)
 
     if(NULL_PTR != CBUFFER_DATA(cbuffer))
     {
-        safe_free(CBUFFER_DATA(cbuffer), LOC_CBUFFER_0006);
-        CBUFFER_DATA(cbuffer) = NULL_PTR;
+        if(BIT_FALSE == CBUFFER_ALIGNED(cbuffer))
+        {
+            safe_free(CBUFFER_DATA(cbuffer), LOC_CBUFFER_0004);
+            CBUFFER_DATA(cbuffer) = NULL_PTR;
+        }
+        else
+        {
+            c_memalign_free(CBUFFER_DATA(cbuffer));
+            CBUFFER_DATA(cbuffer) = NULL_PTR;
+        }
 
         CBUFFER_USED(cbuffer) = 0;
         CBUFFER_SIZE(cbuffer) = 0;
     }
+
+    CBUFFER_ALIGNED(cbuffer) = BIT_FALSE;/*reset*/
 
     des = safe_malloc(len, LOC_CBUFFER_0007);
     if(NULL_PTR == des)
@@ -158,8 +181,10 @@ EC_BOOL cbuffer_expand(CBUFFER *cbuffer, const UINT32 location)
 
     if(data)
     {
-        CBUFFER_DATA(cbuffer) = data;
-        CBUFFER_SIZE(cbuffer) = size;
+        CBUFFER_DATA(cbuffer)       = data;
+        CBUFFER_SIZE(cbuffer)       = size;
+
+        CBUFFER_ALIGNED(cbuffer)    = BIT_FALSE;
 
         return (EC_TRUE);
     }
@@ -194,8 +219,10 @@ EC_BOOL cbuffer_expand_to(CBUFFER *cbuffer, const uint32_t size)
 
     if(data)
     {
-        CBUFFER_DATA(cbuffer) = data;
-        CBUFFER_SIZE(cbuffer) = len;
+        CBUFFER_DATA(cbuffer)       = data;
+        CBUFFER_SIZE(cbuffer)       = len;
+
+        CBUFFER_ALIGNED(cbuffer)    = BIT_FALSE;
 
         return (EC_TRUE);
     }
@@ -283,7 +310,6 @@ EC_BOOL cbuffer_cmp_bytes(const CBUFFER *cbuffer, const uint32_t offset, const u
 {
     if(offset + len > CBUFFER_USED(cbuffer))
     {
-        //dbg_log(SEC_0126_CBUFFER, 0)(LOGSTDOUT, "error:cbuffer_cmp_bytes: offset %d + len %d > used %d\n", offset, len, CBUFFER_USED(cbuffer));
         return (EC_FALSE);
     }
 
@@ -297,12 +323,10 @@ EC_BOOL cbuffer_cmp_bytes(const CBUFFER *cbuffer, const uint32_t offset, const u
 uint32_t cbuffer_append(CBUFFER *cbuffer, const uint8_t *data, const uint32_t size)
 {
     uint32_t len;
-    //dbg_log(SEC_0126_CBUFFER, 9)(LOGSTDOUT, "[DEBUG] cbuffer_append: beg: data size %d, cbuffer size %d, used %d\n", size, CBUFFER_SIZE(cbuffer), CBUFFER_USED(cbuffer));
+
     len = DMIN(CBUFFER_ROOM(cbuffer), size);
     BCOPY(data, CBUFFER_DATA(cbuffer) + CBUFFER_USED(cbuffer), len);
     CBUFFER_USED(cbuffer) += len;
-
-    //dbg_log(SEC_0126_CBUFFER, 9)(LOGSTDOUT, "[DEBUG] cbuffer_append: end: data size %d, cbuffer size %d, used %d\n", size, CBUFFER_SIZE(cbuffer), CBUFFER_USED(cbuffer));
 
     return (len);
 }
@@ -336,6 +360,25 @@ uint32_t cbuffer_append_vformat(CBUFFER *cbuffer, const char *format, va_list ap
     CBUFFER_USED(cbuffer) += len;
 
     return (len);
+}
+
+EC_BOOL cbuffer_dump(CBUFFER *cbuffer, UINT8 **data, UINT32 *len, UINT32 *aligned)
+{
+    if(NULL_PTR != cbuffer && NULL_PTR != CBUFFER_DATA(cbuffer))
+    {
+        (*data)     = CBUFFER_DATA(cbuffer);
+        (*len)      = CBUFFER_USED(cbuffer);
+        (*aligned)  = CBUFFER_ALIGNED(cbuffer);
+
+        CBUFFER_DATA(cbuffer)       = NULL_PTR;
+        CBUFFER_SIZE(cbuffer)       = 0;
+        CBUFFER_USED(cbuffer)       = 0;
+        CBUFFER_ALIGNED(cbuffer)    = BIT_FALSE;
+
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
 }
 
 uint32_t cbuffer_export(CBUFFER *cbuffer, uint8_t *data, const uint32_t max_size)
@@ -377,25 +420,58 @@ EC_BOOL cbuffer_is_empty(const CBUFFER *cbuffer)
     return (EC_FALSE);
 }
 
-EC_BOOL cbuffer_mount(CBUFFER *cbuffer, const uint8_t *data, const uint32_t len)
+EC_BOOL cbuffer_is_full(const CBUFFER *cbuffer)
+{
+    if(CBUFFER_SIZE(cbuffer) == CBUFFER_USED(cbuffer))
+    {
+        return (EC_TRUE);
+    }
+    return (EC_FALSE);
+}
+
+EC_BOOL cbuffer_set_aligned(CBUFFER *cbuffer)
+{
+    CBUFFER_ALIGNED(cbuffer) = BIT_TRUE;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cbuffer_mount(CBUFFER *cbuffer, const uint8_t *data, const uint32_t len, const uint32_t aligned)
 {
     if(NULL_PTR != CBUFFER_DATA(cbuffer))
     {
-        safe_free(CBUFFER_DATA(cbuffer), LOC_CBUFFER_0010);
-        CBUFFER_DATA(cbuffer) = NULL_PTR;
+        if(BIT_FALSE == CBUFFER_ALIGNED(cbuffer))
+        {
+            safe_free(CBUFFER_DATA(cbuffer), LOC_CBUFFER_0004);
+            CBUFFER_DATA(cbuffer) = NULL_PTR;
+        }
+        else
+        {
+            c_memalign_free(CBUFFER_DATA(cbuffer));
+            CBUFFER_DATA(cbuffer) = NULL_PTR;
+        }
 
         CBUFFER_USED(cbuffer) = 0;
         CBUFFER_SIZE(cbuffer) = 0;
     }
 
-    CBUFFER_DATA(cbuffer) = (uint8_t *)data;
-    CBUFFER_USED(cbuffer) = len;
-    CBUFFER_SIZE(cbuffer) = len;
+    CBUFFER_DATA(cbuffer)       = (uint8_t *)data;
+    CBUFFER_USED(cbuffer)       = len;
+    CBUFFER_SIZE(cbuffer)       = len;
+
+    if(BIT_TRUE == aligned)
+    {
+        CBUFFER_ALIGNED(cbuffer)    = BIT_TRUE;
+    }
+    else
+    {
+        CBUFFER_ALIGNED(cbuffer)    = BIT_FALSE;
+    }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cbuffer_umount(CBUFFER *cbuffer, uint8_t **data, uint32_t *len)
+EC_BOOL cbuffer_umount(CBUFFER *cbuffer, uint8_t **data, uint32_t *len, uint32_t *aligned)
 {
     if(NULL_PTR != data)
     {
@@ -407,9 +483,15 @@ EC_BOOL cbuffer_umount(CBUFFER *cbuffer, uint8_t **data, uint32_t *len)
         (*len) = CBUFFER_USED(cbuffer);
     }
 
-    CBUFFER_DATA(cbuffer) = NULL_PTR;
-    CBUFFER_USED(cbuffer) = 0;
-    CBUFFER_SIZE(cbuffer) = 0;
+    if(NULL_PTR != aligned)
+    {
+        (*aligned) = CBUFFER_ALIGNED(cbuffer);
+    }
+
+    CBUFFER_DATA(cbuffer)       = NULL_PTR;
+    CBUFFER_USED(cbuffer)       = 0;
+    CBUFFER_SIZE(cbuffer)       = 0;
+    CBUFFER_ALIGNED(cbuffer)    = BIT_FALSE;
 
     return (EC_TRUE);
 }

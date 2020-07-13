@@ -130,6 +130,8 @@ typedef COROUTINE_POOL   CROUTINE_POOL;
 /*un-determinted parameter list*/
 #define croutine_pool_load                                       coroutine_pool_load
 
+#define croutine_pool_load_preempt                               coroutine_pool_load_preempt
+
 #define croutine_pool_unload                                     coroutine_pool_unload
 
 #define croutine_pool_size(__croutine_pool)                      coroutine_pool_size(__croutine_pool)
@@ -252,6 +254,8 @@ typedef CTHREAD_POOL   CROUTINE_POOL;
 
 /*un-determinted parameter list*/
 #define croutine_pool_load                                       cthreadp_load
+
+#define croutine_pool_load_preempt                               cthreadp_load
 
 #define croutine_pool_unload                                     cthreadp_unload
 

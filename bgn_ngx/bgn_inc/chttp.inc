@@ -43,8 +43,10 @@ extern "C"{
 #define CHTTP_PASER_PAUSED        ((int) 1)
 #define CHTTP_PASER_RESUME        ((int) 0)
 
-#define CHTTP_IN_BUF_SIZE         ((uint32_t)(256 * 1024))
-#define CHTTP_OUT_BUF_SIZE        ((uint32_t)(  8 * 1024))
+#define CHTTP_HEADER_MAX_SIZE     ((uint32_t)(4 * 1024))     /*4KB*/
+#define CHTTP_BODY_MAX_SIZE       ((uint32_t)(1024 * 1024))  /*1MB*/
+
+#define CHTTP_TIMEOUT_NSEC        (300) /*5 min*/
 
 #define CHTTP_STAT_STR_MAX_SIZE   (128)
 #define CHTTP_DESC_STR_MAX_SIZE   (384)
@@ -427,7 +429,7 @@ typedef struct _CHTTP_NODE
     uint32_t                  is_error:1;
     uint32_t                  counter :4;     /*reference counting*/
     uint32_t                  rsvd01  :27;
-    uint32_t                  rsvd02;
+    uint32_t                  parsed;        /*used by http parser to mark the parsed position in single cbuffer*/
 
     void                     *csrv;          /*mount point*/
 
@@ -489,7 +491,8 @@ typedef struct _CHTTP_NODE
     uint32_t                  recv_complete    :1;/*flag*/
     uint32_t                  send_complete    :1;/*flag*/
     uint32_t                  coroutine_restore:1;/*flag*/
-    uint32_t                  header_parsed_len:16;
+    uint32_t                  is_chunked       :1;/*http rsp is chunked*/
+    uint32_t                  header_parsed_len:15;
 
     /*sendfile mode*/
     int                       block_fd;
@@ -517,6 +520,8 @@ typedef struct _CHTTP_NODE
 
 #define CHTTP_NODE_IS_ERROR(chttp_node)                    ((chttp_node)->is_error)
 #define CHTTP_NODE_COUNTER(chttp_node)                     ((chttp_node)->counter)
+
+#define CHTTP_NODE_PARSED(chttp_node)                      ((chttp_node)->parsed)
 
 #define CHTTP_NODE_CSRV(chttp_node)                        ((chttp_node)->csrv)
 
@@ -567,6 +572,7 @@ typedef struct _CHTTP_NODE
 #define CHTTP_NODE_RECV_COMPLETE(chttp_node)               ((chttp_node)->recv_complete)
 #define CHTTP_NODE_SEND_COMPLETE(chttp_node)               ((chttp_node)->send_complete)
 #define CHTTP_NODE_COROUTINE_RESTORE(chttp_node)           ((chttp_node)->coroutine_restore)
+#define CHTTP_NODE_IS_CHUNKED(chttp_node)                  ((chttp_node)->is_chunked)
 
 #define CHTTP_NODE_STORE_PATH(chttp_node)                  ((chttp_node)->store_path)
 

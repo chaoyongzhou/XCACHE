@@ -409,7 +409,7 @@ EC_BOOL cping_check(const UINT32 srv_ipaddr, const UINT32 srv_port, UINT32 *elap
     CPING_NODE_SRV_IPADDR(cping_node) = srv_ipaddr;
     CPING_NODE_SRV_PORT(cping_node)   = srv_port;
 
-    croutine_cond = croutine_cond_new(0/*never timeout*/, LOC_CPING_0008);
+    croutine_cond = croutine_cond_new(CPING_TIMEOUT_NSEC * 1000, LOC_CPING_0008);
     if(NULL_PTR == croutine_cond)
     {
         dbg_log(SEC_0063_CPING, 0)(LOGSTDOUT, "error:cping_check: new croutine_cond failed\n");

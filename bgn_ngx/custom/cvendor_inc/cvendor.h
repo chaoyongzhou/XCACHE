@@ -186,6 +186,9 @@ EC_BOOL cvendor_set_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, const
 /*only for failure!*/
 EC_BOOL cvendor_override_ngx_rc(const UINT32 cvendor_md_id, const ngx_int_t rc, const UINT32 location);
 
+/*only for failure!*/
+EC_BOOL cvendor_handover_ngx_rc(const UINT32 cvendor_md_id, const UINT32 location);
+
 EC_BOOL cvendor_get_cache_seg_uri(const UINT32 cvendor_md_id, const UINT32 seg_no, CSTRING *cache_uri);
 
 EC_BOOL cvendor_get_cache_seg(const UINT32 cvendor_md_id, const UINT32 seg_no, CBYTES *seg_cbytes);

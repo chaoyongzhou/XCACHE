@@ -19,6 +19,8 @@ extern "C"{
 
 #include "csocket.inc"
 
+#define CPING_TIMEOUT_NSEC        (10) /*10 sec*/
+
 typedef struct
 {
     UINT32                    srv_ipaddr;

@@ -25,11 +25,15 @@ typedef struct
 
     uint32_t size;
     uint32_t used;
+
+    uint32_t aligned;
+    uint32_t rsvd;
 }CBUFFER;
 
-#define CBUFFER_DATA(cbuffer) ((cbuffer)->data)
-#define CBUFFER_SIZE(cbuffer) ((cbuffer)->size)
-#define CBUFFER_USED(cbuffer) ((cbuffer)->used)
+#define CBUFFER_DATA(cbuffer)       ((cbuffer)->data)
+#define CBUFFER_SIZE(cbuffer)       ((cbuffer)->size)
+#define CBUFFER_USED(cbuffer)       ((cbuffer)->used)
+#define CBUFFER_ALIGNED(cbuffer)    ((cbuffer)->aligned)
 
 #define CBUFFER_ROOM(cbuffer)   (CBUFFER_SIZE(cbuffer) - CBUFFER_USED(cbuffer))
 
@@ -67,6 +71,8 @@ uint32_t cbuffer_append_format(CBUFFER *cbuffer, const char *format, ...);
 
 uint32_t cbuffer_append_vformat(CBUFFER *cbuffer, const char *format, va_list ap);
 
+EC_BOOL cbuffer_dump(CBUFFER *cbuffer, UINT8 **data, UINT32 *len, UINT32 *aligned);
+
 uint32_t cbuffer_export(CBUFFER *cbuffer, uint8_t *data, const uint32_t max_size);
 
 uint8_t *cbuffer_data(CBUFFER *cbuffer);
@@ -79,9 +85,13 @@ uint32_t cbuffer_room(const CBUFFER *cbuffer);
 
 EC_BOOL cbuffer_is_empty(const CBUFFER *cbuffer);
 
-EC_BOOL cbuffer_mount(CBUFFER *cbuffer, const uint8_t *data, const uint32_t len);
+EC_BOOL cbuffer_is_full(const CBUFFER *cbuffer);
 
-EC_BOOL cbuffer_umount(CBUFFER *cbuffer, uint8_t **data, uint32_t *len);
+EC_BOOL cbuffer_set_aligned(CBUFFER *cbuffer);
+
+EC_BOOL cbuffer_mount(CBUFFER *cbuffer, const uint8_t *data, const uint32_t len, const uint32_t aligned);
+
+EC_BOOL cbuffer_umount(CBUFFER *cbuffer, uint8_t **data, uint32_t *len, uint32_t *aligned);
 
 void cbuffer_print_chars(LOG *log, const CBUFFER *cbuffer);
 

@@ -312,11 +312,19 @@ typedef struct
     UINT8 *str;
 }CSTRING;
 
+#define CSTRING_STR(cstring)  ((cstring)->str)
+#define CSTRING_LEN(cstring)  ((cstring)->len)
+
 typedef struct
 {
+    UINT32 aligned;
     UINT32 len;
     UINT8 *buf;
 }CBYTES;
+
+#define CBYTES_ALIGNED(cbytes)    ((cbytes)->aligned)
+#define CBYTES_LEN(cbytes)        ((cbytes)->len)
+#define CBYTES_BUF(cbytes)        ((cbytes)->buf)
 
 /*WARNING: depend on actual hardware & software environment*/
 typedef struct

@@ -9279,7 +9279,7 @@ EC_BOOL api_cmd_ui_csession_set_by_name(CMD_PARA_VEC * param)
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
-        cbytes_mount(&val_cbytes, cstring_get_len(val), cstring_get_str(val));
+        cbytes_mount(&val_cbytes, cstring_get_len(val), cstring_get_str(val), BIT_FALSE);
         task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_csession_set_by_name, CMPI_ERROR_MODI, session_name, key, &val_cbytes);
     }
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
@@ -9375,7 +9375,7 @@ EC_BOOL api_cmd_ui_csession_set_by_id(CMD_PARA_VEC * param)
         cvector_push_no_lock(report_vec, (void *)ret);
         (*ret) = EC_FALSE;
 
-        cbytes_mount(&val_cbytes, cstring_get_len(val), cstring_get_str(val));
+        cbytes_mount(&val_cbytes, cstring_get_len(val), cstring_get_str(val), BIT_FALSE);
         task_pos_inc(task_mgr, remote_mod_node_idx, ret, FI_csession_set_by_id, CMPI_ERROR_MODI, session_id, key, &val_cbytes);
     }
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
@@ -10280,7 +10280,7 @@ EC_BOOL api_cmd_ui_exec_upload(CMD_PARA_VEC * param)
 
         alloc_static_mem(MM_UINT32, &ret, LOC_API_0349);
         cbytes = cbytes_new(0);
-        cbytes_mount(cbytes, cstring_get_len(fcontent), cstring_get_str(fcontent));
+        cbytes_mount(cbytes, cstring_get_len(fcontent), cstring_get_str(fcontent), BIT_FALSE);
 
         cvector_push(report_vec, (void *)ret);
         cvector_push(fcontent_vec, (void *)cbytes);
@@ -10317,7 +10317,7 @@ EC_BOOL api_cmd_ui_exec_upload(CMD_PARA_VEC * param)
 
         free_static_mem(MM_UINT32, ret, LOC_API_0350);
 
-        cbytes_umount(cbytes, NULL_PTR, NULL_PTR);
+        cbytes_umount(cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
         cbytes_free(cbytes);
     }
 
@@ -10376,7 +10376,7 @@ EC_BOOL api_cmd_ui_exec_upload_all(CMD_PARA_VEC * param)
 
         alloc_static_mem(MM_UINT32, &ret, LOC_API_0355);
         cbytes = cbytes_new(0);
-        cbytes_mount(cbytes, cstring_get_len(fcontent), cstring_get_str(fcontent));
+        cbytes_mount(cbytes, cstring_get_len(fcontent), cstring_get_str(fcontent), BIT_FALSE);
 
         cvector_push(report_vec, (void *)ret);
         cvector_push(fcontent_vec, (void *)cbytes);
@@ -10413,7 +10413,7 @@ EC_BOOL api_cmd_ui_exec_upload_all(CMD_PARA_VEC * param)
 
         free_static_mem(MM_UINT32, ret, LOC_API_0356);
 
-        cbytes_umount(cbytes, NULL_PTR, NULL_PTR);
+        cbytes_umount(cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
         cbytes_free(cbytes);
     }
 
@@ -11695,7 +11695,7 @@ EC_BOOL api_cmd_ui_crfs_write(CMD_PARA_VEC * param)
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
 
-    cbytes_mount(cbytes,cstring_get_len(file_content), cstring_get_str(file_content));
+    cbytes_mount(cbytes,cstring_get_len(file_content), cstring_get_str(file_content), BIT_FALSE);
 
     MOD_NODE_TCID(&mod_node) = crfsnp_tcid;
     MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
@@ -11718,7 +11718,7 @@ EC_BOOL api_cmd_ui_crfs_write(CMD_PARA_VEC * param)
         sys_log(des_log, "[FAIL] file name %s\n", (char *)cstring_get_str(file_name));
     }
 
-    cbytes_umount(cbytes, NULL_PTR, NULL_PTR);
+    cbytes_umount(cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
     cbytes_free(cbytes);
 
     return (EC_TRUE);
@@ -14718,7 +14718,7 @@ EC_BOOL api_cmd_ui_cxfs_write(CMD_PARA_VEC * param)
     ret = EC_FALSE;
     cbytes = cbytes_new(0);
 
-    cbytes_mount(cbytes,cstring_get_len(file_content), cstring_get_str(file_content));
+    cbytes_mount(cbytes,cstring_get_len(file_content), cstring_get_str(file_content), BIT_FALSE);
 
     MOD_NODE_TCID(&mod_node) = cxfs_tcid;
     MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
@@ -14741,7 +14741,7 @@ EC_BOOL api_cmd_ui_cxfs_write(CMD_PARA_VEC * param)
         sys_log(des_log, "[FAIL] file name %s\n", (char *)cstring_get_str(file_name));
     }
 
-    cbytes_umount(cbytes, NULL_PTR, NULL_PTR);
+    cbytes_umount(cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
     cbytes_free(cbytes);
 
     return (EC_TRUE);

@@ -105,6 +105,8 @@ static const CHTTP_KV g_chttp_status_kvs[] = {
     { 504, "Gateway Timeout" },
     { 505, "HTTP Version Not Supported" },
     { 507, "Insufficient Storage" }, /* WebDAV */
+    { 600, "Invalid Header" }, /* Squid header parsing error */
+    { 601, "Header Too Large" },
 
     { -1, NULL }
 };
@@ -292,6 +294,8 @@ STATIC_CAST static int __chttp_on_message_begin(http_parser_t* http_parser)
         return (-1);/*error*/
     }
 
+    ASSERT(0 == CHTTP_NODE_PARSED(chttp_node));
+
     ccallback_node_run(CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CB(chttp_node));
 
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_message_begin: chttp_node %p, ***MESSAGE BEGIN***\n",
@@ -407,7 +411,6 @@ STATIC_CAST static int __chttp_on_message_complete(http_parser_t* http_parser)
                         CHTTP_STORE_SEG_ID(chttp_store), CHTTP_STORE_CACHE_CTRL(chttp_store));
     }
 
-    //chttp_node_parse_on_message_complete(chttp_node);
     ccallback_node_run(CHTTP_NODE_PARSE_ON_MESSAGE_COMPLETE_CB(chttp_node));
 
     /*
@@ -531,7 +534,6 @@ STATIC_CAST static int __chttp_on_header_field(http_parser_t* http_parser, const
                         chttp_node, CSTRKV_KEY_STR(cstrkv));
     }
 
-    //dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_header_field: chttp_node %p, Header field: '%.*s'\n", chttp_node, (uint32_t)length, at);
     return (0);
 }
 
@@ -559,25 +561,22 @@ STATIC_CAST static int __chttp_on_header_value(http_parser_t* http_parser, const
     }
 
     cstrkv_set_val_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length, LOC_CHTTP_0005);
-    //dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_header_value: chttp_node %p, Header value: '%.*s'\n", chttp_node, (uint32_t)length, at);
 
     if(s_header_almost_done == http_parser->state)
     {
         cstrkv_mgr_add_kv(CHTTP_NODE_HEADER_IN_KVS(chttp_node), cstrkv);
         CHTTP_NODE_PARSING_HEADER_KV(chttp_node) = NULL_PTR;
 
-        rlog(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_header_value: chttp_node %p, Header value: '%s' => OK\n",
-                        chttp_node, CSTRKV_VAL_STR(cstrkv));
+        /*chunked*/
+        if(0 == STRCASECMP((char *)CSTRKV_KEY_STR(cstrkv), (const char *)"Transfer-Encoding")
+        && 0 == STRCASECMP((char *)CSTRKV_VAL_STR(cstrkv), (const char *)"chunked"))
+        {
+            CHTTP_NODE_IS_CHUNKED(chttp_node) = BIT_TRUE;
+        }
 
         dbg_log(SEC_0149_CHTTP, 6)(LOGSTDOUT, "[DEBUG] __chttp_on_header_value: chttp_node %p, Header '%s': '%s' => OK\n",
                         chttp_node, CSTRKV_KEY_STR(cstrkv), CSTRKV_VAL_STR(cstrkv));
     }
-#if 0
-    if(do_log(SEC_0149_CHTTP, 9))
-    {
-        cstrkv_print(LOGSTDOUT, cstrkv);
-    }
-#endif
 
     return (0);
 }
@@ -586,6 +585,7 @@ STATIC_CAST static int __chttp_on_body(http_parser_t* http_parser, const char* a
 {
     CHTTP_NODE    *chttp_node;
     CHUNK_MGR     *recv_chunks;
+    uint32_t       chunk_size;
 
     chttp_node = (CHTTP_NODE *)http_parser->data;
     if(NULL_PTR == chttp_node)
@@ -595,8 +595,9 @@ STATIC_CAST static int __chttp_on_body(http_parser_t* http_parser, const char* a
     }
 
     recv_chunks = CHTTP_NODE_RECV_BUF(chttp_node);
+    chunk_size  = chttp_node_chunk_size(chttp_node);
 
-    if(EC_FALSE == chunk_mgr_append_data_min(recv_chunks, (uint8_t *)at, length, CHTTP_IN_BUF_SIZE))
+    if(EC_FALSE == chunk_mgr_append_data_min(recv_chunks, (uint8_t *)at, length, chunk_size))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_on_body: append %ld bytes failed\n", length);
         return (-1);
@@ -606,7 +607,6 @@ STATIC_CAST static int __chttp_on_body(http_parser_t* http_parser, const char* a
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_on_body: chttp_node %p, len %ld => body parsed %"PRId64"\n",
                     chttp_node, length, CHTTP_NODE_BODY_PARSED_LEN(chttp_node));
 
-    //chttp_node_parse_on_body(chttp_node, CHTTP_NODE_CSOCKET_CNODE(chttp_node));
     ccallback_node_run(CHTTP_NODE_PARSE_ON_BODY_CB(chttp_node));
 
     /*
@@ -1776,6 +1776,8 @@ EC_BOOL chttp_node_init(CHTTP_NODE *chttp_node, const UINT32 type)
         CHTTP_NODE_IS_ERROR(chttp_node)      = BIT_FALSE;
         CHTTP_NODE_COUNTER(chttp_node)       = 1; /*one owner*/
 
+        CHTTP_NODE_PARSED(chttp_node)        = 0;
+
         CHTTP_NODE_CSRV(chttp_node)          = NULL_PTR;
 
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = NULL_PTR;
@@ -1827,8 +1829,9 @@ EC_BOOL chttp_node_init(CHTTP_NODE *chttp_node, const UINT32 type)
         CHTTP_NODE_RECV_COMPLETE(chttp_node)     = BIT_FALSE;
         CHTTP_NODE_SEND_COMPLETE(chttp_node)     = BIT_FALSE;
         CHTTP_NODE_COROUTINE_RESTORE(chttp_node) = BIT_FALSE;
+        CHTTP_NODE_IS_CHUNKED(chttp_node)        = BIT_FALSE;
 
-        cbuffer_init(CHTTP_NODE_IN_BUF(chttp_node), CHTTP_IN_BUF_SIZE);
+        cbuffer_init(CHTTP_NODE_IN_BUF(chttp_node), CHTTP_HEADER_MAX_SIZE);
         chunk_mgr_init(CHTTP_NODE_SEND_BUF(chttp_node));
         chunk_mgr_init(CHTTP_NODE_RECV_BUF(chttp_node));
 
@@ -1864,6 +1867,8 @@ EC_BOOL chttp_node_clean(CHTTP_NODE *chttp_node)
 
         CHTTP_NODE_IS_ERROR(chttp_node)      = BIT_FALSE;
         CHTTP_NODE_COUNTER(chttp_node)       = 0;
+
+        CHTTP_NODE_PARSED(chttp_node)        = 0;
 
         CHTTP_NODE_CSRV(chttp_node)          = NULL_PTR;
 
@@ -1931,6 +1936,7 @@ EC_BOOL chttp_node_clean(CHTTP_NODE *chttp_node)
         CHTTP_NODE_RECV_COMPLETE(chttp_node)     = BIT_FALSE;
         CHTTP_NODE_SEND_COMPLETE(chttp_node)     = BIT_FALSE;
         CHTTP_NODE_COROUTINE_RESTORE(chttp_node) = BIT_FALSE;
+        CHTTP_NODE_IS_CHUNKED(chttp_node)        = BIT_FALSE;
 
         if(NULL_PTR != CHTTP_NODE_STORE_PATH(chttp_node))
         {
@@ -2023,6 +2029,25 @@ EC_BOOL chttp_node_free(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
+uint32_t chttp_node_chunk_size(CHTTP_NODE *chttp_node)
+{
+    if(NULL_PTR != chttp_node
+    && NULL_PTR != CHTTP_NODE_STORE(chttp_node)
+    && 0 < CHTTP_STORE_SEG_SIZE(CHTTP_NODE_STORE(chttp_node)))
+    {
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_chunk_size: "
+                          "seg size %u\n",
+                          CHTTP_STORE_SEG_SIZE(CHTTP_NODE_STORE(chttp_node)));
+
+        return CHTTP_STORE_SEG_SIZE(CHTTP_NODE_STORE(chttp_node));
+    }
+
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_chunk_size: "
+                                          "body max size %u\n",
+                                          CHTTP_BODY_MAX_SIZE);
+    return (CHTTP_BODY_MAX_SIZE);
+}
+
 EC_BOOL chttp_node_has_error(CHTTP_NODE *chttp_node)
 {
     if(BIT_FALSE == CHTTP_NODE_IS_ERROR(chttp_node))
@@ -2069,7 +2094,9 @@ EC_BOOL chttp_node_clear(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_clear: try to clear chttp_node %p unused data\n", chttp_node);
 
-        //cbuffer_clean(CHTTP_NODE_IN_BUF(chttp_node));
+        /*reset*/
+        CHTTP_NODE_PARSED(chttp_node)  = 0;
+
         chunk_mgr_clean(CHTTP_NODE_SEND_BUF(chttp_node));
         chunk_mgr_clean(CHTTP_NODE_RECV_BUF(chttp_node));
 
@@ -2099,6 +2126,7 @@ EC_BOOL chttp_node_clear(CHTTP_NODE *chttp_node)
         CHTTP_NODE_HEADER_COMPLETE(chttp_node)   = BIT_FALSE;
         CHTTP_NODE_RECV_COMPLETE(chttp_node)     = BIT_FALSE;
         CHTTP_NODE_SEND_COMPLETE(chttp_node)     = BIT_FALSE;
+        CHTTP_NODE_IS_CHUNKED(chttp_node)        = BIT_FALSE;
         //CHTTP_NODE_COROUTINE_RESTORE(chttp_node) = BIT_FALSE;
 
         if(NULL_PTR != CHTTP_NODE_STORE_PATH(chttp_node))
@@ -2230,6 +2258,8 @@ void chttp_node_print(LOG *log, const CHTTP_NODE *chttp_node)
     sys_log(log, "chttp_node_print:is_error: %s\n", c_bit_bool_str(CHTTP_NODE_IS_ERROR(chttp_node)));
     sys_log(log, "chttp_node_print:counter : %u\n", CHTTP_NODE_COUNTER(chttp_node));
 
+    sys_log(log, "chttp_node_print:parsed : %u\n", CHTTP_NODE_PARSED(chttp_node));
+
     sys_log(log, "chttp_node_print:url : \n");
     cbuffer_print_str(log, CHTTP_NODE_URL(chttp_node));
 
@@ -2260,17 +2290,28 @@ void chttp_node_print(LOG *log, const CHTTP_NODE *chttp_node)
 
 EC_BOOL chttp_node_is_chunked(const CHTTP_NODE *chttp_node)
 {
-    char *transfer_encoding;
-
-    transfer_encoding = cstrkv_mgr_get_val_str_ignore_case(CHTTP_NODE_HEADER_IN_KVS(chttp_node), (const char *)"Transfer-Encoding");
-    if(NULL_PTR == transfer_encoding)
+    if(0)
     {
-        return (EC_FALSE);
+        char *transfer_encoding;
+
+        transfer_encoding = cstrkv_mgr_get_val_str_ignore_case(CHTTP_NODE_HEADER_IN_KVS(chttp_node), (const char *)"Transfer-Encoding");
+        if(NULL_PTR == transfer_encoding)
+        {
+            return (EC_FALSE);
+        }
+
+        if(0 != STRCASECMP(transfer_encoding, (const char *)"chunked"))
+        {
+            return (EC_FALSE);
+        }
     }
 
-    if(0 != STRCASECMP(transfer_encoding, (const char *)"chunked"))
+    if(1)
     {
-        return (EC_FALSE);
+        if(BIT_FALSE == CHTTP_NODE_IS_CHUNKED(chttp_node))
+        {
+            return (EC_FALSE);
+        }
     }
 
     return (EC_TRUE);
@@ -3341,6 +3382,12 @@ EC_BOOL chttp_node_recv(CHTTP_NODE *chttp_node)
 
     http_in_buffer = CHTTP_NODE_IN_BUF(chttp_node);
 
+    if(CHTTP_NODE_PARSED(chttp_node) == CBUFFER_USED(http_in_buffer))
+    {
+        cbuffer_reset(http_in_buffer);
+        CHTTP_NODE_PARSED(chttp_node) = 0;
+    }
+
     pos = CBUFFER_USED(http_in_buffer);
     if(EC_FALSE == csocket_cnode_recv(csocket_cnode,
                                 CBUFFER_DATA(http_in_buffer),
@@ -3488,19 +3535,9 @@ EC_BOOL chttp_node_need_send(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL chttp_node_need_parse(CHTTP_NODE *chttp_node)
-{
-    if(EC_FALSE == cbuffer_is_empty(CHTTP_NODE_IN_BUF(chttp_node)))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
 EC_BOOL chttp_node_has_data_in(CHTTP_NODE *chttp_node)
 {
-    if(EC_FALSE == cbuffer_is_empty(CHTTP_NODE_IN_BUF(chttp_node)))
+    if(CHTTP_NODE_PARSED(chttp_node) < CBUFFER_USED(CHTTP_NODE_IN_BUF(chttp_node)))
     {
         return (EC_TRUE);
     }
@@ -3512,11 +3549,13 @@ EC_BOOL chttp_node_recv_export_to_cbytes(CHTTP_NODE *chttp_node, CBYTES *cbytes,
 {
     uint8_t       *data;
     uint32_t       size;
+    uint32_t       aligned;
 
-    if(EC_TRUE == chunk_mgr_umount_data(CHTTP_NODE_RECV_BUF(chttp_node), &data, &size)) /*no data copying but data transfering*/
+    /*no data copying but data transfering*/
+    if(EC_TRUE == chunk_mgr_umount_data(CHTTP_NODE_RECV_BUF(chttp_node), &data, &size, &aligned))
     {
         ASSERT(body_len == size);
-        cbytes_mount(cbytes, size, data);
+        cbytes_mount(cbytes, size, data, aligned);
         return (EC_TRUE);
     }
 
@@ -4180,7 +4219,7 @@ EC_BOOL chttp_parse_uri(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL chttp_parse_post(CHTTP_NODE *chttp_node, const uint32_t parsed_len)
+EC_BOOL chttp_parse_post(CHTTP_NODE *chttp_node, const uint32_t prev_parsed_len, const uint32_t cur_parsed_len)
 {
     http_parser_t            *http_parser;
     CBUFFER                  *http_in_buffer;
@@ -4193,7 +4232,9 @@ EC_BOOL chttp_parse_post(CHTTP_NODE *chttp_node, const uint32_t parsed_len)
 
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_parse_post: chttp_node %p -> csocket_cnode is null\n", chttp_node);
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_parse_post: "
+                        "chttp_node %p -> csocket_cnode is null\n",
+                        chttp_node);
         return (EC_FALSE);
     }
 
@@ -4209,81 +4250,117 @@ EC_BOOL chttp_parse_post(CHTTP_NODE *chttp_node, const uint32_t parsed_len)
 #endif
     if(HPE_OK == HTTP_PARSER_ERRNO(http_parser))
     {
-        if(0 < parsed_len)
+        if(0 < cur_parsed_len)
         {
-            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_post: [HPE_OK] sockfd %d, header parsed %u,  body parsed %"PRId64", in buf %u => shift out %u\n",
-                            CSOCKET_CNODE_SOCKFD(csocket_cnode), CHTTP_NODE_HEADER_PARSED_LEN(chttp_node), CHTTP_NODE_BODY_PARSED_LEN(chttp_node), CBUFFER_USED(http_in_buffer), parsed_len);
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_post: "
+                            "[HPE_OK] sockfd %d, header parsed %u,  body parsed %"PRId64", "
+                            "in buf %u => shift out %u\n",
+                            CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                            CHTTP_NODE_HEADER_PARSED_LEN(chttp_node),
+                            CHTTP_NODE_BODY_PARSED_LEN(chttp_node),
+                            CBUFFER_USED(http_in_buffer) + prev_parsed_len,
+                            cur_parsed_len);
 
-            cbuffer_left_shift_out(http_in_buffer, NULL_PTR, parsed_len);
+            //cbuffer_left_shift_out(http_in_buffer, NULL_PTR, cur_parsed_len);
         }
 
-        if(BIT_TRUE == CHTTP_NODE_HTTP_REQ_IS_HEAD(chttp_node) && s_body_identity <= http_parser->state)
+        if(BIT_TRUE == CHTTP_NODE_HTTP_REQ_IS_HEAD(chttp_node)
+        && s_body_identity <= http_parser->state)
         {
-            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_post: [HPE_OK] sockfd %d, http state %s, parsed_len %u => [HEAD] recv completed\n",
-                    CSOCKET_CNODE_SOCKFD(csocket_cnode), http_state_str(http_parser->state), parsed_len);
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_post: "
+                            "[HPE_OK] sockfd %d, http state %s, cur_parsed_len %u "
+                            "=> [HEAD] recv completed\n",
+                            CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                            http_state_str(http_parser->state),
+                            cur_parsed_len);
 
             CHTTP_NODE_RECV_COMPLETE(chttp_node) = BIT_TRUE;
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_post: [HPE_OK] sockfd %d, http state %s, parsed_len %u\n",
-                CSOCKET_CNODE_SOCKFD(csocket_cnode), http_state_str(http_parser->state), parsed_len);
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_post: "
+                        "[HPE_OK] sockfd %d, http state %s, cur_parsed_len %u\n",
+                        CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                        http_state_str(http_parser->state),
+                        cur_parsed_len);
 
         return (EC_TRUE);
     }
 
     if(HPE_PAUSED == HTTP_PARSER_ERRNO(http_parser))
     {
-        if(0 < parsed_len)
+        if(0 < cur_parsed_len)
         {
-            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_post: [HPE_PAUSED] sockfd %d, header parsed %u,  body parsed %"PRId64", in buf %u => shift out %u\n",
-                            CSOCKET_CNODE_SOCKFD(csocket_cnode), CHTTP_NODE_HEADER_PARSED_LEN(chttp_node), CHTTP_NODE_BODY_PARSED_LEN(chttp_node), CBUFFER_USED(http_in_buffer), parsed_len);
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_post: "
+                            "[HPE_PAUSED] sockfd %d, header parsed %u,  body parsed %"PRId64", "
+                            "in buf %u => shift out %u\n",
+                            CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                            CHTTP_NODE_HEADER_PARSED_LEN(chttp_node),
+                            CHTTP_NODE_BODY_PARSED_LEN(chttp_node),
+                            CBUFFER_USED(http_in_buffer) + prev_parsed_len,
+                            cur_parsed_len);
 
-            cbuffer_left_shift_out(http_in_buffer, NULL_PTR, parsed_len);
+            //cbuffer_left_shift_out(http_in_buffer, NULL_PTR, cur_parsed_len);
         }
 
-        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_post: [HPE_PAUSED] sockfd %d, http state %s, parsed_len %u\n",
-                CSOCKET_CNODE_SOCKFD(csocket_cnode), http_state_str(http_parser->state), parsed_len);
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_post: "
+                        "[HPE_PAUSED] sockfd %d, http state %s, cur_parsed_len %u\n",
+                        CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                        http_state_str(http_parser->state),
+                        cur_parsed_len);
 
         return (EC_TRUE);
     }
 
     if(HPE_CLOSED_CONNECTION == HTTP_PARSER_ERRNO(http_parser))
     {
-        if(0 < parsed_len)
+        if(0 < cur_parsed_len)
         {
-            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_post: [HPE_CLOSED_CONNECTION] sockfd %d, header parsed %u,  body parsed %"PRId64", in buf %u => shift out %u\n",
-                            CSOCKET_CNODE_SOCKFD(csocket_cnode), CHTTP_NODE_HEADER_PARSED_LEN(chttp_node), CHTTP_NODE_BODY_PARSED_LEN(chttp_node), CBUFFER_USED(http_in_buffer), parsed_len);
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_post: "
+                            "[HPE_CLOSED_CONNECTION] sockfd %d, header parsed %u, body parsed %"PRId64", "
+                            "in buf %u => shift out %u\n",
+                            CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                            CHTTP_NODE_HEADER_PARSED_LEN(chttp_node),
+                            CHTTP_NODE_BODY_PARSED_LEN(chttp_node),
+                            CBUFFER_USED(http_in_buffer) + prev_parsed_len,
+                            cur_parsed_len);
 
-            cbuffer_left_shift_out(http_in_buffer, NULL_PTR, parsed_len);
+            //cbuffer_left_shift_out(http_in_buffer, NULL_PTR, cur_parsed_len);
         }
 
-        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_post: [HPE_CLOSED_CONNECTION] sockfd %d, http state %s, parsed_len %u\n",
-                CSOCKET_CNODE_SOCKFD(csocket_cnode), http_state_str(http_parser->state), parsed_len);
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_post: "
+                        "[HPE_CLOSED_CONNECTION] sockfd %d, http state %s, cur_parsed_len %u\n",
+                        CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                        http_state_str(http_parser->state),
+                        cur_parsed_len);
 
         return (EC_TRUE);
     }
 
     if(HPE_INVALID_URL == HTTP_PARSER_ERRNO(http_parser))
     {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT,
-                        "error:chttp_parse_post: [HPE_INVALID_URL] http parser encounter error on sockfd %d where errno = %d, name = %s, description = %s\n[%.*s]\n",
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_parse_post: "
+                        "[HPE_INVALID_URL] http parser encounter error on sockfd %d "
+                        "where errno = %d, name = %s, description = %s\n[%.*s]\n",
                         CSOCKET_CNODE_SOCKFD(csocket_cnode),
                         HTTP_PARSER_ERRNO(http_parser),
                         http_errno_name(HTTP_PARSER_ERRNO(http_parser)),
                         http_errno_description(HTTP_PARSER_ERRNO(http_parser)),
-                        DMIN(CBUFFER_USED(http_in_buffer), 300), (char *)CBUFFER_DATA(http_in_buffer)
+                        DMIN(CBUFFER_USED(http_in_buffer)    - prev_parsed_len, 300),
+                        (char *)CBUFFER_DATA(http_in_buffer) + prev_parsed_len
                         );
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT,
-                        "error:chttp_parse_post: http parser encounter error on sockfd %d where errno = %d, name = %s, description = %s\n[%.*s]\n",
+    dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_parse_post: "
+                        "http parser encounter error on sockfd %d "
+                        "where errno = %d, name = %s, description = %s\n[%.*s]\n",
                         CSOCKET_CNODE_SOCKFD(csocket_cnode),
                         HTTP_PARSER_ERRNO(http_parser),
                         http_errno_name(HTTP_PARSER_ERRNO(http_parser)),
                         http_errno_description(HTTP_PARSER_ERRNO(http_parser)),
-                        DMIN(CBUFFER_USED(http_in_buffer), 300), (char *)CBUFFER_DATA(http_in_buffer)
+                        DMIN(CBUFFER_USED(http_in_buffer)    - prev_parsed_len, 300),
+                        (char *)CBUFFER_DATA(http_in_buffer) + prev_parsed_len
                         );
     return (EC_FALSE);
 }
@@ -4296,7 +4373,8 @@ EC_BOOL chttp_parse(CHTTP_NODE *chttp_node)
 
     CSOCKET_CNODE            *csocket_cnode;
 
-    uint32_t parsed_len;
+    uint32_t prev_parsed_len;
+    uint32_t cur_parsed_len;
 
     http_parser         = CHTTP_NODE_PARSER(chttp_node);
     http_parser_setting = CHTTP_NODE_SETTING(chttp_node);
@@ -4306,22 +4384,31 @@ EC_BOOL chttp_parse(CHTTP_NODE *chttp_node)
 
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_parse: chttp_node %p => csocket_cnode is null\n", chttp_node);
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_parse: "
+                                              "chttp_node %p => csocket_cnode is null\n",
+                                              chttp_node);
         return (EC_FALSE);
     }
 
-    if(0 == CBUFFER_USED(http_in_buffer)
+    if(CHTTP_NODE_PARSED(chttp_node) == CBUFFER_USED(http_in_buffer)
     && s_start_req_or_res <= http_parser->state
     && s_message_done > http_parser->state)
     {
-        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse: sockfd %d, http state %s, used %u  => again\n",
-                    CSOCKET_CNODE_SOCKFD(csocket_cnode), http_state_str(http_parser->state), CBUFFER_USED(http_in_buffer));
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse: "
+                                              "sockfd %d, http state %s, used %u  => again\n",
+                                              CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                                              http_state_str(http_parser->state),
+                                              CBUFFER_USED(http_in_buffer));
         return (EC_AGAIN);
     }
 
-    ASSERT(0 < CBUFFER_USED(http_in_buffer)); /*Nov 15, 2017*/
+    ASSERT(CHTTP_NODE_PARSED(chttp_node) < CBUFFER_USED(http_in_buffer));
 
-    parsed_len = http_parser_execute(http_parser, http_parser_setting, (char *)CBUFFER_DATA(http_in_buffer) , CBUFFER_USED(http_in_buffer));
+    prev_parsed_len = CHTTP_NODE_PARSED(chttp_node);
+
+    cur_parsed_len  = http_parser_execute(http_parser, http_parser_setting,
+                            (char *)(CBUFFER_DATA(http_in_buffer) + prev_parsed_len),
+                            (size_t)(CBUFFER_USED(http_in_buffer) - prev_parsed_len));
 
     if(EC_TRUE == chttp_node_has_error(chttp_node))
     {
@@ -4331,7 +4418,14 @@ EC_BOOL chttp_parse(CHTTP_NODE *chttp_node)
         return (EC_FALSE);
     }
 
-    return chttp_parse_post(chttp_node, parsed_len);
+    if(EC_FALSE == chttp_parse_post(chttp_node, prev_parsed_len, cur_parsed_len))
+    {
+        return (EC_FALSE);
+    }
+
+    CHTTP_NODE_PARSED(chttp_node) += cur_parsed_len;
+
+    return (EC_TRUE);
 }
 
 EC_BOOL chttp_pause_parser(http_parser_t* http_parser)
@@ -4624,14 +4718,14 @@ EC_BOOL chttp_make_response_body(CHTTP_NODE *chttp_node, const uint8_t *data, co
 }
 
 /*make response body without data copying but data transfering*/
-EC_BOOL chttp_make_response_body_ext(CHTTP_NODE *chttp_node, const uint8_t *data, const uint32_t size)
+EC_BOOL chttp_make_response_body_ext(CHTTP_NODE *chttp_node, const uint8_t *data, const uint32_t size, const uint32_t aligned)
 {
     if(NULL_PTR == data || 0 == size)
     {
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == chunk_mgr_mount_data(CHTTP_NODE_SEND_BUF(chttp_node), data, size))
+    if(EC_FALSE == chunk_mgr_mount_data(CHTTP_NODE_SEND_BUF(chttp_node), data, size, aligned))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_make_response_body_ext: mount %d bytes to chunks failed\n", size);
         return (EC_FALSE);
@@ -4899,7 +4993,7 @@ EC_BOOL chttp_srv_accept(CSRV *csrv)
 
         if(EC_FALSE == continue_flag)
         {
-            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_srv_accept: accept No. %ld client terminate where expect %ld clients\n", idx, num);
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_srv_accept: accept No. %ld client where expect %ld clients\n", idx, num);
             break;
         }
     }
@@ -7648,6 +7742,7 @@ EC_BOOL chttp_node_clone_rsp(CHTTP_NODE *chttp_node, CHTTP_RSP *chttp_rsp, CHTTP
 {
     UINT8         *data;
     UINT32         data_len;
+    UINT32         aligned;
 
     /*clone status*/
     CHTTP_RSP_STATUS(chttp_rsp) = (uint32_t)CHTTP_NODE_STATUS_CODE(chttp_node);
@@ -7695,8 +7790,8 @@ EC_BOOL chttp_node_clone_rsp(CHTTP_NODE *chttp_node, CHTTP_RSP *chttp_rsp, CHTTP
         chttp_rsp_print(LOGSTDOUT, chttp_rsp);
     }
 
-    /*clone body*/
-    if(EC_FALSE == chunk_mgr_dump(CHTTP_NODE_RECV_BUF(chttp_node), &data, &data_len))
+    /*handover body*/
+    if(EC_FALSE == chunk_mgr_dump(CHTTP_NODE_RECV_BUF(chttp_node), &data, &data_len, &aligned))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_clone_rsp: dump response body failed\n");
 
@@ -7706,8 +7801,9 @@ EC_BOOL chttp_node_clone_rsp(CHTTP_NODE *chttp_node, CHTTP_RSP *chttp_rsp, CHTTP
         chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
         return (EC_FALSE);
     }
+    chunk_mgr_clean(CHTTP_NODE_RECV_BUF(chttp_node));
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_clone_rsp: dump response body len %ld\n", data_len);
-    cbytes_mount(CHTTP_RSP_BODY(chttp_rsp), data_len, data);
+    cbytes_mount(CHTTP_RSP_BODY(chttp_rsp), data_len, data, aligned);
 
     /*clone stat*/
     chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
@@ -8024,6 +8120,7 @@ EC_BOOL chttp_node_handover_rsp(CHTTP_NODE *chttp_node, CHTTP_RSP *chttp_rsp, CH
 {
     UINT8         *data;
     UINT32         data_len;
+    UINT32         aligned;
 
     /*handover status (clone)*/
     CHTTP_RSP_STATUS(chttp_rsp) = (uint32_t)CHTTP_NODE_STATUS_CODE(chttp_node);
@@ -8091,9 +8188,8 @@ EC_BOOL chttp_node_handover_rsp(CHTTP_NODE *chttp_node, CHTTP_RSP *chttp_rsp, CH
                         (char *)CSTRKV_KEY_STR(cstrkv), (char *)CSTRKV_VAL_STR(cstrkv));
     }
 
-    /*handover body (clone)*/
-    /*dump body*/
-    if(EC_FALSE == chunk_mgr_dump(CHTTP_NODE_RECV_BUF(chttp_node), &data, &data_len))
+    /*handover body*/
+    if(EC_FALSE == chunk_mgr_dump(CHTTP_NODE_RECV_BUF(chttp_node), &data, &data_len, &aligned))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_handover_rsp: dump response body failed\n");
 
@@ -8103,8 +8199,9 @@ EC_BOOL chttp_node_handover_rsp(CHTTP_NODE *chttp_node, CHTTP_RSP *chttp_rsp, CH
         chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
         return (EC_FALSE);
     }
+    chunk_mgr_clean(CHTTP_NODE_RECV_BUF(chttp_node));
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_handover_rsp: dump response body len %ld\n", data_len);
-    cbytes_mount(CHTTP_RSP_BODY(chttp_rsp), data_len, data);
+    cbytes_mount(CHTTP_RSP_BODY(chttp_rsp), data_len, data, aligned);
 
     /*handover stat (clone)*/
     chttp_stat_clone(CHTTP_NODE_STAT(chttp_node), chttp_stat);
@@ -8813,6 +8910,8 @@ EC_BOOL chttp_node_store_body(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, 
     uint32_t       store_size;
     uint32_t       content_len;
 
+    CHUNK         *chunk;
+
     if(CHTTP_STORE_SEG_ID(chttp_store) > CHTTP_STORE_SEG_MAX_ID(chttp_store))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_store_body: seg id %u > seg max id %u => overflow\n",
@@ -8840,15 +8939,36 @@ EC_BOOL chttp_node_store_body(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, 
     cbytes_init(&body_cbytes);
     store_size = DMIN(CHTTP_STORE_SEG_SIZE(chttp_store), max_store_size);
 
-    if(EC_FALSE == cbytes_expand_to(&body_cbytes, store_size))
+    chunk = chunk_mgr_first_chunk(CHTTP_NODE_RECV_BUF(chttp_node));
+    if(NULL_PTR != chunk && chunk_size(chunk) <= store_size)
     {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_store_body: expand body cbytes to store size %u failed\n", store_size);
-        cstring_clean(&path);
-        return (EC_FALSE);
-    }
+        chunk = chunk_mgr_pop_first_chunk(CHTTP_NODE_RECV_BUF(chttp_node));
 
-    chunk_mgr_shift(CHTTP_NODE_RECV_BUF(chttp_node), store_size, CBYTES_BUF(&body_cbytes), &content_len);
-    CBYTES_LEN(&body_cbytes) = content_len;
+        chunk_dump(chunk, &CBYTES_BUF(&body_cbytes), &CBYTES_LEN(&body_cbytes), &CBYTES_ALIGNED(&body_cbytes));
+        chunk_free(chunk);
+
+        content_len = (uint32_t)CBYTES_LEN(&body_cbytes);
+
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_body: path '%.*s', dump %u\n",
+                                              (uint32_t)CSTRING_LEN(&path), CSTRING_STR(&path),
+                                              content_len);
+    }
+    else
+    {
+        if(EC_FALSE == cbytes_expand_to(&body_cbytes, store_size))
+        {
+            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_store_body: expand body cbytes to store size %u failed\n", store_size);
+            cstring_clean(&path);
+            return (EC_FALSE);
+        }
+
+        chunk_mgr_shift(CHTTP_NODE_RECV_BUF(chttp_node), store_size, CBYTES_BUF(&body_cbytes), &content_len);
+        CBYTES_LEN(&body_cbytes) = content_len;
+
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_body: path '%.*s', shift %u\n",
+                                              (uint32_t)CSTRING_LEN(&path), CSTRING_STR(&path),
+                                              content_len);
+    }
 
     rlog(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_store_body: min(%u, %u) => %u, final content len %u\n",
                 CHTTP_STORE_SEG_SIZE(chttp_store), max_store_size, store_size, content_len);
@@ -8883,6 +9003,8 @@ EC_BOOL chttp_node_send_body(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, c
     uint32_t       store_size;
     uint32_t       content_len;
 
+    CHUNK         *chunk;
+
     if(CHTTP_STORE_SEG_ID(chttp_store) > CHTTP_STORE_SEG_MAX_ID(chttp_store))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_send_body: seg id %u > seg max id %u => overflow\n",
@@ -8894,14 +9016,31 @@ EC_BOOL chttp_node_send_body(CHTTP_NODE *chttp_node, CHTTP_STORE *chttp_store, c
     cbytes_init(&body_cbytes);
     store_size = DMIN(CHTTP_STORE_SEG_SIZE(chttp_store), max_store_size);
 
-    if(EC_FALSE == cbytes_expand_to(&body_cbytes, store_size))
+    chunk = chunk_mgr_first_chunk(CHTTP_NODE_RECV_BUF(chttp_node));
+    if(NULL_PTR != chunk && chunk_size(chunk) <= store_size)
     {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_send_body: expand body cbytes to store size %u failed\n", store_size);
-        return (EC_FALSE);
-    }
+        chunk = chunk_mgr_pop_first_chunk(CHTTP_NODE_RECV_BUF(chttp_node));
 
-    chunk_mgr_shift(CHTTP_NODE_RECV_BUF(chttp_node), store_size, CBYTES_BUF(&body_cbytes), &content_len);
-    CBYTES_LEN(&body_cbytes) = content_len;
+        chunk_dump(chunk, &CBYTES_BUF(&body_cbytes), &CBYTES_LEN(&body_cbytes), &CBYTES_ALIGNED(&body_cbytes));
+        chunk_free(chunk);
+
+        content_len = (uint32_t)CBYTES_LEN(&body_cbytes);
+
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_send_body: dump %u\n", content_len);
+    }
+    else
+    {
+        if(EC_FALSE == cbytes_expand_to(&body_cbytes, store_size))
+        {
+            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_send_body: expand body cbytes to store size %u failed\n", store_size);
+            return (EC_FALSE);
+        }
+
+        chunk_mgr_shift(CHTTP_NODE_RECV_BUF(chttp_node), store_size, CBYTES_BUF(&body_cbytes), &content_len);
+        CBYTES_LEN(&body_cbytes) = content_len;
+
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_send_body: shift %u\n", content_len);
+    }
 
     rlog(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_send_body: min(%u, %u) => %u, final content len %u\n",
                 CHTTP_STORE_SEG_SIZE(chttp_store), max_store_size, store_size, content_len);
@@ -9384,6 +9523,15 @@ EC_BOOL chttp_node_store_on_message_complete(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_BODY_STORED_LEN(chttp_node) += CHTTP_STORE_SEG_SIZE(chttp_store);/*update stored len*/
                 CHTTP_STORE_SEG_ID(chttp_store) ++;/*skip it*/
             }
+            else if(0 == stored_size)
+            {
+                dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "warn:chttp_node_store_on_message_complete: sockfd %d, store body seg %u nothing => skip\n",
+                            CSOCKET_CNODE_SOCKFD(csocket_cnode), CHTTP_STORE_SEG_ID(chttp_store));
+                /*break;*/
+                /*fix: give up storing this seg */
+                CHTTP_NODE_BODY_STORED_LEN(chttp_node) += CHTTP_STORE_SEG_SIZE(chttp_store);/*update stored len*/
+                CHTTP_STORE_SEG_ID(chttp_store) ++;/*skip it*/
+            }
             else
             {
                 CHTTP_NODE_BODY_STORED_LEN(chttp_node) += stored_size;/*update stored len*/
@@ -9443,6 +9591,15 @@ EC_BOOL chttp_node_store_on_message_complete(CHTTP_NODE *chttp_node)
                 dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_store_on_message_complete: sockfd %d, send body seg %u failed\n",
                             CSOCKET_CNODE_SOCKFD(csocket_cnode), CHTTP_STORE_SEG_ID(chttp_store));
                 break;/*terminate*/
+            }
+            else if(0 == stored_size)
+            {
+                dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "warn:chttp_node_store_on_message_complete: sockfd %d, store body seg %u nothing => skip\n",
+                            CSOCKET_CNODE_SOCKFD(csocket_cnode), CHTTP_STORE_SEG_ID(chttp_store));
+                /*break;*/
+                /*fix: give up storing this seg */
+                CHTTP_NODE_BODY_STORED_LEN(chttp_node) += CHTTP_STORE_SEG_SIZE(chttp_store);/*update stored len*/
+                CHTTP_STORE_SEG_ID(chttp_store) ++;/*skip it*/
             }
             else
             {
@@ -9722,6 +9879,7 @@ EC_BOOL chttp_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, CH
     uint64_t       rsp_body_len;
     UINT8         *data;
     UINT32         data_len;
+    UINT32         aligned;
     EC_BOOL        ret;
 
     chttp_node = chttp_node_new(CHTTP_TYPE_DO_CLT_RSP);
@@ -9965,8 +10123,8 @@ EC_BOOL chttp_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, CH
                         (char *)CSTRKV_KEY_STR(cstrkv), (char *)CSTRKV_VAL_STR(cstrkv));
     }
 
-    /*dump body*/
-    if(EC_FALSE == chunk_mgr_dump(CHTTP_NODE_RECV_BUF(chttp_node), &data, &data_len))
+    /*handover body*/
+    if(EC_FALSE == chunk_mgr_dump(CHTTP_NODE_RECV_BUF(chttp_node), &data, &data_len, &aligned))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_block: dump response body failed\n");
 
@@ -9976,8 +10134,9 @@ EC_BOOL chttp_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, CH
         chttp_node_free(chttp_node);
         return (EC_FALSE);
     }
+    chunk_mgr_clean(CHTTP_NODE_RECV_BUF(chttp_node));
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_request_block: dump response body len %ld\n", data_len);
-    cbytes_mount(CHTTP_RSP_BODY(chttp_rsp), data_len, data);
+    cbytes_mount(CHTTP_RSP_BODY(chttp_rsp), data_len, data, aligned);
 
     if(do_log(SEC_0149_CHTTP, 9))
     {
@@ -10040,7 +10199,7 @@ EC_BOOL chttp_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
         CHTTP_NODE_HTTP_REQ_IS_HEAD(chttp_node) = BIT_TRUE;
     }
 
-    croutine_cond = croutine_cond_new(0/*never timeout*/, LOC_CHTTP_0045);
+    croutine_cond = croutine_cond_new(CHTTP_TIMEOUT_NSEC * 1000, LOC_CHTTP_0045);
     if(NULL_PTR == croutine_cond)
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_request_basic: new croutine_cond failed\n");
@@ -10357,7 +10516,7 @@ EC_BOOL chttp_check(const CHTTP_REQ *chttp_req, CHTTP_STAT *chttp_stat)
     }
     chttp_node_import_req(chttp_node, chttp_req);
 
-    croutine_cond = croutine_cond_new(0/*never timeout*/, LOC_CHTTP_0050);
+    croutine_cond = croutine_cond_new(CHTTP_TIMEOUT_NSEC * 1000, LOC_CHTTP_0050);
     if(NULL_PTR == croutine_cond)
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_check: new croutine_cond failed\n");
@@ -10496,12 +10655,13 @@ STATIC_CAST static EC_BOOL __chttp_request_merge_file_read(const CHTTP_REQ *chtt
     {
         UINT8          *body_data;
         UINT32          body_len;
+        UINT32          aligned;
 
         const char     *k;
         const char     *v;
 
-        cbytes_umount(&cbytes, &body_len, &body_data);
-        cbytes_mount(CHTTP_RSP_BODY(chttp_rsp), body_len, body_data);
+        cbytes_umount(&cbytes, &body_len, &body_data, &aligned);
+        cbytes_mount(CHTTP_RSP_BODY(chttp_rsp), body_len, body_data, aligned);
 
         CHTTP_RSP_STATUS(chttp_rsp) = CHTTP_OK;
 

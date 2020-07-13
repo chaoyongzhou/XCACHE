@@ -7000,10 +7000,11 @@ void *c_memalign_new(const UINT32 size, const UINT32 align)
 {
     void *data;
 
+    /*WARNING: posix_memalign would not work well with jemalloc. it eats out memory and oom*/
     if(0 != posix_memalign((void **)&data, (size_t)align, (size_t)size))
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_memalign_new: "
-                                              "new %ld bytes align to %ld failed,"
+                                              "new %ld bytes align to %ld failed, "
                                               "errno = %d, errstr = %s\n",
                                               size, align,
                                               errno, strerror(errno));

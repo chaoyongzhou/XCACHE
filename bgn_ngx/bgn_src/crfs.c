@@ -6544,7 +6544,7 @@ EC_BOOL crfs_file_unlock(const UINT32 crfs_md_id, const CSTRING *file_path, cons
     //crfs_md = CRFS_MD_GET(crfs_md_id);
 
     cbase64_decode((UINT8 *)CSTRING_STR(token_str), CSTRING_LEN(token_str), auth_token, sizeof(auth_token), &auth_token_len);
-    cbytes_mount(&token_cbyte, auth_token_len, auth_token);
+    cbytes_mount(&token_cbyte, auth_token_len, auth_token, BIT_FALSE);
 #if 0
     if(do_log(SEC_0031_CRFS, 9))
     {
@@ -6558,11 +6558,11 @@ EC_BOOL crfs_file_unlock(const UINT32 crfs_md_id, const CSTRING *file_path, cons
 #endif
     if(EC_FALSE == __crfs_file_unlock(crfs_md_id, file_path, &token_cbyte))
     {
-        cbytes_umount(&token_cbyte, NULL_PTR, NULL_PTR);
+        cbytes_umount(&token_cbyte, NULL_PTR, NULL_PTR, NULL_PTR);
         return (EC_FALSE);
     }
 
-    cbytes_umount(&token_cbyte, NULL_PTR, NULL_PTR);
+    cbytes_umount(&token_cbyte, NULL_PTR, NULL_PTR, NULL_PTR);
     return (EC_TRUE);
 }
 

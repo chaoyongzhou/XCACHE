@@ -1604,7 +1604,7 @@ EC_BOOL cdns_request(const CDNS_REQ *cdns_req, CDNS_RSP *cdns_rsp)
         return (EC_FALSE);
     }
 
-    croutine_cond = croutine_cond_new(0/*never timeout*/, LOC_CDNS_0019);
+    croutine_cond = croutine_cond_new(CDNS_TIMEOUT_NSEC * 1000, LOC_CDNS_0019);
     if(NULL_PTR == croutine_cond)
     {
         dbg_log(SEC_0150_CDNS, 0)(LOGSTDOUT, "error:cdns_request: new croutine_cond failed\n");

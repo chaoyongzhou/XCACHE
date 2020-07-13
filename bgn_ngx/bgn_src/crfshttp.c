@@ -214,7 +214,7 @@ EC_BOOL crfshttp_commit_request(CHTTP_NODE *chttp_node)
     {
         CROUTINE_NODE  *croutine_node;
 
-        croutine_node = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
+        croutine_node = croutine_pool_load_preempt(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
                                            (UINT32)crfshttp_commit_http_get, 1, chttp_node);
         if(NULL_PTR == croutine_node)
         {
@@ -233,7 +233,7 @@ EC_BOOL crfshttp_commit_request(CHTTP_NODE *chttp_node)
     {
         CROUTINE_NODE  *croutine_node;
 
-        croutine_node = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
+        croutine_node = croutine_pool_load_preempt(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
                                            (UINT32)crfshttp_commit_http_post, 1, chttp_node);
         if(NULL_PTR == croutine_node)
         {
@@ -252,7 +252,7 @@ EC_BOOL crfshttp_commit_request(CHTTP_NODE *chttp_node)
     {
         CROUTINE_NODE  *croutine_node;
 
-        croutine_node = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
+        croutine_node = croutine_pool_load_preempt(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
                                            (UINT32)crfshttp_commit_http_head, 1, chttp_node);
         if(NULL_PTR == croutine_node)
         {
@@ -819,14 +819,15 @@ EC_BOOL crfshttp_make_getsmf_get_response(CHTTP_NODE *chttp_node)
 
     /*no data copying but data transfering*/
     if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
-                                              CBYTES_BUF(content_cbytes),
-                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+                                              (uint8_t *)CBYTES_BUF(content_cbytes),
+                                              (uint32_t )CBYTES_LEN(content_cbytes),
+                                              (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_getsmf_get_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
-    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
 
     return (EC_TRUE);
 }
@@ -4343,14 +4344,15 @@ EC_BOOL crfshttp_make_mexpire_post_response(CHTTP_NODE *chttp_node)
 
     /*no data copying but data transfering*/
     if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
-                                              CBYTES_BUF(content_cbytes),
-                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+                                              (uint8_t *)CBYTES_BUF(content_cbytes),
+                                              (uint32_t )CBYTES_LEN(content_cbytes),
+                                              (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_mexpire_post_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
-    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
 
     return (EC_TRUE);
 }
@@ -4702,14 +4704,15 @@ EC_BOOL crfshttp_make_mdsmf_post_response(CHTTP_NODE *chttp_node)
 
     /*no data copying but data transfering*/
     if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
-                                              CBYTES_BUF(content_cbytes),
-                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+                                              (uint8_t *)CBYTES_BUF(content_cbytes),
+                                              (uint32_t )CBYTES_LEN(content_cbytes),
+                                              (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_mdsmf_post_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
-    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
 
     return (EC_TRUE);
 }
@@ -5063,14 +5066,15 @@ EC_BOOL crfshttp_make_mddir_post_response(CHTTP_NODE *chttp_node)
 
     /*no data copying but data transfering*/
     if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
-                                              CBYTES_BUF(content_cbytes),
-                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+                                              (uint8_t *)CBYTES_BUF(content_cbytes),
+                                              (uint32_t )CBYTES_LEN(content_cbytes),
+                                              (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_mddir_post_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
-    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
 
     return (EC_TRUE);
 }
@@ -5726,14 +5730,15 @@ EC_BOOL crfshttp_make_qtree_get_response(CHTTP_NODE *chttp_node)
 
     /*no data copying but data transfering*/
     if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
-                                              CBYTES_BUF(content_cbytes),
-                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+                                              (uint8_t *)CBYTES_BUF(content_cbytes),
+                                              (uint32_t )CBYTES_LEN(content_cbytes),
+                                              (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_mdsmf_post_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
-    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
 
     return (EC_TRUE);
 }
@@ -5938,14 +5943,15 @@ EC_BOOL crfshttp_make_statusnp_get_response(CHTTP_NODE *chttp_node)
 
     /*no data copying but data transfering*/
     if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
-                                              CBYTES_BUF(content_cbytes),
-                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+                                              (uint8_t *)CBYTES_BUF(content_cbytes),
+                                              (uint32_t )CBYTES_LEN(content_cbytes),
+                                              (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_statusnp_get_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
-    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
 
     return (EC_TRUE);
 }
@@ -6172,14 +6178,15 @@ EC_BOOL crfshttp_make_statusdn_get_response(CHTTP_NODE *chttp_node)
 
     /*no data copying but data transfering*/
     if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
-                                              CBYTES_BUF(content_cbytes),
-                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+                                              (uint8_t *)CBYTES_BUF(content_cbytes),
+                                              (uint32_t )CBYTES_LEN(content_cbytes),
+                                              (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_statusdn_get_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
-    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
 
     return (EC_TRUE);
 }
@@ -7738,14 +7745,15 @@ EC_BOOL crfshttp_make_paracfg_get_response(CHTTP_NODE *chttp_node)
 
     /*no data copying but data transfering*/
     if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
-                                              CBYTES_BUF(content_cbytes),
-                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+                                              (uint8_t *)CBYTES_BUF(content_cbytes),
+                                              (uint32_t )CBYTES_LEN(content_cbytes),
+                                              (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_make_paracfg_get_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
-    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
 
     return (EC_TRUE);
 }

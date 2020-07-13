@@ -262,6 +262,14 @@ COROUTINE_NODE * coroutine_pool_load(COROUTINE_POOL *coroutine_pool, const UINT3
 
 EC_BOOL coroutine_pool_unload(COROUTINE_POOL *coroutine_pool, COROUTINE_NODE *coroutine_node);
 
+COROUTINE_NODE * coroutine_pool_reserve_preempt_no_lock(COROUTINE_POOL *coroutine_pool);
+
+COROUTINE_NODE * coroutine_pool_reserve_preempt(COROUTINE_POOL *coroutine_pool);
+
+COROUTINE_NODE * coroutine_pool_load_preempt_no_lock(COROUTINE_POOL *coroutine_pool, const UINT32 start_routine_addr, const UINT32 para_num, va_list para_list);
+
+COROUTINE_NODE * coroutine_pool_load_preempt(COROUTINE_POOL *coroutine_pool, const UINT32 start_routine_addr, const UINT32 para_num, ...);
+
 COROUTINE_NODE *coroutine_pool_get_master(COROUTINE_POOL *coroutine_pool);
 
 EC_BOOL coroutine_pool_is_master(const COROUTINE_POOL *coroutine_pool);

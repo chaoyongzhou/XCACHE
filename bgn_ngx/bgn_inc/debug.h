@@ -76,7 +76,7 @@ extern "C"{
 #define             e_dbg_CLOAD_NODE_ptr    ((UINT32) 39)
 #define              e_dbg_CLOAD_MGR_ptr    ((UINT32) 40)
 #define                  e_dbg_00041_ptr    ((UINT32) 41) /*-- obsolete --*/
-#define                  e_dbg_00042_ptr    ((UINT32) 42) /*-- obsolete --*/
+#define             e_dbg_CBYTES_ext_ptr    ((UINT32) 42)
 #define                 e_dbg_CBYTES_ptr    ((UINT32) 43)
 #define               e_dbg_MOD_NODE_ptr    ((UINT32) 44)
 #define                 e_dbg_CTIMET_ptr    ((UINT32) 45)

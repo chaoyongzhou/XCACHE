@@ -57,13 +57,17 @@ EC_BOOL chunk_free(CHUNK *chunk);
 
 EC_BOOL chunk_is_empty(const CHUNK *chunk);
 
+EC_BOOL chunk_is_full(const CHUNK *chunk);
+
 EC_BOOL chunk_set(CHUNK *chunk, const uint8_t *data, const uint32_t len);
 
 EC_BOOL chunk_reset(CHUNK *chunk);
 
-EC_BOOL chunk_mount(CHUNK *chunk, const uint8_t *data, const uint32_t len);
+EC_BOOL chunk_set_aligned(CHUNK *chunk);
 
-EC_BOOL chunk_umount(CHUNK *chunk, uint8_t **data, uint32_t *len);
+EC_BOOL chunk_mount(CHUNK *chunk, const uint8_t *data, const uint32_t len, const uint32_t aligned);
+
+EC_BOOL chunk_umount(CHUNK *chunk, uint8_t **data, uint32_t *len, uint32_t *aligned);
 
 uint32_t chunk_size(const CHUNK *chunk);
 
@@ -76,6 +80,8 @@ uint32_t chunk_append(CHUNK *chunk, const uint8_t *data, const uint32_t size);
 uint32_t chunk_append_format(CHUNK *chunk, const char *format, ...);
 
 uint32_t chunk_append_vformat(CHUNK *chunk, const char *format, va_list ap);
+
+EC_BOOL chunk_dump(CHUNK *chunk, UINT8 **data, UINT32 *len, UINT32 *aligned);
 
 uint32_t chunk_export(CHUNK *chunk, uint8_t *data, const uint32_t max_size);
 
@@ -119,11 +125,11 @@ EC_BOOL chunk_mgr_export(CHUNK_MGR *chunk_mgr, UINT8 *data, const UINT32 len, UI
 
 EC_BOOL chunk_mgr_shift(CHUNK_MGR *chunk_mgr, const uint32_t data_max_len, uint8_t *data, uint32_t *size);
 
-EC_BOOL chunk_mgr_dump(CHUNK_MGR *chunk_mgr, UINT8 **data, UINT32 *len);
+EC_BOOL chunk_mgr_dump(CHUNK_MGR *chunk_mgr, UINT8 **data, UINT32 *len, UINT32 *aligned);
 
-EC_BOOL chunk_mgr_mount_data(CHUNK_MGR *chunk_mgr, const uint8_t *data, const uint32_t size);
+EC_BOOL chunk_mgr_mount_data(CHUNK_MGR *chunk_mgr, const uint8_t *data, const uint32_t size, const uint32_t aligned);
 
-EC_BOOL chunk_mgr_umount_data(CHUNK_MGR *chunk_mgr, uint8_t **data, uint32_t *size);/*only for chunk_mgr has no or one chunk!*/
+EC_BOOL chunk_mgr_umount_data(CHUNK_MGR *chunk_mgr, uint8_t **data, uint32_t *size, uint32_t *aligned);/*only for chunk_mgr has no or one chunk!*/
 
 void chunk_mgr_print_chars(LOG *log, const CHUNK_MGR *chunk_mgr) ;
 

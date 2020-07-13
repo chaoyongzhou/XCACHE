@@ -359,6 +359,7 @@ EC_BOOL cfile_load(const UINT32 cfile_md_id, const CSTRING *file_path, CBYTES *f
 
     UINT32            data_len;
     UINT8            *data_buf;
+    UINT32            aligned;
 
 #if ( SWITCH_ON == CFILE_DEBUG_SWITCH )
     if ( CFILE_MD_ID_CHECK_INVALID(cfile_md_id) )
@@ -387,8 +388,8 @@ EC_BOOL cfile_load(const UINT32 cfile_md_id, const CSTRING *file_path, CBYTES *f
         return (EC_FALSE);
     }
 
-    cbytes_umount(file_content_t, &data_len, &data_buf);
-    cbytes_mount(file_content, data_len, data_buf);
+    cbytes_umount(file_content_t, &data_len, &data_buf, &aligned);
+    cbytes_mount(file_content, data_len, data_buf, aligned);
 
     cbytes_free(file_content_t);
 

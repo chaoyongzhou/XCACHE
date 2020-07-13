@@ -540,6 +540,18 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cload_mgr_size
     );
     creg_type_conv_vec_add(type_conv_vec,
+        /* type                   */e_dbg_CBYTES_ext_ptr,
+        /* type_sizeof            */sizeof(CBYTES),
+        /* pointer_flag           */EC_TRUE,
+        /* var_mm_type            */MM_CBYTES,
+        /* init_type_func         */(UINT32)cbytes_init,
+        /* clean_type_func        */(UINT32)cbytes_clean,
+        /* free_type_func         */(UINT32)cbytes_free,
+        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_cbytes_ext,
+        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_cbytes_ext,
+        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cbytes_ext_size
+    );
+    creg_type_conv_vec_add(type_conv_vec,
         /* type                   */e_dbg_CBYTES_ptr,
         /* type_sizeof            */sizeof(CBYTES),
         /* pointer_flag           */EC_TRUE,

@@ -6268,21 +6268,32 @@ EC_BOOL cxfs_read_dn(const UINT32 cxfs_md_id, const CXFSNP_FNODE *cxfsnp_fnode, 
 
     file_size    = CXFSNP_FNODE_FILESZ(cxfsnp_fnode);
     cxfsnp_inode = CXFSNP_FNODE_INODE(cxfsnp_fnode, 0);
-    disk_no  = CXFSNP_INODE_DISK_NO(cxfsnp_inode) ;
-    block_no = CXFSNP_INODE_BLOCK_NO(cxfsnp_inode);
-    page_no  = CXFSNP_INODE_PAGE_NO(cxfsnp_inode) ;
-
-    //dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_read_dn: file size %u, disk %u, block %u, page %u\n", file_size, disk_no, block_no, page_no);
+    disk_no      = CXFSNP_INODE_DISK_NO(cxfsnp_inode) ;
+    block_no     = CXFSNP_INODE_BLOCK_NO(cxfsnp_inode);
+    page_no      = CXFSNP_INODE_PAGE_NO(cxfsnp_inode) ;
 
     if(CBYTES_LEN(cbytes) < file_size)
     {
+        void        *data;
+
         if(NULL_PTR != CBYTES_BUF(cbytes))
         {
-            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CXFS_0004);
+            safe_free(CBYTES_BUF(cbytes), LOC_CXFS_0004);
+            CBYTES_BUF(cbytes) = NULL_PTR;
         }
-        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(file_size, LOC_CXFS_0005);
-        ASSERT(NULL_PTR != CBYTES_BUF(cbytes));
-        CBYTES_LEN(cbytes) = 0;
+
+        data = c_memalign_new(file_size, CMCPGB_PAGE_SIZE_NBYTES);
+        if(NULL_PTR == data)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_dn: no memory\n");
+            return (EC_FALSE);
+        }
+        dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_read_dn: file size %u, align %u\n",
+                                             file_size, CMCPGB_PAGE_SIZE_NBYTES);
+
+        CBYTES_BUF(cbytes)      = (UINT8 *)data;
+        CBYTES_LEN(cbytes)      = 0;
+        CBYTES_ALIGNED(cbytes)  = BIT_TRUE;
     }
 
     if(EC_FALSE == cxfsdn_read_p(CXFS_MD_DN(cxfs_md), disk_no, block_no, page_no, file_size, CBYTES_BUF(cbytes), &(CBYTES_LEN(cbytes))))
@@ -6442,9 +6453,9 @@ EC_BOOL cxfs_read_e_dn(const UINT32 cxfs_md_id, const CXFSNP_FNODE *cxfsnp_fnode
 
     file_size    = CXFSNP_FNODE_FILESZ(cxfsnp_fnode);
     cxfsnp_inode = CXFSNP_FNODE_INODE(cxfsnp_fnode, 0);
-    disk_no  = CXFSNP_INODE_DISK_NO(cxfsnp_inode) ;
-    block_no = CXFSNP_INODE_BLOCK_NO(cxfsnp_inode);
-    page_no  = CXFSNP_INODE_PAGE_NO(cxfsnp_inode) ;
+    disk_no      = CXFSNP_INODE_DISK_NO(cxfsnp_inode) ;
+    block_no     = CXFSNP_INODE_BLOCK_NO(cxfsnp_inode);
+    page_no      = CXFSNP_INODE_PAGE_NO(cxfsnp_inode) ;
 
     if((*offset) >= file_size)
     {
@@ -6469,10 +6480,46 @@ EC_BOOL cxfs_read_e_dn(const UINT32 cxfs_md_id, const CXFSNP_FNODE *cxfsnp_fnode
     {
         if(NULL_PTR != CBYTES_BUF(cbytes))
         {
-            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CXFS_0006);
+            safe_free(CBYTES_BUF(cbytes), LOC_CXFS_0006);
+            CBYTES_BUF(cbytes) = NULL_PTR;
         }
-        CBYTES_BUF(cbytes) = (UINT8 *)SAFE_MALLOC(max_len_t, LOC_CXFS_0007);
-        CBYTES_LEN(cbytes) = 0;
+
+        if(0 < offset_t)
+        {
+            void        *data;
+
+            data = safe_malloc(max_len_t, LOC_CXFS_0007);
+            if(NULL_PTR == data)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_e_dn: "
+                                                     "no memory, max_len_t %ld\n",
+                                                     max_len_t);
+                return (EC_FALSE);
+            }
+
+            CBYTES_BUF(cbytes) = (UINT8 *)data;
+            CBYTES_LEN(cbytes) = 0;
+        }
+        else
+        {
+            void        *data;
+
+            data = c_memalign_new(file_size, CMCPGB_PAGE_SIZE_NBYTES);
+            if(NULL_PTR == data)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_e_dn: "
+                                                     "no memory, file_size %u, align %u\n",
+                                                     file_size, CMCPGB_PAGE_SIZE_NBYTES);
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_read_e_dn: file size %u, align %u\n",
+                                                 file_size, CMCPGB_PAGE_SIZE_NBYTES);
+
+            CBYTES_BUF(cbytes)      = (UINT8 *)data;
+            CBYTES_LEN(cbytes)      = 0;
+            CBYTES_ALIGNED(cbytes)  = BIT_TRUE;
+        }
     }
 
     if(EC_FALSE == cxfsdn_read_e(CXFS_MD_DN(cxfs_md), disk_no, block_no, page_no, offset_t, max_len_t, CBYTES_BUF(cbytes), &(CBYTES_LEN(cbytes))))
@@ -11291,15 +11338,15 @@ EC_BOOL cxfs_file_unlock(const UINT32 cxfs_md_id, const CSTRING *file_path, cons
     //cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
     cbase64_decode((UINT8 *)CSTRING_STR(token_str), CSTRING_LEN(token_str), auth_token, sizeof(auth_token), &auth_token_len);
-    cbytes_mount(&token_cbyte, auth_token_len, auth_token);
+    cbytes_mount(&token_cbyte, auth_token_len, auth_token, BIT_FALSE);
 
     if(EC_FALSE == __cxfs_file_unlock(cxfs_md_id, file_path, &token_cbyte))
     {
-        cbytes_umount(&token_cbyte, NULL_PTR, NULL_PTR);
+        cbytes_umount(&token_cbyte, NULL_PTR, NULL_PTR, NULL_PTR);
         return (EC_FALSE);
     }
 
-    cbytes_umount(&token_cbyte, NULL_PTR, NULL_PTR);
+    cbytes_umount(&token_cbyte, NULL_PTR, NULL_PTR, NULL_PTR);
     return (EC_TRUE);
 }
 

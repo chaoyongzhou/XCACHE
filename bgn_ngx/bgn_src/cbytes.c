@@ -46,8 +46,9 @@ CBYTES *cbytes_new(const UINT32 len)
 
 EC_BOOL cbytes_init(CBYTES *cbytes)
 {
-    CBYTES_LEN(cbytes) = 0;
-    CBYTES_BUF(cbytes) = NULL_PTR;
+    CBYTES_ALIGNED(cbytes)      = BIT_FALSE;
+    CBYTES_LEN(cbytes)          = 0;
+    CBYTES_BUF(cbytes)          = NULL_PTR;
     return (EC_TRUE);
 }
 
@@ -56,10 +57,19 @@ EC_BOOL cbytes_clean(CBYTES *cbytes)
     if(NULL_PTR != cbytes)
     {
         CBYTES_LEN(cbytes) = 0;
+
         if(NULL_PTR != CBYTES_BUF(cbytes))
         {
-            SAFE_FREE(CBYTES_BUF(cbytes), LOC_CBYTES_0004);
-            CBYTES_BUF(cbytes) = NULL_PTR;
+            if(BIT_FALSE == CBYTES_ALIGNED(cbytes))
+            {
+                SAFE_FREE(CBYTES_BUF(cbytes), LOC_CBYTES_0004);
+                CBYTES_BUF(cbytes) = NULL_PTR;
+            }
+            else
+            {
+                c_memalign_free(CBYTES_BUF(cbytes));
+                CBYTES_BUF(cbytes) = NULL_PTR;
+            }
         }
     }
     return (EC_TRUE);
@@ -255,15 +265,31 @@ EC_BOOL cbytes_clone(const CBYTES *cbytes_src, CBYTES *cbytes_des)
     return (EC_TRUE);
 }
 
-EC_BOOL cbytes_mount(CBYTES *cbytes, const UINT32 len, const UINT8 *buff)
+EC_BOOL cbytes_set_aligned(CBYTES *cbytes)
+{
+    CBYTES_ALIGNED(cbytes) = BIT_TRUE;
+    return (EC_TRUE);
+}
+
+EC_BOOL cbytes_mount(CBYTES *cbytes, const UINT32 len, const UINT8 *buff, const UINT32 aligned)
 {
     /*note: here assume cbytes is empty and not check CBYTES_BUF is null or not. Jan 24,2017*/
     CBYTES_BUF(cbytes) = (UINT8 *)buff;
     CBYTES_LEN(cbytes) = len;
+
+    if(BIT_TRUE == aligned)
+    {
+        CBYTES_ALIGNED(cbytes) = BIT_TRUE;
+    }
+    else
+    {
+        CBYTES_ALIGNED(cbytes) = BIT_FALSE;
+    }
+
     return (EC_TRUE);
 }
 
-EC_BOOL cbytes_umount(CBYTES *cbytes, UINT32 *len, UINT8 ** buff)
+EC_BOOL cbytes_umount(CBYTES *cbytes, UINT32 *len, UINT8 ** buff, UINT32 *aligned)
 {
     if(NULL_PTR != buff)
     {
@@ -275,8 +301,15 @@ EC_BOOL cbytes_umount(CBYTES *cbytes, UINT32 *len, UINT8 ** buff)
         (*len) = CBYTES_LEN(cbytes);
     }
 
-    CBYTES_BUF(cbytes) = NULL_PTR;
-    CBYTES_LEN(cbytes) = 0;
+    if(NULL_PTR != aligned)
+    {
+        (*aligned) = CBYTES_ALIGNED(cbytes);
+    }
+
+    CBYTES_BUF(cbytes)      = NULL_PTR;
+    CBYTES_LEN(cbytes)      = 0;
+    CBYTES_ALIGNED(cbytes)  = BIT_FALSE;
+
     return (EC_TRUE);
 }
 
@@ -289,11 +322,13 @@ EC_BOOL cbytes_umount_only(CBYTES *cbytes)
 
 EC_BOOL cbytes_handover(CBYTES *cbytes_src, CBYTES *cbytes_des)
 {
-    CBYTES_BUF(cbytes_des) = CBYTES_BUF(cbytes_src);
-    CBYTES_LEN(cbytes_des) = CBYTES_LEN(cbytes_src);
+    CBYTES_BUF(cbytes_des)      = CBYTES_BUF(cbytes_src);
+    CBYTES_LEN(cbytes_des)      = CBYTES_LEN(cbytes_src);
+    CBYTES_ALIGNED(cbytes_des)  = CBYTES_ALIGNED(cbytes_src);
 
-    CBYTES_BUF(cbytes_src) = NULL_PTR;
-    CBYTES_LEN(cbytes_src) = 0;
+    CBYTES_BUF(cbytes_src)      = NULL_PTR;
+    CBYTES_LEN(cbytes_src)      = 0;
+    CBYTES_ALIGNED(cbytes_src)  = BIT_FALSE;
 
     return (EC_TRUE);
 }

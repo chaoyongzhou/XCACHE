@@ -206,7 +206,7 @@ EC_BOOL cngx_http_commit_request(CHTTP_NODE *chttp_node)
     {
         CROUTINE_NODE  *croutine_node;
 
-        croutine_node = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
+        croutine_node = croutine_pool_load_preempt(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
                                            (UINT32)cngx_http_commit_http_get, 1, chttp_node);
         if(NULL_PTR == croutine_node)
         {
@@ -225,7 +225,7 @@ EC_BOOL cngx_http_commit_request(CHTTP_NODE *chttp_node)
     {
         CROUTINE_NODE  *croutine_node;
 
-        croutine_node = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
+        croutine_node = croutine_pool_load_preempt(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
                                            (UINT32)cngx_http_commit_http_post, 1, chttp_node);
         if(NULL_PTR == croutine_node)
         {
@@ -244,7 +244,7 @@ EC_BOOL cngx_http_commit_request(CHTTP_NODE *chttp_node)
     {
         CROUTINE_NODE  *croutine_node;
 
-        croutine_node = croutine_pool_load(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
+        croutine_node = croutine_pool_load_preempt(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
                                            (UINT32)cngx_http_commit_http_head, 1, chttp_node);
         if(NULL_PTR == croutine_node)
         {
@@ -2465,7 +2465,7 @@ EC_BOOL cngx_http_handle_xfs_list_get_request(CHTTP_NODE *chttp_node)
 
         cmon_list_nodes(cmon_id, &cxfs_list_cstr);
 
-        cbytes_mount(content_cbytes, CSTRING_LEN(&cxfs_list_cstr), CSTRING_STR(&cxfs_list_cstr));
+        cbytes_mount(content_cbytes, CSTRING_LEN(&cxfs_list_cstr), CSTRING_STR(&cxfs_list_cstr), BIT_FALSE);
         cstring_unset(&cxfs_list_cstr);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
@@ -2509,14 +2509,15 @@ EC_BOOL cngx_http_make_xfs_list_get_response(CHTTP_NODE *chttp_node)
 
     /*no data copying but data transfering*/
     if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
-                                              CBYTES_BUF(content_cbytes),
-                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+                                              (uint8_t *)CBYTES_BUF(content_cbytes),
+                                              (uint32_t )CBYTES_LEN(content_cbytes),
+                                              (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
         dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_xfs_list_get_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
-    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
 
     return (EC_TRUE);
 }
@@ -3637,7 +3638,7 @@ EC_BOOL cngx_http_handle_rfs_list_get_request(CHTTP_NODE *chttp_node)
 
         cmon_list_nodes(cmon_id, &crfs_list_cstr);
 
-        cbytes_mount(content_cbytes, CSTRING_LEN(&crfs_list_cstr), CSTRING_STR(&crfs_list_cstr));
+        cbytes_mount(content_cbytes, CSTRING_LEN(&crfs_list_cstr), CSTRING_STR(&crfs_list_cstr), BIT_FALSE);
         cstring_unset(&crfs_list_cstr);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
@@ -3681,14 +3682,15 @@ EC_BOOL cngx_http_make_rfs_list_get_response(CHTTP_NODE *chttp_node)
 
     /*no data copying but data transfering*/
     if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
-                                              CBYTES_BUF(content_cbytes),
-                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+                                              (uint8_t *)CBYTES_BUF(content_cbytes),
+                                              (uint32_t )CBYTES_LEN(content_cbytes),
+                                              (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
         dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_rfs_list_get_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
-    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
 
     return (EC_TRUE);
 }
@@ -4271,7 +4273,8 @@ EC_BOOL cngx_http_handle_ngx_show_so_get_request(CHTTP_NODE *chttp_node)
 
         cbytes_mount(content_cbytes,
                      cstring_get_len(LOG_CSTR(log)),
-                     cstring_get_str(LOG_CSTR(log)));
+                     cstring_get_str(LOG_CSTR(log)),
+                     BIT_FALSE);
         cstring_unset(LOG_CSTR(log));
 
         log_cstr_close(log);
@@ -4311,14 +4314,15 @@ EC_BOOL cngx_http_make_ngx_show_so_get_response(CHTTP_NODE *chttp_node)
 
     /*no data copying but data transfering*/
     if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
-                                              CBYTES_BUF(content_cbytes),
-                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+                                              (uint8_t *)CBYTES_BUF(content_cbytes),
+                                              (uint32_t )CBYTES_LEN(content_cbytes),
+                                              (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
         dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_ngx_show_so_get_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
-    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
 
     return (EC_TRUE);
 }
@@ -4803,7 +4807,8 @@ EC_BOOL cngx_http_handle_ngx_show_cmon_nodes_get_request(CHTTP_NODE *chttp_node)
 
         cbytes_mount(content_cbytes,
                      cstring_get_len(LOG_CSTR(log)),
-                     cstring_get_str(LOG_CSTR(log)));
+                     cstring_get_str(LOG_CSTR(log)),
+                     BIT_FALSE);
         cstring_unset(LOG_CSTR(log));
 
         log_cstr_close(log);
@@ -4843,14 +4848,15 @@ EC_BOOL cngx_http_make_ngx_show_cmon_nodes_get_response(CHTTP_NODE *chttp_node)
 
     /*no data copying but data transfering*/
     if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
-                                              CBYTES_BUF(content_cbytes),
-                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+                                              (uint8_t *)CBYTES_BUF(content_cbytes),
+                                              (uint32_t )CBYTES_LEN(content_cbytes),
+                                              (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
         dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_ngx_show_cmon_nodes_get_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
-    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
 
     return (EC_TRUE);
 }
@@ -5004,14 +5010,15 @@ EC_BOOL cngx_http_make_paracfg_get_response(CHTTP_NODE *chttp_node)
 
     /*no data copying but data transfering*/
     if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
-                                              CBYTES_BUF(content_cbytes),
-                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+                                              (uint8_t *)CBYTES_BUF(content_cbytes),
+                                              (uint32_t )CBYTES_LEN(content_cbytes),
+                                              (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
         dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_paracfg_get_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
-    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
 
     return (EC_TRUE);
 }
@@ -5170,14 +5177,15 @@ EC_BOOL cngx_http_make_dbgtaskcfg_get_response(CHTTP_NODE *chttp_node)
 
     /*no data copying but data transfering*/
     if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
-                                              CBYTES_BUF(content_cbytes),
-                                              (uint32_t)CBYTES_LEN(content_cbytes)))
+                                              (uint8_t *)CBYTES_BUF(content_cbytes),
+                                              (uint32_t )CBYTES_LEN(content_cbytes),
+                                              (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
         dbg_log(SEC_0054_CNGX_HTTP, 0)(LOGSTDOUT, "error:cngx_http_make_dbgtaskcfg_get_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
-    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR);
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
 
     return (EC_TRUE);
 }

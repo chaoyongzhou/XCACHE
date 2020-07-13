@@ -86,6 +86,8 @@ EC_BOOL chttp_node_free(CHTTP_NODE *chttp_node);
 
 EC_BOOL chttp_node_clear(CHTTP_NODE *chttp_node);/*note: chttp_node_clear is ONLY for memory recycle asap before it comes to life-cycle end*/
 
+uint32_t chttp_node_chunk_size(CHTTP_NODE *chttp_node);
+
 EC_BOOL chttp_node_has_error(CHTTP_NODE *chttp_node);
 
 EC_BOOL chttp_node_reserve(CHTTP_NODE *chttp_node);
@@ -125,8 +127,6 @@ EC_BOOL chttp_node_recv(CHTTP_NODE *chttp_node);
 EC_BOOL chttp_node_send(CHTTP_NODE *chttp_node);
 
 EC_BOOL chttp_node_need_send(CHTTP_NODE *chttp_node);
-
-EC_BOOL chttp_node_need_parse(CHTTP_NODE *chttp_node);
 
 EC_BOOL chttp_node_has_data_in(CHTTP_NODE *chttp_node);
 
@@ -186,7 +186,7 @@ EC_BOOL chttp_parse_connection_keepalive(CHTTP_NODE *chttp_node);
 
 EC_BOOL chttp_parse_uri(CHTTP_NODE *chttp_node);
 
-EC_BOOL chttp_parse_post(CHTTP_NODE *chttp_node, const uint32_t parsed_len);
+EC_BOOL chttp_parse_post(CHTTP_NODE *chttp_node, const uint32_t prev_parsed_len, const uint32_t cur_parsed_len);
 
 EC_BOOL chttp_parse(CHTTP_NODE *chttp_node);
 
@@ -227,7 +227,7 @@ EC_BOOL chttp_make_response_header_end(CHTTP_NODE *chttp_node);
 EC_BOOL chttp_make_response_body(CHTTP_NODE *chttp_node, const uint8_t *data, const uint32_t size);
 
 /*make response body without data copying but data transfering*/
-EC_BOOL chttp_make_response_body_ext(CHTTP_NODE *chttp_node, const uint8_t *data, const uint32_t size);
+EC_BOOL chttp_make_response_body_ext(CHTTP_NODE *chttp_node, const uint8_t *data, const uint32_t size, const uint32_t aligned);
 
 EC_BOOL chttp_make_response_header_common(CHTTP_NODE *chttp_node, const uint64_t body_len);
 

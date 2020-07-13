@@ -282,6 +282,8 @@ STATIC_CAST static int __chttps_on_message_begin(http_parser_t* http_parser)
         return (-1);/*error*/
     }
 
+    ASSERT(0 == CHTTP_NODE_PARSED(chttp_node));
+
     ccallback_node_run(CHTTP_NODE_PARSE_ON_MESSAGE_BEGIN_CB(chttp_node));
 
     dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] __chttps_on_message_begin: chttp_node %p, ***MESSAGE BEGIN***\n",
@@ -342,7 +344,6 @@ STATIC_CAST static int __chttps_on_headers_complete(http_parser_t* http_parser, 
         chttp_node_print_header(LOGSTDOUT, chttp_node);
     }
 
-    //chttps_node_parse_on_headers_complete(chttp_node);
     ccallback_node_run(CHTTP_NODE_PARSE_ON_HEADERS_COMPLETE_CB(chttp_node));
 
     /*
@@ -397,7 +398,6 @@ STATIC_CAST static int __chttps_on_message_complete(http_parser_t* http_parser)
                         CHTTP_STORE_SEG_ID(chttp_store), CHTTP_STORE_CACHE_CTRL(chttp_store));
     }
 
-    //chttps_node_parse_on_message_complete(chttp_node);
     ccallback_node_run(CHTTP_NODE_PARSE_ON_MESSAGE_COMPLETE_CB(chttp_node));
 
     /*
@@ -521,7 +521,6 @@ STATIC_CAST static int __chttps_on_header_field(http_parser_t* http_parser, cons
                         chttp_node, CSTRKV_KEY_STR(cstrkv));
     }
 
-    //dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] __chttps_on_header_field: chttp_node %p, Header field: '%.*s'\n", chttp_node, (int)length, at);
     return (0);
 }
 
@@ -549,15 +548,18 @@ STATIC_CAST static int __chttps_on_header_value(http_parser_t* http_parser, cons
     }
 
     cstrkv_set_val_bytes(cstrkv, (const uint8_t *)at, (uint32_t)length, LOC_CHTTPS_0005);
-    //dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] __chttps_on_header_value: chttp_node %p, Header value: '%.*s'\n", chttp_node, (uint32_t)length, at);
 
     if(s_header_almost_done == http_parser->state)
     {
         cstrkv_mgr_add_kv(CHTTP_NODE_HEADER_IN_KVS(chttp_node), cstrkv);
         CHTTP_NODE_PARSING_HEADER_KV(chttp_node) = NULL_PTR;
 
-        rlog(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] __chttps_on_header_value: chttp_node %p, Header value: '%s' => OK\n",
-                        chttp_node, CSTRKV_VAL_STR(cstrkv));
+        /*chunked*/
+        if(0 == STRCASECMP((char *)CSTRKV_KEY_STR(cstrkv), (const char *)"Transfer-Encoding")
+        && 0 == STRCASECMP((char *)CSTRKV_VAL_STR(cstrkv), (const char *)"chunked"))
+        {
+            CHTTP_NODE_IS_CHUNKED(chttp_node) = BIT_TRUE;
+        }
 
         dbg_log(SEC_0157_CHTTPS, 6)(LOGSTDOUT, "[DEBUG] __chttps_on_header_value: chttp_node %p, Header '%s': '%s' => OK\n",
                         chttp_node, CSTRKV_KEY_STR(cstrkv), CSTRKV_VAL_STR(cstrkv));
@@ -575,7 +577,8 @@ STATIC_CAST static int __chttps_on_header_value(http_parser_t* http_parser, cons
 STATIC_CAST static int __chttps_on_body(http_parser_t* http_parser, const char* at, size_t length)
 {
     CHTTP_NODE    *chttp_node;
-    CHUNK_MGR      *recv_chunks;
+    CHUNK_MGR     *recv_chunks;
+    uint32_t       chunk_size;
 
     chttp_node= (CHTTP_NODE *)http_parser->data;
     if(NULL_PTR == chttp_node)
@@ -585,18 +588,19 @@ STATIC_CAST static int __chttps_on_body(http_parser_t* http_parser, const char* 
     }
 
     recv_chunks = CHTTP_NODE_RECV_BUF(chttp_node);
+    chunk_size = chttp_node_chunk_size(chttp_node);
 
-    if(EC_FALSE == chunk_mgr_append_data_min(recv_chunks, (uint8_t *)at, length, CHTTP_IN_BUF_SIZE))
+    if(EC_FALSE == chunk_mgr_append_data_min(recv_chunks, (uint8_t *)at, length, chunk_size))
     {
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:__chttps_on_body: append %ld bytes failed\n", length);
         return (-1);
     }
+
     CHTTP_NODE_BODY_PARSED_LEN(chttp_node) += length;
 
     dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] __chttps_on_body: chttp_node %p, len %ld => body parsed %"PRId64"\n",
                     chttp_node, length, CHTTP_NODE_BODY_PARSED_LEN(chttp_node));
 
-    //chttps_node_parse_on_body(chttp_node, CHTTP_NODE_CSOCKET_CNODE(chttp_node));
     ccallback_node_run(CHTTP_NODE_PARSE_ON_BODY_CB(chttp_node));
 
     /*
@@ -3564,6 +3568,7 @@ EC_BOOL chttps_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, C
     uint64_t       rsp_body_len;
     UINT8         *data;
     UINT32         data_len;
+    UINT32         aligned;
     EC_BOOL        ret;
 
     chttp_node = chttp_node_new(CHTTP_TYPE_DO_CLT_RSP);
@@ -3804,8 +3809,8 @@ EC_BOOL chttps_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, C
                         (char *)CSTRKV_KEY_STR(cstrkv), (char *)CSTRKV_VAL_STR(cstrkv));
     }
 
-    /*dump body*/
-    if(EC_FALSE == chunk_mgr_dump(CHTTP_NODE_RECV_BUF(chttp_node), &data, &data_len))
+    /*handover body*/
+    if(EC_FALSE == chunk_mgr_dump(CHTTP_NODE_RECV_BUF(chttp_node), &data, &data_len, &aligned))
     {
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_request_block: dump response body failed\n");
 
@@ -3815,8 +3820,9 @@ EC_BOOL chttps_request_block(const CHTTP_REQ *chttp_req, CHTTP_RSP *chttp_rsp, C
         chttp_node_free(chttp_node);
         return (EC_FALSE);
     }
+    chunk_mgr_clean(CHTTP_NODE_RECV_BUF(chttp_node));
     dbg_log(SEC_0157_CHTTPS, 9)(LOGSTDOUT, "[DEBUG] chttps_request_block: dump response body len %ld\n", data_len);
-    cbytes_mount(CHTTP_RSP_BODY(chttp_rsp), data_len, data);
+    cbytes_mount(CHTTP_RSP_BODY(chttp_rsp), data_len, data, aligned);
 
     if(do_log(SEC_0157_CHTTPS, 9))
     {
@@ -3917,7 +3923,7 @@ EC_BOOL chttps_request_basic(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_stor
         CHTTP_NODE_HTTP_REQ_IS_HEAD(chttp_node) = BIT_TRUE;
     }
 
-    croutine_cond = croutine_cond_new(0/*never timeout*/, LOC_CHTTPS_0024);
+    croutine_cond = croutine_cond_new(CHTTP_TIMEOUT_NSEC * 1000, LOC_CHTTPS_0024);
     if(NULL_PTR == croutine_cond)
     {
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_request_basic: new croutine_cond failed\n");
@@ -4249,7 +4255,7 @@ EC_BOOL chttps_check(const CHTTP_REQ *chttp_req, CHTTP_STAT *chttp_stat)
     }
     chttp_node_import_req(chttp_node, chttp_req);
 
-    croutine_cond = croutine_cond_new(0/*never timeout*/, LOC_CHTTPS_0029);
+    croutine_cond = croutine_cond_new(CHTTP_TIMEOUT_NSEC * 1000, LOC_CHTTPS_0029);
     if(NULL_PTR == croutine_cond)
     {
         dbg_log(SEC_0157_CHTTPS, 0)(LOGSTDOUT, "error:chttps_check: new croutine_cond failed\n");
@@ -4388,12 +4394,13 @@ STATIC_CAST static EC_BOOL __chttps_request_merge_file_read(const CHTTP_REQ *cht
     {
         UINT8          *body_data;
         UINT32          body_len;
+        UINT32          aligned;
 
         const char     *k;
         const char     *v;
 
-        cbytes_umount(&cbytes, &body_len, &body_data);
-        cbytes_mount(CHTTP_RSP_BODY(chttp_rsp), body_len, body_data);
+        cbytes_umount(&cbytes, &body_len, &body_data, &aligned);
+        cbytes_mount(CHTTP_RSP_BODY(chttp_rsp), body_len, body_data, aligned);
 
         CHTTP_RSP_STATUS(chttp_rsp) = CHTTP_OK;
 

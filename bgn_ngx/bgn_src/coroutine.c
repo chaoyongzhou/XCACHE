@@ -2307,6 +2307,69 @@ COROUTINE_NODE * coroutine_pool_reserve(COROUTINE_POOL *coroutine_pool)
     return (coroutine_node);
 }
 
+/*extension interface*/
+COROUTINE_NODE * coroutine_pool_reserve_preempt_no_lock(COROUTINE_POOL *coroutine_pool)
+{
+    COROUTINE_NODE *coroutine_node;
+    UINT32        total_num;
+    UINT32        idle_num;
+    UINT32        busy_num;
+    UINT32        post_num;
+    UINT32        max_num;
+
+    coroutine_node = (COROUTINE_NODE *)clist_pop_back_no_lock(COROUTINE_POOL_WORKER_IDLE_LIST(coroutine_pool));
+    if(NULL_PTR == coroutine_node)
+    {
+        idle_num = clist_size(COROUTINE_POOL_WORKER_IDLE_LIST(coroutine_pool));
+        busy_num = clist_size(COROUTINE_POOL_WORKER_BUSY_LIST(coroutine_pool));
+        post_num = clist_size(COROUTINE_POOL_WORKER_POST_LIST(coroutine_pool));
+
+        total_num = idle_num + busy_num + post_num;
+
+        if(total_num < COROUTINE_POOL_WORKER_MAX_NUM(coroutine_pool) + COROUTINE_EXPAND_MIN_NUM /*plus more*/)
+        {
+            UINT32 coroutine_num;
+
+            coroutine_num = DMIN(COROUTINE_EXPAND_MIN_NUM, \
+                        COROUTINE_POOL_WORKER_MAX_NUM(coroutine_pool) + COROUTINE_EXPAND_MIN_NUM - total_num);
+
+            dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "coroutine_pool_reserve_preempt_no_lock: "
+                                                      "try to expand coroutine num from %ld to %ld\n",
+                                                      total_num, coroutine_num + total_num);
+            coroutine_pool_expand(coroutine_pool, coroutine_num);
+        }
+
+        coroutine_node = (COROUTINE_NODE *)clist_pop_back_no_lock(COROUTINE_POOL_WORKER_IDLE_LIST(coroutine_pool));
+    }
+
+    idle_num = clist_size(COROUTINE_POOL_WORKER_IDLE_LIST(coroutine_pool));
+    max_num  = COROUTINE_POOL_WORKER_MAX_NUM(coroutine_pool);
+    if(idle_num > max_num / 2 && idle_num > COROUTINE_SHRINK_THRESHOLD)
+    {
+        dbg_log(SEC_0001_COROUTINE, 5)(LOGSTDOUT, "coroutine_pool_reserve_preempt_no_lock: "
+                                                  "try to shrink idle coroutine num from %ld to %ld\n",
+                                                  idle_num, idle_num - COROUTINE_SHRINK_MIN_NUM);
+
+        coroutine_pool_shrink(coroutine_pool, COROUTINE_SHRINK_MIN_NUM);
+    }
+
+    COROUTINE_ASSERT(EC_FALSE == coroutine_pool_check_node_is_idle(coroutine_pool, (void *)coroutine_node));
+    COROUTINE_ASSERT(EC_FALSE == coroutine_pool_check_node_is_busy(coroutine_pool, (void *)coroutine_node));
+    return (coroutine_node);
+}
+
+/*extension interface*/
+COROUTINE_NODE * coroutine_pool_reserve_preempt(COROUTINE_POOL *coroutine_pool)
+{
+    COROUTINE_NODE *coroutine_node;
+
+    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0051);
+    coroutine_node = coroutine_pool_reserve_preempt_no_lock(coroutine_pool);
+    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0052);
+
+    return (coroutine_node);
+}
+
 COROUTINE_NODE * coroutine_pool_load_no_lock(COROUTINE_POOL *coroutine_pool, const UINT32 start_routine_addr, const UINT32 para_num, va_list para_list)
 {
     COROUTINE_NODE *coroutine_node;
@@ -2408,6 +2471,116 @@ COROUTINE_NODE * coroutine_pool_load(COROUTINE_POOL *coroutine_pool, const UINT3
     coroutine_node = coroutine_pool_load_no_lock(coroutine_pool, start_routine_addr, para_num, para_list);
 #if 1
     dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_pool_load: "
+                                              "coroutine_node %p\n",
+                                              coroutine_node);
+#endif
+    COROUTINE_POOL_WORKER_UNLOCK(coroutine_pool, LOC_COROUTINE_0055);
+
+    va_end(para_list);
+
+    return (coroutine_node);
+}
+
+COROUTINE_NODE * coroutine_pool_load_preempt_no_lock(COROUTINE_POOL *coroutine_pool, const UINT32 start_routine_addr, const UINT32 para_num, va_list para_list)
+{
+    COROUTINE_NODE *coroutine_node;
+
+    static uint64_t     fail_s_time_msec          = 0;     /*start time of failure*/
+    static uint64_t     fail_r_time_msec          = 0;     /*last report time of failure*/
+    static uint64_t     fail_counter              = 0;     /*counter of failures*/
+    const  uint64_t     fail_r_interval_msec      = 10000; /*failure report interval is 10s*/
+
+    coroutine_node = coroutine_pool_reserve_preempt_no_lock(coroutine_pool);
+    if(NULL_PTR == coroutine_node)
+    {
+        UINT32 idle_num;
+        UINT32 busy_num;
+        UINT32 post_num;
+        UINT32 total_num;
+        UINT32 max_num;
+
+        uint64_t fail_c_time_msec; /*cur time of failure*/
+
+        coroutine_pool_num_info_no_lock(coroutine_pool, &idle_num, &busy_num, &post_num, &total_num);
+        max_num = COROUTINE_POOL_WORKER_MAX_NUM(coroutine_pool);
+
+        fail_counter ++;
+
+        fail_c_time_msec = c_get_cur_time_msec();
+        if(0 == fail_s_time_msec) /*failure at first time*/
+        {
+            fail_s_time_msec = fail_c_time_msec;
+            fail_r_time_msec = fail_c_time_msec;
+
+            /*report nothing at first failure to prevent from fluttering*/
+            return (NULL_PTR);
+        }
+
+        /*compress failure report logs*/
+        if(fail_c_time_msec - fail_r_time_msec >= fail_r_interval_msec)
+        {
+            fail_r_time_msec = fail_c_time_msec;
+
+            dbg_log(SEC_0001_COROUTINE, 0)(LOGSTDOUT, "warn:coroutine_pool_load_preempt_no_lock: "
+                                                      "failed to reserve one coroutine_node "
+                                                      "where idle %ld, busy %ld, post %ld, total %ld, max %ld, "
+                                                      "failure elapsed %lu ms, failure times %lu\n",
+                                                      idle_num, busy_num, post_num, total_num, max_num,
+                                                      fail_c_time_msec - fail_s_time_msec, fail_counter);
+
+            return (NULL_PTR);
+        }
+
+        return (NULL_PTR);
+    }
+
+    if(0 < fail_s_time_msec)
+    {
+        /*report nothing at last failure to prevent from fluttering*/
+
+        fail_s_time_msec = 0;
+        fail_r_time_msec = 0;
+        fail_counter     = 0;
+    }
+
+    COROUTINE_ASSERT(EC_FALSE == coroutine_pool_check_node_is_idle(coroutine_pool, (void *)coroutine_node));
+    COROUTINE_ASSERT(EC_FALSE == coroutine_pool_check_node_is_busy(coroutine_pool, (void *)coroutine_node));
+
+    COROUTINE_ASSERT(NULL_PTR != BSET(COROUTINE_NODE_STACK_SPACE(coroutine_node), 0x00, COROUTINE_NODE_STACK_SIZE(coroutine_node)));
+
+    coroutine_node_get_task(coroutine_node); /*in order to init floating-point register only*/
+    coroutine_node_make_task(coroutine_node, start_routine_addr, para_num, para_list);
+    COROUTINE_NODE_COND_RESERVE(coroutine_node, 1, LOC_COROUTINE_0053);
+
+    /*note: push front to preempt*/
+    COROUTINE_NODE_STATUS(coroutine_node) = COROUTINE_IS_BUSY;
+    COROUTINE_NODE_MOUNTED(coroutine_node) = clist_push_front_no_lock(COROUTINE_POOL_WORKER_BUSY_LIST(coroutine_pool), (void *)coroutine_node);
+
+    COROUTINE_ASSERT(EC_FALSE == coroutine_pool_check_node_is_idle(coroutine_pool, (void *)coroutine_node));
+    COROUTINE_ASSERT(EC_TRUE  == coroutine_pool_check_node_is_busy(coroutine_pool, (void *)coroutine_node));
+
+    task_brd_default_notify();
+
+    dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_pool_load_preempt_no_lock: "
+                                              "load %p (stack %p, size %ld, resume %p)\n",
+                                              coroutine_node,
+                                              COROUTINE_NODE_STACK_SPACE(coroutine_node),
+                                              COROUTINE_NODE_STACK_SIZE(coroutine_node),
+                                              COROUTINE_NODE_RESUME_POINT(coroutine_node));
+    return (coroutine_node);
+}
+
+COROUTINE_NODE * coroutine_pool_load_preempt(COROUTINE_POOL *coroutine_pool, const UINT32 start_routine_addr, const UINT32 para_num, ...)
+{
+    COROUTINE_NODE *coroutine_node;
+    va_list para_list;
+
+    va_start(para_list, para_num);
+
+    COROUTINE_POOL_WORKER_LOCK(coroutine_pool, LOC_COROUTINE_0054);
+    coroutine_node = coroutine_pool_load_preempt_no_lock(coroutine_pool, start_routine_addr, para_num, para_list);
+#if 1
+    dbg_log(SEC_0001_COROUTINE, 3)(LOGSTDOUT, "[DEBUG] coroutine_pool_load_preempt: "
                                               "coroutine_node %p\n",
                                               coroutine_node);
 #endif

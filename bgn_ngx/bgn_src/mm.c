@@ -1565,18 +1565,20 @@ void *safe_malloc(const UINT32 size, const UINT32 location)
     }
 #endif/*(SWITCH_ON == MM_DEBUG)*/
 
-#if 1
-    UINT32 mm_type;
-
-    mm_type = get_static_mem_type(size);
-    if(MM_END != mm_type)
+    if(1)
     {
-        void    *pvoid;
-        alloc_static_mem(mm_type, &pvoid, location);
-        MM_ASSERT(((MM_AUX *)((UINT32)pvoid - sizeof(MM_AUX)))->type == mm_type);
-        return (pvoid);
+        UINT32 mm_type;
+
+        mm_type = get_static_mem_type(size);
+        if(MM_END != mm_type)
+        {
+            void    *pvoid;
+            alloc_static_mem(mm_type, &pvoid, location);
+            MM_ASSERT(((MM_AUX *)((UINT32)pvoid - sizeof(MM_AUX)))->type == mm_type);
+            return (pvoid);
+        }
     }
-#endif
+
     pmem = malloc(((size_t)size) + sizeof(MM_AUX));
     if(NULL_PTR != pmem)
     {
@@ -1625,7 +1627,7 @@ void safe_free(void *pvoid, const UINT32 location)
     //ASSERT(EC_TRUE == safe_assert(pvoid, location));
 
     pAux = (MM_AUX *)((UINT32)pvoid - sizeof(MM_AUX));
-#if 1
+
     if(0 == pAux->type)
     {
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT, "error:safe_free: found invalid type of %p, u %p at %s:%ld\n", pvoid, pAux->u.mm_comm, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
@@ -1637,7 +1639,7 @@ void safe_free(void *pvoid, const UINT32 location)
         free_static_mem(pAux->type, pvoid, location);
         return;
     }
-#endif
+
     pmem = (void *)pAux;
 
     mm_comm = pAux->u.mm_comm;
