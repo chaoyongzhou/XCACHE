@@ -1193,7 +1193,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func ret type   */     e_dbg_EC_BOOL,
 /*func para num   */     4,
 /*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ptr,e_dbg_CBYTES_ext_ptr,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ext_ptr,e_dbg_CSTRING_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
