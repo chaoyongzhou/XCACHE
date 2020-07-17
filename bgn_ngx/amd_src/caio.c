@@ -1794,6 +1794,7 @@ EC_BOOL caio_req_init(CAIO_REQ *caio_req)
     clist_init(CAIO_REQ_NODES(caio_req), MM_CAIO_NODE, LOC_CAIO_0009);
 
     CAIO_REQ_MOUNTED_LIST(caio_req)             = NULL_PTR;
+    CAIO_REQ_MOUNTED_TIMEOUT(caio_req)          = NULL_PTR;
 
     return (EC_TRUE);
 }
@@ -1983,6 +1984,31 @@ EC_BOOL caio_req_is(const CAIO_REQ *caio_req, const UINT32 seq_no)
     return (EC_FALSE);
 }
 
+int caio_req_timeout_cmp(const CAIO_REQ *caio_req_1st, const CAIO_REQ *caio_req_2nd)
+{
+    if(caio_req_1st == caio_req_2nd)
+    {
+        return (0);
+    }
+
+    if(CAIO_REQ_NTIME_MS(caio_req_1st) > CAIO_REQ_NTIME_MS(caio_req_2nd))
+    {
+        return (1);
+    }
+
+    if(CAIO_REQ_NTIME_MS(caio_req_1st) < CAIO_REQ_NTIME_MS(caio_req_2nd))
+    {
+        return (-1);
+    }
+
+    if(caio_req_1st > caio_req_2nd)
+    {
+        return (1);
+    }
+
+    /*caio_req_1st < caio_req_2nd*/
+    return (-1);
+}
 
 void caio_req_print(LOG *log, const CAIO_REQ *caio_req)
 {
@@ -2955,6 +2981,11 @@ CAIO_MD *caio_start(const UINT32 model)
                   (CRB_DATA_FREE)NULL_PTR, /*note: not define*/
                   (CRB_DATA_PRINT)caio_page_print);
 
+    crb_tree_init(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), /*init req timeout tree*/
+                  (CRB_DATA_CMP)caio_req_timeout_cmp,
+                  (CRB_DATA_FREE)NULL_PTR, /*note: not define*/
+                  (CRB_DATA_PRINT)caio_req_print);
+
     clist_init(CAIO_MD_POST_EVENT_REQS(caio_md), MM_CAIO_REQ, LOC_CAIO_0016);
 
     CAIO_MD_AIO_EVENTFD(caio_md) = syscall(__NR_eventfd2, 0, O_NONBLOCK | O_CLOEXEC);
@@ -3685,40 +3716,46 @@ void caio_process_reqs(CAIO_MD *caio_md)
 /*check and process timeout reqs*/
 void caio_process_timeout_reqs(CAIO_MD *caio_md)
 {
-    CLIST_DATA      *clist_data;
-
     UINT32           req_num;
     uint64_t         cur_time_ms;
 
     cur_time_ms = c_get_cur_time_msec();
     req_num     = 0;
 
-    CLIST_LOOP_NEXT(CAIO_MD_REQ_LIST(caio_md), clist_data)
+    for(;;)
     {
         CAIO_REQ       *caio_req;
 
-        caio_req = (CAIO_REQ *)CLIST_DATA_DATA(clist_data);
-        CAIO_ASSERT(CAIO_REQ_MOUNTED_LIST(caio_req) == clist_data);
-
-        if(cur_time_ms >= CAIO_REQ_NTIME_MS(caio_req))
+        caio_req = crb_tree_first_data(CAIO_MD_REQ_TIMEOUT_TREE(caio_md));
+        if(NULL_PTR == caio_req)
         {
-            clist_data = CLIST_DATA_PREV(clist_data);
-
-            req_num ++;
-
-            dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_process_timeout_reqs: "
-                             "req %ld, file range [%ld, %ld), op %s "
-                             "timeout %ld seconds, next access time %ld, cur time %ld => timeout\n",
-                             CAIO_REQ_SEQ_NO(caio_req),
-                             CAIO_REQ_F_S_OFFSET(caio_req), CAIO_REQ_F_E_OFFSET(caio_req),
-                             __caio_op_str(CAIO_REQ_OP(caio_req)),
-                             CAIO_REQ_TIMEOUT_NSEC(caio_req),
-                             CAIO_REQ_NTIME_MS(caio_req),
-                             cur_time_ms);
-
-            caio_del_req(caio_md, caio_req);
-            caio_req_timeout(caio_req);
+            return;
         }
+
+        /*not timeout*/
+        if(cur_time_ms < CAIO_REQ_NTIME_MS(caio_req))
+        {
+            break;
+        }
+
+        /*process timeout*/
+        CAIO_ASSERT(0 < CAIO_REQ_NTIME_MS(caio_req));
+        CAIO_ASSERT(NULL_PTR != CAIO_REQ_MOUNTED_TIMEOUT(caio_req));
+
+        req_num ++;
+
+        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_process_timeout_reqs: "
+                         "req %ld, file range [%ld, %ld), op %s "
+                         "timeout %ld seconds, next access time %ld, cur time %ld => timeout\n",
+                         CAIO_REQ_SEQ_NO(caio_req),
+                         CAIO_REQ_F_S_OFFSET(caio_req), CAIO_REQ_F_E_OFFSET(caio_req),
+                         __caio_op_str(CAIO_REQ_OP(caio_req)),
+                         CAIO_REQ_TIMEOUT_NSEC(caio_req),
+                         CAIO_REQ_NTIME_MS(caio_req),
+                         cur_time_ms);
+
+        caio_del_req(caio_md, caio_req);
+        caio_req_timeout(caio_req);
     }
 
     dbg_log(SEC_0093_CAIO, 5)(LOGSTDOUT, "[DEBUG] caio_process_timeout_reqs: "
@@ -4370,11 +4407,42 @@ EC_BOOL caio_submit_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
 EC_BOOL caio_add_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
 {
     CAIO_ASSERT(NULL_PTR == CAIO_REQ_MOUNTED_LIST(caio_req));
+    CAIO_ASSERT(NULL_PTR == CAIO_REQ_MOUNTED_TIMEOUT(caio_req));
+
+    if(0 < CAIO_REQ_NTIME_MS(caio_req))
+    {
+        CRB_NODE        *crb_node;
+
+        crb_node = crb_tree_insert_data(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), (void *)caio_req);
+        if(NULL_PTR == crb_node)
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_add_req: add req %ld, op %s timeout failed\n",
+                                                 CAIO_REQ_SEQ_NO(caio_req),
+                                                 __caio_op_str(CAIO_REQ_OP(caio_req)));
+            return (EC_FALSE);
+        }
+
+        if(CRB_NODE_DATA(crb_node) != (void *)caio_req)
+        {
+            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_add_req: add req %ld, op %s timeout but found duplicate\n",
+                                                 CAIO_REQ_SEQ_NO(caio_req),
+                                                 __caio_op_str(CAIO_REQ_OP(caio_req)));
+            return (EC_FALSE);
+        }
+
+        CAIO_REQ_MOUNTED_TIMEOUT(caio_req) = crb_node;
+    }
 
     /*push back*/
     CAIO_REQ_MOUNTED_LIST(caio_req) = clist_push_back(CAIO_MD_REQ_LIST(caio_md), (void *)caio_req);
     if(NULL_PTR == CAIO_REQ_MOUNTED_LIST(caio_req))
     {
+        if(NULL_PTR != CAIO_REQ_MOUNTED_TIMEOUT(caio_req))
+        {
+            crb_tree_erase(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), CAIO_REQ_MOUNTED_TIMEOUT(caio_req));
+            CAIO_REQ_MOUNTED_TIMEOUT(caio_req) = NULL_PTR;
+        }
+
         dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_add_req: push req %ld, op %s failed\n",
                                              CAIO_REQ_SEQ_NO(caio_req),
                                              __caio_op_str(CAIO_REQ_OP(caio_req)));
@@ -4389,6 +4457,12 @@ EC_BOOL caio_add_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
 
 EC_BOOL caio_del_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
 {
+    if(NULL_PTR != CAIO_REQ_MOUNTED_TIMEOUT(caio_req))
+    {
+        crb_tree_erase(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), CAIO_REQ_MOUNTED_TIMEOUT(caio_req));
+        CAIO_REQ_MOUNTED_TIMEOUT(caio_req) = NULL_PTR;
+    }
+
     if(NULL_PTR != CAIO_REQ_MOUNTED_LIST(caio_req))
     {
         clist_erase(CAIO_MD_REQ_LIST(caio_md), CAIO_REQ_MOUNTED_LIST(caio_req));
@@ -4723,6 +4797,12 @@ EC_BOOL caio_cleanup_reqs(CAIO_MD *caio_md)
     while(NULL_PTR != (caio_req = clist_pop_front(CAIO_MD_REQ_LIST(caio_md))))
     {
         CAIO_REQ_MOUNTED_LIST(caio_req) = NULL_PTR;
+
+        if(NULL_PTR != CAIO_REQ_MOUNTED_TIMEOUT(caio_req))
+        {
+            crb_tree_erase(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), CAIO_REQ_MOUNTED_TIMEOUT(caio_req));
+            CAIO_REQ_MOUNTED_TIMEOUT(caio_req) = NULL_PTR;
+        }
 
         caio_req_free(caio_req);
     }

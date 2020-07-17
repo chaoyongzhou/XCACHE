@@ -236,6 +236,8 @@ typedef struct
     CRB_TREE         page_tree[2];      /*item is CAIO_PAGE. working page tree*/
     UINT32           page_active_idx;   /*page list/tree active index, range in [0, 1]*/
 
+    CRB_TREE         req_timeout_tree;
+
     CLIST            post_event_reqs;   /*item is CAIO_REQ */
 }CAIO_MD;
 
@@ -256,6 +258,9 @@ typedef struct
 #define CAIO_MD_PAGE_STANDBY_IDX(caio_md)               (1 ^ CAIO_MD_PAGE_ACTIVE_IDX(caio_md))
 #define CAIO_MD_PAGE_LIST(caio_md, idx)                 (&((caio_md)->page_list[ (idx) ]))
 #define CAIO_MD_PAGE_TREE(caio_md, idx)                 (&((caio_md)->page_tree[ (idx) ]))
+
+#define CAIO_MD_REQ_TIMEOUT_TREE(caio_md)               (&((caio_md)->req_timeout_tree))
+
 #define CAIO_MD_POST_EVENT_REQS(caio_md)                (&((caio_md)->post_event_reqs))
 
 #define CAIO_MD_SWITCH_PAGE_LIST(caio_md)               \
@@ -363,6 +368,7 @@ typedef struct
 
     /*shortcut*/
     CLIST_DATA             *mounted_list;      /*mount point in req list of caio module*/
+    CRB_NODE               *mounted_timeout;
 
     CAIO_CB                 callback;
 }CAIO_REQ;
@@ -395,6 +401,8 @@ typedef struct
 
 #define CAIO_REQ_NODES(caio_req)                        (&((caio_req)->nodes))
 #define CAIO_REQ_MOUNTED_LIST(caio_req)                 ((caio_req)->mounted_list)
+#define CAIO_REQ_MOUNTED_TIMEOUT(caio_req)              ((caio_req)->mounted_timeout)
+
 
 typedef struct
 {
@@ -582,6 +590,8 @@ EC_BOOL caio_req_set_post_event(CAIO_REQ *caio_req, CAIO_EVENT_HANDLER handler);
 EC_BOOL caio_req_del_post_event(CAIO_REQ *caio_req);
 
 EC_BOOL caio_req_is(const CAIO_REQ *caio_req, const UINT32 seq_no);
+
+int caio_req_timeout_cmp(const CAIO_REQ *caio_req_1st, const CAIO_REQ *caio_req_2nd);
 
 void caio_req_print(LOG *log, const CAIO_REQ *caio_req);
 
