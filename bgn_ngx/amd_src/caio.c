@@ -808,31 +808,56 @@ void caio_cb_print(LOG *log, const CAIO_CB *caio_cb)
 /*----------------------------------- caio stat interface -----------------------------------*/
 EC_BOOL caio_stat_init(CAIO_STAT *caio_stat)
 {
-    CAIO_STAT_NEXT_TIME_MSEC(caio_stat)         = 0;
+    CAIO_STAT_NEXT_TIME_MSEC(caio_stat)                         = 0;
 
-    CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_RD) = 0;
-    CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_WR) = 0;
+    CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_RD)                 = 0;
+    CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_WR)                 = 0;
 
-    CAIO_STAT_OP_NBYTES(caio_stat, CAIO_OP_RD)  = 0;
-    CAIO_STAT_OP_NBYTES(caio_stat, CAIO_OP_WR)  = 0;
+    CAIO_STAT_OP_NBYTES(caio_stat, CAIO_OP_RD)                  = 0;
+    CAIO_STAT_OP_NBYTES(caio_stat, CAIO_OP_WR)                  = 0;
 
-    CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_RD)  = 0;
-    CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_WR)  = 0;
+    CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_RD)                  = 0;
+    CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_WR)                  = 0;
+
+    CAIO_STAT_DISPATCH_HIT(caio_stat)                           = 0;
+    CAIO_STAT_DISPATCH_MISS(caio_stat)                          = 0;
+
+    CAIO_STAT_PAGE_IS_ALIGNED_COUNTER(caio_stat, CAIO_OP_RD)    = 0;
+    CAIO_STAT_PAGE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_OP_WR)   = 0;
+
+    CAIO_STAT_NODE_IS_ALIGNED_COUNTER(caio_stat, CAIO_OP_RD)    = 0;
+    CAIO_STAT_NODE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_OP_WR)   = 0;
+
+    CAIO_STAT_MEM_REUSED_COUNTER(caio_stat)                     = 0;
+    CAIO_STAT_MEM_ZCOPY_COUNTER(caio_stat)                      = 0;
 
     return (EC_TRUE);
 }
 
 EC_BOOL caio_stat_clean(CAIO_STAT *caio_stat)
 {
-    CAIO_STAT_NEXT_TIME_MSEC(caio_stat)         = 0;
-    CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_RD) = 0;
-    CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_WR) = 0;
+    CAIO_STAT_NEXT_TIME_MSEC(caio_stat)                         = 0;
 
-    CAIO_STAT_OP_NBYTES(caio_stat, CAIO_OP_RD)  = 0;
-    CAIO_STAT_OP_NBYTES(caio_stat, CAIO_OP_WR)  = 0;
+    CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_RD)                 = 0;
+    CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_WR)                 = 0;
 
-    CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_RD)  = 0;
-    CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_WR)  = 0;
+    CAIO_STAT_OP_NBYTES(caio_stat, CAIO_OP_RD)                  = 0;
+    CAIO_STAT_OP_NBYTES(caio_stat, CAIO_OP_WR)                  = 0;
+
+    CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_RD)                  = 0;
+    CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_WR)                  = 0;
+
+    CAIO_STAT_DISPATCH_HIT(caio_stat)                           = 0;
+    CAIO_STAT_DISPATCH_MISS(caio_stat)                          = 0;
+
+    CAIO_STAT_PAGE_IS_ALIGNED_COUNTER(caio_stat, CAIO_OP_RD)    = 0;
+    CAIO_STAT_PAGE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_OP_WR)   = 0;
+
+    CAIO_STAT_NODE_IS_ALIGNED_COUNTER(caio_stat, CAIO_OP_RD)    = 0;
+    CAIO_STAT_NODE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_OP_WR)   = 0;
+
+    CAIO_STAT_MEM_REUSED_COUNTER(caio_stat)                     = 0;
+    CAIO_STAT_MEM_ZCOPY_COUNTER(caio_stat)                      = 0;
 
     return (EC_TRUE);
 }
@@ -989,6 +1014,7 @@ EC_BOOL caio_page_init(CAIO_PAGE *caio_page)
 
     CAIO_PAGE_WORKING_FLAG(caio_page)       = BIT_FALSE;
     CAIO_PAGE_MEM_CACHE_FLAG(caio_page)     = BIT_FALSE;
+    CAIO_PAGE_MEM_REUSED_FLAG(caio_page)    = BIT_FALSE;
 
     CAIO_PAGE_FD(caio_page)                 = ERR_FD;
 
@@ -1003,8 +1029,9 @@ EC_BOOL caio_page_init(CAIO_PAGE *caio_page)
     CAIO_PAGE_CAIO_MD(caio_page)            = NULL_PTR;
     CAIO_PAGE_CAIO_DISK(caio_page)          = NULL_PTR;
 
-    CAIO_PAGE_MOUNTED_PAGES(caio_page)      = NULL_PTR;
-    CAIO_PAGE_MOUNTED_LIST_IDX(caio_page)   = CAIO_PAGE_LIST_IDX_ERR;
+    CAIO_PAGE_MOUNTED_LIST(caio_page)       = NULL_PTR;
+    CAIO_PAGE_MOUNTED_TREE(caio_page)       = NULL_PTR;
+    CAIO_PAGE_MOUNTED_IDX(caio_page)        = CAIO_PAGE_IDX_ERR;
 
     clist_init(CAIO_PAGE_OWNERS(caio_page), MM_CAIO_NODE, LOC_CAIO_0004);
 
@@ -1024,30 +1051,35 @@ EC_BOOL caio_page_clean(CAIO_PAGE *caio_page)
 
         if(NULL_PTR != CAIO_PAGE_M_CACHE(caio_page))
         {
-            if(BIT_FALSE == CAIO_PAGE_MEM_CACHE_FLAG(caio_page))
+            if(BIT_FALSE == CAIO_PAGE_MEM_REUSED_FLAG(caio_page))
             {
-                c_memalign_free(CAIO_PAGE_M_CACHE(caio_page));
-            }
-            else
-            {
-                __caio_mem_cache_free(CAIO_PAGE_M_CACHE(caio_page));
+                if(BIT_FALSE == CAIO_PAGE_MEM_CACHE_FLAG(caio_page))
+                {
+                    c_memalign_free(CAIO_PAGE_M_CACHE(caio_page));
+                }
+                else
+                {
+                    __caio_mem_cache_free(CAIO_PAGE_M_CACHE(caio_page));
+                }
             }
 
             CAIO_PAGE_M_CACHE(caio_page) = NULL_PTR;
         }
 
-        if(NULL_PTR != CAIO_PAGE_MOUNTED_PAGES(caio_page)
+        if(NULL_PTR != CAIO_PAGE_MOUNTED_LIST(caio_page)
+        && NULL_PTR != CAIO_PAGE_MOUNTED_TREE(caio_page)
         && NULL_PTR != CAIO_PAGE_CAIO_MD(caio_page)
-        && CAIO_PAGE_LIST_IDX_ERR != CAIO_PAGE_MOUNTED_LIST_IDX(caio_page))
+        && CAIO_PAGE_IDX_ERR != CAIO_PAGE_MOUNTED_IDX(caio_page))
         {
             CAIO_MD     *caio_md;
 
             caio_md = CAIO_PAGE_CAIO_MD(caio_page);
-            caio_del_page(caio_md, CAIO_PAGE_MOUNTED_LIST_IDX(caio_page), caio_page);
+            caio_del_page(caio_md, CAIO_PAGE_MOUNTED_IDX(caio_page), caio_page);
         }
 
         CAIO_PAGE_WORKING_FLAG(caio_page)       = BIT_FALSE;
         CAIO_PAGE_MEM_CACHE_FLAG(caio_page)     = BIT_FALSE;
+        CAIO_PAGE_MEM_REUSED_FLAG(caio_page)    = BIT_FALSE;
 
         CAIO_PAGE_FD(caio_page)                 = ERR_FD;
 
@@ -1083,12 +1115,13 @@ EC_BOOL caio_page_free(CAIO_PAGE *caio_page)
 void caio_page_print(LOG *log, const CAIO_PAGE *caio_page)
 {
     sys_log(log, "caio_page_print: caio_page %p: page range [%ld, %ld), "
-                 "m_cache %p, mounted pages %p, mounted page list %ld\n",
+                 "m_cache %p, mounted list %p, mounted tree %p, mounted idx %ld\n",
                  caio_page,
                  CAIO_PAGE_F_S_OFFSET(caio_page), CAIO_PAGE_F_E_OFFSET(caio_page),
                  CAIO_PAGE_M_CACHE(caio_page),
-                 CAIO_PAGE_MOUNTED_PAGES(caio_page),
-                 CAIO_PAGE_MOUNTED_LIST_IDX(caio_page));
+                 CAIO_PAGE_MOUNTED_LIST(caio_page),
+                 CAIO_PAGE_MOUNTED_TREE(caio_page),
+                 CAIO_PAGE_MOUNTED_IDX(caio_page));
 
     sys_log(log, "caio_page_print: caio_page %p: owners:\n", caio_page);
     clist_print(log, CAIO_PAGE_OWNERS(caio_page), (CLIST_DATA_DATA_PRINT)caio_node_print);
@@ -1109,10 +1142,10 @@ void caio_page_print_range(LOG *log, const CAIO_PAGE *caio_page)
  *  note:
  *      caio request comes from CAMD or CDC which indicates that
  *      caio request may be for sata access or ssd access.
- *      therefore, caio_page_cmp should distinguish fd as well as [start offset, end offset)
+ *      therefore, caio_page_list_cmp/caio_page_tree_cmp should distinguish fd as well as [start offset, end offset)
  *
 **/
-EC_BOOL caio_page_cmp(const CAIO_PAGE *caio_page_1st, const CAIO_PAGE *caio_page_2nd)
+EC_BOOL caio_page_list_cmp(const CAIO_PAGE *caio_page_1st, const CAIO_PAGE *caio_page_2nd)
 {
     if(CAIO_PAGE_FD(caio_page_1st) == CAIO_PAGE_FD(caio_page_2nd)
     && CAIO_PAGE_F_S_OFFSET(caio_page_1st) == CAIO_PAGE_F_S_OFFSET(caio_page_2nd)
@@ -1122,6 +1155,61 @@ EC_BOOL caio_page_cmp(const CAIO_PAGE *caio_page_1st, const CAIO_PAGE *caio_page
     }
 
     return (EC_FALSE);
+}
+
+int caio_page_tree_cmp(const CAIO_PAGE *caio_page_1st, const CAIO_PAGE *caio_page_2nd)
+{
+    if(CAIO_PAGE_FD(caio_page_1st) > CAIO_PAGE_FD(caio_page_2nd))
+    {
+        return (1);
+    }
+
+    if(CAIO_PAGE_FD(caio_page_1st) < CAIO_PAGE_FD(caio_page_2nd))
+    {
+        return (-1);
+    }
+
+    if(CAIO_PAGE_F_S_OFFSET(caio_page_1st) > CAIO_PAGE_F_S_OFFSET(caio_page_2nd))
+    {
+        return (1);
+    }
+
+    if(CAIO_PAGE_F_S_OFFSET(caio_page_1st) < CAIO_PAGE_F_S_OFFSET(caio_page_2nd))
+    {
+        return (-1);
+    }
+
+    if(CAIO_PAGE_F_E_OFFSET(caio_page_1st) > CAIO_PAGE_F_E_OFFSET(caio_page_2nd))
+    {
+        return (1);
+    }
+
+    if(CAIO_PAGE_F_E_OFFSET(caio_page_1st) < CAIO_PAGE_F_E_OFFSET(caio_page_2nd))
+    {
+        return (-1);
+    }
+
+    return (0);
+}
+
+EC_BOOL caio_page_is_aligned(CAIO_PAGE *caio_page, const UINT32 size, const UINT32 align)
+{
+    if(CAIO_PAGE_F_S_OFFSET(caio_page) + size != CAIO_PAGE_F_E_OFFSET(caio_page))
+    {
+        return (EC_FALSE);
+    }
+
+    if(0 != (CAIO_PAGE_F_S_OFFSET(caio_page) % align))
+    {
+        return (EC_FALSE);
+    }
+
+    if(0 != (CAIO_PAGE_F_E_OFFSET(caio_page) % align))
+    {
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
 }
 
 EC_BOOL caio_page_add_node(CAIO_PAGE *caio_page, CAIO_NODE *caio_node)
@@ -1255,8 +1343,14 @@ EC_BOOL caio_page_terminate(CAIO_PAGE *caio_page)
 EC_BOOL caio_page_complete(CAIO_PAGE *caio_page)
 {
     CAIO_MD         *caio_md;
+    CAIO_DISK       *caio_disk;
+    CAIO_STAT       *caio_stat;
     CAIO_NODE       *caio_node;
     UINT32           dirty_flag;
+
+    caio_md   = CAIO_PAGE_CAIO_MD(caio_page);
+    caio_disk = CAIO_PAGE_CAIO_DISK(caio_page);
+    caio_stat = CAIO_DISK_STAT(caio_disk);
 
     dirty_flag = BIT_FALSE;
 
@@ -1278,6 +1372,11 @@ EC_BOOL caio_page_complete(CAIO_PAGE *caio_page)
                                 CAIO_NODE_FD(caio_node),
                                 CAIO_NODE_F_S_OFFSET(caio_node),
                                 CAIO_NODE_F_E_OFFSET(caio_node));
+
+                if(CAIO_PAGE_M_CACHE(caio_page) + CAIO_NODE_B_S_OFFSET(caio_node) == CAIO_NODE_M_BUFF(caio_node))
+                {
+                    CAIO_STAT_MEM_ZCOPY_COUNTER(caio_stat) ++;
+                }
 
                 /*copy data from mem cache to application mem buff*/
                 FCOPY(CAIO_PAGE_M_CACHE(caio_page) + CAIO_NODE_B_S_OFFSET(caio_node),
@@ -1313,6 +1412,11 @@ EC_BOOL caio_page_complete(CAIO_PAGE *caio_page)
                             CAIO_NODE_F_S_OFFSET(caio_node), CAIO_NODE_F_E_OFFSET(caio_node),
                             CAIO_NODE_B_S_OFFSET(caio_node), CAIO_NODE_B_E_OFFSET(caio_node),
                             CAIO_NODE_FD(caio_node));
+
+            if(CAIO_NODE_M_BUFF(caio_node) == CAIO_PAGE_M_CACHE(caio_page) + CAIO_NODE_B_S_OFFSET(caio_node))
+            {
+                CAIO_STAT_MEM_ZCOPY_COUNTER(caio_stat) ++;
+            }
 
             /*copy data from application mem buff to mem cache*/
             FCOPY(CAIO_NODE_M_BUFF(caio_node),
@@ -1359,8 +1463,8 @@ EC_BOOL caio_page_complete(CAIO_PAGE *caio_page)
 
     /*add page to caio module again*/
     CAIO_PAGE_OP(caio_page) = CAIO_OP_WR;  /*reset flag*/
-    caio_md = CAIO_PAGE_CAIO_MD(caio_page);
-    if(EC_FALSE == caio_add_page(caio_md, CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md), caio_page))
+
+    if(EC_FALSE == caio_add_page(caio_md, CAIO_MD_PAGE_ACTIVE_IDX(caio_md), caio_page))
     {
         dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_page_complete: "
                          "add page [%ld, %ld), fd %d to caio module failed\n",
@@ -1480,6 +1584,29 @@ EC_BOOL caio_node_is(const CAIO_NODE *caio_node, const UINT32 sub_seq_no)
     }
 
     return (EC_FALSE);
+}
+
+EC_BOOL caio_node_is_aligned(CAIO_NODE *caio_node, const UINT32 size, const UINT32 align)
+{
+    if(0 != CAIO_NODE_B_S_OFFSET(caio_node))
+    {
+        return (EC_FALSE);
+    }
+
+    if(size != CAIO_NODE_B_E_OFFSET(caio_node))
+    {
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != CAIO_NODE_M_BUFF(caio_node))
+    {
+        if(0 != (((uint64_t)CAIO_NODE_M_BUFF(caio_node)) % ((uint64_t)align)))
+        {
+            return (EC_FALSE);
+        }
+    }
+
+    return (EC_TRUE);
 }
 
 void caio_node_print(LOG *log, const CAIO_NODE *caio_node)
@@ -1666,7 +1793,7 @@ EC_BOOL caio_req_init(CAIO_REQ *caio_req)
 
     clist_init(CAIO_REQ_NODES(caio_req), MM_CAIO_NODE, LOC_CAIO_0009);
 
-    CAIO_REQ_MOUNTED_REQS(caio_req)             = NULL_PTR;
+    CAIO_REQ_MOUNTED_LIST(caio_req)             = NULL_PTR;
 
     return (EC_TRUE);
 }
@@ -1675,7 +1802,7 @@ EC_BOOL caio_req_clean(CAIO_REQ *caio_req)
 {
     if(NULL_PTR != caio_req)
     {
-        if(NULL_PTR != CAIO_REQ_MOUNTED_REQS(caio_req)
+        if(NULL_PTR != CAIO_REQ_MOUNTED_LIST(caio_req)
         && NULL_PTR != CAIO_REQ_CAIO_MD(caio_req))
         {
             caio_del_req(CAIO_REQ_CAIO_MD(caio_req), caio_req);
@@ -2559,12 +2686,18 @@ EC_BOOL caio_req_dispatch_node(CAIO_REQ *caio_req, CAIO_NODE *caio_node)
     const CAIO_CFG     *caio_cfg;
     UINT32              caio_block_size_nbytes;
 
+    CAIO_DISK          *caio_disk;
+    CAIO_STAT          *caio_stat;
+
+    EC_BOOL             page_is_aligned;
+    EC_BOOL             node_is_aligned;
+
     caio_cfg   = __caio_cfg_fetch(CAIO_REQ_MODEL(caio_req));
     caio_block_size_nbytes = CAIO_CFG_BLOCK_SIZE_NBYTES(caio_cfg);
 
     caio_md = CAIO_REQ_CAIO_MD(caio_req);
 
-    caio_page = caio_search_page(caio_md, CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md), CAIO_NODE_FD(caio_node),
+    caio_page = caio_search_page(caio_md, CAIO_MD_PAGE_ACTIVE_IDX(caio_md), CAIO_NODE_FD(caio_node),
                                 CAIO_NODE_F_S_OFFSET(caio_node), CAIO_NODE_F_E_OFFSET(caio_node));
     if(NULL_PTR != caio_page)
     {
@@ -2579,6 +2712,12 @@ EC_BOOL caio_req_dispatch_node(CAIO_REQ *caio_req, CAIO_NODE *caio_node)
                              CAIO_PAGE_FD(caio_page));
             return (EC_FALSE);
         }
+
+        /*statistics*/
+        caio_disk = CAIO_PAGE_CAIO_DISK(caio_page);
+        caio_stat = CAIO_DISK_STAT(caio_disk);
+
+        CAIO_STAT_DISPATCH_HIT(caio_stat) ++;
 
         dbg_log(SEC_0093_CAIO, 6)(LOGSTDOUT, "[DEBUG] caio_req_dispatch_node: "
                          "dispatch node %ld/%ld of req %ld, op %s to existing page [%ld, %ld), fd %d done\n",
@@ -2628,40 +2767,97 @@ EC_BOOL caio_req_dispatch_node(CAIO_REQ *caio_req, CAIO_NODE *caio_node)
         return (EC_FALSE);
     }
 
-    if(CAIO_MODEL_CHOICE == CAIO_REQ_MODEL(caio_req))
-    {
-        /*scenario: not shortcut to mem cache*/
-        CAIO_PAGE_M_CACHE(caio_page) = __caio_mem_cache_new(caio_block_size_nbytes, caio_block_size_nbytes);
-        if(NULL_PTR == CAIO_PAGE_M_CACHE(caio_page))
-        {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_req_dispatch_node: "
-                             "new mem cache for page [%ld, %ld), fd %d failed\n",
-                             CAIO_PAGE_F_S_OFFSET(caio_page), CAIO_PAGE_F_E_OFFSET(caio_page),
-                             CAIO_PAGE_FD(caio_page));
+    /*statistics*/
+    caio_disk = CAIO_PAGE_CAIO_DISK(caio_page);
+    caio_stat = CAIO_DISK_STAT(caio_disk);
 
-            caio_page_free(caio_page);
-            return (EC_FALSE);
-        }
-        CAIO_PAGE_MEM_CACHE_FLAG(caio_page)     = BIT_TRUE;
+    CAIO_STAT_DISPATCH_MISS(caio_stat) ++;
+
+    if(EC_TRUE == caio_page_is_aligned(caio_page, caio_block_size_nbytes, caio_block_size_nbytes))
+    {
+        page_is_aligned = EC_TRUE;
+        CAIO_STAT_PAGE_IS_ALIGNED_COUNTER(caio_stat, CAIO_PAGE_OP(caio_page)) ++;
     }
     else
     {
-        /*scenario: not shortcut to mem cache*/
-        CAIO_PAGE_M_CACHE(caio_page) = c_memalign_new(caio_block_size_nbytes, caio_block_size_nbytes);
-        if(NULL_PTR == CAIO_PAGE_M_CACHE(caio_page))
-        {
-            dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_req_dispatch_node: "
-                             "new mem cache for page [%ld, %ld), fd %d failed\n",
-                             CAIO_PAGE_F_S_OFFSET(caio_page), CAIO_PAGE_F_E_OFFSET(caio_page),
-                             CAIO_PAGE_FD(caio_page));
+        page_is_aligned = EC_FALSE;
+        CAIO_STAT_PAGE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_PAGE_OP(caio_page)) ++;
+    }
 
-            caio_page_free(caio_page);
-            return (EC_FALSE);
+    if(EC_TRUE == caio_node_is_aligned(caio_node, caio_block_size_nbytes, caio_block_size_nbytes))
+    {
+        node_is_aligned = EC_TRUE;
+        CAIO_STAT_NODE_IS_ALIGNED_COUNTER(caio_stat, CAIO_NODE_OP(caio_node)) ++;
+    }
+    else
+    {
+        node_is_aligned = EC_FALSE;
+        CAIO_STAT_NODE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_NODE_OP(caio_node)) ++;
+    }
+
+    if(CAIO_MODEL_CHOICE == CAIO_REQ_MODEL(caio_req))
+    {
+        /*WR op would be completed at once, thus its m_buf could not be reused*/
+        if(CAIO_OP_WR == CAIO_NODE_OP(caio_node)
+        || NULL_PTR == CAIO_NODE_M_BUFF(caio_node)
+        || EC_FALSE == page_is_aligned
+        || EC_FALSE == node_is_aligned)
+        {
+            /*scenario: not shortcut to mem cache*/
+            CAIO_PAGE_M_CACHE(caio_page) = __caio_mem_cache_new(caio_block_size_nbytes, caio_block_size_nbytes);
+            if(NULL_PTR == CAIO_PAGE_M_CACHE(caio_page))
+            {
+                dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_req_dispatch_node: "
+                                 "new mem cache for page [%ld, %ld), fd %d failed\n",
+                                 CAIO_PAGE_F_S_OFFSET(caio_page), CAIO_PAGE_F_E_OFFSET(caio_page),
+                                 CAIO_PAGE_FD(caio_page));
+
+                caio_page_free(caio_page);
+                return (EC_FALSE);
+            }
+            CAIO_PAGE_MEM_CACHE_FLAG(caio_page)     = BIT_TRUE;
+            CAIO_PAGE_MEM_REUSED_FLAG(caio_page)    = BIT_FALSE;
+        }
+        else
+        {
+            CAIO_PAGE_M_CACHE(caio_page) = CAIO_NODE_M_BUFF(caio_node);
+            CAIO_PAGE_MEM_REUSED_FLAG(caio_page) = BIT_TRUE;
+
+            CAIO_STAT_MEM_REUSED_COUNTER(caio_stat) ++;
+        }
+    }
+    else
+    {
+        if(CAIO_OP_WR == CAIO_NODE_OP(caio_node)
+        || NULL_PTR == CAIO_NODE_M_BUFF(caio_node)
+        || EC_FALSE == page_is_aligned
+        || EC_FALSE == node_is_aligned)
+        {
+            /*scenario: not shortcut to mem cache*/
+            CAIO_PAGE_M_CACHE(caio_page) = c_memalign_new(caio_block_size_nbytes, caio_block_size_nbytes);
+            if(NULL_PTR == CAIO_PAGE_M_CACHE(caio_page))
+            {
+                dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_req_dispatch_node: "
+                                 "new mem cache for page [%ld, %ld), fd %d failed\n",
+                                 CAIO_PAGE_F_S_OFFSET(caio_page), CAIO_PAGE_F_E_OFFSET(caio_page),
+                                 CAIO_PAGE_FD(caio_page));
+
+                caio_page_free(caio_page);
+                return (EC_FALSE);
+            }
+            CAIO_PAGE_MEM_CACHE_FLAG(caio_page)     = BIT_FALSE;
+            CAIO_PAGE_MEM_REUSED_FLAG(caio_page)    = BIT_FALSE;
+        }
+        else
+        {
+            CAIO_PAGE_M_CACHE(caio_page) = CAIO_NODE_M_BUFF(caio_node);
+            CAIO_PAGE_MEM_REUSED_FLAG(caio_page)    = BIT_TRUE;
+            CAIO_STAT_MEM_REUSED_COUNTER(caio_stat) ++;
         }
     }
 
     /*add page to caio module*/
-    if(EC_FALSE == caio_add_page(caio_md, CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md), caio_page))
+    if(EC_FALSE == caio_add_page(caio_md, CAIO_MD_PAGE_ACTIVE_IDX(caio_md), caio_page))
     {
         dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_req_dispatch_node: "
                          "add page [%ld, %ld), fd %d to caio module failed\n",
@@ -2683,7 +2879,7 @@ EC_BOOL caio_req_dispatch_node(CAIO_REQ *caio_req, CAIO_NODE *caio_node)
                          CAIO_PAGE_F_S_OFFSET(caio_page), CAIO_PAGE_F_E_OFFSET(caio_page),
                          CAIO_PAGE_FD(caio_page));
 
-        caio_del_page(caio_md, CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md), caio_page);
+        caio_del_page(caio_md, CAIO_MD_PAGE_ACTIVE_IDX(caio_md), caio_page);
         caio_page_free(caio_page);
         return (EC_FALSE);
     }
@@ -2747,9 +2943,17 @@ CAIO_MD *caio_start(const UINT32 model)
 
     clist_init(CAIO_MD_REQ_LIST(caio_md), MM_CAIO_REQ, LOC_CAIO_0013);
 
-    CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md) = 0; /*set page list[0] is active*/
+    CAIO_MD_PAGE_ACTIVE_IDX(caio_md) = 0; /*set page list[0], tree[0] is active*/
     clist_init(CAIO_MD_PAGE_LIST(caio_md, 0), MM_CAIO_PAGE, LOC_CAIO_0014);/*init active page list*/
     clist_init(CAIO_MD_PAGE_LIST(caio_md, 1), MM_CAIO_PAGE, LOC_CAIO_0015);/*init standby page list*/
+    crb_tree_init(CAIO_MD_PAGE_TREE(caio_md, 0), /*init active page tree*/
+                  (CRB_DATA_CMP)caio_page_tree_cmp,
+                  (CRB_DATA_FREE)NULL_PTR, /*note: not define*/
+                  (CRB_DATA_PRINT)caio_page_print);
+    crb_tree_init(CAIO_MD_PAGE_TREE(caio_md, 1), /*init standby page tree*/
+                  (CRB_DATA_CMP)caio_page_tree_cmp,
+                  (CRB_DATA_FREE)NULL_PTR, /*note: not define*/
+                  (CRB_DATA_PRINT)caio_page_print);
 
     clist_init(CAIO_MD_POST_EVENT_REQS(caio_md), MM_CAIO_REQ, LOC_CAIO_0016);
 
@@ -2795,9 +2999,9 @@ void caio_end(CAIO_MD *caio_md)
             caio_poll(caio_md);
         }
 
-        caio_cleanup_pages(caio_md, CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md));
-        caio_cleanup_pages(caio_md, CAIO_MD_STANDBY_PAGE_LIST_IDX(caio_md));
-        CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md) = 0;
+        caio_cleanup_pages(caio_md, CAIO_MD_PAGE_ACTIVE_IDX(caio_md));
+        caio_cleanup_pages(caio_md, CAIO_MD_PAGE_STANDBY_IDX(caio_md));
+        CAIO_MD_PAGE_ACTIVE_IDX(caio_md) = 0;
 
         caio_cleanup_reqs(caio_md);
         caio_cleanup_post_event_reqs(caio_md);
@@ -2855,14 +3059,14 @@ void caio_print(LOG *log, const CAIO_MD *caio_md)
 
         sys_log(log, "caio_print: caio_md %p: %u active pages:\n",
                      caio_md,
-                     clist_size(CAIO_MD_PAGE_LIST(caio_md, CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md))));
-        clist_print(log, CAIO_MD_PAGE_LIST(caio_md, CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md)),
+                     clist_size(CAIO_MD_PAGE_LIST(caio_md, CAIO_MD_PAGE_ACTIVE_IDX(caio_md))));
+        clist_print(log, CAIO_MD_PAGE_LIST(caio_md, CAIO_MD_PAGE_ACTIVE_IDX(caio_md)),
                     (CLIST_DATA_DATA_PRINT)caio_page_print);
 
         sys_log(log, "caio_print: caio_md %p: %u standby pages:\n",
                      caio_md,
-                     clist_size(CAIO_MD_PAGE_LIST(caio_md, CAIO_MD_STANDBY_PAGE_LIST_IDX(caio_md))));
-        clist_print(log, CAIO_MD_PAGE_LIST(caio_md, CAIO_MD_STANDBY_PAGE_LIST_IDX(caio_md)),
+                     clist_size(CAIO_MD_PAGE_LIST(caio_md, CAIO_MD_PAGE_STANDBY_IDX(caio_md))));
+        clist_print(log, CAIO_MD_PAGE_LIST(caio_md, CAIO_MD_PAGE_STANDBY_IDX(caio_md)),
                     (CLIST_DATA_DATA_PRINT)caio_page_print);
 
         if(0)
@@ -3024,7 +3228,7 @@ EC_BOOL caio_event_handler(CAIO_MD *caio_md)
             caio_disk = CAIO_PAGE_CAIO_DISK(caio_page);
             CAIO_DISK_CUR_REQ_NUM(caio_disk) --;
 
-            caio_del_page(caio_md, CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md), caio_page);
+            caio_del_page(caio_md, CAIO_MD_PAGE_ACTIVE_IDX(caio_md), caio_page);
 
             CAIO_PAGE_WORKING_FLAG(caio_page) = BIT_FALSE; /*clear*/
 
@@ -3108,21 +3312,21 @@ int caio_get_eventfd(CAIO_MD *caio_md)
 
 EC_BOOL caio_try_quit(CAIO_MD *caio_md)
 {
-    UINT32  page_list_idx;
+    UINT32  page_choice_idx;
 
     static UINT32  warning_counter = 0; /*suppress warning report*/
 
     caio_event_handler(caio_md); /*handle once*/
     caio_process(caio_md);       /*process once*/
 
-    page_list_idx = 0;
-    if(EC_TRUE == caio_has_page(caio_md, page_list_idx))
+    page_choice_idx = 0;
+    if(EC_TRUE == caio_has_page(caio_md, page_choice_idx))
     {
         if(0 == (warning_counter % 1000))
         {
             dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_try_quit: "
-                                                 "page list %ld# is not empty\n",
-                                                 page_list_idx);
+                                                 "page idx %ld# is not empty\n",
+                                                 page_choice_idx);
         }
 
         warning_counter ++;
@@ -3130,14 +3334,14 @@ EC_BOOL caio_try_quit(CAIO_MD *caio_md)
         return (EC_FALSE);
     }
 
-    page_list_idx = 1;
-    if(EC_TRUE == caio_has_page(caio_md, page_list_idx))
+    page_choice_idx = 1;
+    if(EC_TRUE == caio_has_page(caio_md, page_choice_idx))
     {
         if(0 == (warning_counter % 1000))
         {
             dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_try_quit: "
-                                                 "page list %ld# is not empty\n",
-                                                 page_list_idx);
+                                                 "page %ld# is not empty\n",
+                                                 page_choice_idx);
         }
 
         warning_counter ++;
@@ -3179,21 +3383,21 @@ EC_BOOL caio_try_quit(CAIO_MD *caio_md)
 /*copy from caio_try_quit*/
 EC_BOOL caio_try_restart(CAIO_MD *caio_md)
 {
-    UINT32  page_list_idx;
+    UINT32  page_choice_idx;
 
     static UINT32  warning_counter = 0; /*suppress warning report*/
 
     caio_event_handler(caio_md); /*handle once*/
     caio_process(caio_md);       /*process once*/
 
-    page_list_idx = 0;
-    if(EC_TRUE == caio_has_wr_page(caio_md, page_list_idx))
+    page_choice_idx = 0;
+    if(EC_TRUE == caio_has_wr_page(caio_md, page_choice_idx))
     {
         if(0 == (warning_counter % 1000))
         {
             dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_try_restart: "
-                                                 "page list %ld# has wr page\n",
-                                                 page_list_idx);
+                                                 "page idx %ld# has wr page\n",
+                                                 page_choice_idx);
         }
 
         warning_counter ++;
@@ -3201,14 +3405,14 @@ EC_BOOL caio_try_restart(CAIO_MD *caio_md)
         return (EC_FALSE);
     }
 
-    page_list_idx = 1;
-    if(EC_TRUE == caio_has_wr_page(caio_md, page_list_idx))
+    page_choice_idx = 1;
+    if(EC_TRUE == caio_has_wr_page(caio_md, page_choice_idx))
     {
         if(0 == (warning_counter % 1000))
         {
             dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_try_restart: "
-                                                 "page list %ld# is not empty\n",
-                                                 page_list_idx);
+                                                 "page idx %ld# is not empty\n",
+                                                 page_choice_idx);
         }
 
         warning_counter ++;
@@ -3365,6 +3569,23 @@ void caio_process_stat(CAIO_MD *caio_md)
             uint64_t        cost_nbytes;
             uint64_t        cost_reqs;
 
+            uint64_t        dispatch_hit;
+            uint64_t        dispatch_miss;
+
+            uint64_t        rd_page_is_aligned_counter;
+            uint64_t        rd_page_not_aligned_counter;
+
+            uint64_t        wr_page_is_aligned_counter;
+            uint64_t        wr_page_not_aligned_counter;
+
+            uint64_t        rd_node_is_aligned_counter;
+            uint64_t        rd_node_not_aligned_counter;
+
+            uint64_t        wr_node_is_aligned_counter;
+            uint64_t        wr_node_not_aligned_counter;
+
+            uint64_t        mem_reused_counter;
+
             cost_reqs   = CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_RD) - CAIO_STAT_OP_COUNTER(caio_stat_saved, CAIO_OP_RD);
             cost_nbytes = CAIO_STAT_OP_NBYTES(caio_stat, CAIO_OP_RD)  - CAIO_STAT_OP_NBYTES(caio_stat_saved, CAIO_OP_RD);
             cost_msec   = CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_RD)  - CAIO_STAT_COST_MSEC(caio_stat_saved, CAIO_OP_RD);
@@ -3377,10 +3598,41 @@ void caio_process_stat(CAIO_MD *caio_md)
             write_qps   = (0 == cost_msec? 0 : ((cost_reqs * 1000) / cost_msec));
             write_mps   = (0 == cost_msec? 0 : ((cost_nbytes * 1000) / (cost_msec * 1024 * 1024)));
 
+            dispatch_hit  = CAIO_STAT_DISPATCH_HIT(caio_stat)  - CAIO_STAT_DISPATCH_HIT(caio_stat_saved);
+            dispatch_miss = CAIO_STAT_DISPATCH_MISS(caio_stat) - CAIO_STAT_DISPATCH_MISS(caio_stat_saved);
+
+            rd_page_is_aligned_counter  = CAIO_STAT_PAGE_IS_ALIGNED_COUNTER(caio_stat, CAIO_OP_RD)
+                                        - CAIO_STAT_PAGE_IS_ALIGNED_COUNTER(caio_stat_saved, CAIO_OP_RD);
+            rd_page_not_aligned_counter = CAIO_STAT_PAGE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_OP_RD)
+                                        - CAIO_STAT_PAGE_NOT_ALIGNED_COUNTER(caio_stat_saved, CAIO_OP_RD);
+
+            wr_page_is_aligned_counter  = CAIO_STAT_PAGE_IS_ALIGNED_COUNTER(caio_stat, CAIO_OP_WR)
+                                        - CAIO_STAT_PAGE_IS_ALIGNED_COUNTER(caio_stat_saved, CAIO_OP_WR);
+            wr_page_not_aligned_counter = CAIO_STAT_PAGE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_OP_WR)
+                                        - CAIO_STAT_PAGE_NOT_ALIGNED_COUNTER(caio_stat_saved, CAIO_OP_WR);
+
+            rd_node_is_aligned_counter  = CAIO_STAT_NODE_IS_ALIGNED_COUNTER(caio_stat, CAIO_OP_RD)
+                                        - CAIO_STAT_NODE_IS_ALIGNED_COUNTER(caio_stat_saved, CAIO_OP_RD);
+            rd_node_not_aligned_counter = CAIO_STAT_NODE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_OP_RD)
+                                        - CAIO_STAT_NODE_NOT_ALIGNED_COUNTER(caio_stat_saved, CAIO_OP_RD);
+
+            wr_node_is_aligned_counter  = CAIO_STAT_NODE_IS_ALIGNED_COUNTER(caio_stat, CAIO_OP_WR)
+                                        - CAIO_STAT_NODE_IS_ALIGNED_COUNTER(caio_stat_saved, CAIO_OP_WR);
+            wr_node_not_aligned_counter = CAIO_STAT_NODE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_OP_WR)
+                                        - CAIO_STAT_NODE_NOT_ALIGNED_COUNTER(caio_stat_saved, CAIO_OP_WR);
+
+            mem_reused_counter = CAIO_STAT_MEM_REUSED_COUNTER(caio_stat) - CAIO_STAT_MEM_REUSED_COUNTER(caio_stat_saved);
+
             sys_log(LOGSTDOUT, "caio_process_stat:"
                        "disk %d, tag %s, "
-                       "[RD] counter %lu, nbytes %ld, cost %lu, qps %lu, speed %lu MB/s"
-                       "[WR] counter %lu, nbytes %ld, cost %lu, qps %lu, speed %lu MB/s\n",
+                       "[RD] counter %lu, nbytes %ld, cost %lu, qps %lu, speed %lu MB/s, "
+                       "[WR] counter %lu, nbytes %ld, cost %lu, qps %lu, speed %lu MB/s, "
+                       "dispatch hit %lu, dispatch miss %lu, "
+                       "[RD] page aligned %lu, page not aligned %lu, "
+                       "[WR] page aligned %lu, page not aligned %lu, "
+                       "[RD] node aligned %lu, node not aligned %lu, "
+                       "[WR] node aligned %lu, node not aligned %lu, "
+                       "mem reused %lu\n",
                        CAIO_DISK_FD(caio_disk),
                        CAIO_DISK_TAG(caio_disk),
 
@@ -3394,7 +3646,24 @@ void caio_process_stat(CAIO_MD *caio_md)
                        CAIO_STAT_OP_NBYTES(caio_stat, CAIO_OP_WR)  - CAIO_STAT_OP_NBYTES(caio_stat_saved, CAIO_OP_WR),
                        CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_WR)  - CAIO_STAT_COST_MSEC(caio_stat_saved, CAIO_OP_WR),
                        write_qps,
-                       write_mps);
+                       write_mps,
+
+                       dispatch_hit,
+                       dispatch_miss,
+
+                       rd_page_is_aligned_counter,
+                       rd_page_not_aligned_counter,
+
+                       wr_page_is_aligned_counter,
+                       wr_page_not_aligned_counter,
+
+                       rd_node_is_aligned_counter,
+                       rd_node_not_aligned_counter,
+
+                       wr_node_is_aligned_counter,
+                       wr_node_not_aligned_counter,
+
+                       mem_reused_counter);
         }
 
         /*save*/
@@ -3429,7 +3698,7 @@ void caio_process_timeout_reqs(CAIO_MD *caio_md)
         CAIO_REQ       *caio_req;
 
         caio_req = (CAIO_REQ *)CLIST_DATA_DATA(clist_data);
-        CAIO_ASSERT(CAIO_REQ_MOUNTED_REQS(caio_req) == clist_data);
+        CAIO_ASSERT(CAIO_REQ_MOUNTED_LIST(caio_req) == clist_data);
 
         if(cur_time_ms >= CAIO_REQ_NTIME_MS(caio_req))
         {
@@ -3598,12 +3867,12 @@ UINT32 __caio_process_pages(CAIO_MD *caio_md, const UINT32 op)
     aio_req_num_saved = caio_count_req_num(caio_md);
     aio_req_num       = aio_req_num_saved;
 
-    page_num          = caio_count_page_num(caio_md, CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md));
+    page_num          = caio_count_page_num(caio_md, CAIO_MD_PAGE_ACTIVE_IDX(caio_md));
 
     aio_rw_stat[ CAIO_OP_RD ] = 0;
     aio_rw_stat[ CAIO_OP_WR ] = 0;
 
-    while(NULL_PTR != (caio_page = caio_pop_first_page(caio_md, CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md))))
+    while(NULL_PTR != (caio_page = caio_pop_first_page(caio_md, CAIO_MD_PAGE_ACTIVE_IDX(caio_md))))
     {
         CAIO_DISK   *caio_disk;
 
@@ -3618,8 +3887,8 @@ UINT32 __caio_process_pages(CAIO_MD *caio_md, const UINT32 op)
              && (*CAIO_DISK_MAX_REQ_NUM(caio_disk)) <= CAIO_DISK_SUBMIT_REQ_NUM(caio_disk))
         )
         {
-            /*add to standby page list temporarily*/
-            caio_add_page(caio_md, CAIO_MD_STANDBY_PAGE_LIST_IDX(caio_md), caio_page);
+            /*add to standby page list/tree temporarily*/
+            caio_add_page(caio_md, CAIO_MD_PAGE_STANDBY_IDX(caio_md), caio_page);
             continue;
         }
 
@@ -3662,10 +3931,10 @@ UINT32 __caio_process_pages(CAIO_MD *caio_md, const UINT32 op)
         CAIO_DISK_SUBMIT_REQ_NUM(caio_disk) ++;
     }
 
-    /*switch page list*/
+    /*switch page list/tree*/
     CAIO_MD_SWITCH_PAGE_LIST(caio_md);
 
-    CAIO_ASSERT(EC_FALSE == caio_has_page(caio_md, CAIO_MD_STANDBY_PAGE_LIST_IDX(caio_md)));
+    CAIO_ASSERT(EC_FALSE == caio_has_page(caio_md, CAIO_MD_PAGE_STANDBY_IDX(caio_md)));
 
     aio_total_nr = (long)(aio_req_num - aio_req_num_saved);
     if(0 == aio_total_nr)
@@ -3696,8 +3965,8 @@ UINT32 __caio_process_pages(CAIO_MD *caio_md, const UINT32 op)
             caio_page = CAIO_AIOCB_PAGE(piocb[ req_idx ]);
             piocb[ req_idx ] = NULL_PTR;
 
-            /*add back to active page list*/
-            caio_add_page(caio_md, CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md), caio_page);
+            /*add back to active page list/tree*/
+            caio_add_page(caio_md, CAIO_MD_PAGE_ACTIVE_IDX(caio_md), caio_page);
 
             CAIO_ASSERT(NULL_PTR != CAIO_PAGE_CAIO_DISK(caio_page));
             caio_disk = CAIO_PAGE_CAIO_DISK(caio_page);
@@ -3718,7 +3987,7 @@ UINT32 __caio_process_pages(CAIO_MD *caio_md, const UINT32 op)
         req_succ_num = (UINT32)(aio_succ_nr);
         req_fail_num = (UINT32)(aio_total_nr - aio_succ_nr);
 
-        /*add succ nodes back to active page list for page searching by other request*/
+        /*add succ nodes back to active page list/tree for page searching by other request*/
         for(req_idx = 0; req_idx < (UINT32)aio_succ_nr; req_idx ++)
         {
             CAIO_DISK       *caio_disk;
@@ -3733,8 +4002,8 @@ UINT32 __caio_process_pages(CAIO_MD *caio_md, const UINT32 op)
 
             CAIO_PAGE_WORKING_FLAG(caio_page) = BIT_TRUE;
 
-            /*add back to active page list*/
-            caio_add_page(caio_md, CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md), caio_page);/*xxx*/
+            /*add back to active page list/tree*/
+            caio_add_page(caio_md, CAIO_MD_PAGE_ACTIVE_IDX(caio_md), caio_page);/*xxx*/
 
             /*statistics*/
             aio_rw_stat[ CAIO_PAGE_OP(caio_page) ] ++; /*RD or WR statistics*/
@@ -3768,8 +4037,8 @@ UINT32 __caio_process_pages(CAIO_MD *caio_md, const UINT32 op)
             caio_page = CAIO_AIOCB_PAGE(piocb[ req_idx ]);
             piocb[ req_idx ] = NULL_PTR;
 
-            /*add back to active page list*/
-            caio_add_page(caio_md, CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md), caio_page);
+            /*add back to active page list/tree*/
+            caio_add_page(caio_md, CAIO_MD_PAGE_ACTIVE_IDX(caio_md), caio_page);
 
             CAIO_ASSERT(NULL_PTR != CAIO_PAGE_CAIO_DISK(caio_page));
             caio_disk = CAIO_PAGE_CAIO_DISK(caio_page);
@@ -3977,7 +4246,6 @@ EC_BOOL caio_has_wr_req(CAIO_MD *caio_md)
 
 void caio_show_pages(LOG *log, const CAIO_MD *caio_md)
 {
-    //crb_list_print(log, CAIO_MD_PAGE_LIST(caio_md));
     clist_print(log, CAIO_MD_PAGE_LIST(caio_md, 0), (CLIST_DATA_DATA_PRINT)caio_page_print);
     clist_print(log, CAIO_MD_PAGE_LIST(caio_md, 1), (CLIST_DATA_DATA_PRINT)caio_page_print);
     return;
@@ -3993,7 +4261,7 @@ void caio_show_page(LOG *log, const CAIO_MD *caio_md, const int fd, const UINT32
 {
     CAIO_PAGE   *caio_page;
 
-    caio_page = caio_search_page((CAIO_MD *)caio_md, CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md), fd, f_s_offset, f_e_offset);
+    caio_page = caio_search_page((CAIO_MD *)caio_md, CAIO_MD_PAGE_ACTIVE_IDX(caio_md), fd, f_s_offset, f_e_offset);
     if(NULL_PTR == caio_page)
     {
         sys_log(log, "caio_show_req: (no matched req)\n");
@@ -4101,11 +4369,11 @@ EC_BOOL caio_submit_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
 
 EC_BOOL caio_add_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
 {
-    CAIO_ASSERT(NULL_PTR == CAIO_REQ_MOUNTED_REQS(caio_req));
+    CAIO_ASSERT(NULL_PTR == CAIO_REQ_MOUNTED_LIST(caio_req));
 
     /*push back*/
-    CAIO_REQ_MOUNTED_REQS(caio_req) = clist_push_back(CAIO_MD_REQ_LIST(caio_md), (void *)caio_req);
-    if(NULL_PTR == CAIO_REQ_MOUNTED_REQS(caio_req))
+    CAIO_REQ_MOUNTED_LIST(caio_req) = clist_push_back(CAIO_MD_REQ_LIST(caio_md), (void *)caio_req);
+    if(NULL_PTR == CAIO_REQ_MOUNTED_LIST(caio_req))
     {
         dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_add_req: push req %ld, op %s failed\n",
                                              CAIO_REQ_SEQ_NO(caio_req),
@@ -4121,10 +4389,10 @@ EC_BOOL caio_add_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
 
 EC_BOOL caio_del_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
 {
-    if(NULL_PTR != CAIO_REQ_MOUNTED_REQS(caio_req))
+    if(NULL_PTR != CAIO_REQ_MOUNTED_LIST(caio_req))
     {
-        clist_erase(CAIO_MD_REQ_LIST(caio_md), CAIO_REQ_MOUNTED_REQS(caio_req));
-        CAIO_REQ_MOUNTED_REQS(caio_req) = NULL_PTR;
+        clist_erase(CAIO_MD_REQ_LIST(caio_md), CAIO_REQ_MOUNTED_LIST(caio_req));
+        CAIO_REQ_MOUNTED_LIST(caio_req) = NULL_PTR;
 
         dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_del_req: req %ld, op %s\n",
                      CAIO_REQ_SEQ_NO(caio_req),
@@ -4227,18 +4495,51 @@ EC_BOOL caio_cancel_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
     return (EC_TRUE);
 }
 
-UINT32 caio_count_page_num(const CAIO_MD *caio_md, const UINT32 page_list_idx)
+UINT32 caio_count_page_num(const CAIO_MD *caio_md, const UINT32 page_choice_idx)
 {
-    return clist_size(CAIO_MD_PAGE_LIST(caio_md, page_list_idx));
+    CAIO_ASSERT(clist_size(CAIO_MD_PAGE_LIST(caio_md, page_choice_idx))
+            == crb_tree_node_num(CAIO_MD_PAGE_TREE(caio_md, page_choice_idx)));
+
+    return clist_size(CAIO_MD_PAGE_LIST(caio_md, page_choice_idx));
 }
 
-EC_BOOL caio_add_page(CAIO_MD *caio_md, const UINT32 page_list_idx, CAIO_PAGE *caio_page)
+EC_BOOL caio_add_page(CAIO_MD *caio_md, const UINT32 page_choice_idx, CAIO_PAGE *caio_page)
 {
     CLIST_DATA    *clist_data;
+    CRB_NODE      *crb_node;
 
-    CAIO_ASSERT(NULL_PTR == CAIO_PAGE_MOUNTED_PAGES(caio_page));
+    CAIO_ASSERT(NULL_PTR == CAIO_PAGE_MOUNTED_LIST(caio_page));
+    CAIO_ASSERT(NULL_PTR == CAIO_PAGE_MOUNTED_TREE(caio_page));
 
-    clist_data = clist_push_back(CAIO_MD_PAGE_LIST(caio_md, page_list_idx), (void *)caio_page);
+    crb_node = crb_tree_insert_data(CAIO_MD_PAGE_TREE(caio_md, page_choice_idx), (void *)caio_page);
+    if(NULL_PTR == crb_node)
+    {
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_add_page: "
+                                             "add page [%ld, %ld), fd %d to %ld (%s) tree failed\n",
+                                             CAIO_PAGE_F_S_OFFSET(caio_page),
+                                             CAIO_PAGE_F_E_OFFSET(caio_page),
+                                             CAIO_PAGE_FD(caio_page),
+                                             page_choice_idx,
+                                             ((CAIO_MD_PAGE_ACTIVE_IDX(caio_md) == page_choice_idx)?
+                                            (const char *)"active" : (const char *)"standby"));
+        return (EC_FALSE);
+    }
+
+    if(CRB_NODE_DATA(crb_node) != (void *)caio_page)
+    {
+        dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_add_page: "
+                                             "found duplicate, "
+                                             "add page [%ld, %ld), fd %d to %ld (%s) tree failed\n",
+                                             CAIO_PAGE_F_S_OFFSET(caio_page),
+                                             CAIO_PAGE_F_E_OFFSET(caio_page),
+                                             CAIO_PAGE_FD(caio_page),
+                                             page_choice_idx,
+                                             ((CAIO_MD_PAGE_ACTIVE_IDX(caio_md) == page_choice_idx)?
+                                            (const char *)"active" : (const char *)"standby"));
+        return (EC_FALSE);
+    }
+
+    clist_data = clist_push_back(CAIO_MD_PAGE_LIST(caio_md, page_choice_idx), (void *)caio_page);
     if(NULL_PTR == clist_data)
     {
         dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_add_page: "
@@ -4246,53 +4547,60 @@ EC_BOOL caio_add_page(CAIO_MD *caio_md, const UINT32 page_list_idx, CAIO_PAGE *c
                                              CAIO_PAGE_F_S_OFFSET(caio_page),
                                              CAIO_PAGE_F_E_OFFSET(caio_page),
                                              CAIO_PAGE_FD(caio_page),
-                                             page_list_idx,
-                                             ((CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md) == page_list_idx)?
+                                             page_choice_idx,
+                                             ((CAIO_MD_PAGE_ACTIVE_IDX(caio_md) == page_choice_idx)?
                                             (const char *)"active" : (const char *)"standby"));
+
+        crb_tree_delete(CAIO_MD_PAGE_TREE(caio_md, page_choice_idx), crb_node);
         return (EC_FALSE);
     }
 
-    CAIO_PAGE_MOUNTED_PAGES(caio_page)    = clist_data;
-    CAIO_PAGE_MOUNTED_LIST_IDX(caio_page) = page_list_idx;
+    CAIO_PAGE_MOUNTED_LIST(caio_page)     = clist_data;
+    CAIO_PAGE_MOUNTED_TREE(caio_page)     = crb_node;
+    CAIO_PAGE_MOUNTED_IDX(caio_page)      = page_choice_idx;
 
     dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_add_page: "
-                                         "add page [%ld, %ld), fd %d to %ld (%s) list done\n",
+                                         "add page [%ld, %ld), fd %d to %ld (%s) done\n",
                                          CAIO_PAGE_F_S_OFFSET(caio_page),
                                          CAIO_PAGE_F_E_OFFSET(caio_page),
                                          CAIO_PAGE_FD(caio_page),
-                                         page_list_idx,
-                                         ((CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md) == page_list_idx)?
+                                         page_choice_idx,
+                                         ((CAIO_MD_PAGE_ACTIVE_IDX(caio_md) == page_choice_idx)?
                                          (const char *)"active" : (const char *)"standby"));
     return (EC_TRUE);
 }
 
-EC_BOOL caio_del_page(CAIO_MD *caio_md, const UINT32 page_list_idx, CAIO_PAGE *caio_page)
+EC_BOOL caio_del_page(CAIO_MD *caio_md, const UINT32 page_choice_idx, CAIO_PAGE *caio_page)
 {
-    if(NULL_PTR != CAIO_PAGE_MOUNTED_PAGES(caio_page))
+    if(NULL_PTR != CAIO_PAGE_MOUNTED_LIST(caio_page)
+    && NULL_PTR != CAIO_PAGE_MOUNTED_TREE(caio_page))
     {
-        CAIO_ASSERT(page_list_idx == CAIO_PAGE_MOUNTED_LIST_IDX(caio_page));
-        CAIO_ASSERT(caio_page == CLIST_DATA_DATA(CAIO_PAGE_MOUNTED_PAGES(caio_page)));
+        CAIO_ASSERT(page_choice_idx == CAIO_PAGE_MOUNTED_IDX(caio_page));
+        CAIO_ASSERT(caio_page == CLIST_DATA_DATA(CAIO_PAGE_MOUNTED_LIST(caio_page)));
+        CAIO_ASSERT(caio_page == CRB_NODE_DATA(CAIO_PAGE_MOUNTED_TREE(caio_page)));
 
-        clist_erase(CAIO_MD_PAGE_LIST(caio_md, page_list_idx), CAIO_PAGE_MOUNTED_PAGES(caio_page));
+        clist_erase(CAIO_MD_PAGE_LIST(caio_md, page_choice_idx), CAIO_PAGE_MOUNTED_LIST(caio_page));
+        crb_tree_erase(CAIO_MD_PAGE_TREE(caio_md, page_choice_idx), CAIO_PAGE_MOUNTED_TREE(caio_page));
 
-        CAIO_PAGE_MOUNTED_PAGES(caio_page)    = NULL_PTR;
-        CAIO_PAGE_MOUNTED_LIST_IDX(caio_page) = CAIO_PAGE_LIST_IDX_ERR;
+        CAIO_PAGE_MOUNTED_LIST(caio_page)     = NULL_PTR;
+        CAIO_PAGE_MOUNTED_TREE(caio_page)     = NULL_PTR;
+        CAIO_PAGE_MOUNTED_IDX(caio_page)      = CAIO_PAGE_IDX_ERR;
 
         dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_del_page: "
-                                             "del page [%ld, %ld), fd %d from %ld (%s) list done\n",
+                                             "del page [%ld, %ld), fd %d from %ld (%s) done\n",
                                              CAIO_PAGE_F_S_OFFSET(caio_page),
                                              CAIO_PAGE_F_E_OFFSET(caio_page),
                                              CAIO_PAGE_FD(caio_page),
-                                             page_list_idx,
-                                            ((CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md) == page_list_idx)?
+                                             page_choice_idx,
+                                            ((CAIO_MD_PAGE_ACTIVE_IDX(caio_md) == page_choice_idx)?
                                             (const char *)"active" : (const char *)"standby"));
     }
     return (EC_TRUE);
 }
 
-EC_BOOL caio_has_page(CAIO_MD *caio_md, const UINT32 page_list_idx)
+EC_BOOL caio_has_page(CAIO_MD *caio_md, const UINT32 page_choice_idx)
 {
-    if(EC_TRUE == clist_is_empty(CAIO_MD_PAGE_LIST(caio_md, page_list_idx)))
+    if(EC_TRUE == clist_is_empty(CAIO_MD_PAGE_LIST(caio_md, page_choice_idx)))
     {
         return (EC_FALSE);
     }
@@ -4301,11 +4609,11 @@ EC_BOOL caio_has_page(CAIO_MD *caio_md, const UINT32 page_list_idx)
 }
 
 /*writting page*/
-EC_BOOL caio_has_wr_page(CAIO_MD *caio_md, const UINT32 page_list_idx)
+EC_BOOL caio_has_wr_page(CAIO_MD *caio_md, const UINT32 page_choice_idx)
 {
     CLIST_DATA  *clist_data;
 
-    CLIST_LOOP_NEXT(CAIO_MD_PAGE_LIST(caio_md, page_list_idx), clist_data)
+    CLIST_LOOP_NEXT(CAIO_MD_PAGE_LIST(caio_md, page_choice_idx), clist_data)
     {
         CAIO_PAGE   *caio_page;
 
@@ -4324,67 +4632,88 @@ EC_BOOL caio_has_wr_page(CAIO_MD *caio_md, const UINT32 page_list_idx)
     return (EC_FALSE);
 }
 
-CAIO_PAGE *caio_pop_first_page(CAIO_MD *caio_md, const UINT32 page_list_idx)
+CAIO_PAGE *caio_pop_first_page(CAIO_MD *caio_md, const UINT32 page_choice_idx)
 {
     CAIO_PAGE   *caio_page;
 
-    caio_page = clist_pop_front(CAIO_MD_PAGE_LIST(caio_md, page_list_idx));
+    caio_page = clist_pop_front(CAIO_MD_PAGE_LIST(caio_md, page_choice_idx));
     if(NULL_PTR == caio_page)
     {
         return (NULL_PTR);
     }
 
-    CAIO_ASSERT(caio_page == CLIST_DATA_DATA(CAIO_PAGE_MOUNTED_PAGES(caio_page)));
-    CAIO_PAGE_MOUNTED_PAGES(caio_page)    = NULL_PTR;
-    CAIO_PAGE_MOUNTED_LIST_IDX(caio_page) = CAIO_PAGE_LIST_IDX_ERR;
+    CAIO_ASSERT(caio_page == CLIST_DATA_DATA(CAIO_PAGE_MOUNTED_LIST(caio_page)));
+    CAIO_ASSERT(caio_page == CRB_NODE_DATA(CAIO_PAGE_MOUNTED_TREE(caio_page)));
+
+    crb_tree_erase(CAIO_MD_PAGE_TREE(caio_md, page_choice_idx), CAIO_PAGE_MOUNTED_TREE(caio_page));
+
+    CAIO_PAGE_MOUNTED_LIST(caio_page)     = NULL_PTR;
+    CAIO_PAGE_MOUNTED_TREE(caio_page)     = NULL_PTR;
+    CAIO_PAGE_MOUNTED_IDX(caio_page)      = CAIO_PAGE_IDX_ERR;
 
     dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_pop_first_page: "
-                                         "pop page [%ld, %ld), fd %d from %ld (%s) list done\n",
+                                         "pop page [%ld, %ld), fd %d from %ld (%s) done\n",
                                          CAIO_PAGE_F_S_OFFSET(caio_page),
                                          CAIO_PAGE_F_E_OFFSET(caio_page),
                                          CAIO_PAGE_FD(caio_page),
-                                         page_list_idx,
-                                        ((CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md) == page_list_idx)?
+                                         page_choice_idx,
+                                        ((CAIO_MD_PAGE_ACTIVE_IDX(caio_md) == page_choice_idx)?
                                         (const char *)"active" : (const char *)"standby"));
     return (caio_page);
 }
 
-CAIO_PAGE *caio_pop_last_page(CAIO_MD *caio_md, const UINT32 page_list_idx)
+CAIO_PAGE *caio_pop_last_page(CAIO_MD *caio_md, const UINT32 page_choice_idx)
 {
     CAIO_PAGE   *caio_page;
 
-    caio_page = clist_pop_back(CAIO_MD_PAGE_LIST(caio_md, page_list_idx));
+    caio_page = clist_pop_back(CAIO_MD_PAGE_LIST(caio_md, page_choice_idx));
     if(NULL_PTR == caio_page)
     {
         return (NULL_PTR);
     }
 
-    CAIO_ASSERT(caio_page == CLIST_DATA_DATA(CAIO_PAGE_MOUNTED_PAGES(caio_page)));
-    CAIO_PAGE_MOUNTED_PAGES(caio_page)    = NULL_PTR;
-    CAIO_PAGE_MOUNTED_LIST_IDX(caio_page) = CAIO_PAGE_LIST_IDX_ERR;
+    CAIO_ASSERT(caio_page == CLIST_DATA_DATA(CAIO_PAGE_MOUNTED_LIST(caio_page)));
+    CAIO_ASSERT(caio_page == CRB_NODE_DATA(CAIO_PAGE_MOUNTED_TREE(caio_page)));
+
+    crb_tree_erase(CAIO_MD_PAGE_TREE(caio_md, page_choice_idx), CAIO_PAGE_MOUNTED_TREE(caio_page));
+
+    CAIO_PAGE_MOUNTED_LIST(caio_page)     = NULL_PTR;
+    CAIO_PAGE_MOUNTED_TREE(caio_page)     = NULL_PTR;
+    CAIO_PAGE_MOUNTED_IDX(caio_page)      = CAIO_PAGE_IDX_ERR;
 
     dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_pop_last_page: "
-                                         "pop page [%ld, %ld), fd %d from %ld (%s) list done\n",
+                                         "pop page [%ld, %ld), fd %d from %ld (%s) done\n",
                                          CAIO_PAGE_F_S_OFFSET(caio_page),
                                          CAIO_PAGE_F_E_OFFSET(caio_page),
                                          CAIO_PAGE_FD(caio_page),
-                                         page_list_idx,
-                                        ((CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md) == page_list_idx)?
+                                         page_choice_idx,
+                                        ((CAIO_MD_PAGE_ACTIVE_IDX(caio_md) == page_choice_idx)?
                                         (const char *)"active" : (const char *)"standby"));
     return (caio_page);
 }
 
-CAIO_PAGE *caio_search_page(CAIO_MD *caio_md, const UINT32 page_list_idx, const int fd, const UINT32 f_s_offset, const UINT32 f_e_offset)
+CAIO_PAGE *caio_search_page(CAIO_MD *caio_md, const UINT32 page_choice_idx, const int fd, const UINT32 f_s_offset, const UINT32 f_e_offset)
 {
     CAIO_PAGE       caio_page_t;
+    CRB_NODE       *crb_node;
 
     CAIO_PAGE_FD(&caio_page_t)         = fd;
     CAIO_PAGE_F_S_OFFSET(&caio_page_t) = f_s_offset;
     CAIO_PAGE_F_E_OFFSET(&caio_page_t) = f_e_offset;
 
-    return clist_search_data_front(CAIO_MD_PAGE_LIST(caio_md, page_list_idx),
+#if 0
+    return clist_search_data_front(CAIO_MD_PAGE_LIST(caio_md, page_choice_idx),
                                   (void *)&caio_page_t,
-                                  (CLIST_DATA_DATA_CMP)caio_page_cmp);
+                                  (CLIST_DATA_DATA_CMP)caio_page_list_cmp);
+#endif
+    crb_node = crb_tree_search_data(CAIO_MD_PAGE_TREE(caio_md, page_choice_idx),
+                                    (void *)&caio_page_t);
+    if(NULL_PTR == crb_node)
+    {
+        return (NULL_PTR);
+    }
+
+    return CRB_NODE_DATA(crb_node);
 }
 
 EC_BOOL caio_cleanup_reqs(CAIO_MD *caio_md)
@@ -4393,7 +4722,7 @@ EC_BOOL caio_cleanup_reqs(CAIO_MD *caio_md)
 
     while(NULL_PTR != (caio_req = clist_pop_front(CAIO_MD_REQ_LIST(caio_md))))
     {
-        CAIO_REQ_MOUNTED_REQS(caio_req) = NULL_PTR;
+        CAIO_REQ_MOUNTED_LIST(caio_req) = NULL_PTR;
 
         caio_req_free(caio_req);
     }
@@ -4401,11 +4730,11 @@ EC_BOOL caio_cleanup_reqs(CAIO_MD *caio_md)
     return (EC_TRUE);
 }
 
-EC_BOOL caio_cleanup_pages(CAIO_MD *caio_md, const UINT32 page_list_idx)
+EC_BOOL caio_cleanup_pages(CAIO_MD *caio_md, const UINT32 page_choice_idx)
 {
     CAIO_PAGE        *caio_page;
 
-    while(NULL_PTR != (caio_page = caio_pop_first_page(caio_md, page_list_idx)))
+    while(NULL_PTR != (caio_page = caio_pop_first_page(caio_md, page_choice_idx)))
     {
         caio_page_free(caio_page);
     }

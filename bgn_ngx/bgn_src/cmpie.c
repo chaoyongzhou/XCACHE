@@ -2619,20 +2619,6 @@ UINT32 cmpi_decode_cbytes_ext(const UINT32 comm, const UINT8 *in_buff, const UIN
 
     if(NULL_PTR == CBYTES_BUF(cbytes_ext))
     {
-#if (SWITCH_ON == NGX_BGN_SWITCH)
-        CBYTES_BUF(cbytes_ext) = (UINT8 *)safe_malloc(len, LOC_CMPIE_0013);
-        if(NULL_PTR == CBYTES_BUF(cbytes_ext))
-        {
-            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cbytes_ext: "
-                                                  "no memory, len %ld\n",
-                                                  len);
-            exit( 3 );
-        }
-
-        CBYTES_LEN(cbytes_ext) = len;
-#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
-
-#if (SWITCH_OFF == NGX_BGN_SWITCH)
         void    *data;
 
         data = c_memalign_new(len, CMCPGB_PAGE_SIZE_NBYTES);
@@ -2645,8 +2631,6 @@ UINT32 cmpi_decode_cbytes_ext(const UINT32 comm, const UINT8 *in_buff, const UIN
         }
 
         cbytes_mount(cbytes_ext, len, (UINT8 *)data, BIT_TRUE);
-#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
-
     }
     else
     {

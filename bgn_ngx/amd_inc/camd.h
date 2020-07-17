@@ -37,10 +37,9 @@ extern "C"{
 
 /*AMD: aio + mem cache + disk cache*/
 
-#define CAMD_OP_ERR                                     ((UINT32)0x0000) /*bitmap: 0000*/
-#define CAMD_OP_RD                                      ((UINT32)0x0001) /*bitmap: 0001*/
-#define CAMD_OP_WR                                      ((UINT32)0x0002) /*bitmap: 0010*/
-
+#define CAMD_OP_RD                                      ((UINT32)0x0000)
+#define CAMD_OP_WR                                      ((UINT32)0x0001)
+#define CAMD_OP_ERR                                     ((UINT32)0xFFFF)
 
 /*note: mmap max size >= 8713816128  B (i.e.,  8 GB, 118 MB, 146 KB,  64 B)*/
 /*      total of 8 AMDs: 69710529024 B (i.e., 64 GB, 945 MB, 144 KB, 512 B)*/
@@ -69,7 +68,7 @@ extern "C"{
 
 #define CAMD_FLOW_CONTROL_NSEC                          (1) /*flow control per second*/
 
-#define CAMD_PAGE_TREE_IDX_ERR                          ((UINT32)~0)
+#define CAMD_PAGE_IDX_ERR                               ((UINT32)~0)
 
 #define CAMD_NOT_RETRIEVE_BAD_BITMAP                    ((UINT32)0)
 #define CAMD_RETRIEVE_BAD_BITMAP                        ((UINT32)1)
@@ -86,6 +85,29 @@ typedef struct
 
 typedef struct
 {
+    uint64_t            dispatch_hit;                 /*dispatch node and hit existing page*/
+    uint64_t            dispatch_miss;                /*dispatch node but not hit existing page*/
+    uint64_t            page_is_aligned_counter[2];   /*RD, WR, page [f_s_offset, f_e_offset] is aligned*/
+    uint64_t            page_not_aligned_counter[2];  /*RD, WR, page [f_s_offset, f_e_offset] is not aligned*/
+    uint64_t            node_is_aligned_counter[2];   /*RD, WR, node [b_s_offset, b_e_offset] and buff addr are aligned*/
+    uint64_t            node_not_aligned_counter[2];  /*RD, WR, node [b_s_offset, b_e_offset] or buff addr are not aligned*/
+    uint64_t            mem_reused_counter;
+    uint64_t            mem_zcopy_counter;            /*zero copy counter*/
+}CAMD_STAT;
+
+#define CAMD_STAT_DISPATCH_HIT(camd_stat)                 ((camd_stat)->dispatch_hit)
+#define CAMD_STAT_DISPATCH_MISS(camd_stat)                ((camd_stat)->dispatch_miss)
+
+#define CAMD_STAT_PAGE_IS_ALIGNED_COUNTER(camd_stat, op)  ((camd_stat)->page_is_aligned_counter[ (op) ])
+#define CAMD_STAT_PAGE_NOT_ALIGNED_COUNTER(camd_stat, op) ((camd_stat)->page_not_aligned_counter[ (op) ])
+#define CAMD_STAT_NODE_IS_ALIGNED_COUNTER(camd_stat, op)  ((camd_stat)->node_is_aligned_counter[ (op) ])
+#define CAMD_STAT_NODE_NOT_ALIGNED_COUNTER(camd_stat, op) ((camd_stat)->node_not_aligned_counter[ (op) ])
+
+#define CAMD_STAT_MEM_REUSED_COUNTER(camd_stat)           ((camd_stat)->mem_reused_counter)
+#define CAMD_STAT_MEM_ZCOPY_COUNTER(camd_stat)            ((camd_stat)->mem_zcopy_counter)
+
+typedef struct
+{
     char            *camd_dir;
 
     CAIO_MD         *caio_md;
@@ -99,7 +121,7 @@ typedef struct
 
     CLIST            req_list;          /*item is CAMD_REQ. reading & writing request list in order*/
     CRB_TREE         page_tree[2];      /*item is CAMD_PAGE. working page tree*/
-    UINT32           page_tree_idx;     /*page tree active index, range in [0, 1]*/
+    UINT32           page_active_idx;   /*page tree active index, range in [0, 1]*/
 
     CLIST            post_event_reqs;   /*item is CAMD_REQ */
     CLIST            post_file_reqs;    /*item is CAMD_FILE_REQ*/
@@ -133,6 +155,7 @@ typedef struct
 
     CIOSTAT          mem_iostat;
     CIOSTAT          ssd_iostat;
+    CAMD_STAT        camd_stat;
 }CAMD_MD;
 
 #define CAMD_MD_DIR(camd_md)                            ((camd_md)->camd_dir)
@@ -143,8 +166,8 @@ typedef struct
 #define CAMD_MD_CHECK_PAGE_USED_CB(camd_md)             (&((camd_md)->check_page_used_cb))
 #define CAMD_MD_SEQ_NO(camd_md)                         ((camd_md)->seq_no)
 #define CAMD_MD_REQ_LIST(camd_md)                       (&((camd_md)->req_list))
-#define CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md)           ((camd_md)->page_tree_idx)
-#define CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md)          (1 ^ CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md))
+#define CAMD_MD_PAGE_ACTIVE_IDX(camd_md)                ((camd_md)->page_active_idx)
+#define CAMD_MD_PAGE_STANDBY_IDX(camd_md)               (1 ^ CAMD_MD_PAGE_ACTIVE_IDX(camd_md))
 #define CAMD_MD_PAGE_TREE(camd_md, idx)                 (&((camd_md)->page_tree[ (idx) ]))
 #define CAMD_MD_POST_EVENT_REQS(camd_md)                (&((camd_md)->post_event_reqs))
 #define CAMD_MD_POST_FILE_REQS(camd_md)                 (&((camd_md)->post_file_reqs))
@@ -172,10 +195,11 @@ typedef struct
 
 #define CAMD_MD_MEM_IOSTAT(camd_md)                     (&((camd_md)->mem_iostat))
 #define CAMD_MD_SSD_IOSTAT(camd_md)                     (&((camd_md)->ssd_iostat))
+#define CAMD_MD_CAMD_STAT(camd_md)                      (&((camd_md)->camd_stat))
 
 #define CAMD_MD_SWITCH_PAGE_TREE(camd_md)               \
     do{                                                 \
-        CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md) ^= 1;     \
+        CAMD_MD_PAGE_ACTIVE_IDX(camd_md) ^= 1;     \
     }while(0)
 
 
@@ -203,7 +227,8 @@ typedef struct
 
     uint32_t                mem_flushed_flag :1;    /*page is flushed to mem*/
     uint32_t                mem_cache_flag   :1;    /*page is shortcut to mem cache page*/
-    uint32_t                rsvd02           :24;
+    uint32_t                mem_reused_flag  :1;    /*page is shortcut to application buff*/
+    uint32_t                rsvd02           :23;
     uint32_t                rsvd03;
 
     UINT8                  *m_cache;                /*cache for one page*/
@@ -213,8 +238,8 @@ typedef struct
     CAMD_MD                *camd_md;                /*shortcut: point to camd module*/
 
     /*shortcut*/
-    CRB_NODE               *mounted_pages;          /*mount point in page tree of camd module*/
-    UINT32                  mounted_tree_idx;       /*mount in which page tree*/
+    CRB_NODE               *mounted_tree;           /*mount point in page tree of camd module*/
+    UINT32                  mounted_idx;            /*mount in which page tree*/
 }CAMD_PAGE;
 
 #define CAMD_PAGE_FD(camd_page)                         ((camd_page)->fd)
@@ -238,12 +263,13 @@ typedef struct
 
 #define CAMD_PAGE_MEM_FLUSHED_FLAG(camd_page)           ((camd_page)->mem_flushed_flag)
 #define CAMD_PAGE_MEM_CACHE_FLAG(camd_page)             ((camd_page)->mem_cache_flag)
+#define CAMD_PAGE_MEM_REUSED_FLAG(camd_page)            ((camd_page)->mem_reused_flag)
 
 #define CAMD_PAGE_M_CACHE(camd_page)                    ((camd_page)->m_cache)
 #define CAMD_PAGE_OWNERS(camd_page)                     (&((camd_page)->owners))
 #define CAMD_PAGE_CAMD_MD(camd_page)                    ((camd_page)->camd_md)
-#define CAMD_PAGE_MOUNTED_PAGES(camd_page)              ((camd_page)->mounted_pages)
-#define CAMD_PAGE_MOUNTED_TREE_IDX(camd_page)           ((camd_page)->mounted_tree_idx)
+#define CAMD_PAGE_MOUNTED_TREE(camd_page)               ((camd_page)->mounted_tree)
+#define CAMD_PAGE_MOUNTED_IDX(camd_page)                ((camd_page)->mounted_idx)
 
 typedef void (*CAMD_EVENT_HANDLER)(void *);
 
@@ -279,7 +305,7 @@ typedef struct
     CLIST                   nodes;              /*item is CAMD_NODE*/
 
     /*shortcut*/
-    CLIST_DATA             *mounted_reqs;       /*mount point in req list of camd module*/
+    CLIST_DATA             *mounted_list;       /*mount point in req list of camd module*/
 }CAMD_REQ;
 
 #define CAMD_REQ_CAIO_CB(camd_req)                      (&((camd_req)->caio_cb))
@@ -309,7 +335,7 @@ typedef struct
 #define CAMD_REQ_MOUNTED_POST_EVENT_REQS(camd_req)      ((camd_req)->mounted_post_event_reqs)
 
 #define CAMD_REQ_NODES(camd_req)                        (&((camd_req)->nodes))
-#define CAMD_REQ_MOUNTED_REQS(camd_req)                 ((camd_req)->mounted_reqs)
+#define CAMD_REQ_MOUNTED_LIST(camd_req)                 ((camd_req)->mounted_list)
 
 typedef struct
 {
@@ -454,6 +480,12 @@ EC_BOOL camd_cb_clean(CAMD_CB *camd_cb);
 
 EC_BOOL camd_cb_set(CAMD_CB *camd_cb, void *data, void *func);
 
+/*----------------------------------- camd stat interface -----------------------------------*/
+
+EC_BOOL camd_stat_init(CAMD_STAT  *camd_stat);
+
+EC_BOOL camd_stat_clean(CAMD_STAT  *camd_stat);
+
 /*----------------------------------- camd page interface -----------------------------------*/
 
 void camd_mem_cache_counter_print(LOG *log);
@@ -470,6 +502,8 @@ void camd_page_print(LOG *log, const CAMD_PAGE *camd_page);
 
 int camd_page_cmp(const CAMD_PAGE *camd_page_1st, const CAMD_PAGE *camd_page_2nd);
 
+EC_BOOL camd_page_is_aligned(CAMD_PAGE *camd_page, const UINT32 size, const UINT32 align);
+
 EC_BOOL camd_page_add_node(CAMD_PAGE *camd_page, CAMD_NODE *camd_node);
 
 EC_BOOL camd_page_del_node(CAMD_PAGE *camd_page, CAMD_NODE *camd_node);
@@ -479,6 +513,8 @@ EC_BOOL camd_page_cleanup_nodes(CAMD_PAGE *camd_page);
 CAMD_NODE *camd_page_pop_node_front(CAMD_PAGE *camd_page);
 
 CAMD_NODE *camd_page_pop_node_back(CAMD_PAGE *camd_page);
+
+CAMD_NODE *camd_page_peek_node_front(CAMD_PAGE *camd_page);
 
 EC_BOOL camd_page_timeout(CAMD_PAGE *camd_page);
 
@@ -544,6 +580,8 @@ EC_BOOL camd_node_clean(CAMD_NODE *camd_node);
 EC_BOOL camd_node_free(CAMD_NODE *camd_node);
 
 EC_BOOL camd_node_is(const CAMD_NODE *camd_node, const UINT32 sub_seq_no);
+
+EC_BOOL camd_node_is_aligned(CAMD_NODE *camd_node, const UINT32 size, const UINT32 align);
 
 void camd_node_print(LOG *log, const CAMD_NODE *camd_node);
 
@@ -740,21 +778,21 @@ EC_BOOL camd_dispatch_req(CAMD_MD *camd_md, CAMD_REQ *camd_req);
 
 EC_BOOL camd_cancel_req(CAMD_MD *camd_md, CAMD_REQ *camd_req);
 
-UINT32 camd_count_page_num(const CAMD_MD *camd_md, const UINT32 page_tree_idx);
+UINT32 camd_count_page_num(const CAMD_MD *camd_md, const UINT32 page_choice_idx);
 
-EC_BOOL camd_add_page(CAMD_MD *camd_md, const UINT32 page_tree_idx, CAMD_PAGE *camd_page);
+EC_BOOL camd_add_page(CAMD_MD *camd_md, const UINT32 page_choice_idx, CAMD_PAGE *camd_page);
 
-EC_BOOL camd_del_page(CAMD_MD *camd_md, const UINT32 page_tree_idx, CAMD_PAGE *camd_page);
+EC_BOOL camd_del_page(CAMD_MD *camd_md, const UINT32 page_choice_idx, CAMD_PAGE *camd_page);
 
-EC_BOOL camd_has_page(CAMD_MD *camd_md, const UINT32 page_tree_idx);
+EC_BOOL camd_has_page(CAMD_MD *camd_md, const UINT32 page_choice_idx);
 
-CAMD_PAGE *camd_pop_first_page(CAMD_MD *camd_md, const UINT32 page_tree_idx);
+CAMD_PAGE *camd_pop_first_page(CAMD_MD *camd_md, const UINT32 page_choice_idx);
 
-CAMD_PAGE *camd_pop_last_page(CAMD_MD *camd_md, const UINT32 page_tree_idx);
+CAMD_PAGE *camd_pop_last_page(CAMD_MD *camd_md, const UINT32 page_choice_idx);
 
-CAMD_PAGE *camd_search_page(CAMD_MD *camd_md, const UINT32 page_tree_idx, const int fd, const UINT32 f_s_offset, const UINT32 f_e_offset);
+CAMD_PAGE *camd_search_page(CAMD_MD *camd_md, const UINT32 page_choice_idx, const int fd, const UINT32 f_s_offset, const UINT32 f_e_offset);
 
-EC_BOOL camd_cleanup_pages(CAMD_MD *camd_md, const UINT32 page_tree_idx);
+EC_BOOL camd_cleanup_pages(CAMD_MD *camd_md, const UINT32 page_choice_idx);
 
 EC_BOOL camd_cleanup_reqs(CAMD_MD *camd_md);
 
@@ -876,9 +914,9 @@ EC_BOOL camd_clear_sata_bad_page(CAMD_MD *camd_md, const uint32_t page_no);
 
 /*------------------------ cmad cond interface ----------------------------*/
 
-CAMD_COND *camd_cond_new(const UINT32 timeout_msec, const UINT32 location);
+CAMD_COND *camd_cond_new(const UINT32 timeout_nsec, const UINT32 location);
 
-EC_BOOL camd_cond_init(CAMD_COND *camd_cond, const UINT32 timeout_msec, const UINT32 location);
+EC_BOOL camd_cond_init(CAMD_COND *camd_cond, const UINT32 timeout_nsec, const UINT32 location);
 
 EC_BOOL camd_cond_clean(CAMD_COND *camd_cond, const UINT32 location);
 

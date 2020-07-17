@@ -6958,6 +6958,7 @@ EC_BOOL cxfshttps_handle_stat_get_request(CHTTP_NODE *chttp_node)
     CXFSPGV       *cxfspgv;
 
     CAMD_MD       *camd_md;
+    CAMD_STAT     *camd_stat;
     CDC_MD        *cdc_md;
     CDC_STAT      *cdc_stat;
     CMC_MD        *cmc_md;
@@ -6980,6 +6981,7 @@ EC_BOOL cxfshttps_handle_stat_get_request(CHTTP_NODE *chttp_node)
     cxfs_stat  = cxfs_get_stat(CSOCKET_CNODE_MODI(csocket_cnode));
 
     camd_md    = NULL_PTR;
+    camd_stat  = NULL_PTR;
     cdc_md     = NULL_PTR;
     cdc_stat   = NULL_PTR;
     cmc_md     = NULL_PTR;
@@ -6992,6 +6994,8 @@ EC_BOOL cxfshttps_handle_stat_get_request(CHTTP_NODE *chttp_node)
         cdc_md  = CAMD_MD_CDC_MD(camd_md);
         cmc_md  = CAMD_MD_CMC_MD(camd_md);
         caio_md = CAMD_MD_CAIO_MD(camd_md);
+
+        camd_stat = CAMD_MD_CAMD_STAT(camd_md);
     }
 
     if(NULL_PTR != cdc_md)
@@ -7174,6 +7178,32 @@ EC_BOOL cxfshttps_handle_stat_get_request(CHTTP_NODE *chttp_node)
         json_object_add_k_int32(cxfs_dn_obj, "dn_assign_bitmap"     , (int32_t)CXFSPGV_PAGE_MODEL_ASSIGN_BITMAP(cxfspgv));
     }
 
+    if(NULL_PTR != cxfs_obj && NULL_PTR != camd_stat)
+    {
+        json_object   *camd_stat_obj;
+
+        camd_stat_obj = json_object_new_object();
+        json_object_add_obj(cxfs_obj, "camd_stat", camd_stat_obj);
+
+        json_object_add_k_int64(camd_stat_obj, "camd_disk_dispatch_hit", (int64_t)CAMD_STAT_DISPATCH_HIT(camd_stat));
+        json_object_add_k_int64(camd_stat_obj, "camd_disk_dispatch_miss", (int64_t)CAMD_STAT_DISPATCH_MISS(camd_stat));
+
+        json_object_add_k_int64(camd_stat_obj, "camd_rd_page_is_aligned_counter", (int64_t)CAMD_STAT_PAGE_IS_ALIGNED_COUNTER(camd_stat, CAMD_OP_RD));
+        json_object_add_k_int64(camd_stat_obj, "camd_rd_page_not_aligned_counter", (int64_t)CAMD_STAT_PAGE_NOT_ALIGNED_COUNTER(camd_stat, CAMD_OP_RD));
+
+        json_object_add_k_int64(camd_stat_obj, "camd_wr_page_is_aligned_counter", (int64_t)CAMD_STAT_PAGE_IS_ALIGNED_COUNTER(camd_stat, CAMD_OP_WR));
+        json_object_add_k_int64(camd_stat_obj, "camd_wr_page_not_aligned_counter", (int64_t)CAMD_STAT_PAGE_NOT_ALIGNED_COUNTER(camd_stat, CAMD_OP_WR));
+
+        json_object_add_k_int64(camd_stat_obj, "camd_rd_node_is_aligned_counter", (int64_t)CAMD_STAT_NODE_IS_ALIGNED_COUNTER(camd_stat, CAMD_OP_RD));
+        json_object_add_k_int64(camd_stat_obj, "camd_rd_node_not_aligned_counter", (int64_t)CAMD_STAT_NODE_NOT_ALIGNED_COUNTER(camd_stat, CAMD_OP_RD));
+
+        json_object_add_k_int64(camd_stat_obj, "camd_wr_node_is_aligned_counter", (int64_t)CAMD_STAT_NODE_IS_ALIGNED_COUNTER(camd_stat, CAMD_OP_WR));
+        json_object_add_k_int64(camd_stat_obj, "camd_wr_node_not_aligned_counter", (int64_t)CAMD_STAT_NODE_NOT_ALIGNED_COUNTER(camd_stat, CAMD_OP_WR));
+
+        json_object_add_k_int64(camd_stat_obj, "camd_mem_reused_counter", (int64_t)CAMD_STAT_MEM_REUSED_COUNTER(camd_stat));
+        json_object_add_k_int64(camd_stat_obj, "camd_mem_zcopy_counter" , (int64_t)CAMD_STAT_MEM_ZCOPY_COUNTER(camd_stat));
+    }
+
     if(NULL_PTR != cxfs_obj && NULL_PTR != cdc_stat)
     {
         json_object   *cdc_stat_obj;
@@ -7203,6 +7233,24 @@ EC_BOOL cxfshttps_handle_stat_get_request(CHTTP_NODE *chttp_node)
         json_object_add_k_double(cdc_stat_obj, "cdc_degrade_ratio"      , (double )CDC_STAT_SSD_DEGRADE_RATIO(cdc_stat));
         json_object_add_k_int64(cdc_stat_obj,  "cdc_degrade_num"        , (int64_t)CDC_STAT_SSD_DEGRADE_NUM(cdc_stat));
         json_object_add_k_int64(cdc_stat_obj,  "cdc_degrade_speed_mps"  , (int64_t)CDC_STAT_SSD_DEGRADE_SPEED(cdc_stat));
+
+        json_object_add_k_int64(cdc_stat_obj, "cdc_disk_dispatch_hit", (int64_t)CDC_STAT_DISPATCH_HIT(cdc_stat));
+        json_object_add_k_int64(cdc_stat_obj, "cdc_disk_dispatch_miss", (int64_t)CDC_STAT_DISPATCH_MISS(cdc_stat));
+
+        json_object_add_k_int64(cdc_stat_obj, "cdc_rd_page_is_aligned_counter", (int64_t)CDC_STAT_PAGE_IS_ALIGNED_COUNTER(cdc_stat, CDC_OP_RD));
+        json_object_add_k_int64(cdc_stat_obj, "cdc_rd_page_not_aligned_counter", (int64_t)CDC_STAT_PAGE_NOT_ALIGNED_COUNTER(cdc_stat, CDC_OP_RD));
+
+        json_object_add_k_int64(cdc_stat_obj, "cdc_wr_page_is_aligned_counter", (int64_t)CDC_STAT_PAGE_IS_ALIGNED_COUNTER(cdc_stat, CDC_OP_WR));
+        json_object_add_k_int64(cdc_stat_obj, "cdc_wr_page_not_aligned_counter", (int64_t)CDC_STAT_PAGE_NOT_ALIGNED_COUNTER(cdc_stat, CDC_OP_WR));
+
+        json_object_add_k_int64(cdc_stat_obj, "cdc_rd_node_is_aligned_counter", (int64_t)CDC_STAT_NODE_IS_ALIGNED_COUNTER(cdc_stat, CDC_OP_RD));
+        json_object_add_k_int64(cdc_stat_obj, "cdc_rd_node_not_aligned_counter", (int64_t)CDC_STAT_NODE_NOT_ALIGNED_COUNTER(cdc_stat, CDC_OP_RD));
+
+        json_object_add_k_int64(cdc_stat_obj, "cdc_wr_node_is_aligned_counter", (int64_t)CDC_STAT_NODE_IS_ALIGNED_COUNTER(cdc_stat, CDC_OP_WR));
+        json_object_add_k_int64(cdc_stat_obj, "cdc_wr_node_not_aligned_counter", (int64_t)CDC_STAT_NODE_NOT_ALIGNED_COUNTER(cdc_stat, CDC_OP_WR));
+
+        json_object_add_k_int64(cdc_stat_obj, "cdc_mem_reused_counter", (int64_t)CDC_STAT_MEM_REUSED_COUNTER(cdc_stat));
+        json_object_add_k_int64(cdc_stat_obj, "cdc_mem_zcopy_counter" , (int64_t)CDC_STAT_MEM_ZCOPY_COUNTER(cdc_stat));
     }
 
     if(NULL_PTR != cxfs_obj && NULL_PTR != cmc_stat)
@@ -7274,6 +7322,42 @@ EC_BOOL cxfshttps_handle_stat_get_request(CHTTP_NODE *chttp_node)
 
             snprintf((char *)k, sizeof(k), "%s_disk_write_cost_msec", CAIO_DISK_TAG(caio_disk));
             json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_WR));
+
+            snprintf((char *)k, sizeof(k), "%s_disk_dispatch_hit", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_DISPATCH_HIT(caio_stat));
+
+            snprintf((char *)k, sizeof(k), "%s_disk_dispatch_miss", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_DISPATCH_MISS(caio_stat));
+
+            snprintf((char *)k, sizeof(k), "%s_rd_page_is_aligned_counter", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_PAGE_IS_ALIGNED_COUNTER(caio_stat, CAIO_OP_RD));
+
+            snprintf((char *)k, sizeof(k), "%s_rd_page_not_aligned_counter", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_PAGE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_OP_RD));
+
+            snprintf((char *)k, sizeof(k), "%s_wr_page_is_aligned_counter", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_PAGE_IS_ALIGNED_COUNTER(caio_stat, CAIO_OP_WR));
+
+            snprintf((char *)k, sizeof(k), "%s_wr_page_not_aligned_counter", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_PAGE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_OP_WR));
+
+            snprintf((char *)k, sizeof(k), "%s_rd_node_is_aligned_counter", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_NODE_IS_ALIGNED_COUNTER(caio_stat, CAIO_OP_RD));
+
+            snprintf((char *)k, sizeof(k), "%s_rd_node_not_aligned_counter", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_NODE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_OP_RD));
+
+            snprintf((char *)k, sizeof(k), "%s_wr_node_is_aligned_counter", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_NODE_IS_ALIGNED_COUNTER(caio_stat, CAIO_OP_WR));
+
+            snprintf((char *)k, sizeof(k), "%s_wr_node_not_aligned_counter", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_NODE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_OP_WR));
+
+            snprintf((char *)k, sizeof(k), "%s_mem_reused_counter", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_MEM_REUSED_COUNTER(caio_stat));
+
+            snprintf((char *)k, sizeof(k), "%s_mem_zcopy_counter", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_MEM_ZCOPY_COUNTER(caio_stat));
         }
     }
 

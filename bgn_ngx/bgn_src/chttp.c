@@ -4725,7 +4725,7 @@ EC_BOOL chttp_make_response_body_ext(CHTTP_NODE *chttp_node, const uint8_t *data
         return (EC_TRUE);
     }
 
-    if(EC_FALSE == chunk_mgr_mount_data(CHTTP_NODE_SEND_BUF(chttp_node), data, size, aligned))
+    if(EC_FALSE == chunk_mgr_mount_data(CHTTP_NODE_SEND_BUF(chttp_node), data, size, size/*used*/, aligned))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_make_response_body_ext: mount %d bytes to chunks failed\n", size);
         return (EC_FALSE);

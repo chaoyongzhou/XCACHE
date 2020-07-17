@@ -436,7 +436,7 @@ EC_BOOL cbuffer_set_aligned(CBUFFER *cbuffer)
     return (EC_TRUE);
 }
 
-EC_BOOL cbuffer_mount(CBUFFER *cbuffer, const uint8_t *data, const uint32_t len, const uint32_t aligned)
+EC_BOOL cbuffer_mount(CBUFFER *cbuffer, const uint8_t *data, const uint32_t size, const uint32_t used, const uint32_t aligned)
 {
     if(NULL_PTR != CBUFFER_DATA(cbuffer))
     {
@@ -456,8 +456,8 @@ EC_BOOL cbuffer_mount(CBUFFER *cbuffer, const uint8_t *data, const uint32_t len,
     }
 
     CBUFFER_DATA(cbuffer)       = (uint8_t *)data;
-    CBUFFER_USED(cbuffer)       = len;
-    CBUFFER_SIZE(cbuffer)       = len;
+    CBUFFER_USED(cbuffer)       = used;
+    CBUFFER_SIZE(cbuffer)       = size;
 
     if(BIT_TRUE == aligned)
     {
@@ -471,16 +471,16 @@ EC_BOOL cbuffer_mount(CBUFFER *cbuffer, const uint8_t *data, const uint32_t len,
     return (EC_TRUE);
 }
 
-EC_BOOL cbuffer_umount(CBUFFER *cbuffer, uint8_t **data, uint32_t *len, uint32_t *aligned)
+EC_BOOL cbuffer_umount(CBUFFER *cbuffer, uint8_t **data, uint32_t *used, uint32_t *aligned)
 {
     if(NULL_PTR != data)
     {
         (*data) = CBUFFER_DATA(cbuffer);
     }
 
-    if(NULL_PTR != len)
+    if(NULL_PTR != used)
     {
-        (*len) = CBUFFER_USED(cbuffer);
+        (*used) = CBUFFER_USED(cbuffer);
     }
 
     if(NULL_PTR != aligned)

@@ -91,15 +91,15 @@ EC_BOOL chunk_set_aligned(CHUNK *chunk)
     return cbuffer_set_aligned(CHUNK_BUFFER(chunk));
 }
 
-EC_BOOL chunk_mount(CHUNK *chunk, const uint8_t *data, const uint32_t len, const uint32_t aligned)
+EC_BOOL chunk_mount(CHUNK *chunk, const uint8_t *data, const uint32_t size, const uint32_t used, const uint32_t aligned)
 {
-    cbuffer_mount(CHUNK_BUFFER(chunk), data, len, aligned);
+    cbuffer_mount(CHUNK_BUFFER(chunk), data, size, used, aligned);
     CHUNK_OFFSET(chunk) = 0;
 
     return (EC_TRUE);
 }
 
-EC_BOOL chunk_umount(CHUNK *chunk, uint8_t **data, uint32_t *len, uint32_t *aligned)
+EC_BOOL chunk_umount(CHUNK *chunk, uint8_t **data, uint32_t *used, uint32_t *aligned)
 {
     /*data [0, offset) already used, clean them*/
     if(0 < CHUNK_OFFSET(chunk))
@@ -108,7 +108,7 @@ EC_BOOL chunk_umount(CHUNK *chunk, uint8_t **data, uint32_t *len, uint32_t *alig
         CHUNK_OFFSET(chunk) = 0;
     }
 
-    cbuffer_umount(CHUNK_BUFFER(chunk), data, len, aligned);
+    cbuffer_umount(CHUNK_BUFFER(chunk), data, used, aligned);
     return (EC_TRUE);
 }
 
@@ -370,8 +370,8 @@ EC_BOOL chunk_mgr_append_data(CHUNK_MGR *chunk_mgr, const uint8_t *data, const u
 
 EC_BOOL chunk_mgr_append_data_min(CHUNK_MGR *chunk_mgr, const uint8_t *data, const uint32_t size, const uint32_t min_room)
 {
-    uint32_t tsize;/*left size*/
     const uint8_t *src_data;
+    uint32_t tsize;/*left size*/
 
     src_data = data;
     for(tsize = size; 0 < tsize;)
@@ -392,18 +392,7 @@ EC_BOOL chunk_mgr_append_data_min(CHUNK_MGR *chunk_mgr, const uint8_t *data, con
                 csize = tsize;
             }
 
-#if (SWITCH_ON == NGX_BGN_SWITCH)
-            chunk = chunk_new(csize);
-            if(NULL_PTR == chunk)
-            {
-                dbg_log(SEC_0099_CHUNK, 0)(LOGSTDOUT, "error:chunk_mgr_append_data_min: "
-                                                      "new chunk failed\n",
-                                                      csize);
-                return (EC_FALSE);
-            }
-#endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
-
-#if (SWITCH_OFF == NGX_BGN_SWITCH)
+            /*chunk = chunk_new(csize);*/
             chunk = chunk_new(0);
             if(NULL_PTR == chunk)
             {
@@ -428,11 +417,12 @@ EC_BOOL chunk_mgr_append_data_min(CHUNK_MGR *chunk_mgr, const uint8_t *data, con
                 dbg_log(SEC_0099_CHUNK, 9)(LOGSTDOUT, "[DEBUG] chunk_mgr_append_data_min: "
                                                       "new cdata done, csize %u, align %u\n",
                                                       csize, min_room);
-                chunk_mount(chunk, cdata, csize, BIT_TRUE);
+                chunk_mount(chunk, cdata, csize, 0/*used*/, BIT_TRUE);
             }
-#endif/*(SWITCH_OFF == NGX_BGN_SWITCH)*/
 
-            dbg_log(SEC_0099_CHUNK, 9)(LOGSTDOUT, "[DEBUG] chunk_mgr_append_data_min: new chunk with size %d done\n", csize);
+            dbg_log(SEC_0099_CHUNK, 9)(LOGSTDOUT, "[DEBUG] chunk_mgr_append_data_min: "
+                                                  "new chunk with size %d done\n",
+                                                  csize);
 
             chunk_mgr_add_chunk(chunk_mgr, chunk);
         }
@@ -445,7 +435,7 @@ EC_BOOL chunk_mgr_append_data_min(CHUNK_MGR *chunk_mgr, const uint8_t *data, con
     return (EC_TRUE);
 }
 
-EC_BOOL chunk_mgr_mount_data(CHUNK_MGR *chunk_mgr, const uint8_t *data, const uint32_t size, const uint32_t aligned)
+EC_BOOL chunk_mgr_mount_data(CHUNK_MGR *chunk_mgr, const uint8_t *data, const uint32_t size, const uint32_t used, const uint32_t aligned)
 {
     CHUNK   *chunk;
 
@@ -455,14 +445,14 @@ EC_BOOL chunk_mgr_mount_data(CHUNK_MGR *chunk_mgr, const uint8_t *data, const ui
         dbg_log(SEC_0099_CHUNK, 0)(LOGSTDOUT, "error:chunk_mgr_mount_data: new chunk without buffer failed\n");
         return (EC_FALSE);
     }
-    chunk_mount(chunk, data, size, aligned);
+    chunk_mount(chunk, data, size, used, aligned);
 
     chunk_mgr_add_chunk(chunk_mgr, chunk);
     return (EC_TRUE);
 }
 
 /*only for chunk_mgr has no or one chunk!*/
-EC_BOOL chunk_mgr_umount_data(CHUNK_MGR *chunk_mgr, uint8_t **data, uint32_t *size, uint32_t *aligned)
+EC_BOOL chunk_mgr_umount_data(CHUNK_MGR *chunk_mgr, uint8_t **data, uint32_t *used, uint32_t *aligned)
 {
     UINT32 chunk_num;
     CHUNK *chunk;
@@ -480,9 +470,9 @@ EC_BOOL chunk_mgr_umount_data(CHUNK_MGR *chunk_mgr, uint8_t **data, uint32_t *si
         {
             (*data) = NULL_PTR;
         }
-        if(NULL_PTR != size)
+        if(NULL_PTR != used)
         {
-            (*size) = 0;
+            (*used) = 0;
         }
 
         if(NULL_PTR != aligned)
@@ -500,7 +490,7 @@ EC_BOOL chunk_mgr_umount_data(CHUNK_MGR *chunk_mgr, uint8_t **data, uint32_t *si
         return (EC_FALSE);
     }
 
-    chunk_umount(chunk, data, size, aligned);
+    chunk_umount(chunk, data, used, aligned);
     chunk_free(chunk);
 
     return (EC_TRUE);

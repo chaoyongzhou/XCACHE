@@ -30,10 +30,9 @@ extern "C"{
 
 #define CDC_ERR_OFFSET                                 ((UINT32)~0)
 
-#define CDC_OP_ERR                                     ((UINT32)0x0000) /*bitmap: 00*/
-#define CDC_OP_RD                                      ((UINT32)0x0001) /*bitmap: 01*/
-#define CDC_OP_WR                                      ((UINT32)0x0002) /*bitmap: 10*/
-#define CDC_OP_RW                                      ((UINT32)0x0003) /*bitmap: 11*/
+#define CDC_OP_RD                                      ((UINT32)0x0000)
+#define CDC_OP_WR                                      ((UINT32)0x0001)
+#define CDC_OP_ERR                                     ((UINT32)0xFFFF)
 
 #define CDC_AIO_TIMEOUT_NSEC_DEFAULT                   (3600)
 
@@ -79,7 +78,7 @@ extern "C"{
 #define CDC_WRITE_TRAFFIC_16MB                         (((uint64_t)16) << 23) /*16MBps*/
 
 
-#define CDC_PAGE_TREE_IDX_ERR                          ((UINT32)~0)
+#define CDC_PAGE_IDX_ERR                               ((UINT32)~0)
 
 typedef struct
 {
@@ -93,6 +92,15 @@ typedef struct
     uint32_t            ssd_deg_num;
     uint32_t            rsvd01;
     uint64_t            ssd_degrade_traffic_mps;
+
+    uint64_t            dispatch_hit;                 /*dispatch node and hit existing page*/
+    uint64_t            dispatch_miss;                /*dispatch node but not hit existing page*/
+    uint64_t            page_is_aligned_counter[2];   /*RD, WR, page [f_s_offset, f_e_offset] is aligned*/
+    uint64_t            page_not_aligned_counter[2];  /*RD, WR, page [f_s_offset, f_e_offset] is not aligned*/
+    uint64_t            node_is_aligned_counter[2];   /*RD, WR, node [b_s_offset, b_e_offset] and buff addr are aligned*/
+    uint64_t            node_not_aligned_counter[2];  /*RD, WR, node [b_s_offset, b_e_offset] or buff addr are not aligned*/
+    uint64_t            mem_reused_counter;
+    uint64_t            mem_zcopy_counter;            /*zero copy counter*/
 }CDC_STAT;
 
 #define CDC_STAT_SSD_USED_RATIO(cdc_stat)               ((cdc_stat)->ssd_used_ratio)
@@ -102,6 +110,17 @@ typedef struct
 #define CDC_STAT_SSD_DEGRADE_RATIO(cdc_stat)            ((cdc_stat)->ssd_deg_ratio)
 #define CDC_STAT_SSD_DEGRADE_NUM(cdc_stat)              ((cdc_stat)->ssd_deg_num)
 #define CDC_STAT_SSD_DEGRADE_SPEED(cdc_stat)            ((cdc_stat)->ssd_degrade_traffic_mps)
+
+#define CDC_STAT_DISPATCH_HIT(cdc_stat)                 ((cdc_stat)->dispatch_hit)
+#define CDC_STAT_DISPATCH_MISS(cdc_stat)                ((cdc_stat)->dispatch_miss)
+
+#define CDC_STAT_PAGE_IS_ALIGNED_COUNTER(cdc_stat, op)  ((cdc_stat)->page_is_aligned_counter[ (op) ])
+#define CDC_STAT_PAGE_NOT_ALIGNED_COUNTER(cdc_stat, op) ((cdc_stat)->page_not_aligned_counter[ (op) ])
+#define CDC_STAT_NODE_IS_ALIGNED_COUNTER(cdc_stat, op)  ((cdc_stat)->node_is_aligned_counter[ (op) ])
+#define CDC_STAT_NODE_NOT_ALIGNED_COUNTER(cdc_stat, op) ((cdc_stat)->node_not_aligned_counter[ (op) ])
+
+#define CDC_STAT_MEM_REUSED_COUNTER(cdc_stat)           ((cdc_stat)->mem_reused_counter)
+#define CDC_STAT_MEM_ZCOPY_COUNTER(cdc_stat)            ((cdc_stat)->mem_zcopy_counter)
 
 typedef struct
 {
@@ -144,7 +163,7 @@ typedef struct
 
     CLIST                    req_list;          /*item is CDC_REQ. reading & writing request list in order*/
     CRB_TREE                 page_tree[2];      /*item is CDC_PAGE. working page tree*/
-    UINT32                   page_tree_idx;     /*page tree active index, range in [0, 1]*/
+    UINT32                   page_active_idx;   /*page tree active index, range in [0, 1]*/
 
     CLIST                    post_event_reqs;   /*item is CDC_REQ */
 
@@ -205,14 +224,14 @@ typedef struct
 
 #define CDC_MD_SEQ_NO(cdc_md)                         ((cdc_md)->seq_no)
 #define CDC_MD_REQ_LIST(cdc_md)                       (&((cdc_md)->req_list))
-#define CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md)           ((cdc_md)->page_tree_idx)
-#define CDC_MD_STANDBY_PAGE_TREE_IDX(cdc_md)          (1 ^ CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md))
+#define CDC_MD_PAGE_ACTIVE_IDX(cdc_md)                ((cdc_md)->page_active_idx)
+#define CDC_MD_PAGE_STANDBY_IDX(cdc_md)               (1 ^ CDC_MD_PAGE_ACTIVE_IDX(cdc_md))
 #define CDC_MD_PAGE_TREE(cdc_md, idx)                 (&((cdc_md)->page_tree[ (idx) ]))
 #define CDC_MD_POST_EVENT_REQS(cdc_md)                (&((cdc_md)->post_event_reqs))
 
 #define CDC_MD_SWITCH_PAGE_TREE(cdc_md)               \
     do{                                               \
-        CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md) ^= 1;     \
+        CDC_MD_PAGE_ACTIVE_IDX(cdc_md) ^= 1;     \
     }while(0)
 
 typedef struct
@@ -236,6 +255,7 @@ typedef struct
     uint32_t                ssd_loading_flag :1;    /*page is loading from ssd*/
     uint32_t                ssd_flushing_flag:1;    /*page is flushing to ssd */
     uint32_t                mem_cache_flag   :1;    /*page is shortcut to mem cache page*/
+    uint32_t                mem_reused_flag  :1;    /*page is shortcut to mem cache page*/
     uint32_t                sata_dirty_flag  :1;    /*inherited from cdc node*/
     uint32_t                sata_deg_flag    :1;    /*inherited from cdc node*/
     uint32_t                rsvd02           :25;
@@ -252,8 +272,8 @@ typedef struct
     CDC_MD                 *cdc_md;                 /*shortcut: point to cdc module*/
 
     /*shortcut*/
-    CRB_NODE               *mounted_pages;          /*mount point in page tree of cdc module*/
-    UINT32                  mounted_tree_idx;       /*mount in which page tree*/
+    CRB_NODE               *mounted_tree;           /*mount point in page tree of cdc module*/
+    UINT32                  mounted_idx;            /*mount in which page tree*/
 }CDC_PAGE;
 
 #define CDC_PAGE_FD(cdc_page)                         ((cdc_page)->fd)
@@ -273,6 +293,7 @@ typedef struct
 #define CDC_PAGE_SSD_LOADING_FLAG(cdc_page)           ((cdc_page)->ssd_loading_flag)
 #define CDC_PAGE_SSD_FLUSHING_FLAG(cdc_page)          ((cdc_page)->ssd_flushing_flag)
 #define CDC_PAGE_MEM_CACHE_FLAG(cdc_page)             ((cdc_page)->mem_cache_flag)
+#define CDC_PAGE_MEM_REUSED_FLAG(cdc_page)            ((cdc_page)->mem_reused_flag)
 #define CDC_PAGE_SATA_DIRTY_FLAG(cdc_page)            ((cdc_page)->sata_dirty_flag)
 #define CDC_PAGE_SATA_DEG_FLAG(cdc_page)              ((cdc_page)->sata_deg_flag)
 
@@ -283,8 +304,8 @@ typedef struct
 #define CDC_PAGE_CDCNP_ITEM_POS(cdc_page)             ((cdc_page)->cdcnp_item_pos)
 #define CDC_PAGE_OWNERS(cdc_page)                     (&((cdc_page)->owners))
 #define CDC_PAGE_CDC_MD(cdc_page)                     ((cdc_page)->cdc_md)
-#define CDC_PAGE_MOUNTED_PAGES(cdc_page)              ((cdc_page)->mounted_pages)
-#define CDC_PAGE_MOUNTED_TREE_IDX(cdc_page)           ((cdc_page)->mounted_tree_idx)
+#define CDC_PAGE_MOUNTED_TREE(cdc_page)               ((cdc_page)->mounted_tree)
+#define CDC_PAGE_MOUNTED_IDX(cdc_page)                ((cdc_page)->mounted_idx)
 
 typedef void (*CDC_EVENT_HANDLER)(void *);
 
@@ -321,7 +342,7 @@ typedef struct
     CLIST                   nodes;              /*item is CDC_NODE*/
 
     /*shortcut*/
-    CLIST_DATA             *mounted_reqs;       /*mount point in req list of cdc module*/
+    CLIST_DATA             *mounted_list;       /*mount point in req list of cdc module*/
 }CDC_REQ;
 
 #define CDC_REQ_CAIO_CB(cdc_req)                      (&((cdc_req)->caio_cb))
@@ -352,7 +373,7 @@ typedef struct
 #define CDC_REQ_MOUNTED_POST_EVENT_REQS(cdc_req)      ((cdc_req)->mounted_post_event_reqs)
 
 #define CDC_REQ_NODES(cdc_req)                        (&((cdc_req)->nodes))
-#define CDC_REQ_MOUNTED_REQS(cdc_req)                 ((cdc_req)->mounted_reqs)
+#define CDC_REQ_MOUNTED_LIST(cdc_req)                 ((cdc_req)->mounted_list)
 
 typedef struct
 {
@@ -991,6 +1012,8 @@ void cdc_page_print(LOG *log, const CDC_PAGE *cdc_page);
 
 int cdc_page_cmp(const CDC_PAGE *cdc_page_1st, const CDC_PAGE *cdc_page_2nd);
 
+EC_BOOL cdc_page_is_aligned(CDC_PAGE *cdc_page, const UINT32 size, const UINT32 align);
+
 EC_BOOL cdc_page_map(CDC_PAGE *cdc_page);
 
 EC_BOOL cdc_page_locate(CDC_PAGE *cdc_page);
@@ -1067,6 +1090,8 @@ EC_BOOL cdc_node_clean(CDC_NODE *cdc_node);
 EC_BOOL cdc_node_free(CDC_NODE *cdc_node);
 
 EC_BOOL cdc_node_is(const CDC_NODE *cdc_node, const UINT32 sub_seq_no);
+
+EC_BOOL cdc_node_is_aligned(CDC_NODE *cdc_node, const UINT32 size, const UINT32 align);
 
 void cdc_node_print(LOG *log, const CDC_NODE *cdc_node);
 
@@ -1200,21 +1225,21 @@ EC_BOOL cdc_cancel_req(CDC_MD *cdc_md, CDC_REQ *cdc_req);
 
 EC_BOOL cdc_has_locked_page(CDC_MD *cdc_md);
 
-EC_BOOL cdc_add_page(CDC_MD *cdc_md, const UINT32 page_tree_idx, CDC_PAGE *cdc_page);
+EC_BOOL cdc_add_page(CDC_MD *cdc_md, const UINT32 page_choice_idx, CDC_PAGE *cdc_page);
 
-EC_BOOL cdc_del_page(CDC_MD *cdc_md, const UINT32 page_tree_idx, CDC_PAGE *cdc_page);
+EC_BOOL cdc_del_page(CDC_MD *cdc_md, const UINT32 page_choice_idx, CDC_PAGE *cdc_page);
 
-EC_BOOL cdc_has_page(CDC_MD *cdc_md, const UINT32 page_tree_idx);
+EC_BOOL cdc_has_page(CDC_MD *cdc_md, const UINT32 page_choice_idx);
 
-EC_BOOL cdc_has_wr_page(CDC_MD *cdc_md, const UINT32 page_tree_idx);
+EC_BOOL cdc_has_wr_page(CDC_MD *cdc_md, const UINT32 page_choice_idx);
 
-CDC_PAGE *cdc_pop_first_page(CDC_MD *cdc_md, const UINT32 page_tree_idx);
+CDC_PAGE *cdc_pop_first_page(CDC_MD *cdc_md, const UINT32 page_choice_idx);
 
-CDC_PAGE *cdc_pop_last_page(CDC_MD *cdc_md, const UINT32 page_tree_idx);
+CDC_PAGE *cdc_pop_last_page(CDC_MD *cdc_md, const UINT32 page_choice_idx);
 
-CDC_PAGE *cdc_search_page(CDC_MD *cdc_md, const UINT32 page_tree_idx, const int fd, const UINT32 f_s_offset, const UINT32 f_e_offset);
+CDC_PAGE *cdc_search_page(CDC_MD *cdc_md, const UINT32 page_choice_idx, const int fd, const UINT32 f_s_offset, const UINT32 f_e_offset);
 
-EC_BOOL cdc_cleanup_pages(CDC_MD *cdc_md, const UINT32 page_tree_idx);
+EC_BOOL cdc_cleanup_pages(CDC_MD *cdc_md, const UINT32 page_choice_idx);
 
 EC_BOOL cdc_cleanup_reqs(CDC_MD *cdc_md);
 

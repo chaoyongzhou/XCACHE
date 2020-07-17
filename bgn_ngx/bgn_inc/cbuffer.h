@@ -89,9 +89,9 @@ EC_BOOL cbuffer_is_full(const CBUFFER *cbuffer);
 
 EC_BOOL cbuffer_set_aligned(CBUFFER *cbuffer);
 
-EC_BOOL cbuffer_mount(CBUFFER *cbuffer, const uint8_t *data, const uint32_t len, const uint32_t aligned);
+EC_BOOL cbuffer_mount(CBUFFER *cbuffer, const uint8_t *data, const uint32_t size, const uint32_t used, const uint32_t aligned);
 
-EC_BOOL cbuffer_umount(CBUFFER *cbuffer, uint8_t **data, uint32_t *len, uint32_t *aligned);
+EC_BOOL cbuffer_umount(CBUFFER *cbuffer, uint8_t **data, uint32_t *used, uint32_t *aligned);
 
 void cbuffer_print_chars(LOG *log, const CBUFFER *cbuffer);
 

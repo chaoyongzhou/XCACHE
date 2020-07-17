@@ -233,6 +233,40 @@ EC_BOOL camd_cb_set(CAMD_CB *camd_cb, void *data, void *func)
     return (EC_FALSE);
 }
 
+/*----------------------------------- camd stat interface -----------------------------------*/
+
+EC_BOOL camd_stat_init(CAMD_STAT  *camd_stat)
+{
+    CAMD_STAT_DISPATCH_HIT(camd_stat)                          = 0;
+    CAMD_STAT_DISPATCH_MISS(camd_stat)                         = 0;
+
+    CAMD_STAT_PAGE_IS_ALIGNED_COUNTER(camd_stat, CAMD_OP_RD)   = 0;
+    CAMD_STAT_PAGE_NOT_ALIGNED_COUNTER(camd_stat, CAMD_OP_WR)  = 0;
+
+    CAMD_STAT_NODE_IS_ALIGNED_COUNTER(camd_stat, CAMD_OP_RD)   = 0;
+    CAMD_STAT_NODE_NOT_ALIGNED_COUNTER(camd_stat, CAMD_OP_WR)  = 0;
+
+    CAMD_STAT_MEM_REUSED_COUNTER(camd_stat)                    = 0;
+    CAMD_STAT_MEM_ZCOPY_COUNTER(camd_stat)                     = 0;
+    return (EC_TRUE);
+}
+
+EC_BOOL camd_stat_clean(CAMD_STAT  *camd_stat)
+{
+    CAMD_STAT_DISPATCH_HIT(camd_stat)                          = 0;
+    CAMD_STAT_DISPATCH_MISS(camd_stat)                         = 0;
+
+    CAMD_STAT_PAGE_IS_ALIGNED_COUNTER(camd_stat, CAMD_OP_RD)   = 0;
+    CAMD_STAT_PAGE_NOT_ALIGNED_COUNTER(camd_stat, CAMD_OP_WR)  = 0;
+
+    CAMD_STAT_NODE_IS_ALIGNED_COUNTER(camd_stat, CAMD_OP_RD)   = 0;
+    CAMD_STAT_NODE_NOT_ALIGNED_COUNTER(camd_stat, CAMD_OP_WR)  = 0;
+
+    CAMD_STAT_MEM_REUSED_COUNTER(camd_stat)                    = 0;
+    CAMD_STAT_MEM_ZCOPY_COUNTER(camd_stat)                     = 0;
+    return (EC_TRUE);
+}
+
 /*----------------------------------- camd page interface -----------------------------------*/
 
 CAMD_PAGE *camd_page_new()
@@ -273,12 +307,13 @@ EC_BOOL camd_page_init(CAMD_PAGE *camd_page)
 
     CAMD_PAGE_MEM_FLUSHED_FLAG(camd_page)   = BIT_FALSE;
     CAMD_PAGE_MEM_CACHE_FLAG(camd_page)     = BIT_FALSE;
+    CAMD_PAGE_MEM_REUSED_FLAG(camd_page)    = BIT_FALSE;
 
     CAMD_PAGE_M_CACHE(camd_page)            = NULL_PTR;
 
     CAMD_PAGE_CAMD_MD(camd_page)            = NULL_PTR;
-    CAMD_PAGE_MOUNTED_PAGES(camd_page)      = NULL_PTR;
-    CAMD_PAGE_MOUNTED_TREE_IDX(camd_page)   = CAMD_PAGE_TREE_IDX_ERR;
+    CAMD_PAGE_MOUNTED_TREE(camd_page)       = NULL_PTR;
+    CAMD_PAGE_MOUNTED_IDX(camd_page)        = CAMD_PAGE_IDX_ERR;
 
     clist_init(CAMD_PAGE_OWNERS(camd_page), MM_CAMD_NODE, LOC_CAMD_0002);
 
@@ -294,22 +329,25 @@ EC_BOOL camd_page_clean(CAMD_PAGE *camd_page)
 
         if(NULL_PTR != CAMD_PAGE_M_CACHE(camd_page))
         {
-            if(BIT_FALSE == CAMD_PAGE_MEM_CACHE_FLAG(camd_page))
+            if(BIT_FALSE == CAMD_PAGE_MEM_REUSED_FLAG(camd_page))
             {
-                __camd_mem_cache_free(CAMD_PAGE_M_CACHE(camd_page));
+                if(BIT_FALSE == CAMD_PAGE_MEM_CACHE_FLAG(camd_page))
+                {
+                    __camd_mem_cache_free(CAMD_PAGE_M_CACHE(camd_page));
+                }
             }
 
             CAMD_PAGE_M_CACHE(camd_page) = NULL_PTR;
         }
 
-        if(NULL_PTR != CAMD_PAGE_MOUNTED_PAGES(camd_page)
+        if(NULL_PTR != CAMD_PAGE_MOUNTED_TREE(camd_page)
         && NULL_PTR != CAMD_PAGE_CAMD_MD(camd_page)
-        && CAMD_PAGE_TREE_IDX_ERR != CAMD_PAGE_MOUNTED_TREE_IDX(camd_page))
+        && CAMD_PAGE_IDX_ERR != CAMD_PAGE_MOUNTED_IDX(camd_page))
         {
             CAMD_MD     *camd_md;
 
             camd_md = CAMD_PAGE_CAMD_MD(camd_page);
-            camd_del_page(camd_md, CAMD_PAGE_MOUNTED_TREE_IDX(camd_page), camd_page);
+            camd_del_page(camd_md, CAMD_PAGE_MOUNTED_IDX(camd_page), camd_page);
         }
 
         CAMD_PAGE_FD(camd_page)                 = ERR_FD;
@@ -333,6 +371,7 @@ EC_BOOL camd_page_clean(CAMD_PAGE *camd_page)
 
         CAMD_PAGE_MEM_FLUSHED_FLAG(camd_page)   = BIT_FALSE;
         CAMD_PAGE_MEM_CACHE_FLAG(camd_page)     = BIT_FALSE;
+        CAMD_PAGE_MEM_REUSED_FLAG(camd_page)    = BIT_FALSE;
 
         CAMD_PAGE_CAMD_MD(camd_page)            = NULL_PTR;
     }
@@ -355,8 +394,8 @@ void camd_page_print(LOG *log, const CAMD_PAGE *camd_page)
     sys_log(log, "camd_page_print: camd_page %p: page range [%ld, %ld), "
                  "ssd dirty %u, ssd loaded %u, ssd loading %u, "
                  "sata dirty %u, sata loaded %u, sata loading %u, "
-                 "mem flushed %u, mem cache page %u,"
-                 "m_cache %p, mounted pages %p, mounted page tree %lx, "
+                 "mem flushed %u, mem cache flag %u, mem reused flag %u, "
+                 "m_cache %p, mounted tree %p, mounted idx %ld, "
                  "timeout %ld seconds\n",
                  camd_page,
                  CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page),
@@ -368,9 +407,10 @@ void camd_page_print(LOG *log, const CAMD_PAGE *camd_page)
                  CAMD_PAGE_SATA_LOADING_FLAG(camd_page),
                  CAMD_PAGE_MEM_FLUSHED_FLAG(camd_page),
                  CAMD_PAGE_MEM_CACHE_FLAG(camd_page),
+                 CAMD_PAGE_MEM_REUSED_FLAG(camd_page),
                  CAMD_PAGE_M_CACHE(camd_page),
-                 CAMD_PAGE_MOUNTED_PAGES(camd_page),
-                 CAMD_PAGE_MOUNTED_TREE_IDX(camd_page),
+                 CAMD_PAGE_MOUNTED_TREE(camd_page),
+                 CAMD_PAGE_MOUNTED_IDX(camd_page),
                  CAMD_PAGE_TIMEOUT_NSEC(camd_page));
 
     sys_log(log, "camd_page_print: camd_page %p: owners:\n", camd_page);
@@ -406,6 +446,27 @@ int camd_page_cmp(const CAMD_PAGE *camd_page_1st, const CAMD_PAGE *camd_page_2nd
 
     return (1);
 }
+
+EC_BOOL camd_page_is_aligned(CAMD_PAGE *camd_page, const UINT32 size, const UINT32 align)
+{
+    if(CAMD_PAGE_F_S_OFFSET(camd_page) + size != CAMD_PAGE_F_E_OFFSET(camd_page))
+    {
+        return (EC_FALSE);
+    }
+
+    if(0 != (CAMD_PAGE_F_S_OFFSET(camd_page) % align))
+    {
+        return (EC_FALSE);
+    }
+
+    if(0 != (CAMD_PAGE_F_E_OFFSET(camd_page) % align))
+    {
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
 
 EC_BOOL camd_page_add_node(CAMD_PAGE *camd_page, CAMD_NODE *camd_node)
 {
@@ -523,6 +584,18 @@ CAMD_NODE *camd_page_pop_node_back(CAMD_PAGE *camd_page)
     return (camd_node);
 }
 
+CAMD_NODE *camd_page_peek_node_front(CAMD_PAGE *camd_page)
+{
+    CAMD_NODE *camd_node;
+
+    camd_node = clist_first_data(CAMD_PAGE_OWNERS(camd_page));
+    if(NULL_PTR == camd_node)
+    {
+        return (NULL_PTR);
+    }
+    return (camd_node);
+}
+
 EC_BOOL camd_page_timeout(CAMD_PAGE *camd_page)
 {
     CAMD_NODE       *camd_node;
@@ -603,11 +676,13 @@ EC_BOOL camd_page_complete(CAMD_PAGE *camd_page)
 EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx)
 {
     CAMD_MD         *camd_md;
+    CAMD_STAT       *camd_stat;
     CAMD_NODE       *camd_node;
     uint32_t         page_dirty_flag;
 
     CAMD_ASSERT(NULL_PTR != CAMD_PAGE_CAMD_MD(camd_page));
     camd_md = CAMD_PAGE_CAMD_MD(camd_page);
+    camd_stat = CAMD_MD_CAMD_STAT(camd_md);
 
     page_dirty_flag = BIT_FALSE;/*init*/
 
@@ -626,6 +701,11 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
                                 CAMD_NODE_SEQ_NO(camd_node),
                                 CAMD_NODE_B_S_OFFSET(camd_node), CAMD_NODE_B_E_OFFSET(camd_node),
                                 CAMD_NODE_F_S_OFFSET(camd_node), CAMD_NODE_F_E_OFFSET(camd_node));
+
+                if(CAMD_PAGE_M_CACHE(camd_page) + CAMD_NODE_B_S_OFFSET(camd_node) == CAMD_NODE_M_BUFF(camd_node))
+                {
+                    CAMD_STAT_MEM_ZCOPY_COUNTER(camd_stat) ++;
+                }
 
                 /*copy data from mem cache to application mem buff*/
                 FCOPY(CAMD_PAGE_M_CACHE(camd_page) + CAMD_NODE_B_S_OFFSET(camd_node),
@@ -661,6 +741,11 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
                             CAMD_CRC32(CAMD_PAGE_M_CACHE(camd_page),
                                       CAMD_PAGE_F_E_OFFSET(camd_page) - CAMD_PAGE_F_S_OFFSET(camd_page))
                             );
+
+            if(CAMD_NODE_M_BUFF(camd_node) == CAMD_PAGE_M_CACHE(camd_page) + CAMD_NODE_B_S_OFFSET(camd_node))
+            {
+                CAMD_STAT_MEM_ZCOPY_COUNTER(camd_stat) ++;
+            }
 
             /*copy data from application mem buff to mem cache*/
             FCOPY(CAMD_NODE_M_BUFF(camd_node),
@@ -858,13 +943,13 @@ EC_BOOL camd_page_load_sata_aio_timeout(CAMD_PAGE *camd_page)
                                  CAMD_PAGE_F_E_OFFSET(camd_page) - CAMD_PAGE_F_S_OFFSET(camd_page)));
 
     if(NULL_PTR != CAMD_PAGE_CAMD_MD(camd_page)
-    && NULL_PTR != CAMD_PAGE_MOUNTED_PAGES(camd_page)
-    && CAMD_PAGE_TREE_IDX_ERR != CAMD_PAGE_MOUNTED_TREE_IDX(camd_page))
+    && NULL_PTR != CAMD_PAGE_MOUNTED_TREE(camd_page)
+    && CAMD_PAGE_IDX_ERR != CAMD_PAGE_MOUNTED_IDX(camd_page))
     {
         CAMD_MD     *camd_md;
 
         camd_md = CAMD_PAGE_CAMD_MD(camd_page);
-        camd_del_page(camd_md, CAMD_PAGE_MOUNTED_TREE_IDX(camd_page), camd_page);
+        camd_del_page(camd_md, CAMD_PAGE_MOUNTED_IDX(camd_page), camd_page);
     }
 
     CAMD_PAGE_SATA_LOADING_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
@@ -883,13 +968,13 @@ EC_BOOL camd_page_load_sata_aio_terminate(CAMD_PAGE *camd_page)
                                   CAMD_PAGE_F_E_OFFSET(camd_page) - CAMD_PAGE_F_S_OFFSET(camd_page)));
 
     if(NULL_PTR != CAMD_PAGE_CAMD_MD(camd_page)
-    && NULL_PTR != CAMD_PAGE_MOUNTED_PAGES(camd_page)
-    && CAMD_PAGE_TREE_IDX_ERR != CAMD_PAGE_MOUNTED_TREE_IDX(camd_page))
+    && NULL_PTR != CAMD_PAGE_MOUNTED_TREE(camd_page)
+    && CAMD_PAGE_IDX_ERR != CAMD_PAGE_MOUNTED_IDX(camd_page))
     {
         CAMD_MD     *camd_md;
 
         camd_md = CAMD_PAGE_CAMD_MD(camd_page);
-        camd_del_page(camd_md, CAMD_PAGE_MOUNTED_TREE_IDX(camd_page), camd_page);
+        camd_del_page(camd_md, CAMD_PAGE_MOUNTED_IDX(camd_page), camd_page);
     }
 
     CAMD_PAGE_SATA_LOADING_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
@@ -912,10 +997,10 @@ EC_BOOL camd_page_load_sata_aio_complete(CAMD_PAGE *camd_page)
     CAMD_ASSERT(NULL_PTR != CAMD_PAGE_CAMD_MD(camd_page));
     camd_md = CAMD_PAGE_CAMD_MD(camd_page);
 
-    if(NULL_PTR != CAMD_PAGE_MOUNTED_PAGES(camd_page)
-    && CAMD_PAGE_TREE_IDX_ERR != CAMD_PAGE_MOUNTED_TREE_IDX(camd_page))
+    if(NULL_PTR != CAMD_PAGE_MOUNTED_TREE(camd_page)
+    && CAMD_PAGE_IDX_ERR != CAMD_PAGE_MOUNTED_IDX(camd_page))
     {
-        camd_del_page(camd_md, CAMD_PAGE_MOUNTED_TREE_IDX(camd_page), camd_page);
+        camd_del_page(camd_md, CAMD_PAGE_MOUNTED_IDX(camd_page), camd_page);
     }
 
     CAMD_PAGE_SATA_LOADED_FLAG(camd_page)  = BIT_TRUE;  /*set sata loaded*/
@@ -923,7 +1008,7 @@ EC_BOOL camd_page_load_sata_aio_complete(CAMD_PAGE *camd_page)
     CAMD_PAGE_SATA_DIRTY_FLAG(camd_page)   = BIT_FALSE; /*clear flag*/
 
     /*free camd page determined by process*/
-    camd_page_process(camd_page, CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md));
+    camd_page_process(camd_page, CAMD_MD_PAGE_ACTIVE_IDX(camd_md));
 
     return (EC_TRUE);
 }
@@ -1557,13 +1642,13 @@ EC_BOOL camd_page_load_ssd_aio_timeout(CAMD_PAGE *camd_page)
                      CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
 
     if(NULL_PTR != CAMD_PAGE_CAMD_MD(camd_page)
-    && NULL_PTR != CAMD_PAGE_MOUNTED_PAGES(camd_page)
-    && CAMD_PAGE_TREE_IDX_ERR != CAMD_PAGE_MOUNTED_TREE_IDX(camd_page))
+    && NULL_PTR != CAMD_PAGE_MOUNTED_TREE(camd_page)
+    && CAMD_PAGE_IDX_ERR != CAMD_PAGE_MOUNTED_IDX(camd_page))
     {
         CAMD_MD     *camd_md;
 
         camd_md = CAMD_PAGE_CAMD_MD(camd_page);
-        camd_del_page(camd_md, CAMD_PAGE_MOUNTED_TREE_IDX(camd_page), camd_page);
+        camd_del_page(camd_md, CAMD_PAGE_MOUNTED_IDX(camd_page), camd_page);
     }
 
     CAMD_PAGE_SSD_LOADING_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
@@ -1580,13 +1665,13 @@ EC_BOOL camd_page_load_ssd_aio_terminate(CAMD_PAGE *camd_page)
                      CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
 
     if(NULL_PTR != CAMD_PAGE_CAMD_MD(camd_page)
-    && NULL_PTR != CAMD_PAGE_MOUNTED_PAGES(camd_page)
-    && CAMD_PAGE_TREE_IDX_ERR != CAMD_PAGE_MOUNTED_TREE_IDX(camd_page))
+    && NULL_PTR != CAMD_PAGE_MOUNTED_TREE(camd_page)
+    && CAMD_PAGE_IDX_ERR != CAMD_PAGE_MOUNTED_IDX(camd_page))
     {
         CAMD_MD     *camd_md;
 
         camd_md = CAMD_PAGE_CAMD_MD(camd_page);
-        camd_del_page(camd_md, CAMD_PAGE_MOUNTED_TREE_IDX(camd_page), camd_page);
+        camd_del_page(camd_md, CAMD_PAGE_MOUNTED_IDX(camd_page), camd_page);
     }
 
     CAMD_PAGE_SSD_LOADING_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
@@ -1607,17 +1692,17 @@ EC_BOOL camd_page_load_ssd_aio_complete(CAMD_PAGE *camd_page)
     CAMD_ASSERT(NULL_PTR != CAMD_PAGE_CAMD_MD(camd_page));
     camd_md = CAMD_PAGE_CAMD_MD(camd_page);
 
-    if(NULL_PTR != CAMD_PAGE_MOUNTED_PAGES(camd_page)
-    && CAMD_PAGE_TREE_IDX_ERR != CAMD_PAGE_MOUNTED_TREE_IDX(camd_page))
+    if(NULL_PTR != CAMD_PAGE_MOUNTED_TREE(camd_page)
+    && CAMD_PAGE_IDX_ERR != CAMD_PAGE_MOUNTED_IDX(camd_page))
     {
-        camd_del_page(camd_md, CAMD_PAGE_MOUNTED_TREE_IDX(camd_page), camd_page);
+        camd_del_page(camd_md, CAMD_PAGE_MOUNTED_IDX(camd_page), camd_page);
     }
 
     CAMD_PAGE_SSD_LOADED_FLAG(camd_page)  = BIT_TRUE;  /*set ssd loaded*/
     CAMD_PAGE_SSD_LOADING_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
 
     /*free camd page determined by process*/
-    camd_page_process(camd_page, CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md));
+    camd_page_process(camd_page, CAMD_MD_PAGE_ACTIVE_IDX(camd_md));
 
     return (EC_TRUE);
 }
@@ -1754,6 +1839,30 @@ EC_BOOL camd_node_is(const CAMD_NODE *camd_node, const UINT32 sub_seq_no)
 
     return (EC_FALSE);
 }
+
+EC_BOOL camd_node_is_aligned(CAMD_NODE *camd_node, const UINT32 size, const UINT32 align)
+{
+    if(0 != CAMD_NODE_B_S_OFFSET(camd_node))
+    {
+        return (EC_FALSE);
+    }
+
+    if(size != CAMD_NODE_B_E_OFFSET(camd_node))
+    {
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != CAMD_NODE_M_BUFF(camd_node))
+    {
+        if(0 != (((uint64_t)CAMD_NODE_M_BUFF(camd_node)) % ((uint64_t)align)))
+        {
+            return (EC_FALSE);
+        }
+    }
+
+    return (EC_TRUE);
+}
+
 
 void camd_node_print(LOG *log, const CAMD_NODE *camd_node)
 {
@@ -1938,7 +2047,7 @@ EC_BOOL camd_req_init(CAMD_REQ *camd_req)
 
     clist_init(CAMD_REQ_NODES(camd_req), MM_CAMD_NODE, LOC_CAMD_0007);
 
-    CAMD_REQ_MOUNTED_REQS(camd_req)             = NULL_PTR;
+    CAMD_REQ_MOUNTED_LIST(camd_req)             = NULL_PTR;
 
     return (EC_TRUE);
 }
@@ -1947,7 +2056,7 @@ EC_BOOL camd_req_clean(CAMD_REQ *camd_req)
 {
     if(NULL_PTR != camd_req)
     {
-        if(NULL_PTR != CAMD_REQ_MOUNTED_REQS(camd_req)
+        if(NULL_PTR != CAMD_REQ_MOUNTED_LIST(camd_req)
         && NULL_PTR != CAMD_REQ_CAMD_MD(camd_req))
         {
             camd_del_req(CAMD_REQ_CAMD_MD(camd_req), camd_req);
@@ -2793,11 +2902,13 @@ EC_BOOL camd_req_complete(CAMD_REQ *camd_req)
 EC_BOOL camd_req_dispatch_node(CAMD_REQ *camd_req, CAMD_NODE *camd_node)
 {
     CAMD_MD     *camd_md;
+    CAMD_STAT   *camd_stat;
     CAMD_PAGE   *camd_page;
 
     camd_md = CAMD_REQ_CAMD_MD(camd_req);
+    camd_stat = CAMD_MD_CAMD_STAT(camd_md);
 
-    camd_page = camd_search_page(camd_md, CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md), CAMD_NODE_FD(camd_node),
+    camd_page = camd_search_page(camd_md, CAMD_MD_PAGE_ACTIVE_IDX(camd_md), CAMD_NODE_FD(camd_node),
                                 CAMD_NODE_F_S_OFFSET(camd_node), CAMD_NODE_F_E_OFFSET(camd_node));
     if(NULL_PTR != camd_page)
     {
@@ -2812,6 +2923,8 @@ EC_BOOL camd_req_dispatch_node(CAMD_REQ *camd_req, CAMD_NODE *camd_node)
             return (EC_FALSE);
         }
 
+        CAMD_STAT_DISPATCH_HIT(camd_stat) ++;
+
         dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_req_dispatch_node: "
                          "dispatch node %ld/%ld of req %ld, op %s to existing page [%ld, %ld) done\n",
                          CAMD_NODE_SUB_SEQ_NO(camd_node), CAMD_NODE_SUB_SEQ_NUM(camd_node),
@@ -2822,7 +2935,7 @@ EC_BOOL camd_req_dispatch_node(CAMD_REQ *camd_req, CAMD_NODE *camd_node)
         return (EC_TRUE);
     }
 
-    CAMD_ASSERT(NULL_PTR == camd_search_page(camd_md, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md),
+    CAMD_ASSERT(NULL_PTR == camd_search_page(camd_md, CAMD_MD_PAGE_STANDBY_IDX(camd_md),
                                 CAMD_NODE_FD(camd_node),
                                 CAMD_NODE_F_S_OFFSET(camd_node), CAMD_NODE_F_E_OFFSET(camd_node)));
 
@@ -2849,8 +2962,10 @@ EC_BOOL camd_req_dispatch_node(CAMD_REQ *camd_req, CAMD_NODE *camd_node)
     CAMD_PAGE_TIMEOUT_NSEC(camd_page)   = CAMD_AIO_TIMEOUT_NSEC_DEFAULT;
     CAMD_PAGE_CAMD_MD(camd_page)        = CAMD_NODE_CAMD_MD(camd_node);
 
+    CAMD_STAT_DISPATCH_MISS(camd_stat) ++;
+
     /*add page to camd module*/
-    if(EC_FALSE == camd_add_page(camd_md, CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md), camd_page))
+    if(EC_FALSE == camd_add_page(camd_md, CAMD_MD_PAGE_ACTIVE_IDX(camd_md), camd_page))
     {
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_req_dispatch_node: "
                          "add page [%ld, %ld) to camd module failed\n",
@@ -2871,7 +2986,7 @@ EC_BOOL camd_req_dispatch_node(CAMD_REQ *camd_req, CAMD_NODE *camd_node)
                          __camd_op_str(CAMD_NODE_OP(camd_node)),
                          CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
 
-        camd_del_page(camd_md, CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md), camd_page);
+        camd_del_page(camd_md, CAMD_MD_PAGE_ACTIVE_IDX(camd_md), camd_page);
         camd_page_free(camd_page);
         return (EC_FALSE);
     }
@@ -2962,7 +3077,7 @@ CAMD_MD *camd_start(const char *camd_shm_root_dir,
 
     clist_init(CAMD_MD_REQ_LIST(camd_md), MM_CAMD_REQ, LOC_CAMD_0010);
 
-    CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md) = 0;   /*set page tree[0] is active*/
+    CAMD_MD_PAGE_ACTIVE_IDX(camd_md) = 0;   /*set page tree[0] is active*/
     crb_tree_init(CAMD_MD_PAGE_TREE(camd_md, 0), /*init active page tree*/
                   (CRB_DATA_CMP)camd_page_cmp,
                   (CRB_DATA_FREE)NULL_PTR, /*note: not define*/
@@ -3140,6 +3255,8 @@ CAMD_MD *camd_start(const char *camd_shm_root_dir,
     ciostat_init(CAMD_MD_MEM_IOSTAT(camd_md));
     ciostat_init(CAMD_MD_SSD_IOSTAT(camd_md));
 
+    camd_stat_init(CAMD_MD_CAMD_STAT(camd_md));
+
     dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_start: start camd done\n");
 
     return (camd_md);
@@ -3159,9 +3276,9 @@ void camd_end(CAMD_MD *camd_md)
             camd_poll(camd_md);
         }
 
-        camd_cleanup_pages(camd_md, CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md));
-        camd_cleanup_pages(camd_md, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md));
-        CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md) = 0;
+        camd_cleanup_pages(camd_md, CAMD_MD_PAGE_ACTIVE_IDX(camd_md));
+        camd_cleanup_pages(camd_md, CAMD_MD_PAGE_STANDBY_IDX(camd_md));
+        CAMD_MD_PAGE_ACTIVE_IDX(camd_md) = 0;
 
         camd_cleanup_reqs(camd_md);
         camd_cleanup_post_event_reqs(camd_md);
@@ -3266,6 +3383,8 @@ void camd_end(CAMD_MD *camd_md)
 
         ciostat_clean(CAMD_MD_MEM_IOSTAT(camd_md));
         ciostat_clean(CAMD_MD_SSD_IOSTAT(camd_md));
+
+        camd_stat_clean(CAMD_MD_CAMD_STAT(camd_md));
 
         if(NULL_PTR != CAMD_MD_DIR(camd_md))
         {
@@ -5785,7 +5904,7 @@ void camd_process_timeout_reqs(CAMD_MD *camd_md)
         CAMD_REQ       *camd_req;
 
         camd_req = (CAMD_REQ *)CLIST_DATA_DATA(clist_data);
-        CAMD_ASSERT(CAMD_REQ_MOUNTED_REQS(camd_req) == clist_data);
+        CAMD_ASSERT(CAMD_REQ_MOUNTED_LIST(camd_req) == clist_data);
 
         if(cur_time_ms >= CAMD_REQ_NTIME_MS(camd_req))
         {
@@ -5816,8 +5935,8 @@ void camd_process_pages(CAMD_MD *camd_md)
     UINT32           active_page_tree_idx;
     UINT32           standby_page_tree_idx;
 
-    active_page_tree_idx  = CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md);
-    standby_page_tree_idx = CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md);
+    active_page_tree_idx  = CAMD_MD_PAGE_ACTIVE_IDX(camd_md);
+    standby_page_tree_idx = CAMD_MD_PAGE_STANDBY_IDX(camd_md);
 
     while(NULL_PTR != (camd_page = camd_pop_first_page(camd_md, active_page_tree_idx)))
     {
@@ -5835,7 +5954,7 @@ void camd_process_pages(CAMD_MD *camd_md)
     /*switch page tree*/
     CAMD_MD_SWITCH_PAGE_TREE(camd_md);
 
-    CAMD_ASSERT(EC_FALSE == camd_has_page(camd_md, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md)));
+    CAMD_ASSERT(EC_FALSE == camd_has_page(camd_md, CAMD_MD_PAGE_STANDBY_IDX(camd_md)));
 
     return;
 }
@@ -5854,7 +5973,7 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
 
         /*page life cycle is determined by process => not need to free page*/
 
-        camd_page_process(camd_page, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md));
+        camd_page_process(camd_page, CAMD_MD_PAGE_STANDBY_IDX(camd_md));
 
         /*here page may not be accessable => not output log info*/
         return;
@@ -6013,7 +6132,7 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
         }
 
         /*page life cycle is determined by process => not need to free page*/
-        camd_page_process(camd_page, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md));
+        camd_page_process(camd_page, CAMD_MD_PAGE_STANDBY_IDX(camd_md));
 
         /*here page may not be accessable => not output log info*/
         return;
@@ -6021,16 +6140,64 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
 
     if(NULL_PTR == CAMD_PAGE_M_CACHE(camd_page))
     {
-        CAMD_PAGE_M_CACHE(camd_page) = __camd_mem_cache_new(CMCPGB_PAGE_SIZE_NBYTES, CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES);
-        if(NULL_PTR == CAMD_PAGE_M_CACHE(camd_page))
-        {
-            dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_process_page: "
-                             "new mem cache for page [%ld, %ld) failed\n",
-                             CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
+        CAMD_STAT   *camd_stat;
+        CAMD_NODE   *camd_node;
 
-            camd_page_terminate(camd_page);
-            camd_page_free(camd_page);
-            return;
+        EC_BOOL      page_is_aligned;
+        EC_BOOL      node_is_aligned;
+
+        camd_stat = CAMD_MD_CAMD_STAT(camd_md);
+
+        camd_node = camd_page_peek_node_front(camd_page);
+        ASSERT(NULL_PTR != camd_node);
+
+        if(EC_TRUE == camd_page_is_aligned(camd_page, CMCPGB_PAGE_SIZE_NBYTES, CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES))
+        {
+            page_is_aligned = EC_TRUE;
+            CAMD_STAT_PAGE_IS_ALIGNED_COUNTER(camd_stat, CAMD_PAGE_OP(camd_page)) ++;
+        }
+        else
+        {
+            page_is_aligned = EC_FALSE;
+            CAMD_STAT_PAGE_NOT_ALIGNED_COUNTER(camd_stat, CAMD_PAGE_OP(camd_page)) ++;
+        }
+
+        if(EC_TRUE == camd_node_is_aligned(camd_node, CMCPGB_PAGE_SIZE_NBYTES, CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES))
+        {
+            node_is_aligned = EC_TRUE;
+            CAMD_STAT_NODE_IS_ALIGNED_COUNTER(camd_stat, CAMD_NODE_OP(camd_node)) ++;
+        }
+        else
+        {
+            node_is_aligned = EC_FALSE;
+            CAMD_STAT_NODE_NOT_ALIGNED_COUNTER(camd_stat, CAMD_NODE_OP(camd_node)) ++;
+        }
+
+        /*WR op would be completed at once, thus its m_buf could not be reused*/
+        if(CAMD_OP_WR == CAMD_NODE_OP(camd_node)
+        || NULL_PTR == CAMD_NODE_M_BUFF(camd_node)
+        || EC_FALSE == page_is_aligned
+        || EC_FALSE == node_is_aligned)
+        {
+            CAMD_PAGE_M_CACHE(camd_page) = __camd_mem_cache_new(CMCPGB_PAGE_SIZE_NBYTES, CAMD_MEM_CACHE_ALIGN_SIZE_NBYTES);
+            if(NULL_PTR == CAMD_PAGE_M_CACHE(camd_page))
+            {
+                dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_process_page: "
+                                 "new mem cache for page [%ld, %ld) failed\n",
+                                 CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
+
+                camd_page_terminate(camd_page);
+                camd_page_free(camd_page);
+                return;
+            }
+            CAMD_PAGE_MEM_REUSED_FLAG(camd_page) = BIT_FALSE;
+        }
+        else
+        {
+            CAMD_PAGE_M_CACHE(camd_page) = CAMD_NODE_M_BUFF(camd_node);
+            CAMD_PAGE_MEM_REUSED_FLAG(camd_page) = BIT_TRUE;
+
+            CAMD_STAT_MEM_REUSED_COUNTER(camd_stat) ++;
         }
     }
 
@@ -6039,7 +6206,7 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
     && CAMD_PAGE_F_S_OFFSET(camd_page) + CMCPGB_PAGE_SIZE_NBYTES == CAMD_PAGE_F_E_OFFSET(camd_page))
     {
         /*page life cycle is determined by process => not need to free page*/
-        camd_page_process(camd_page, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md));
+        camd_page_process(camd_page, CAMD_MD_PAGE_STANDBY_IDX(camd_md));
 
         /*here page may not be accessable => not output log info*/
         return;
@@ -6116,7 +6283,7 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
             }
 
             /*add page to standby page tree temporarily*/
-            camd_add_page(camd_md, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md), camd_page);
+            camd_add_page(camd_md, CAMD_MD_PAGE_STANDBY_IDX(camd_md), camd_page);
             CAMD_PAGE_SSD_LOADING_FLAG(camd_page)  = BIT_TRUE; /*set flag*/
 
             cfc_inc_traffic(CAMD_MD_SSD_READ_FC(camd_md), CMCPGB_PAGE_SIZE_NBYTES);
@@ -6162,7 +6329,7 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
             CAMD_PAGE_SSD_LOADED_FLAG(camd_page) = BIT_TRUE; /*set ssd loaded*/
 
             /*page life cycle is determined by process => not need to free page*/
-            camd_page_process(camd_page, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md));
+            camd_page_process(camd_page, CAMD_MD_PAGE_STANDBY_IDX(camd_md));
         }
 
         /*here page may not be accessable => not output log info*/
@@ -6197,7 +6364,7 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
         cfc_inc_traffic(CAMD_MD_SATA_READ_FC(camd_md), CMCPGB_PAGE_SIZE_NBYTES);
 
         /*add page to standby page tree temporarily*/
-        camd_add_page(camd_md, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md), camd_page);
+        camd_add_page(camd_md, CAMD_MD_PAGE_STANDBY_IDX(camd_md), camd_page);
         CAMD_PAGE_SATA_LOADING_FLAG(camd_page)  = BIT_TRUE; /*set flag*/
 
         dbg_log(SEC_0125_CAMD, 5)(LOGSTDOUT, "[DEBUG] camd_process_page: "
@@ -6241,7 +6408,7 @@ void camd_process_page(CAMD_MD *camd_md, CAMD_PAGE *camd_page)
             CAMD_PAGE_SATA_LOADING_FLAG(camd_page) = BIT_FALSE; /*clear flag*/
 
             /*free camd page determined by process*/
-            camd_page_process(camd_page, CAMD_MD_STANDBY_PAGE_TREE_IDX(camd_md));
+            camd_page_process(camd_page, CAMD_MD_PAGE_STANDBY_IDX(camd_md));
         }
         else
         {
@@ -6497,7 +6664,7 @@ void camd_show_page(LOG *log, const CAMD_MD *camd_md, const int fd, const UINT32
 {
     CAMD_PAGE   *camd_page;
 
-    camd_page = camd_search_page((CAMD_MD *)camd_md, CAMD_MD_ACTIVE_PAGE_TREE_IDX(camd_md), fd, f_s_offset, f_e_offset);
+    camd_page = camd_search_page((CAMD_MD *)camd_md, CAMD_MD_PAGE_ACTIVE_IDX(camd_md), fd, f_s_offset, f_e_offset);
     if(NULL_PTR == camd_page)
     {
         sys_log(log, "camd_show_req: (no matched req)\n");
@@ -6599,11 +6766,11 @@ EC_BOOL camd_submit_req(CAMD_MD *camd_md, CAMD_REQ *camd_req)
 
 EC_BOOL camd_add_req(CAMD_MD *camd_md, CAMD_REQ *camd_req)
 {
-    CAMD_ASSERT(NULL_PTR == CAMD_REQ_MOUNTED_REQS(camd_req));
+    CAMD_ASSERT(NULL_PTR == CAMD_REQ_MOUNTED_LIST(camd_req));
 
     /*push back*/
-    CAMD_REQ_MOUNTED_REQS(camd_req) = clist_push_back(CAMD_MD_REQ_LIST(camd_md), (void *)camd_req);
-    if(NULL_PTR == CAMD_REQ_MOUNTED_REQS(camd_req))
+    CAMD_REQ_MOUNTED_LIST(camd_req) = clist_push_back(CAMD_MD_REQ_LIST(camd_md), (void *)camd_req);
+    if(NULL_PTR == CAMD_REQ_MOUNTED_LIST(camd_req))
     {
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_add_req: push req %ld, op %s failed\n",
                                              CAMD_REQ_SEQ_NO(camd_req),
@@ -6619,10 +6786,10 @@ EC_BOOL camd_add_req(CAMD_MD *camd_md, CAMD_REQ *camd_req)
 
 EC_BOOL camd_del_req(CAMD_MD *camd_md, CAMD_REQ *camd_req)
 {
-    if(NULL_PTR != CAMD_REQ_MOUNTED_REQS(camd_req))
+    if(NULL_PTR != CAMD_REQ_MOUNTED_LIST(camd_req))
     {
-        clist_erase(CAMD_MD_REQ_LIST(camd_md), CAMD_REQ_MOUNTED_REQS(camd_req));
-        CAMD_REQ_MOUNTED_REQS(camd_req) = NULL_PTR;
+        clist_erase(CAMD_MD_REQ_LIST(camd_md), CAMD_REQ_MOUNTED_LIST(camd_req));
+        CAMD_REQ_MOUNTED_LIST(camd_req) = NULL_PTR;
 
         dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_del_req: req %ld, op %s\n",
                      CAMD_REQ_SEQ_NO(camd_req),
@@ -6725,18 +6892,18 @@ EC_BOOL camd_cancel_req(CAMD_MD *camd_md, CAMD_REQ *camd_req)
     return (EC_TRUE);
 }
 
-UINT32 camd_count_page_num(const CAMD_MD *camd_md, const UINT32 page_tree_idx)
+UINT32 camd_count_page_num(const CAMD_MD *camd_md, const UINT32 page_choice_idx)
 {
-    return crb_tree_node_num(CAMD_MD_PAGE_TREE(camd_md, page_tree_idx));
+    return crb_tree_node_num(CAMD_MD_PAGE_TREE(camd_md, page_choice_idx));
 }
 
-EC_BOOL camd_add_page(CAMD_MD *camd_md, const UINT32 page_tree_idx, CAMD_PAGE *camd_page)
+EC_BOOL camd_add_page(CAMD_MD *camd_md, const UINT32 page_choice_idx, CAMD_PAGE *camd_page)
 {
     CRB_NODE    *crb_node;
 
-    CAMD_ASSERT(NULL_PTR == CAMD_PAGE_MOUNTED_PAGES(camd_page));
+    CAMD_ASSERT(NULL_PTR == CAMD_PAGE_MOUNTED_TREE(camd_page));
 
-    crb_node = crb_tree_insert_data(CAMD_MD_PAGE_TREE(camd_md, page_tree_idx), (void *)camd_page);
+    crb_node = crb_tree_insert_data(CAMD_MD_PAGE_TREE(camd_md, page_choice_idx), (void *)camd_page);
     if(NULL_PTR == crb_node)
     {
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_add_page: add page [%ld, %ld) failed\n",
@@ -6756,8 +6923,8 @@ EC_BOOL camd_add_page(CAMD_MD *camd_md, const UINT32 page_tree_idx, CAMD_PAGE *c
         return (EC_FALSE);
     }
 
-    CAMD_PAGE_MOUNTED_PAGES(camd_page)    = crb_node;
-    CAMD_PAGE_MOUNTED_TREE_IDX(camd_page) = page_tree_idx;
+    CAMD_PAGE_MOUNTED_TREE(camd_page)    = crb_node;
+    CAMD_PAGE_MOUNTED_IDX(camd_page)      = page_choice_idx;
 
     dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_add_page: add page [%ld, %ld) done\n",
                                          CAMD_PAGE_F_S_OFFSET(camd_page),
@@ -6765,15 +6932,15 @@ EC_BOOL camd_add_page(CAMD_MD *camd_md, const UINT32 page_tree_idx, CAMD_PAGE *c
     return (EC_TRUE);
 }
 
-EC_BOOL camd_del_page(CAMD_MD *camd_md, const UINT32 page_tree_idx, CAMD_PAGE *camd_page)
+EC_BOOL camd_del_page(CAMD_MD *camd_md, const UINT32 page_choice_idx, CAMD_PAGE *camd_page)
 {
-    if(NULL_PTR != CAMD_PAGE_MOUNTED_PAGES(camd_page))
+    if(NULL_PTR != CAMD_PAGE_MOUNTED_TREE(camd_page))
     {
-        CAMD_ASSERT(page_tree_idx == CAMD_PAGE_MOUNTED_TREE_IDX(camd_page));
+        CAMD_ASSERT(page_choice_idx == CAMD_PAGE_MOUNTED_IDX(camd_page));
 
-        crb_tree_erase(CAMD_MD_PAGE_TREE(camd_md, page_tree_idx), CAMD_PAGE_MOUNTED_PAGES(camd_page));
-        CAMD_PAGE_MOUNTED_PAGES(camd_page)    = NULL_PTR;
-        CAMD_PAGE_MOUNTED_TREE_IDX(camd_page) = CAMD_PAGE_TREE_IDX_ERR;
+        crb_tree_erase(CAMD_MD_PAGE_TREE(camd_md, page_choice_idx), CAMD_PAGE_MOUNTED_TREE(camd_page));
+        CAMD_PAGE_MOUNTED_TREE(camd_page) = NULL_PTR;
+        CAMD_PAGE_MOUNTED_IDX(camd_page)  = CAMD_PAGE_IDX_ERR;
 
         dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_del_page: del page [%ld, %ld) done\n",
                                              CAMD_PAGE_F_S_OFFSET(camd_page),
@@ -6782,9 +6949,9 @@ EC_BOOL camd_del_page(CAMD_MD *camd_md, const UINT32 page_tree_idx, CAMD_PAGE *c
     return (EC_TRUE);
 }
 
-EC_BOOL camd_has_page(CAMD_MD *camd_md, const UINT32 page_tree_idx)
+EC_BOOL camd_has_page(CAMD_MD *camd_md, const UINT32 page_choice_idx)
 {
-    if(EC_TRUE == crb_tree_is_empty(CAMD_MD_PAGE_TREE(camd_md, page_tree_idx)))
+    if(EC_TRUE == crb_tree_is_empty(CAMD_MD_PAGE_TREE(camd_md, page_choice_idx)))
     {
         return (EC_FALSE); /*no page*/
     }
@@ -6792,45 +6959,45 @@ EC_BOOL camd_has_page(CAMD_MD *camd_md, const UINT32 page_tree_idx)
     return (EC_TRUE); /*has page*/
 }
 
-CAMD_PAGE *camd_pop_first_page(CAMD_MD *camd_md, const UINT32 page_tree_idx)
+CAMD_PAGE *camd_pop_first_page(CAMD_MD *camd_md, const UINT32 page_choice_idx)
 {
     CRB_NODE    *crb_node;
     CAMD_PAGE   *camd_page;
 
-    crb_node = (CRB_NODE *)crb_tree_first_node(CAMD_MD_PAGE_TREE(camd_md, page_tree_idx));
+    crb_node = (CRB_NODE *)crb_tree_first_node(CAMD_MD_PAGE_TREE(camd_md, page_choice_idx));
     if(NULL_PTR == crb_node)
     {
         return (NULL_PTR);
     }
 
-    camd_page = crb_tree_erase(CAMD_MD_PAGE_TREE(camd_md, page_tree_idx), crb_node);
-    CAMD_ASSERT(CAMD_PAGE_MOUNTED_PAGES(camd_page) == crb_node);
-    CAMD_PAGE_MOUNTED_PAGES(camd_page)    = NULL_PTR;
-    CAMD_PAGE_MOUNTED_TREE_IDX(camd_page) = CAMD_PAGE_TREE_IDX_ERR;
+    camd_page = crb_tree_erase(CAMD_MD_PAGE_TREE(camd_md, page_choice_idx), crb_node);
+    CAMD_ASSERT(CAMD_PAGE_MOUNTED_TREE(camd_page) == crb_node);
+    CAMD_PAGE_MOUNTED_TREE(camd_page) = NULL_PTR;
+    CAMD_PAGE_MOUNTED_IDX(camd_page)  = CAMD_PAGE_IDX_ERR;
 
     return (camd_page);
 }
 
-CAMD_PAGE *camd_pop_last_page(CAMD_MD *camd_md, const UINT32 page_tree_idx)
+CAMD_PAGE *camd_pop_last_page(CAMD_MD *camd_md, const UINT32 page_choice_idx)
 {
     CRB_NODE    *crb_node;
     CAMD_PAGE   *camd_page;
 
-    crb_node = (CRB_NODE *)crb_tree_last_node(CAMD_MD_PAGE_TREE(camd_md, page_tree_idx));
+    crb_node = (CRB_NODE *)crb_tree_last_node(CAMD_MD_PAGE_TREE(camd_md, page_choice_idx));
     if(NULL_PTR == crb_node)
     {
         return (NULL_PTR);
     }
 
-    camd_page = crb_tree_erase(CAMD_MD_PAGE_TREE(camd_md, page_tree_idx), crb_node);
-    CAMD_ASSERT(CAMD_PAGE_MOUNTED_PAGES(camd_page) == crb_node);
-    CAMD_PAGE_MOUNTED_PAGES(camd_page)    = NULL_PTR;
-    CAMD_PAGE_MOUNTED_TREE_IDX(camd_page) = CAMD_PAGE_TREE_IDX_ERR;
+    camd_page = crb_tree_erase(CAMD_MD_PAGE_TREE(camd_md, page_choice_idx), crb_node);
+    CAMD_ASSERT(CAMD_PAGE_MOUNTED_TREE(camd_page) == crb_node);
+    CAMD_PAGE_MOUNTED_TREE(camd_page) = NULL_PTR;
+    CAMD_PAGE_MOUNTED_IDX(camd_page)  = CAMD_PAGE_IDX_ERR;
 
     return (camd_page);
 }
 
-CAMD_PAGE *camd_search_page(CAMD_MD *camd_md, const UINT32 page_tree_idx, const int fd, const UINT32 f_s_offset, const UINT32 f_e_offset)
+CAMD_PAGE *camd_search_page(CAMD_MD *camd_md, const UINT32 page_choice_idx, const int fd, const UINT32 f_s_offset, const UINT32 f_e_offset)
 {
     CAMD_PAGE       camd_page_t;
     CRB_NODE       *crb_node;
@@ -6839,7 +7006,7 @@ CAMD_PAGE *camd_search_page(CAMD_MD *camd_md, const UINT32 page_tree_idx, const 
     CAMD_PAGE_F_S_OFFSET(&camd_page_t) = f_s_offset;
     CAMD_PAGE_F_E_OFFSET(&camd_page_t) = f_e_offset;
 
-    crb_node = crb_tree_search_data(CAMD_MD_PAGE_TREE(camd_md, page_tree_idx), (void *)&camd_page_t);
+    crb_node = crb_tree_search_data(CAMD_MD_PAGE_TREE(camd_md, page_choice_idx), (void *)&camd_page_t);
     if(NULL_PTR == crb_node)
     {
         return (NULL_PTR);
@@ -6848,11 +7015,11 @@ CAMD_PAGE *camd_search_page(CAMD_MD *camd_md, const UINT32 page_tree_idx, const 
     return ((CAMD_PAGE *)CRB_NODE_DATA(crb_node));
 }
 
-EC_BOOL camd_cleanup_pages(CAMD_MD *camd_md, const UINT32 page_tree_idx)
+EC_BOOL camd_cleanup_pages(CAMD_MD *camd_md, const UINT32 page_choice_idx)
 {
     CAMD_PAGE        *camd_page;
 
-    while(NULL_PTR != (camd_page = camd_pop_first_page(camd_md, page_tree_idx)))
+    while(NULL_PTR != (camd_page = camd_pop_first_page(camd_md, page_choice_idx)))
     {
         camd_page_free(camd_page);
     }
@@ -6866,7 +7033,7 @@ EC_BOOL camd_cleanup_reqs(CAMD_MD *camd_md)
 
     while(NULL_PTR != (camd_req = clist_pop_front(CAMD_MD_REQ_LIST(camd_md))))
     {
-        CAMD_REQ_MOUNTED_REQS(camd_req) = NULL_PTR;
+        CAMD_REQ_MOUNTED_LIST(camd_req) = NULL_PTR;
 
         camd_req_free(camd_req);
     }
@@ -8415,7 +8582,7 @@ EC_BOOL camd_file_delete(CAMD_MD *camd_md, UINT32 *offset, const UINT32 dsize)
 
 /*------------------------ cmad cond interface ----------------------------*/
 
-CAMD_COND *camd_cond_new(const UINT32 timeout_msec, const UINT32 location)
+CAMD_COND *camd_cond_new(const UINT32 timeout_nsec, const UINT32 location)
 {
     CAMD_COND *camd_cond;
 
@@ -8426,13 +8593,13 @@ CAMD_COND *camd_cond_new(const UINT32 timeout_msec, const UINT32 location)
         return (NULL_PTR);
     }
 
-    camd_cond_init(camd_cond, timeout_msec, location);
+    camd_cond_init(camd_cond, timeout_nsec, location);
     return (camd_cond);
 }
 
-EC_BOOL camd_cond_init(CAMD_COND *camd_cond, const UINT32 timeout_msec, const UINT32 location)
+EC_BOOL camd_cond_init(CAMD_COND *camd_cond, const UINT32 timeout_nsec, const UINT32 location)
 {
-    coroutine_cond_init(CAMD_COND_CCOND(camd_cond), timeout_msec, location);
+    coroutine_cond_init(CAMD_COND_CCOND(camd_cond), timeout_nsec * 1000, location);
 
     CAMD_COND_RESULT(camd_cond) = CAMD_COND_RESULT_ERROR;
 
@@ -8534,7 +8701,7 @@ EC_BOOL camd_file_read(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 rs
 
     caio_cb = CAMD_FILE_REQ_CAIO_CB(camd_file_req);
 
-    camd_cond_init(&camd_cond, 0 /*never timeout*/, LOC_CAMD_0025);
+    camd_cond_init(&camd_cond, 2 * CAMD_AIO_TIMEOUT_NSEC_DEFAULT/*0*/ /*never timeout*/, LOC_CAMD_0025);
 
     caio_cb_set_timeout_handler(caio_cb, (UINT32)CAMD_AIO_TIMEOUT_NSEC_DEFAULT /*seconds*/,
                                 (CAIO_CALLBACK)__camd_file_read_timeout, (void *)&camd_cond);
@@ -8736,7 +8903,7 @@ EC_BOOL camd_file_write(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32 w
 
     caio_cb = CAMD_FILE_REQ_CAIO_CB(camd_file_req);
 
-    camd_cond_init(&camd_cond, 0 /*never timeout*/, LOC_CAMD_0031);
+    camd_cond_init(&camd_cond, 2 * CAMD_AIO_TIMEOUT_NSEC_DEFAULT/*0*/ /*never timeout*/, LOC_CAMD_0031);
 
     caio_cb_set_timeout_handler(caio_cb, (UINT32)CAMD_AIO_TIMEOUT_NSEC_DEFAULT /*seconds*/,
                                 (CAIO_CALLBACK)__camd_file_write_timeout, (void *)&camd_cond);
@@ -8914,7 +9081,7 @@ EC_BOOL camd_file_read_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 rsize,
         EC_BOOL              ret;
 
         caio_cb_init(&caio_cb);
-        camd_cond_init(&camd_cond, 0 /*never timeout*/, LOC_CAMD_0037);
+        camd_cond_init(&camd_cond, 2 * CAMD_AIO_TIMEOUT_NSEC_DEFAULT/*0*/ /*never timeout*/, LOC_CAMD_0037);
 
         caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_DIO_TIMEOUT_NSEC_DEFAULT /*seconds*/,
                                     (CAIO_CALLBACK)__camd_file_read_dio_timeout, (void *)&camd_cond);
@@ -9013,7 +9180,7 @@ EC_BOOL camd_file_write_dio(CAMD_MD *camd_md, UINT32 *offset, const UINT32 wsize
         }
 
         caio_cb_init(&caio_cb);
-        camd_cond_init(&camd_cond, 0 /*never timeout*/, LOC_CAMD_0043);
+        camd_cond_init(&camd_cond, 2 * CAMD_AIO_TIMEOUT_NSEC_DEFAULT/*0*/ /*never timeout*/, LOC_CAMD_0043);
 
         caio_cb_set_timeout_handler(&caio_cb, (UINT32)CAMD_DIO_TIMEOUT_NSEC_DEFAULT /*seconds*/,
                                     (CAIO_CALLBACK)__camd_file_write_dio_timeout, (void *)&camd_cond);

@@ -62,11 +62,6 @@ STATIC_CAST const char *__cdc_op_str(const UINT32 op)
         return ((const char *)"WR");
     }
 
-    if(CDC_OP_RW == op)
-    {
-        return ((const char *)"RW");
-    }
-
     if(CDC_OP_ERR == op)
     {
         return ((const char *)"ERR");
@@ -134,31 +129,53 @@ void cdc_mem_cache_counter_print(LOG *log)
 
 EC_BOOL cdc_stat_init(CDC_STAT  *cdc_stat)
 {
-    CDC_STAT_SSD_USED_RATIO(cdc_stat)           = 0.00;
-    CDC_STAT_SSD_HIT_RATIO(cdc_stat)            = 0.00;
+    CDC_STAT_SSD_USED_RATIO(cdc_stat)                       = 0.00;
+    CDC_STAT_SSD_HIT_RATIO(cdc_stat)                        = 0.00;
 
-    CDC_STAT_AMD_READ_SPEED(cdc_stat)           = 0;
-    CDC_STAT_AMD_WRITE_SPEED(cdc_stat)          = 0;
+    CDC_STAT_AMD_READ_SPEED(cdc_stat)                       = 0;
+    CDC_STAT_AMD_WRITE_SPEED(cdc_stat)                      = 0;
 
-    CDC_STAT_SSD_DEGRADE_RATIO(cdc_stat)        = 0.00;
-    CDC_STAT_SSD_DEGRADE_NUM(cdc_stat)          = 0;
-    CDC_STAT_SSD_DEGRADE_SPEED(cdc_stat)        = 0;
+    CDC_STAT_SSD_DEGRADE_RATIO(cdc_stat)                    = 0.00;
+    CDC_STAT_SSD_DEGRADE_NUM(cdc_stat)                      = 0;
+    CDC_STAT_SSD_DEGRADE_SPEED(cdc_stat)                    = 0;
 
+    CDC_STAT_DISPATCH_HIT(cdc_stat)                         = 0;
+    CDC_STAT_DISPATCH_MISS(cdc_stat)                        = 0;
+
+    CDC_STAT_PAGE_IS_ALIGNED_COUNTER(cdc_stat, CDC_OP_RD)   = 0;
+    CDC_STAT_PAGE_NOT_ALIGNED_COUNTER(cdc_stat, CDC_OP_WR)  = 0;
+
+    CDC_STAT_NODE_IS_ALIGNED_COUNTER(cdc_stat, CDC_OP_RD)   = 0;
+    CDC_STAT_NODE_NOT_ALIGNED_COUNTER(cdc_stat, CDC_OP_WR)  = 0;
+
+    CDC_STAT_MEM_REUSED_COUNTER(cdc_stat)                   = 0;
+    CDC_STAT_MEM_ZCOPY_COUNTER(cdc_stat)                    = 0;
     return (EC_TRUE);
 }
 
 EC_BOOL cdc_stat_clean(CDC_STAT  *cdc_stat)
 {
-    CDC_STAT_SSD_USED_RATIO(cdc_stat)           = 0.00;
-    CDC_STAT_SSD_HIT_RATIO(cdc_stat)            = 0.00;
+    CDC_STAT_SSD_USED_RATIO(cdc_stat)                       = 0.00;
+    CDC_STAT_SSD_HIT_RATIO(cdc_stat)                        = 0.00;
 
-    CDC_STAT_AMD_READ_SPEED(cdc_stat)           = 0;
-    CDC_STAT_AMD_WRITE_SPEED(cdc_stat)          = 0;
+    CDC_STAT_AMD_READ_SPEED(cdc_stat)                       = 0;
+    CDC_STAT_AMD_WRITE_SPEED(cdc_stat)                      = 0;
 
-    CDC_STAT_SSD_DEGRADE_RATIO(cdc_stat)        = 0.00;
-    CDC_STAT_SSD_DEGRADE_NUM(cdc_stat)          = 0;
-    CDC_STAT_SSD_DEGRADE_SPEED(cdc_stat)        = 0;
+    CDC_STAT_SSD_DEGRADE_RATIO(cdc_stat)                    = 0.00;
+    CDC_STAT_SSD_DEGRADE_NUM(cdc_stat)                      = 0;
+    CDC_STAT_SSD_DEGRADE_SPEED(cdc_stat)                    = 0;
 
+    CDC_STAT_DISPATCH_HIT(cdc_stat)                         = 0;
+    CDC_STAT_DISPATCH_MISS(cdc_stat)                        = 0;
+
+    CDC_STAT_PAGE_IS_ALIGNED_COUNTER(cdc_stat, CDC_OP_RD)   = 0;
+    CDC_STAT_PAGE_NOT_ALIGNED_COUNTER(cdc_stat, CDC_OP_WR)  = 0;
+
+    CDC_STAT_NODE_IS_ALIGNED_COUNTER(cdc_stat, CDC_OP_RD)   = 0;
+    CDC_STAT_NODE_NOT_ALIGNED_COUNTER(cdc_stat, CDC_OP_WR)  = 0;
+
+    CDC_STAT_MEM_REUSED_COUNTER(cdc_stat)                   = 0;
+    CDC_STAT_MEM_ZCOPY_COUNTER(cdc_stat)                    = 0;
     return (EC_TRUE);
 }
 
@@ -294,7 +311,7 @@ CDC_MD *cdc_start(const int ssd_meta_fd,
 
     clist_init(CDC_MD_REQ_LIST(cdc_md), MM_CDC_REQ, LOC_CDC_0002);
 
-    CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md) = 0;   /*set page tree[0] is active*/
+    CDC_MD_PAGE_ACTIVE_IDX(cdc_md) = 0;   /*set page tree[0] is active*/
     crb_tree_init(CDC_MD_PAGE_TREE(cdc_md, 0), /*init active page tree*/
                   (CRB_DATA_CMP)cdc_page_cmp,
                   (CRB_DATA_FREE)NULL_PTR, /*note: not define*/
@@ -387,9 +404,9 @@ void cdc_end(CDC_MD *cdc_md)
             cdc_poll(cdc_md);
         }
 
-        cdc_cleanup_pages(cdc_md, CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md));
-        cdc_cleanup_pages(cdc_md, CDC_MD_STANDBY_PAGE_TREE_IDX(cdc_md));
-        CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md) = 0;
+        cdc_cleanup_pages(cdc_md, CDC_MD_PAGE_ACTIVE_IDX(cdc_md));
+        cdc_cleanup_pages(cdc_md, CDC_MD_PAGE_STANDBY_IDX(cdc_md));
+        CDC_MD_PAGE_ACTIVE_IDX(cdc_md) = 0;
 
         cdc_cleanup_reqs(cdc_md);
         cdc_cleanup_post_event_reqs(cdc_md);
@@ -4867,6 +4884,7 @@ EC_BOOL cdc_page_init(CDC_PAGE *cdc_page)
     CDC_PAGE_SSD_LOADING_FLAG(cdc_page)   = BIT_FALSE;
     CDC_PAGE_SSD_FLUSHING_FLAG(cdc_page)  = BIT_FALSE;
     CDC_PAGE_MEM_CACHE_FLAG(cdc_page)     = BIT_FALSE;
+    CDC_PAGE_MEM_REUSED_FLAG(cdc_page)    = BIT_FALSE;
     CDC_PAGE_SATA_DIRTY_FLAG(cdc_page)    = BIT_FALSE;
     CDC_PAGE_SATA_DEG_FLAG(cdc_page)      = BIT_FALSE;
 
@@ -4877,8 +4895,8 @@ EC_BOOL cdc_page_init(CDC_PAGE *cdc_page)
     CDC_PAGE_CDCNP_ITEM_POS(cdc_page)     = CDCNPRB_ERR_POS;
 
     CDC_PAGE_CDC_MD(cdc_page)             = NULL_PTR;
-    CDC_PAGE_MOUNTED_PAGES(cdc_page)      = NULL_PTR;
-    CDC_PAGE_MOUNTED_TREE_IDX(cdc_page)   = CDC_PAGE_TREE_IDX_ERR;
+    CDC_PAGE_MOUNTED_TREE(cdc_page)       = NULL_PTR;
+    CDC_PAGE_MOUNTED_IDX(cdc_page)        = CDC_PAGE_IDX_ERR;
 
     clist_init(CDC_PAGE_OWNERS(cdc_page), MM_CDC_NODE, LOC_CDC_0010);
 
@@ -4894,22 +4912,25 @@ EC_BOOL cdc_page_clean(CDC_PAGE *cdc_page)
 
         if(NULL_PTR != CDC_PAGE_M_CACHE(cdc_page))
         {
-            if(BIT_FALSE == CDC_PAGE_MEM_CACHE_FLAG(cdc_page))
+            if(BIT_FALSE == CDC_PAGE_MEM_REUSED_FLAG(cdc_page))
             {
-                __cdc_mem_cache_free(CDC_PAGE_M_CACHE(cdc_page));
+                if(BIT_FALSE == CDC_PAGE_MEM_CACHE_FLAG(cdc_page))
+                {
+                    __cdc_mem_cache_free(CDC_PAGE_M_CACHE(cdc_page));
+                }
             }
 
             CDC_PAGE_M_CACHE(cdc_page) = NULL_PTR;
         }
 
-        if(NULL_PTR != CDC_PAGE_MOUNTED_PAGES(cdc_page)
+        if(NULL_PTR != CDC_PAGE_MOUNTED_TREE(cdc_page)
         && NULL_PTR != CDC_PAGE_CDC_MD(cdc_page)
-        && CDC_PAGE_TREE_IDX_ERR != CDC_PAGE_MOUNTED_TREE_IDX(cdc_page))
+        && CDC_PAGE_IDX_ERR != CDC_PAGE_MOUNTED_IDX(cdc_page))
         {
             CDC_MD     *cdc_md;
 
             cdc_md = CDC_PAGE_CDC_MD(cdc_page);
-            cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_TREE_IDX(cdc_page), cdc_page);
+            cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_IDX(cdc_page), cdc_page);
         }
 
         CDC_PAGE_FD(cdc_page)                 = ERR_FD;
@@ -4933,6 +4954,7 @@ EC_BOOL cdc_page_clean(CDC_PAGE *cdc_page)
         CDC_PAGE_SSD_LOADING_FLAG(cdc_page)   = BIT_FALSE;
         CDC_PAGE_SSD_FLUSHING_FLAG(cdc_page)  = BIT_FALSE;
         CDC_PAGE_MEM_CACHE_FLAG(cdc_page)     = BIT_FALSE;
+        CDC_PAGE_MEM_REUSED_FLAG(cdc_page)    = BIT_FALSE;
         CDC_PAGE_SATA_DIRTY_FLAG(cdc_page)    = BIT_FALSE;
         CDC_PAGE_SATA_DEG_FLAG(cdc_page)      = BIT_FALSE;
 
@@ -4957,9 +4979,9 @@ EC_BOOL cdc_page_free(CDC_PAGE *cdc_page)
 void cdc_page_print(LOG *log, const CDC_PAGE *cdc_page)
 {
     sys_log(log, "cdc_page_print: cdc_page %p: page range [%ld, %ld), "
-                 "dirty %u, ssd loaded %u, ssd loading %u, ssd flushing %u, mem cache page %u, "
+                 "dirty %u, ssd loaded %u, ssd loading %u, ssd flushing %u, mem cache flag %u, mem reused flag %u, "
                  "sata dirty flag %u, sata degrade flag %u, "
-                 "m_cache %p, item %p, item pos %u, mounted pages %p, mounted tree idx %ld, "
+                 "m_cache %p, item %p, item pos %u, mounted tree %p, mounted idx %ld, "
                  "timeout %ld seconds\n",
                  cdc_page,
                  CDC_PAGE_F_S_OFFSET(cdc_page), CDC_PAGE_F_E_OFFSET(cdc_page),
@@ -4968,13 +4990,14 @@ void cdc_page_print(LOG *log, const CDC_PAGE *cdc_page)
                  CDC_PAGE_SSD_LOADING_FLAG(cdc_page),
                  CDC_PAGE_SSD_FLUSHING_FLAG(cdc_page),
                  CDC_PAGE_MEM_CACHE_FLAG(cdc_page),
+                 CDC_PAGE_MEM_REUSED_FLAG(cdc_page),
                  CDC_PAGE_SATA_DIRTY_FLAG(cdc_page),
                  CDC_PAGE_SATA_DEG_FLAG(cdc_page),
                  CDC_PAGE_M_CACHE(cdc_page),
                  CDC_PAGE_CDCNP_ITEM(cdc_page),
                  CDC_PAGE_CDCNP_ITEM_POS(cdc_page),
-                 CDC_PAGE_MOUNTED_PAGES(cdc_page),
-                 CDC_PAGE_MOUNTED_TREE_IDX(cdc_page),
+                 CDC_PAGE_MOUNTED_TREE(cdc_page),
+                 CDC_PAGE_MOUNTED_IDX(cdc_page),
                  CDC_PAGE_TIMEOUT_NSEC(cdc_page));
 
     sys_log(log, "cdc_page_print: cdc_page %p: owners:\n", cdc_page);
@@ -5009,6 +5032,26 @@ int cdc_page_cmp(const CDC_PAGE *cdc_page_1st, const CDC_PAGE *cdc_page_2nd)
     }
 
     return (1);
+}
+
+EC_BOOL cdc_page_is_aligned(CDC_PAGE *cdc_page, const UINT32 size, const UINT32 align)
+{
+    if(CDC_PAGE_F_S_OFFSET(cdc_page) + size != CDC_PAGE_F_E_OFFSET(cdc_page))
+    {
+        return (EC_FALSE);
+    }
+
+    if(0 != (CDC_PAGE_F_S_OFFSET(cdc_page) % align))
+    {
+        return (EC_FALSE);
+    }
+
+    if(0 != (CDC_PAGE_F_E_OFFSET(cdc_page) % align))
+    {
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
 }
 
 EC_BOOL cdc_page_locate(CDC_PAGE *cdc_page)
@@ -5222,7 +5265,12 @@ CDC_NODE *cdc_page_pop_node_back(CDC_PAGE *cdc_page)
 **/
 EC_BOOL cdc_page_process(CDC_PAGE *cdc_page, const UINT32 retry_page_tree_idx)
 {
+    CDC_MD         *cdc_md;
+    CDC_STAT       *cdc_stat;
     CDC_NODE       *cdc_node;
+
+    cdc_md = CDC_PAGE_CDC_MD(cdc_page);
+    cdc_stat = CDC_MD_STAT(cdc_md);
 
     while(NULL_PTR != (cdc_node = cdc_page_pop_node_front(cdc_page)))
     {
@@ -5240,6 +5288,10 @@ EC_BOOL cdc_page_process(CDC_PAGE *cdc_page, const UINT32 retry_page_tree_idx)
                                 CDC_NODE_B_S_OFFSET(cdc_node), CDC_NODE_B_E_OFFSET(cdc_node),
                                 CDC_NODE_F_S_OFFSET(cdc_node), CDC_NODE_F_E_OFFSET(cdc_node));
 
+                if(CDC_PAGE_M_CACHE(cdc_page) + CDC_NODE_B_S_OFFSET(cdc_node) == CDC_NODE_M_BUFF(cdc_node))
+                {
+                    CDC_STAT_MEM_ZCOPY_COUNTER(cdc_stat) ++;
+                }
                 /*copy data from mem cache to application mem buff*/
                 FCOPY(CDC_PAGE_M_CACHE(cdc_page) + CDC_NODE_B_S_OFFSET(cdc_node),
                       CDC_NODE_M_BUFF(cdc_node),
@@ -5271,6 +5323,11 @@ EC_BOOL cdc_page_process(CDC_PAGE *cdc_page, const UINT32 retry_page_tree_idx)
                             CDC_NODE_SEQ_NO(cdc_node),
                             CDC_NODE_F_S_OFFSET(cdc_node), CDC_NODE_F_E_OFFSET(cdc_node),
                             CDC_NODE_B_S_OFFSET(cdc_node), CDC_NODE_B_E_OFFSET(cdc_node));
+
+            if(CDC_NODE_M_BUFF(cdc_node) == CDC_PAGE_M_CACHE(cdc_page) + CDC_NODE_B_S_OFFSET(cdc_node))
+            {
+                CDC_STAT_MEM_ZCOPY_COUNTER(cdc_stat) ++;
+            }
 
             /*copy data from application mem buff to mem cache*/
             FCOPY(CDC_NODE_M_BUFF(cdc_node),
@@ -5587,10 +5644,10 @@ EC_BOOL cdc_page_read_aio_timeout(CDC_PAGE *cdc_page)
 #endif
 
     if(NULL_PTR != CDC_PAGE_CDC_MD(cdc_page)
-    && NULL_PTR != CDC_PAGE_MOUNTED_PAGES(cdc_page)
-    && CDC_PAGE_TREE_IDX_ERR != CDC_PAGE_MOUNTED_TREE_IDX(cdc_page))
+    && NULL_PTR != CDC_PAGE_MOUNTED_TREE(cdc_page)
+    && CDC_PAGE_IDX_ERR != CDC_PAGE_MOUNTED_IDX(cdc_page))
     {
-        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_TREE_IDX(cdc_page), cdc_page);
+        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_IDX(cdc_page), cdc_page);
     }
 
     CDC_PAGE_SSD_LOADING_FLAG(cdc_page) = BIT_FALSE; /*clear flag*/
@@ -5662,10 +5719,10 @@ EC_BOOL cdc_page_read_aio_terminate(CDC_PAGE *cdc_page)
 #endif
 
     if(NULL_PTR != CDC_PAGE_CDC_MD(cdc_page)
-    && NULL_PTR != CDC_PAGE_MOUNTED_PAGES(cdc_page)
-    && CDC_PAGE_TREE_IDX_ERR != CDC_PAGE_MOUNTED_TREE_IDX(cdc_page))
+    && NULL_PTR != CDC_PAGE_MOUNTED_TREE(cdc_page)
+    && CDC_PAGE_IDX_ERR != CDC_PAGE_MOUNTED_IDX(cdc_page))
     {
-        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_TREE_IDX(cdc_page), cdc_page);
+        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_IDX(cdc_page), cdc_page);
     }
 
     CDC_PAGE_SSD_LOADING_FLAG(cdc_page) = BIT_FALSE; /*clear flag*/
@@ -5689,17 +5746,17 @@ EC_BOOL cdc_page_read_aio_complete(CDC_PAGE *cdc_page)
                      CDC_PAGE_D_S_OFFSET(cdc_page), CDC_PAGE_D_E_OFFSET(cdc_page));
 
     if(NULL_PTR != CDC_PAGE_CDC_MD(cdc_page)
-    && NULL_PTR != CDC_PAGE_MOUNTED_PAGES(cdc_page)
-    && CDC_PAGE_TREE_IDX_ERR != CDC_PAGE_MOUNTED_TREE_IDX(cdc_page))
+    && NULL_PTR != CDC_PAGE_MOUNTED_TREE(cdc_page)
+    && CDC_PAGE_IDX_ERR != CDC_PAGE_MOUNTED_IDX(cdc_page))
     {
-        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_TREE_IDX(cdc_page), cdc_page);
+        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_IDX(cdc_page), cdc_page);
     }
 
     CDC_PAGE_SSD_LOADED_FLAG(cdc_page)  = BIT_TRUE;  /*set ssd loaded*/
     CDC_PAGE_SSD_LOADING_FLAG(cdc_page) = BIT_FALSE; /*clear flag*/
 
     /*return to process procedure*/
-    cdc_page_process(cdc_page, CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md));
+    cdc_page_process(cdc_page, CDC_MD_PAGE_ACTIVE_IDX(cdc_md));
 
     return (EC_TRUE);
 }
@@ -5814,10 +5871,10 @@ EC_BOOL cdc_page_load_aio_timeout(CDC_PAGE *cdc_page)
 #endif
 
     if(NULL_PTR != CDC_PAGE_CDC_MD(cdc_page)
-    && NULL_PTR != CDC_PAGE_MOUNTED_PAGES(cdc_page)
-    && CDC_PAGE_TREE_IDX_ERR != CDC_PAGE_MOUNTED_TREE_IDX(cdc_page))
+    && NULL_PTR != CDC_PAGE_MOUNTED_TREE(cdc_page)
+    && CDC_PAGE_IDX_ERR != CDC_PAGE_MOUNTED_IDX(cdc_page))
     {
-        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_TREE_IDX(cdc_page), cdc_page);
+        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_IDX(cdc_page), cdc_page);
     }
 
     CDC_PAGE_SSD_LOADING_FLAG(cdc_page) = BIT_FALSE; /*clear flag*/
@@ -5888,10 +5945,10 @@ EC_BOOL cdc_page_load_aio_terminate(CDC_PAGE *cdc_page)
 #endif
 
     if(NULL_PTR != CDC_PAGE_CDC_MD(cdc_page)
-    && NULL_PTR != CDC_PAGE_MOUNTED_PAGES(cdc_page)
-    && CDC_PAGE_TREE_IDX_ERR != CDC_PAGE_MOUNTED_TREE_IDX(cdc_page))
+    && NULL_PTR != CDC_PAGE_MOUNTED_TREE(cdc_page)
+    && CDC_PAGE_IDX_ERR != CDC_PAGE_MOUNTED_IDX(cdc_page))
     {
-        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_TREE_IDX(cdc_page), cdc_page);
+        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_IDX(cdc_page), cdc_page);
     }
 
     CDC_PAGE_SSD_LOADING_FLAG(cdc_page) = BIT_FALSE; /*clear flag*/
@@ -5915,17 +5972,17 @@ EC_BOOL cdc_page_load_aio_complete(CDC_PAGE *cdc_page)
                      CDC_PAGE_D_S_OFFSET(cdc_page), CDC_PAGE_D_E_OFFSET(cdc_page));
 
     if(NULL_PTR != CDC_PAGE_CDC_MD(cdc_page)
-    && NULL_PTR != CDC_PAGE_MOUNTED_PAGES(cdc_page)
-    && CDC_PAGE_TREE_IDX_ERR != CDC_PAGE_MOUNTED_TREE_IDX(cdc_page))
+    && NULL_PTR != CDC_PAGE_MOUNTED_TREE(cdc_page)
+    && CDC_PAGE_IDX_ERR != CDC_PAGE_MOUNTED_IDX(cdc_page))
     {
-        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_TREE_IDX(cdc_page), cdc_page);
+        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_IDX(cdc_page), cdc_page);
     }
 
     CDC_PAGE_SSD_LOADED_FLAG(cdc_page)  = BIT_TRUE;  /*set ssd loaded*/
     CDC_PAGE_SSD_LOADING_FLAG(cdc_page) = BIT_FALSE; /*clear flag*/
 
     /*return to process procedure*/
-    cdc_page_process(cdc_page, CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md));
+    cdc_page_process(cdc_page, CDC_MD_PAGE_ACTIVE_IDX(cdc_md));
 
     return (EC_TRUE);
 }
@@ -6115,10 +6172,10 @@ EC_BOOL cdc_page_flush_aio_timeout(CDC_PAGE *cdc_page)
     CDC_PAGE_SSD_FLUSHING_FLAG(cdc_page) = BIT_FALSE; /*clear flag*/
 
     if(NULL_PTR != CDC_PAGE_CDC_MD(cdc_page)
-    && NULL_PTR != CDC_PAGE_MOUNTED_PAGES(cdc_page)
-    && CDC_PAGE_TREE_IDX_ERR != CDC_PAGE_MOUNTED_TREE_IDX(cdc_page))
+    && NULL_PTR != CDC_PAGE_MOUNTED_TREE(cdc_page)
+    && CDC_PAGE_IDX_ERR != CDC_PAGE_MOUNTED_IDX(cdc_page))
     {
-        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_TREE_IDX(cdc_page), cdc_page);
+        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_IDX(cdc_page), cdc_page);
     }
 
     cdc_page_free(cdc_page);
@@ -6196,10 +6253,10 @@ EC_BOOL cdc_page_flush_aio_terminate(CDC_PAGE *cdc_page)
     CDC_PAGE_SSD_FLUSHING_FLAG(cdc_page) = BIT_FALSE; /*clear flag*/
 
     if(NULL_PTR != CDC_PAGE_CDC_MD(cdc_page)
-    && NULL_PTR != CDC_PAGE_MOUNTED_PAGES(cdc_page)
-    && CDC_PAGE_TREE_IDX_ERR != CDC_PAGE_MOUNTED_TREE_IDX(cdc_page))
+    && NULL_PTR != CDC_PAGE_MOUNTED_TREE(cdc_page)
+    && CDC_PAGE_IDX_ERR != CDC_PAGE_MOUNTED_IDX(cdc_page))
     {
-        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_TREE_IDX(cdc_page), cdc_page);
+        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_IDX(cdc_page), cdc_page);
     }
 
     cdc_page_free(cdc_page);
@@ -6226,14 +6283,14 @@ EC_BOOL cdc_page_flush_aio_complete(CDC_PAGE *cdc_page)
     CDC_PAGE_SSD_FLUSHING_FLAG(cdc_page) = BIT_FALSE; /*clear flag*/
 
     if(NULL_PTR != CDC_PAGE_CDC_MD(cdc_page)
-    && NULL_PTR != CDC_PAGE_MOUNTED_PAGES(cdc_page)
-    && CDC_PAGE_TREE_IDX_ERR != CDC_PAGE_MOUNTED_TREE_IDX(cdc_page))
+    && NULL_PTR != CDC_PAGE_MOUNTED_TREE(cdc_page)
+    && CDC_PAGE_IDX_ERR != CDC_PAGE_MOUNTED_IDX(cdc_page))
     {
-        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_TREE_IDX(cdc_page), cdc_page);
+        cdc_del_page(cdc_md, CDC_PAGE_MOUNTED_IDX(cdc_page), cdc_page);
     }
 
     /*return to process procedure*/
-    cdc_page_process(cdc_page, CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md));
+    cdc_page_process(cdc_page, CDC_MD_PAGE_ACTIVE_IDX(cdc_md));
 
     return (EC_TRUE);
 }
@@ -6462,6 +6519,29 @@ EC_BOOL cdc_node_is(const CDC_NODE *cdc_node, const UINT32 sub_seq_no)
     return (EC_FALSE);
 }
 
+EC_BOOL cdc_node_is_aligned(CDC_NODE *cdc_node, const UINT32 size, const UINT32 align)
+{
+    if(0 != CDC_NODE_B_S_OFFSET(cdc_node))
+    {
+        return (EC_FALSE);
+    }
+
+    if(size != CDC_NODE_B_E_OFFSET(cdc_node))
+    {
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != CDC_NODE_M_BUFF(cdc_node))
+    {
+        if(0 != (((uint64_t)CDC_NODE_M_BUFF(cdc_node)) % ((uint64_t)align)))
+        {
+            return (EC_FALSE);
+        }
+    }
+
+    return (EC_TRUE);
+}
+
 void cdc_node_print(LOG *log, const CDC_NODE *cdc_node)
 {
     sys_log(log, "cdc_node_print: cdc_node %p: req %p, mounted at %p\n",
@@ -6646,7 +6726,7 @@ EC_BOOL cdc_req_init(CDC_REQ *cdc_req)
 
     clist_init(CDC_REQ_NODES(cdc_req), MM_CDC_NODE, LOC_CDC_0015);
 
-    CDC_REQ_MOUNTED_REQS(cdc_req)             = NULL_PTR;
+    CDC_REQ_MOUNTED_LIST(cdc_req)             = NULL_PTR;
 
     return (EC_TRUE);
 }
@@ -6655,7 +6735,7 @@ EC_BOOL cdc_req_clean(CDC_REQ *cdc_req)
 {
     if(NULL_PTR != cdc_req)
     {
-        if(NULL_PTR != CDC_REQ_MOUNTED_REQS(cdc_req)
+        if(NULL_PTR != CDC_REQ_MOUNTED_LIST(cdc_req)
         && NULL_PTR != CDC_REQ_CDC_MD(cdc_req))
         {
             cdc_del_req(CDC_REQ_CDC_MD(cdc_req), cdc_req);
@@ -7492,11 +7572,16 @@ EC_BOOL cdc_req_complete(CDC_REQ *cdc_req)
 EC_BOOL cdc_req_dispatch_node(CDC_REQ *cdc_req, CDC_NODE *cdc_node)
 {
     CDC_MD     *cdc_md;
+    CDC_STAT   *cdc_stat;
     CDC_PAGE   *cdc_page;
 
-    cdc_md = CDC_REQ_CDC_MD(cdc_req);
+    EC_BOOL     page_is_aligned;
+    EC_BOOL     node_is_aligned;
 
-    cdc_page = cdc_search_page(cdc_md, CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md), CDC_NODE_FD(cdc_node),
+    cdc_md = CDC_REQ_CDC_MD(cdc_req);
+    cdc_stat = CDC_MD_STAT(cdc_md);
+
+    cdc_page = cdc_search_page(cdc_md, CDC_MD_PAGE_ACTIVE_IDX(cdc_md), CDC_NODE_FD(cdc_node),
                                 CDC_NODE_F_S_OFFSET(cdc_node), CDC_NODE_F_E_OFFSET(cdc_node));
     if(NULL_PTR != cdc_page)
     {
@@ -7522,6 +7607,8 @@ EC_BOOL cdc_req_dispatch_node(CDC_REQ *cdc_req, CDC_NODE *cdc_node)
             CDC_PAGE_SATA_DEG_FLAG(cdc_page)  = BIT_TRUE; /*inherit sata deg flag*/
         }
 
+        CDC_STAT_DISPATCH_HIT(cdc_stat) ++;
+
         dbg_log(SEC_0182_CDC, 6)(LOGSTDOUT, "[DEBUG] cdc_req_dispatch_node: "
                          "dispatch node %ld/%ld of req %ld, op %s to existing page [%ld, %ld) done\n",
                          CDC_NODE_SUB_SEQ_NO(cdc_node), CDC_NODE_SUB_SEQ_NUM(cdc_node),
@@ -7532,7 +7619,7 @@ EC_BOOL cdc_req_dispatch_node(CDC_REQ *cdc_req, CDC_NODE *cdc_node)
         return (EC_TRUE);
     }
 
-    CDC_ASSERT(NULL_PTR == cdc_search_page(cdc_md, CDC_MD_STANDBY_PAGE_TREE_IDX(cdc_md),
+    CDC_ASSERT(NULL_PTR == cdc_search_page(cdc_md, CDC_MD_PAGE_STANDBY_IDX(cdc_md),
                                 CDC_NODE_FD(cdc_node),
                                 CDC_NODE_F_S_OFFSET(cdc_node), CDC_NODE_F_E_OFFSET(cdc_node)));
 
@@ -7632,28 +7719,67 @@ EC_BOOL cdc_req_dispatch_node(CDC_REQ *cdc_req, CDC_NODE *cdc_node)
                          CDC_PAGE_F_S_OFFSET(cdc_page), CDC_PAGE_F_E_OFFSET(cdc_page));
     }
 
+    CDC_STAT_DISPATCH_MISS(cdc_stat) ++;
+
+    if(EC_TRUE == cdc_page_is_aligned(cdc_page, CDCPGB_PAGE_SIZE_NBYTES, CDCPGB_PAGE_SIZE_NBYTES))
+    {
+        page_is_aligned = EC_TRUE;
+        CDC_STAT_PAGE_IS_ALIGNED_COUNTER(cdc_stat, CDC_PAGE_OP(cdc_page)) ++;
+    }
+    else
+    {
+        page_is_aligned = EC_FALSE;
+        CDC_STAT_PAGE_NOT_ALIGNED_COUNTER(cdc_stat, CDC_PAGE_OP(cdc_page)) ++;
+    }
+
+    if(EC_TRUE == cdc_node_is_aligned(cdc_node, CDCPGB_PAGE_SIZE_NBYTES, CDCPGB_PAGE_SIZE_NBYTES))
+    {
+        node_is_aligned = EC_TRUE;
+        CDC_STAT_NODE_IS_ALIGNED_COUNTER(cdc_stat, CDC_NODE_OP(cdc_node)) ++;
+    }
+    else
+    {
+        node_is_aligned = EC_FALSE;
+        CDC_STAT_NODE_NOT_ALIGNED_COUNTER(cdc_stat, CDC_NODE_OP(cdc_node)) ++;
+    }
+
     if(NULL_PTR == CDC_PAGE_M_CACHE(cdc_page))
     {
-        CDC_PAGE_M_CACHE(cdc_page) = __cdc_mem_cache_new(CDCPGB_PAGE_SIZE_NBYTES, CDCPGB_PAGE_SIZE_NBYTES);
-        if(NULL_PTR == CDC_PAGE_M_CACHE(cdc_page))
+        /*WR op would be completed at once, thus its m_buf could not be reused*/
+        if(CDC_OP_WR == CDC_NODE_OP(cdc_node)
+        || NULL_PTR == CDC_NODE_M_BUFF(cdc_node)
+        || EC_FALSE == page_is_aligned
+        || EC_FALSE == node_is_aligned)
         {
-            dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_req_dispatch_node: "
-                             "new mem cache for page [%ld, %ld) failed\n",
-                             CDC_PAGE_F_S_OFFSET(cdc_page), CDC_PAGE_F_E_OFFSET(cdc_page));
-
-            if(CDC_OP_WR == CDC_REQ_OP(cdc_req))
+            CDC_PAGE_M_CACHE(cdc_page) = __cdc_mem_cache_new(CDCPGB_PAGE_SIZE_NBYTES, CDCPGB_PAGE_SIZE_NBYTES);
+            if(NULL_PTR == CDC_PAGE_M_CACHE(cdc_page))
             {
-                /*release the reserved page space*/
-                cdc_release_page(cdc_md, cdc_page);
-            }
+                dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_req_dispatch_node: "
+                                 "new mem cache for page [%ld, %ld) failed\n",
+                                 CDC_PAGE_F_S_OFFSET(cdc_page), CDC_PAGE_F_E_OFFSET(cdc_page));
 
-            cdc_page_free(cdc_page);
-            return (EC_FALSE);
+                if(CDC_OP_WR == CDC_REQ_OP(cdc_req))
+                {
+                    /*release the reserved page space*/
+                    cdc_release_page(cdc_md, cdc_page);
+                }
+
+                cdc_page_free(cdc_page);
+                return (EC_FALSE);
+            }
+            CDC_PAGE_MEM_REUSED_FLAG(cdc_page) = BIT_FALSE;
+        }
+        else
+        {
+            CDC_PAGE_M_CACHE(cdc_page) = CDC_NODE_M_BUFF(cdc_node);
+            CDC_PAGE_MEM_REUSED_FLAG(cdc_page) = BIT_TRUE;
+
+            CDC_STAT_MEM_REUSED_COUNTER(cdc_stat) ++;
         }
     }
 
     /*add page to cdc module*/
-    if(EC_FALSE == cdc_add_page(cdc_md, CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md), cdc_page))
+    if(EC_FALSE == cdc_add_page(cdc_md, CDC_MD_PAGE_ACTIVE_IDX(cdc_md), cdc_page))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_req_dispatch_node: "
                          "add page [%ld, %ld) to cdc module failed\n",
@@ -7685,7 +7811,7 @@ EC_BOOL cdc_req_dispatch_node(CDC_REQ *cdc_req, CDC_NODE *cdc_node)
             cdc_release_page(cdc_md, cdc_page);
         }
 
-        cdc_del_page(cdc_md, CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md), cdc_page);
+        cdc_del_page(cdc_md, CDC_MD_PAGE_ACTIVE_IDX(cdc_md), cdc_page);
         cdc_page_free(cdc_page);
         return (EC_FALSE);
     }
@@ -8088,7 +8214,7 @@ void cdc_process_timeout_reqs(CDC_MD *cdc_md)
         CDC_REQ       *cdc_req;
 
         cdc_req = (CDC_REQ *)CLIST_DATA_DATA(clist_data);
-        CDC_ASSERT(CDC_REQ_MOUNTED_REQS(cdc_req) == clist_data);
+        CDC_ASSERT(CDC_REQ_MOUNTED_LIST(cdc_req) == clist_data);
 
         if(cur_time_ms >= CDC_REQ_NTIME_MS(cdc_req))
         {
@@ -8120,8 +8246,8 @@ void cdc_process_pages(CDC_MD *cdc_md)
     UINT32           active_page_tree_idx;
     UINT32           standby_page_tree_idx;
 
-    active_page_tree_idx  = CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md);
-    standby_page_tree_idx = CDC_MD_STANDBY_PAGE_TREE_IDX(cdc_md);
+    active_page_tree_idx  = CDC_MD_PAGE_ACTIVE_IDX(cdc_md);
+    standby_page_tree_idx = CDC_MD_PAGE_STANDBY_IDX(cdc_md);
 
     /*run through active tree and process page one by one*/
     while(NULL_PTR != (cdc_page = cdc_pop_first_page(cdc_md, active_page_tree_idx)))
@@ -8139,7 +8265,7 @@ void cdc_process_pages(CDC_MD *cdc_md)
     /*switch page tree*/
     CDC_MD_SWITCH_PAGE_TREE(cdc_md);
     /*make sure standby has no page*/
-    CDC_ASSERT(EC_FALSE == cdc_has_page(cdc_md, CDC_MD_STANDBY_PAGE_TREE_IDX(cdc_md)));
+    CDC_ASSERT(EC_FALSE == cdc_has_page(cdc_md, CDC_MD_PAGE_STANDBY_IDX(cdc_md)));
 
     return;
 }
@@ -8151,7 +8277,7 @@ void cdc_process_page(CDC_MD *cdc_md, CDC_PAGE *cdc_page)
     {
         /*page life cycle is determined by process => not need to free page*/
         /*page cannot be accessed again => do not output log*/
-        cdc_page_process(cdc_page, CDC_MD_STANDBY_PAGE_TREE_IDX(cdc_md));
+        cdc_page_process(cdc_page, CDC_MD_PAGE_STANDBY_IDX(cdc_md));
         return;
     }
 
@@ -8176,7 +8302,7 @@ void cdc_process_page(CDC_MD *cdc_md, CDC_PAGE *cdc_page)
         }
 
         /*add page to standby page tree temporarily*/
-        cdc_add_page(cdc_md, CDC_MD_STANDBY_PAGE_TREE_IDX(cdc_md), cdc_page);
+        cdc_add_page(cdc_md, CDC_MD_PAGE_STANDBY_IDX(cdc_md), cdc_page);
         CDC_PAGE_SSD_LOADING_FLAG(cdc_page)  = BIT_TRUE; /*set flag*/
 
         dbg_log(SEC_0182_CDC, 5)(LOGSTDOUT, "[DEBUG] cdc_process_page: "
@@ -8208,7 +8334,7 @@ void cdc_process_page(CDC_MD *cdc_md, CDC_PAGE *cdc_page)
         CDC_PAGE_SSD_LOADING_FLAG(cdc_page) = BIT_FALSE; /*clear flag*/
 
         /*free cdc page determined by process*/
-        cdc_page_process(cdc_page, CDC_MD_STANDBY_PAGE_TREE_IDX(cdc_md));
+        cdc_page_process(cdc_page, CDC_MD_PAGE_STANDBY_IDX(cdc_md));
     }
 
     return;
@@ -8661,7 +8787,7 @@ void cdc_show_page(LOG *log, const CDC_MD *cdc_md, const int fd, const UINT32 f_
 {
     CDC_PAGE   *cdc_page;
 
-    cdc_page = cdc_search_page((CDC_MD *)cdc_md, CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md), fd, f_s_offset, f_e_offset);
+    cdc_page = cdc_search_page((CDC_MD *)cdc_md, CDC_MD_PAGE_ACTIVE_IDX(cdc_md), fd, f_s_offset, f_e_offset);
     if(NULL_PTR == cdc_page)
     {
         sys_log(log, "cdc_show_req: (no matched req)\n");
@@ -8764,11 +8890,11 @@ EC_BOOL cdc_submit_req(CDC_MD *cdc_md, CDC_REQ *cdc_req)
 
 EC_BOOL cdc_add_req(CDC_MD *cdc_md, CDC_REQ *cdc_req)
 {
-    CDC_ASSERT(NULL_PTR == CDC_REQ_MOUNTED_REQS(cdc_req));
+    CDC_ASSERT(NULL_PTR == CDC_REQ_MOUNTED_LIST(cdc_req));
 
     /*push back*/
-    CDC_REQ_MOUNTED_REQS(cdc_req) = clist_push_back(CDC_MD_REQ_LIST(cdc_md), (void *)cdc_req);
-    if(NULL_PTR == CDC_REQ_MOUNTED_REQS(cdc_req))
+    CDC_REQ_MOUNTED_LIST(cdc_req) = clist_push_back(CDC_MD_REQ_LIST(cdc_md), (void *)cdc_req);
+    if(NULL_PTR == CDC_REQ_MOUNTED_LIST(cdc_req))
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_add_req: push req %ld, op %s failed\n",
                                              CDC_REQ_SEQ_NO(cdc_req),
@@ -8784,10 +8910,10 @@ EC_BOOL cdc_add_req(CDC_MD *cdc_md, CDC_REQ *cdc_req)
 
 EC_BOOL cdc_del_req(CDC_MD *cdc_md, CDC_REQ *cdc_req)
 {
-    if(NULL_PTR != CDC_REQ_MOUNTED_REQS(cdc_req))
+    if(NULL_PTR != CDC_REQ_MOUNTED_LIST(cdc_req))
     {
-        clist_erase(CDC_MD_REQ_LIST(cdc_md), CDC_REQ_MOUNTED_REQS(cdc_req));
-        CDC_REQ_MOUNTED_REQS(cdc_req) = NULL_PTR;
+        clist_erase(CDC_MD_REQ_LIST(cdc_md), CDC_REQ_MOUNTED_LIST(cdc_req));
+        CDC_REQ_MOUNTED_LIST(cdc_req) = NULL_PTR;
 
         dbg_log(SEC_0182_CDC, 9)(LOGSTDOUT, "[DEBUG] cdc_del_req: req %ld, op %s\n",
                      CDC_REQ_SEQ_NO(cdc_req),
@@ -8900,20 +9026,20 @@ EC_BOOL cdc_has_locked_page(CDC_MD *cdc_md)
     return (EC_FALSE);
 }
 
-EC_BOOL cdc_add_page(CDC_MD *cdc_md, const UINT32 page_tree_idx, CDC_PAGE *cdc_page)
+EC_BOOL cdc_add_page(CDC_MD *cdc_md, const UINT32 page_choice_idx, CDC_PAGE *cdc_page)
 {
     CRB_NODE    *crb_node;
 
-    CDC_ASSERT(NULL_PTR == CDC_PAGE_MOUNTED_PAGES(cdc_page));
+    CDC_ASSERT(NULL_PTR == CDC_PAGE_MOUNTED_TREE(cdc_page));
 
-    crb_node = crb_tree_insert_data(CDC_MD_PAGE_TREE(cdc_md, page_tree_idx), (void *)cdc_page);
+    crb_node = crb_tree_insert_data(CDC_MD_PAGE_TREE(cdc_md, page_choice_idx), (void *)cdc_page);
     if(NULL_PTR == crb_node)
     {
         dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_add_page: "
                                             "add page [%ld, %ld) to %s tree failed\n",
                                             CDC_PAGE_F_S_OFFSET(cdc_page),
                                             CDC_PAGE_F_E_OFFSET(cdc_page),
-                                            ((CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md) == page_tree_idx)?
+                                            ((CDC_MD_PAGE_ACTIVE_IDX(cdc_md) == page_choice_idx)?
                                             (const char *)"active" : (const char *)"standby"));
         return (EC_FALSE);
     }
@@ -8927,49 +9053,49 @@ EC_BOOL cdc_add_page(CDC_MD *cdc_md, const UINT32 page_tree_idx, CDC_PAGE *cdc_p
                                             "found duplicate page [%ld, %ld) in %ld (%s) tree\n",
                                             CDC_PAGE_F_S_OFFSET(cdc_page),
                                             CDC_PAGE_F_E_OFFSET(cdc_page),
-                                            page_tree_idx,
-                                            ((CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md) == page_tree_idx)?
+                                            page_choice_idx,
+                                            ((CDC_MD_PAGE_ACTIVE_IDX(cdc_md) == page_choice_idx)?
                                             (const char *)"active" : (const char *)"standby"));
         return (EC_FALSE);
     }
 
-    CDC_PAGE_MOUNTED_PAGES(cdc_page)    = crb_node;
-    CDC_PAGE_MOUNTED_TREE_IDX(cdc_page) = page_tree_idx;
+    CDC_PAGE_MOUNTED_TREE(cdc_page) = crb_node;
+    CDC_PAGE_MOUNTED_IDX(cdc_page)  = page_choice_idx;
 
     dbg_log(SEC_0182_CDC, 7)(LOGSTDOUT, "[DEBUG] cdc_add_page: "
-                                        "add page [%ld, %ld) to %ld (%s) tree done\n",
+                                        "add page [%ld, %ld) to %ld (%s) done\n",
                                         CDC_PAGE_F_S_OFFSET(cdc_page),
                                         CDC_PAGE_F_E_OFFSET(cdc_page),
-                                        page_tree_idx,
-                                        ((CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md) == page_tree_idx)?
+                                        page_choice_idx,
+                                        ((CDC_MD_PAGE_ACTIVE_IDX(cdc_md) == page_choice_idx)?
                                         (const char *)"active" : (const char *)"standby"));
     return (EC_TRUE);
 }
 
-EC_BOOL cdc_del_page(CDC_MD *cdc_md, const UINT32 page_tree_idx, CDC_PAGE *cdc_page)
+EC_BOOL cdc_del_page(CDC_MD *cdc_md, const UINT32 page_choice_idx, CDC_PAGE *cdc_page)
 {
-    if(NULL_PTR != CDC_PAGE_MOUNTED_PAGES(cdc_page))
+    if(NULL_PTR != CDC_PAGE_MOUNTED_TREE(cdc_page))
     {
-        CDC_ASSERT(page_tree_idx == CDC_PAGE_MOUNTED_TREE_IDX(cdc_page));
+        CDC_ASSERT(page_choice_idx == CDC_PAGE_MOUNTED_IDX(cdc_page));
 
-        crb_tree_erase(CDC_MD_PAGE_TREE(cdc_md, page_tree_idx), CDC_PAGE_MOUNTED_PAGES(cdc_page));
-        CDC_PAGE_MOUNTED_PAGES(cdc_page)    = NULL_PTR;
-        CDC_PAGE_MOUNTED_TREE_IDX(cdc_page) = CDC_PAGE_TREE_IDX_ERR;
+        crb_tree_erase(CDC_MD_PAGE_TREE(cdc_md, page_choice_idx), CDC_PAGE_MOUNTED_TREE(cdc_page));
+        CDC_PAGE_MOUNTED_TREE(cdc_page) = NULL_PTR;
+        CDC_PAGE_MOUNTED_IDX(cdc_page)  = CDC_PAGE_IDX_ERR;
 
         dbg_log(SEC_0182_CDC, 7)(LOGSTDOUT, "[DEBUG] cdc_del_page: "
-                                            "del page [%ld, %ld) from %ld (%s) tree done\n",
+                                            "del page [%ld, %ld) from %ld (%s) done\n",
                                             CDC_PAGE_F_S_OFFSET(cdc_page),
                                             CDC_PAGE_F_E_OFFSET(cdc_page),
-                                            page_tree_idx,
-                                            ((CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md) == page_tree_idx)?
+                                            page_choice_idx,
+                                            ((CDC_MD_PAGE_ACTIVE_IDX(cdc_md) == page_choice_idx)?
                                             (const char *)"active" : (const char *)"standby"));
     }
     return (EC_TRUE);
 }
 
-EC_BOOL cdc_has_page(CDC_MD *cdc_md, const UINT32 page_tree_idx)
+EC_BOOL cdc_has_page(CDC_MD *cdc_md, const UINT32 page_choice_idx)
 {
-    if(EC_TRUE == crb_tree_is_empty(CDC_MD_PAGE_TREE(cdc_md, page_tree_idx)))
+    if(EC_TRUE == crb_tree_is_empty(CDC_MD_PAGE_TREE(cdc_md, page_choice_idx)))
     {
         return (EC_FALSE); /*no page*/
     }
@@ -8986,9 +9112,9 @@ STATIC_CAST EC_BOOL __cdc_page_is_rd(const void *cdc_page, void *UNUSED(none))
     return (EC_FALSE);
 }
 
-EC_BOOL cdc_has_wr_page(CDC_MD *cdc_md, const UINT32 page_tree_idx)
+EC_BOOL cdc_has_wr_page(CDC_MD *cdc_md, const UINT32 page_choice_idx)
 {
-    if(EC_TRUE == crb_inorder_walk(CDC_MD_PAGE_TREE(cdc_md, page_tree_idx),
+    if(EC_TRUE == crb_inorder_walk(CDC_MD_PAGE_TREE(cdc_md, page_choice_idx),
                                     __cdc_page_is_rd,
                                     NULL_PTR))
     {
@@ -8999,59 +9125,59 @@ EC_BOOL cdc_has_wr_page(CDC_MD *cdc_md, const UINT32 page_tree_idx)
     return (EC_TRUE); /*has wr page*/
 }
 
-CDC_PAGE *cdc_pop_first_page(CDC_MD *cdc_md, const UINT32 page_tree_idx)
+CDC_PAGE *cdc_pop_first_page(CDC_MD *cdc_md, const UINT32 page_choice_idx)
 {
     CRB_NODE   *crb_node;
     CDC_PAGE   *cdc_page;
 
-    crb_node = (CRB_NODE *)crb_tree_first_node(CDC_MD_PAGE_TREE(cdc_md, page_tree_idx));
+    crb_node = (CRB_NODE *)crb_tree_first_node(CDC_MD_PAGE_TREE(cdc_md, page_choice_idx));
     if(NULL_PTR == crb_node)
     {
         return (NULL_PTR);
     }
 
-    cdc_page = crb_tree_erase(CDC_MD_PAGE_TREE(cdc_md, page_tree_idx), crb_node);
-    CDC_ASSERT(CDC_PAGE_MOUNTED_PAGES(cdc_page) == crb_node);
-    CDC_PAGE_MOUNTED_PAGES(cdc_page)    = NULL_PTR;
-    CDC_PAGE_MOUNTED_TREE_IDX(cdc_page) = CDC_PAGE_TREE_IDX_ERR;
+    cdc_page = crb_tree_erase(CDC_MD_PAGE_TREE(cdc_md, page_choice_idx), crb_node);
+    CDC_ASSERT(CDC_PAGE_MOUNTED_TREE(cdc_page) == crb_node);
+    CDC_PAGE_MOUNTED_TREE(cdc_page) = NULL_PTR;
+    CDC_PAGE_MOUNTED_IDX(cdc_page)  = CDC_PAGE_IDX_ERR;
 
     dbg_log(SEC_0182_CDC, 7)(LOGSTDOUT, "[DEBUG] cdc_pop_first_page: "
                                         "pop page [%ld, %ld) from %ld (%s) tree done\n",
                                         CDC_PAGE_F_S_OFFSET(cdc_page),
                                         CDC_PAGE_F_E_OFFSET(cdc_page),
-                                        page_tree_idx,
-                                        ((CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md) == page_tree_idx)?
+                                        page_choice_idx,
+                                        ((CDC_MD_PAGE_ACTIVE_IDX(cdc_md) == page_choice_idx)?
                                         (const char *)"active" : (const char *)"standby"));
     return (cdc_page);
 }
 
-CDC_PAGE *cdc_pop_last_page(CDC_MD *cdc_md, const UINT32 page_tree_idx)
+CDC_PAGE *cdc_pop_last_page(CDC_MD *cdc_md, const UINT32 page_choice_idx)
 {
     CRB_NODE   *crb_node;
     CDC_PAGE   *cdc_page;
 
-    crb_node = (CRB_NODE *)crb_tree_last_node(CDC_MD_PAGE_TREE(cdc_md, page_tree_idx));
+    crb_node = (CRB_NODE *)crb_tree_last_node(CDC_MD_PAGE_TREE(cdc_md, page_choice_idx));
     if(NULL_PTR == crb_node)
     {
         return (NULL_PTR);
     }
 
-    cdc_page = crb_tree_erase(CDC_MD_PAGE_TREE(cdc_md, page_tree_idx), crb_node);
-    CDC_ASSERT(CDC_PAGE_MOUNTED_PAGES(cdc_page) == crb_node);
-    CDC_PAGE_MOUNTED_PAGES(cdc_page)    = NULL_PTR;
-    CDC_PAGE_MOUNTED_TREE_IDX(cdc_page) = CDC_PAGE_TREE_IDX_ERR;
+    cdc_page = crb_tree_erase(CDC_MD_PAGE_TREE(cdc_md, page_choice_idx), crb_node);
+    CDC_ASSERT(CDC_PAGE_MOUNTED_TREE(cdc_page) == crb_node);
+    CDC_PAGE_MOUNTED_TREE(cdc_page) = NULL_PTR;
+    CDC_PAGE_MOUNTED_IDX(cdc_page)  = CDC_PAGE_IDX_ERR;
 
     dbg_log(SEC_0182_CDC, 7)(LOGSTDOUT, "[DEBUG] cdc_pop_last_page: "
                                         "pop page [%ld, %ld) from %ld (%s) tree done\n",
                                         CDC_PAGE_F_S_OFFSET(cdc_page),
                                         CDC_PAGE_F_E_OFFSET(cdc_page),
-                                        page_tree_idx,
-                                        ((CDC_MD_ACTIVE_PAGE_TREE_IDX(cdc_md) == page_tree_idx)?
+                                        page_choice_idx,
+                                        ((CDC_MD_PAGE_ACTIVE_IDX(cdc_md) == page_choice_idx)?
                                         (const char *)"active" : (const char *)"standby"));
     return (cdc_page);
 }
 
-CDC_PAGE *cdc_search_page(CDC_MD *cdc_md, const UINT32 page_tree_idx, const int fd, const UINT32 f_s_offset, const UINT32 f_e_offset)
+CDC_PAGE *cdc_search_page(CDC_MD *cdc_md, const UINT32 page_choice_idx, const int fd, const UINT32 f_s_offset, const UINT32 f_e_offset)
 {
     CDC_PAGE        cdc_page_t;
     CRB_NODE       *crb_node;
@@ -9060,7 +9186,7 @@ CDC_PAGE *cdc_search_page(CDC_MD *cdc_md, const UINT32 page_tree_idx, const int 
     CDC_PAGE_F_S_OFFSET(&cdc_page_t) = f_s_offset;
     CDC_PAGE_F_E_OFFSET(&cdc_page_t) = f_e_offset;
 
-    crb_node = crb_tree_search_data(CDC_MD_PAGE_TREE(cdc_md, page_tree_idx), (void *)&cdc_page_t);
+    crb_node = crb_tree_search_data(CDC_MD_PAGE_TREE(cdc_md, page_choice_idx), (void *)&cdc_page_t);
     if(NULL_PTR == crb_node)
     {
         return (NULL_PTR);
@@ -9069,11 +9195,11 @@ CDC_PAGE *cdc_search_page(CDC_MD *cdc_md, const UINT32 page_tree_idx, const int 
     return ((CDC_PAGE *)CRB_NODE_DATA(crb_node));
 }
 
-EC_BOOL cdc_cleanup_pages(CDC_MD *cdc_md, const UINT32 page_tree_idx)
+EC_BOOL cdc_cleanup_pages(CDC_MD *cdc_md, const UINT32 page_choice_idx)
 {
     CDC_PAGE        *cdc_page;
 
-    while(NULL_PTR != (cdc_page = cdc_pop_first_page(cdc_md, page_tree_idx)))
+    while(NULL_PTR != (cdc_page = cdc_pop_first_page(cdc_md, page_choice_idx)))
     {
         cdc_page_free(cdc_page);
     }
@@ -9087,7 +9213,7 @@ EC_BOOL cdc_cleanup_reqs(CDC_MD *cdc_md)
 
     while(NULL_PTR != (cdc_req = clist_pop_front(CDC_MD_REQ_LIST(cdc_md))))
     {
-        CDC_REQ_MOUNTED_REQS(cdc_req) = NULL_PTR;
+        CDC_REQ_MOUNTED_LIST(cdc_req) = NULL_PTR;
 
         cdc_req_free(cdc_req);
     }

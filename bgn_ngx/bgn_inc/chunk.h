@@ -65,9 +65,9 @@ EC_BOOL chunk_reset(CHUNK *chunk);
 
 EC_BOOL chunk_set_aligned(CHUNK *chunk);
 
-EC_BOOL chunk_mount(CHUNK *chunk, const uint8_t *data, const uint32_t len, const uint32_t aligned);
+EC_BOOL chunk_mount(CHUNK *chunk, const uint8_t *data, const uint32_t size, const uint32_t used, const uint32_t aligned);
 
-EC_BOOL chunk_umount(CHUNK *chunk, uint8_t **data, uint32_t *len, uint32_t *aligned);
+EC_BOOL chunk_umount(CHUNK *chunk, uint8_t **data, uint32_t *used, uint32_t *aligned);
 
 uint32_t chunk_size(const CHUNK *chunk);
 
@@ -127,9 +127,9 @@ EC_BOOL chunk_mgr_shift(CHUNK_MGR *chunk_mgr, const uint32_t data_max_len, uint8
 
 EC_BOOL chunk_mgr_dump(CHUNK_MGR *chunk_mgr, UINT8 **data, UINT32 *len, UINT32 *aligned);
 
-EC_BOOL chunk_mgr_mount_data(CHUNK_MGR *chunk_mgr, const uint8_t *data, const uint32_t size, const uint32_t aligned);
+EC_BOOL chunk_mgr_mount_data(CHUNK_MGR *chunk_mgr, const uint8_t *data, const uint32_t size, const uint32_t used, const uint32_t aligned);
 
-EC_BOOL chunk_mgr_umount_data(CHUNK_MGR *chunk_mgr, uint8_t **data, uint32_t *size, uint32_t *aligned);/*only for chunk_mgr has no or one chunk!*/
+EC_BOOL chunk_mgr_umount_data(CHUNK_MGR *chunk_mgr, uint8_t **data, uint32_t *used, uint32_t *aligned);/*only for chunk_mgr has no or one chunk!*/
 
 void chunk_mgr_print_chars(LOG *log, const CHUNK_MGR *chunk_mgr) ;
 

@@ -113,7 +113,7 @@ extern "C"{
 
 #define CAIO_TIMEOUT_NSEC_DEFAULT                       (3600) /*second*/
 
-#define CAIO_PAGE_LIST_IDX_ERR                          ((UINT32)~0)
+#define CAIO_PAGE_IDX_ERR                               ((UINT32)~0)
 #define CAIO_PAGE_NO_ERR                                ((uint32_t)~0)
 
 typedef struct
@@ -157,16 +157,35 @@ typedef struct
 
 typedef struct
 {
-    uint64_t                 next_time_msec;  /*next time calculating statistics*/
-    uint64_t                 op_counter[ 2 ]; /*RD, WR*/
-    uint64_t                 op_nbytes [ 2 ]; /*RD, WR*/
-    uint64_t                 cost_msec [ 2 ]; /*RD, WR*/
+    uint64_t                 next_time_msec;               /*next time calculating statistics*/
+    uint64_t                 op_counter[ 2 ];              /*RD, WR*/
+    uint64_t                 op_nbytes [ 2 ];              /*RD, WR*/
+    uint64_t                 cost_msec [ 2 ];              /*RD, WR*/
+    uint64_t                 dispatch_hit;                 /*dispatch node and hit existing page*/
+    uint64_t                 dispatch_miss;                /*dispatch node but not hit existing page*/
+    uint64_t                 page_is_aligned_counter[2];   /*RD, WR, page [f_s_offset, f_e_offset] is aligned*/
+    uint64_t                 page_not_aligned_counter[2];  /*RD, WR, page [f_s_offset, f_e_offset] is not aligned*/
+    uint64_t                 node_is_aligned_counter[2];   /*RD, WR, node [b_s_offset, b_e_offset] and buff addr are aligned*/
+    uint64_t                 node_not_aligned_counter[2];  /*RD, WR, node [b_s_offset, b_e_offset] or buff addr are not aligned*/
+    uint64_t                 mem_reused_counter;
+    uint64_t                 mem_zcopy_counter;            /*zero copy counter*/
 }CAIO_STAT;
 
-#define CAIO_STAT_NEXT_TIME_MSEC(caio_stat)        ((caio_stat)->next_time_msec)
-#define CAIO_STAT_OP_COUNTER(caio_stat, op)        ((caio_stat)->op_counter[ (op) ])
-#define CAIO_STAT_OP_NBYTES(caio_stat, op)         ((caio_stat)->op_nbytes[ (op) ])
-#define CAIO_STAT_COST_MSEC(caio_stat, op)         ((caio_stat)->cost_msec[ (op) ])
+#define CAIO_STAT_NEXT_TIME_MSEC(caio_stat)               ((caio_stat)->next_time_msec)
+#define CAIO_STAT_OP_COUNTER(caio_stat, op)               ((caio_stat)->op_counter[ (op) ])
+#define CAIO_STAT_OP_NBYTES(caio_stat, op)                ((caio_stat)->op_nbytes[ (op) ])
+#define CAIO_STAT_COST_MSEC(caio_stat, op)                ((caio_stat)->cost_msec[ (op) ])
+
+#define CAIO_STAT_DISPATCH_HIT(caio_stat)                 ((caio_stat)->dispatch_hit)
+#define CAIO_STAT_DISPATCH_MISS(caio_stat)                ((caio_stat)->dispatch_miss)
+
+#define CAIO_STAT_PAGE_IS_ALIGNED_COUNTER(caio_stat, op)  ((caio_stat)->page_is_aligned_counter[ (op) ])
+#define CAIO_STAT_PAGE_NOT_ALIGNED_COUNTER(caio_stat, op) ((caio_stat)->page_not_aligned_counter[ (op) ])
+#define CAIO_STAT_NODE_IS_ALIGNED_COUNTER(caio_stat, op)  ((caio_stat)->node_is_aligned_counter[ (op) ])
+#define CAIO_STAT_NODE_NOT_ALIGNED_COUNTER(caio_stat, op) ((caio_stat)->node_not_aligned_counter[ (op) ])
+
+#define CAIO_STAT_MEM_REUSED_COUNTER(caio_stat)           ((caio_stat)->mem_reused_counter)
+#define CAIO_STAT_MEM_ZCOPY_COUNTER(caio_stat)            ((caio_stat)->mem_zcopy_counter)
 
 typedef struct
 {
@@ -213,8 +232,9 @@ typedef struct
     CLIST            disk_list;         /*item is CAIO_DISK*/
 
     CLIST            req_list;          /*item is CAIO_REQ. reading & writing request list in order*/
-    CLIST            page_list[2];      /*item is CAIO_PAGE. working page tree*/
-    UINT32           page_list_idx;     /*page tree active index, range in [0, 1]*/
+    CLIST            page_list[2];      /*item is CAIO_PAGE. working page list*/
+    CRB_TREE         page_tree[2];      /*item is CAIO_PAGE. working page tree*/
+    UINT32           page_active_idx;   /*page list/tree active index, range in [0, 1]*/
 
     CLIST            post_event_reqs;   /*item is CAIO_REQ */
 }CAIO_MD;
@@ -232,21 +252,23 @@ typedef struct
 #define CAIO_MD_DISK_LIST(caio_md)                      (&((caio_md)->disk_list))
 
 #define CAIO_MD_REQ_LIST(caio_md)                       (&((caio_md)->req_list))
-#define CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md)           ((caio_md)->page_list_idx)
-#define CAIO_MD_STANDBY_PAGE_LIST_IDX(caio_md)          (1 ^ CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md))
+#define CAIO_MD_PAGE_ACTIVE_IDX(caio_md)                ((caio_md)->page_active_idx)
+#define CAIO_MD_PAGE_STANDBY_IDX(caio_md)               (1 ^ CAIO_MD_PAGE_ACTIVE_IDX(caio_md))
 #define CAIO_MD_PAGE_LIST(caio_md, idx)                 (&((caio_md)->page_list[ (idx) ]))
+#define CAIO_MD_PAGE_TREE(caio_md, idx)                 (&((caio_md)->page_tree[ (idx) ]))
 #define CAIO_MD_POST_EVENT_REQS(caio_md)                (&((caio_md)->post_event_reqs))
 
 #define CAIO_MD_SWITCH_PAGE_LIST(caio_md)               \
     do{                                                 \
-        CAIO_MD_ACTIVE_PAGE_LIST_IDX(caio_md) ^= 1;     \
+        CAIO_MD_PAGE_ACTIVE_IDX(caio_md) ^= 1;     \
     }while(0)
 
 typedef struct
 {
     uint32_t                working_flag     :1;    /*page is reading or writing disk*/
     uint32_t                mem_cache_flag   :1;    /*page is shortcut to mem cache page*/
-    uint32_t                rsvd01           :30;
+    uint32_t                mem_reused_flag  :1;
+    uint32_t                rsvd01           :29;
     int                     fd;
 
     UINT32                  f_s_offset;
@@ -269,8 +291,9 @@ typedef struct
 
     /*shortcut*/
 
-    CLIST_DATA             *mounted_pages;          /*mount point in page list of caio module*/
-    UINT32                  mounted_list_idx;       /*mount in which page list*/
+    CLIST_DATA             *mounted_list;           /*mount point in page list of caio module*/
+    CRB_NODE               *mounted_tree;           /*mount point in page tree of caio module*/
+    UINT32                  mounted_idx;            /*mount in which page idx*/
 
     /*statistics*/
     uint64_t                submit_usec;            /*for debug only*/
@@ -280,6 +303,7 @@ typedef struct
 
 #define CAIO_PAGE_WORKING_FLAG(caio_page)               ((caio_page)->working_flag)
 #define CAIO_PAGE_MEM_CACHE_FLAG(caio_page)             ((caio_page)->mem_cache_flag)
+#define CAIO_PAGE_MEM_REUSED_FLAG(caio_page)            ((caio_page)->mem_reused_flag)
 
 #define CAIO_PAGE_FD(caio_page)                         ((caio_page)->fd)
 #define CAIO_PAGE_F_S_OFFSET(caio_page)                 ((caio_page)->f_s_offset)
@@ -300,8 +324,9 @@ typedef struct
 #define CAIO_PAGE_S_MSEC(caio_page)                     ((caio_page)->s_msec)
 #define CAIO_PAGE_E_MSEC(caio_page)                     ((caio_page)->e_msec)
 
-#define CAIO_PAGE_MOUNTED_PAGES(caio_page)              ((caio_page)->mounted_pages)
-#define CAIO_PAGE_MOUNTED_LIST_IDX(caio_page)           ((caio_page)->mounted_list_idx)
+#define CAIO_PAGE_MOUNTED_LIST(caio_page)               ((caio_page)->mounted_list)
+#define CAIO_PAGE_MOUNTED_TREE(caio_page)               ((caio_page)->mounted_tree)
+#define CAIO_PAGE_MOUNTED_IDX(caio_page)                ((caio_page)->mounted_idx)
 
 #define CAIO_AIOCB_PAGE(__aiocb)     \
         ((CAIO_PAGE *)((char *)(__aiocb)-(unsigned long)(&((CAIO_PAGE *)0)->aiocb)))
@@ -337,7 +362,7 @@ typedef struct
     CLIST                   nodes;              /*item is CAIO_NODE*/
 
     /*shortcut*/
-    CLIST_DATA             *mounted_reqs;      /*mount point in req list of caio module*/
+    CLIST_DATA             *mounted_list;      /*mount point in req list of caio module*/
 
     CAIO_CB                 callback;
 }CAIO_REQ;
@@ -369,7 +394,7 @@ typedef struct
 #define CAIO_REQ_MOUNTED_POST_EVENT_REQS(caio_req)      ((caio_req)->mounted_post_event_reqs)
 
 #define CAIO_REQ_NODES(caio_req)                        (&((caio_req)->nodes))
-#define CAIO_REQ_MOUNTED_REQS(caio_req)                 ((caio_req)->mounted_reqs)
+#define CAIO_REQ_MOUNTED_LIST(caio_req)                 ((caio_req)->mounted_list)
 
 typedef struct
 {
@@ -492,7 +517,11 @@ void caio_page_print(LOG *log, const CAIO_PAGE *caio_page);
 
 void caio_page_print_range(LOG *log, const CAIO_PAGE *caio_page);
 
-EC_BOOL caio_page_cmp(const CAIO_PAGE *caio_page_1st, const CAIO_PAGE *caio_page_2nd);
+EC_BOOL caio_page_list_cmp(const CAIO_PAGE *caio_page_1st, const CAIO_PAGE *caio_page_2nd);
+
+int caio_page_tree_cmp(const CAIO_PAGE *caio_page_1st, const CAIO_PAGE *caio_page_2nd);
+
+EC_BOOL caio_page_is_aligned(CAIO_PAGE *caio_page, const UINT32 size, const UINT32 align);
 
 EC_BOOL caio_page_add_node(CAIO_PAGE *caio_page, CAIO_NODE *caio_node);
 
@@ -521,6 +550,8 @@ EC_BOOL caio_node_clean(CAIO_NODE *caio_node);
 EC_BOOL caio_node_free(CAIO_NODE *caio_node);
 
 EC_BOOL caio_node_is(const CAIO_NODE *caio_node, const UINT32 sub_seq_no);
+
+EC_BOOL caio_node_is_aligned(CAIO_NODE *caio_node, const UINT32 size, const UINT32 align);
 
 void caio_node_print(LOG *log, const CAIO_NODE *caio_node);
 
@@ -671,25 +702,25 @@ EC_BOOL caio_dispatch_req(CAIO_MD *caio_md, CAIO_REQ *caio_req);
 
 EC_BOOL caio_cancel_req(CAIO_MD *caio_md, CAIO_REQ *caio_req);
 
-UINT32 caio_count_page_num(const CAIO_MD *caio_md, const UINT32 page_list_idx);
+UINT32 caio_count_page_num(const CAIO_MD *caio_md, const UINT32 page_choice_idx);
 
-EC_BOOL caio_add_page(CAIO_MD *caio_md, const UINT32 page_tree_idx, CAIO_PAGE *caio_page);
+EC_BOOL caio_add_page(CAIO_MD *caio_md, const UINT32 page_choice_idx, CAIO_PAGE *caio_page);
 
-EC_BOOL caio_del_page(CAIO_MD *caio_md, const UINT32 page_tree_idx, CAIO_PAGE *caio_page);
+EC_BOOL caio_del_page(CAIO_MD *caio_md, const UINT32 page_choice_idx, CAIO_PAGE *caio_page);
 
-EC_BOOL caio_has_page(CAIO_MD *caio_md, const UINT32 page_tree_idx);
+EC_BOOL caio_has_page(CAIO_MD *caio_md, const UINT32 page_choice_idx);
 
-EC_BOOL caio_has_wr_page(CAIO_MD *caio_md, const UINT32 page_list_idx);
+EC_BOOL caio_has_wr_page(CAIO_MD *caio_md, const UINT32 page_choice_idx);
 
-CAIO_PAGE *caio_pop_first_page(CAIO_MD *caio_md, const UINT32 page_tree_idx);
+CAIO_PAGE *caio_pop_first_page(CAIO_MD *caio_md, const UINT32 page_choice_idx);
 
-CAIO_PAGE *caio_pop_last_page(CAIO_MD *caio_md, const UINT32 page_tree_idx);
+CAIO_PAGE *caio_pop_last_page(CAIO_MD *caio_md, const UINT32 page_choice_idx);
 
-CAIO_PAGE *caio_search_page(CAIO_MD *caio_md, const UINT32 page_tree_idx, const int fd, const UINT32 f_s_offset, const UINT32 f_e_offset);
+CAIO_PAGE *caio_search_page(CAIO_MD *caio_md, const UINT32 page_choice_idx, const int fd, const UINT32 f_s_offset, const UINT32 f_e_offset);
 
 EC_BOOL caio_cleanup_reqs(CAIO_MD *caio_md);
 
-EC_BOOL caio_cleanup_pages(CAIO_MD *caio_md, const UINT32 page_tree_idx);
+EC_BOOL caio_cleanup_pages(CAIO_MD *caio_md, const UINT32 page_choice_idx);
 
 EC_BOOL caio_cleanup_post_event_reqs(CAIO_MD *caio_md);
 
