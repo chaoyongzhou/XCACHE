@@ -1,0 +1,2298 @@
+#! /bin/bash
+#chkconfig: 2345 70 30
+#description: XFS servers
+
+###############################################################################
+#  
+#   Copyright (C) Chaoyong Zhou
+#   Email: bgnvendor@163.com 
+#   QQ: 2796796 
+#  
+################################################################################
+
+#source /etc/rc.d/init.d/functions
+
+g_debug_switch='off'
+
+# recycle deleted xfs files and dirs
+g_xfs_recycle_nfile_per_loop=1000 # recycle xfs file and dir num per time
+
+# retire aging xfs files
+g_xfs_retire_nfile_once=1000 # retire xfs file num per time
+g_xfs_garbage_max_num=100 # retire expired locked-files num per time
+
+g_xfs_installed_dir=/usr/local/xfs
+g_xfs_bin_dir=${g_xfs_installed_dir}/bin
+g_xfs_log_dir=/data/proclog/log/xfs
+g_xfs_cfg_xml=/usr/local/xfs/bin/config.xml
+
+g_xfs_main_exe=${g_xfs_bin_dir}/xfs
+g_xfs_tool_exe=${g_xfs_bin_dir}/xfs_tool
+
+g_disk_num=0
+g_disk_max=12 # support up to 12 data disks
+g_cache_dir_top=/data/cache
+g_cache_dir_prefix=${g_cache_dir_top}/rnode
+g_ssd_dir_prefix=${g_cache_dir_top}/ssd
+
+g_srv_ip_addr=127.0.0.1
+
+# type,tcid,maski,maske,srvport,csrvport,cluster(s)
+g_tasks_cfg_list=(
+    xfs,10.10.67.18,0,0,618,718,1,3
+    xfs,10.10.67.19,0,0,619,719,1,3
+    xfs,10.10.67.20,0,0,620,720,1,3
+    xfs,10.10.67.21,0,0,621,721,1,3
+    xfs,10.10.67.22,0,0,622,722,1,3
+    xfs,10.10.67.23,0,0,623,723,1,3
+    xfs,10.10.67.24,0,0,624,724,1,3
+    xfs,10.10.67.25,0,0,625,725,1,3
+    xfs,10.10.67.26,0,0,626,726,1,3
+    xfs,10.10.67.27,0,0,627,727,1,3
+    xfs,10.10.67.28,0,0,628,728,1,3
+    xfs,10.10.67.29,0,0,629,729,1,3
+
+    ngx,10.10.8.18,0,0,818,938,1,3
+    ngx,10.10.8.19,0,0,819,939,1,3
+    ngx,10.10.8.20,0,0,820,940,1,3
+    ngx,10.10.8.21,0,0,821,941,1,3
+    ngx,10.10.8.22,0,0,822,942,1,3
+    ngx,10.10.8.23,0,0,823,943,1,3
+    ngx,10.10.8.24,0,0,824,944,1,3
+    ngx,10.10.8.25,0,0,825,945,1,3
+    ngx,10.10.8.26,0,0,826,946,1,3
+    ngx,10.10.8.27,0,0,827,947,1,3
+    ngx,10.10.8.28,0,0,828,948,1,3
+    ngx,10.10.8.29,0,0,829,949,1,3
+
+    ngx,10.10.9.18,0,0,918,958,1,3
+    ngx,10.10.9.19,0,0,919,959,1,3
+    ngx,10.10.9.20,0,0,920,960,1,3
+    ngx,10.10.9.21,0,0,921,961,1,3
+    ngx,10.10.9.22,0,0,922,962,1,3
+    ngx,10.10.9.23,0,0,923,963,1,3
+    ngx,10.10.9.24,0,0,924,964,1,3
+    ngx,10.10.9.25,0,0,925,965,1,3
+    ngx,10.10.9.26,0,0,926,966,1,3
+    ngx,10.10.9.27,0,0,927,967,1,3
+    ngx,10.10.9.28,0,0,928,968,1,3
+    ngx,10.10.9.29,0,0,929,969,1,3
+
+    console,0.0.0.64,32,32,600,,1,2
+    console,0.0.0.65,32,32,700,,2
+)
+
+# ngx worker is running or not
+# csrvport,<status>
+g_ngx_worker_list=()
+
+###############################################################################
+# USAGE
+###############################################################################
+function usage()
+{
+    echo ""
+    echo ""
+    echo " usage: $0"
+    echo ""
+    echo "    start     [<1-12>|<tcid list>]      # start xfs servers by scan data cache dir ${g_cache_dir_top} or start specific xfs server with rnode id"
+    echo "    restart   [<1-12>|<tcid list>]      # restart xfs servers by scan data cache dir ${g_cache_dir_top} or restart specific xfs server with rnode id"
+    echo "    retrieve  [<1-12>|<tcid list>]      # retrieve xfs servers by scan data cache dir ${g_cache_dir_top} or retrieve specific xfs server with rnode id"
+    echo "    stop      [<1-12>|<tcid list>]      # stop xfs servers with xfs closing and shutdown or stop specific xfs server with rnode id"
+    echo "    status    [<1-12>|<tcid list>]      # some or all xfs server(s) status"
+    echo "    monitor   [<1-12>|<tcid list>]      # monitor some or all xfs server(s) status. notify ngx bgn if anyone down"
+    echo "    rotate    [<1-12>|<tcid list>]      # rotate log on some or all xfs"
+    echo "    recycle   [<1-12>|<tcid list>]      # recycle some or all xfs deleted space"
+    echo "    garbage   [<1-12>|<tcid list>]      # retire expired locked files of some or all xfs"
+    echo "    flush     [<1-12>|<tcid list>]      # flush some or all xfs to disk"
+    echo "    retire    [<1-12>|<tcid list>]      # retire aging files of some or all xfs"
+    echo "    breathe   [<1-12>|<tcid list>]      # memory breathing on some or all xfs"
+    echo "    actsyscfg [<1-12>|<tcid list>]      # activate system configure on some or all xfs"
+    echo "    status_np [<1-12>|<tcid list>]      # namenode status on some or all xfs"
+    echo "    status_dn [<1-12>|<tcid list>]      # datanode status on some or all xfs"
+    echo ""
+    echo " e.g."
+    echo "    service xfs start"
+    echo "    service xfs start 1"
+    echo "    service xfs start 1,3,5"
+    echo ""
+    echo ""
+}
+
+##############################################
+# status dn on some xfs
+##############################################
+function status_dn_some_xfs()
+{
+    local rnode_id_list
+    local tcid_list
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    rnode_id_list=$1
+    tcid_list=$1
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        check_disk_idx_is_in_rnode_id_list ${disk_idx} ${rnode_id_list} || check_tcid_is_in_tcid_list ${tcid} ${tcid_list}
+        if [ $? -eq 0 ]; then
+            status_dn_one_xfs ${tcid} ${port}
+            if [ $? -eq 0 ]; then
+                echo_nothing
+                echo_info "status_dn in XFS ${tcid} ... done"
+            else
+                echo_nothing    
+                echo_info "status_dn in XFS ${tcid} ... failed"    
+            fi
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# status np on some xfs
+##############################################
+function status_np_some_xfs()
+{
+    local rnode_id_list
+    local tcid_list
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    rnode_id_list=$1
+    tcid_list=$1
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        check_disk_idx_is_in_rnode_id_list ${disk_idx} ${rnode_id_list} || check_tcid_is_in_tcid_list ${tcid} ${tcid_list}
+        if [ $? -eq 0 ]; then
+            status_np_one_xfs ${tcid} ${port}
+            if [ $? -eq 0 ]; then
+                echo_info "status_np in XFS ${tcid} ... done"
+            else
+                echo_info "status_np in XFS ${tcid} ... failed"    
+            fi
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+
+##############################################
+# garbage on some xfs
+##############################################
+function garbage_some_xfs()
+{
+    local rnode_id_list
+    local tcid_list
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    rnode_id_list=$1
+    tcid_list=$1
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        check_disk_idx_is_in_rnode_id_list ${disk_idx} ${rnode_id_list} || check_tcid_is_in_tcid_list ${tcid} ${tcid_list}
+        if [ $? -eq 0 ]; then
+            garbage_one_xfs ${tcid} ${port}
+            if [ $? -eq 0 ]; then
+                echo_info "garbage expired locked-files in XFS ${tcid} ... done"
+            else
+                echo_info "garbage expired locked-files in XFS ${tcid} ... failed"    
+            fi
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+
+##############################################
+# rotate log on some xfs
+##############################################
+function rotate_some_xfs()
+{
+    local rnode_id_list
+    local tcid_list
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    rnode_id_list=$1
+    tcid_list=$1
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        check_disk_idx_is_in_rnode_id_list ${disk_idx} ${rnode_id_list} || check_tcid_is_in_tcid_list ${tcid} ${tcid_list}
+        if [ $? -eq 0 ]; then
+            rotate_one_xfs ${tcid} ${port}
+            if [ $? -eq 0 ]; then
+                echo_info "memory breathing on XFS ${tcid} ... done"
+            else
+                echo_info "memory breathing on XFS ${tcid} ... failed"    
+            fi
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+
+##############################################
+# memory breathing on some xfs
+##############################################
+function breathe_some_xfs()
+{
+    local rnode_id_list
+    local tcid_list
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    rnode_id_list=$1
+    tcid_list=$1
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        check_disk_idx_is_in_rnode_id_list ${disk_idx} ${rnode_id_list} || check_tcid_is_in_tcid_list ${tcid} ${tcid_list}
+        if [ $? -eq 0 ]; then
+            breathe_one_xfs ${tcid} ${port}
+            if [ $? -eq 0 ]; then
+                echo_info "memory breathing on XFS ${tcid} ... done"
+            else
+                echo_info "memory breathing on XFS ${tcid} ... failed"    
+            fi
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+
+##############################################
+# retire on some xfs
+##############################################
+function retire_some_xfs()
+{
+    local rnode_id_list
+    local tcid_list
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    rnode_id_list=$1
+    tcid_list=$1
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        check_disk_idx_is_in_rnode_id_list ${disk_idx} ${rnode_id_list} || check_tcid_is_in_tcid_list ${tcid} ${tcid_list}
+        if [ $? -eq 0 ]; then
+            retire_one_xfs ${tcid} ${port}
+            if [ $? -eq 0 ]; then
+                echo_info "retire XFS ${tcid} ... done"
+            else
+                echo_info "retire XFS ${tcid} ... failed"    
+            fi
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# flush on some xfs
+##############################################
+function flush_some_xfs()
+{
+    local rnode_id_list
+    local tcid_list
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    rnode_id_list=$1
+    tcid_list=$1
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        check_disk_idx_is_in_rnode_id_list ${disk_idx} ${rnode_id_list} || check_tcid_is_in_tcid_list ${tcid} ${tcid_list}
+        if [ $? -eq 0 ]; then
+            flush_one_xfs ${tcid} ${port}
+            if [ $? -eq 0 ]; then
+                echo_info "flush XFS ${tcid} ... done"
+            else
+                echo_info "flush XFS ${tcid} ... failed"    
+            fi
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# recycle on some xfs
+##############################################
+function recycle_some_xfs()
+{
+    local rnode_id_list
+    local tcid_list
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    rnode_id_list=$1
+    tcid_list=$1
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        check_disk_idx_is_in_rnode_id_list ${disk_idx} ${rnode_id_list} || check_tcid_is_in_tcid_list ${tcid} ${tcid_list}
+        if [ $? -eq 0 ]; then
+            recycle_one_xfs ${tcid} ${port}
+            if [ $? -eq 0 ]; then
+                echo_info "recycle XFS ${tcid} ... done"
+            else
+                echo_info "recycle XFS ${tcid} ... failed"    
+            fi
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# obtain status of some xfs
+##############################################
+function status_some_xfs()
+{
+    local rnode_id_list
+    local tcid_list
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+
+    rnode_id_list=$1
+    tcid_list=$1
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+
+        check_disk_idx_is_in_rnode_id_list ${disk_idx} ${rnode_id_list} || check_tcid_is_in_tcid_list ${tcid} ${tcid_list}
+        if [ $? -eq 0 ]; then
+            status_one_xfs ${tcid}
+            if [ $? -eq 0 ]; then
+                echo_info "XFS ${tcid} ... running"
+            else
+                echo_info "XFS ${tcid} ... stopped"    
+            fi
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# monitor some xfs and notify ngx bgn if down
+##############################################
+function monitor_some_xfs()
+{
+    local rnode_id_list
+    local tcid_list
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+
+    rnode_id_list=$1
+    tcid_list=$1
+
+    collect_all_ngx_worker_status
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+
+        check_disk_idx_is_in_rnode_id_list ${disk_idx} ${rnode_id_list} || check_tcid_is_in_tcid_list ${tcid} ${tcid_list}
+        if [ $? -eq 0 ]; then
+            monitor_one_xfs ${tcid}
+            if [ $? -eq 0 ]; then
+                echo_info "XFS ${tcid} ... up"
+            else
+                echo_info "XFS ${tcid} ... down"    
+            fi
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# stop some xfs
+##############################################
+function stop_some_xfs()
+{
+    local rnode_id_list
+    local tcid_list
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+
+    rnode_id_list=$1
+    tcid_list=$1
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+
+        check_disk_idx_is_in_rnode_id_list ${disk_idx} ${rnode_id_list} || check_tcid_is_in_tcid_list ${tcid} ${tcid_list}
+        if [ $? -eq 0 ]; then
+            stop_one_xfs ${tcid} ${disk_idx}
+            if [ $? -eq 0 ]; then
+                echo_info "stop XFS ${tcid} ... done"    
+            else
+                echo_info "stop XFS ${tcid} ... failed"
+            fi
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# start some xfs
+##############################################
+function start_some_xfs()
+{
+    local rnode_id_list
+    local tcid_list
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+
+    local cache_dir
+    local ssd_dir
+
+    rnode_id_list=$1
+    tcid_list=$1
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+
+        check_disk_idx_is_in_rnode_id_list ${disk_idx} ${rnode_id_list} || check_tcid_is_in_tcid_list ${tcid} ${tcid_list}
+        if [ $? -eq 0 ]; then
+            cache_dir=${g_cache_dir_prefix}${disk_idx}
+            ssd_dir=${g_ssd_dir_prefix}${disk_idx}
+            start_one_xfs ${tcid} ${cache_dir} ${ssd_dir}
+            if [ $? -eq 0 ]; then
+                echo_info "start XFS ${tcid} ... done"    
+            else
+                echo_info "start XFS ${tcid} ... failed"
+            fi
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# retrieve some xfs
+##############################################
+function retrieve_some_xfs()
+{
+    local rnode_id_list
+    local tcid_list
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+
+    local cache_dir
+    local ssd_dir
+
+    rnode_id_list=$1
+    tcid_list=$1
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+
+        check_disk_idx_is_in_rnode_id_list ${disk_idx} ${rnode_id_list} || check_tcid_is_in_tcid_list ${tcid} ${tcid_list}
+        if [ $? -eq 0 ]; then
+            cache_dir=${g_cache_dir_prefix}${disk_idx}
+            ssd_dir=${g_ssd_dir_prefix}${disk_idx}
+            retrieve_one_xfs ${tcid} ${cache_dir} ${ssd_dir}
+            if [ $? -eq 0 ]; then
+                echo_info "retrieve XFS ${tcid} ... done"    
+            else
+                echo_info "retrieve XFS ${tcid} ... failed"
+            fi
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# activate system configure on some xfs
+##############################################
+function actsyscfg_some_xfs()
+{
+    local rnode_id_list
+    local tcid_list
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    rnode_id_list=$1
+    tcid_list=$1
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        check_disk_idx_is_in_rnode_id_list ${disk_idx} ${rnode_id_list} || check_tcid_is_in_tcid_list ${tcid} ${tcid_list}
+        if [ $? -eq 0 ]; then
+            actsyscfg_one_xfs ${tcid} ${port}
+            if [ $? -eq 0 ]; then
+                echo_info "actsyscfg XFS ${tcid} ... done"
+            else
+                echo_info "actsyscfg XFS ${tcid} ... failed"    
+            fi
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# check disk_idx in rnode_id_list
+# rnode_id_list e.g. 1,3,5
+##############################################
+function check_disk_idx_is_in_rnode_id_list()
+{
+    local disk_idx
+    local rnode_id_list_str
+    local rnode_id_list
+    local rnode_id
+
+    disk_idx=$1
+    rnode_id_list_str=$2
+
+    OLD_IFS="$IFS"
+    IFS="," # delim
+    rnode_id_list=(${rnode_id_list_str})
+    IFS="$OLD_IFS"
+
+    for rnode_id in ${rnode_id_list[*]} 
+    do
+        #echo_debug "[DEBUG] check_disk_idx_is_in_rnode_id_list: rnode_id ${rnode_id}"
+        if [ "${rnode_id}" == "${disk_idx}" ]; then
+            echo_debug "[DEBUG] check_disk_idx_is_in_rnode_id_list: ${disk_idx} in ${rnode_id_list_str}"
+            return 0 # succ
+        fi
+    done
+
+    echo_debug "[DEBUG] check_disk_idx_is_in_rnode_id_list: ${disk_idx} not in ${rnode_id_list_str}"
+    return 1 # fail 
+}
+
+##############################################
+# check tcid in tcid_list
+# tcid_list e.g. 10.10.67.18,10.10.67.20
+##############################################
+function check_tcid_is_in_tcid_list()
+{
+    local tcid
+    local tcid_list_str
+    local tcid_list_list
+    local tcid_t
+
+    tcid=$1
+    tcid_list_str=$2
+
+    OLD_IFS="$IFS"
+    IFS="," # delim
+    tcid_list_list=(${tcid_list_str})
+    IFS="$OLD_IFS"
+
+    for tcid_t in ${tcid_list_list[*]} 
+    do
+        if [ "${tcid_t}" == "${tcid}" ]; then
+            echo_debug "[DEBUG] check_tcid_is_in_tcid_list: ${tcid} in ${tcid_list_str}"
+            return 0 # succ
+        fi
+    done
+
+    echo_debug "[DEBUG] check_tcid_is_in_tcid_list: ${tcid} not in ${tcid_list_str}"
+    return 1 # fail 
+}
+
+##############################################
+# status dn on all xfs
+##############################################
+function status_dn_all_xfs()
+{
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        status_dn_one_xfs ${tcid} ${port}
+        if [ $? -eq 0 ]; then
+            echo_info "status_dn XFS ${tcid} ... succ"
+        else
+            echo_info "status_dn XFS ${tcid} ... failed"    
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# status np on all xfs
+##############################################
+function status_np_all_xfs()
+{
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        status_np_one_xfs ${tcid} ${port}
+        if [ $? -eq 0 ]; then
+            echo_info "status_np XFS ${tcid} ... succ"
+        else
+            echo_info "status_np XFS ${tcid} ... failed"    
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# garbage on all xfs
+##############################################
+function garbage_all_xfs()
+{
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        garbage_one_xfs ${tcid} ${port}
+        if [ $? -eq 0 ]; then
+            echo_info "garbage XFS ${tcid} ... succ"
+        else
+            echo_info "garbage XFS ${tcid} ... failed"    
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# rotate log on all xfs
+##############################################
+function rotate_all_xfs()
+{
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        rotate_one_xfs ${tcid} ${port}
+        if [ $? -eq 0 ]; then
+            echo_info "rotate XFS ${tcid} ... succ"
+        else
+            echo_info "rotate XFS ${tcid} ... failed"    
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# memory breathing on all xfs
+##############################################
+function breathe_all_xfs()
+{
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        breathe_one_xfs ${tcid} ${port}
+        if [ $? -eq 0 ]; then
+            echo_info "breathe XFS ${tcid} ... succ"
+        else
+            echo_info "breathe XFS ${tcid} ... failed"    
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# retire on all xfs
+##############################################
+function retire_all_xfs()
+{
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        retire_one_xfs ${tcid} ${port}
+        if [ $? -eq 0 ]; then
+            echo_info "retire XFS ${tcid} ... succ"
+        else
+            echo_info "retire XFS ${tcid} ... failed"    
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# flush on all xfs
+##############################################
+function flush_all_xfs()
+{
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        flush_one_xfs ${tcid} ${port}
+        if [ $? -eq 0 ]; then
+            echo_info "flush XFS ${tcid} ... succ"
+        else
+            echo_info "flush XFS ${tcid} ... failed"    
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# recycle on all xfs
+##############################################
+function recycle_all_xfs()
+{
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        recycle_one_xfs ${tcid} ${port}
+        if [ $? -eq 0 ]; then
+            echo_info "recycle XFS ${tcid} ... succ"
+        else
+            echo_info "recycle XFS ${tcid} ... failed"    
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# obtain status of all xfs
+##############################################
+function status_all_xfs()
+{
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+
+        status_one_xfs ${tcid}
+        if [ $? -eq 0 ]; then
+            echo_info "XFS ${tcid} ... running"
+        else
+            echo_info "XFS ${tcid} ... stopped"    
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# monitor all xfs and notify ngx bgn if down
+##############################################
+function monitor_all_xfs()
+{
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+
+    collect_all_ngx_worker_status
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+
+        monitor_one_xfs ${tcid}
+        if [ $? -eq 0 ]; then
+            echo_info "XFS ${tcid} ... up"
+        else
+            echo_info "XFS ${tcid} ... down"    
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# stop all xfs
+##############################################
+function stop_all_xfs()
+{
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+
+        stop_one_xfs ${tcid} ${disk_idx}
+        if [ $? -eq 0 ]; then
+            echo_info "stop XFS ${tcid} ... done"    
+        else
+            echo_info "stop XFS ${tcid} ... failed"
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# start all xfs
+##############################################
+function start_all_xfs()
+{
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local cache_dir
+    local ssd_dir
+    local tcid
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        cache_dir=${g_cache_dir_prefix}${disk_idx}
+        ssd_dir=${g_ssd_dir_prefix}${disk_idx}
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+
+        start_one_xfs ${tcid} ${cache_dir} ${ssd_dir}
+        if [ $? -ne 0 ]; then
+            echo_info "start XFS ${tcid} ... failed"
+        else
+            echo_info "start XFS ${tcid} ... done"    
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# retrieve all xfs
+##############################################
+function retrieve_all_xfs()
+{
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local cache_dir
+    local ssd_dir
+    local tcid
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        cache_dir=${g_cache_dir_prefix}${disk_idx}
+        ssd_dir=${g_ssd_dir_prefix}${disk_idx}
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+
+        retrieve_one_xfs ${tcid} ${cache_dir} ${ssd_dir}
+        if [ $? -ne 0 ]; then
+            echo_info "retrieve XFS ${tcid} ... failed"
+        else
+            echo_info "retrieve XFS ${tcid} ... done"    
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# activate system configure on all xfs
+##############################################
+function actsyscfg_all_xfs()
+{
+    local disk_idx
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    disk_idx=1
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1) 
+        if [ ${cfg_type} != 'xfs' ]; then
+            continue
+        fi
+
+        if [ ${disk_idx} -gt ${g_disk_num} ]; then
+            break
+        fi
+
+        tcid=$(echo ${cfg_line} | cut -d, -f 2)
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        actsyscfg_one_xfs ${tcid} ${port}
+        if [ $? -eq 0 ]; then
+            echo_info "actsyscfg XFS ${tcid} ... succ"
+        else
+            echo_info "actsyscfg XFS ${tcid} ... failed"    
+        fi
+
+        disk_idx=$(expr ${disk_idx} + 1)
+    done    
+    return 0
+}
+
+##############################################
+# status dn on one xfs
+##############################################
+function status_dn_one_xfs()
+{
+    local tcid
+    local port
+    local ret
+
+    tcid=$1
+    port=$2
+
+    check_one_xfs_is_running ${tcid}
+    if [ $? -ne 0 ]; then
+        return 1 # give up status_dn due to its stopped
+    fi
+
+    # confirm no same command is running
+    ret=$(ps -ef | grep xfs | grep status_dn | grep ":${port}" | grep -v grep | wc -l)
+    if [ ${ret} -ne 0 ]; then
+        echo_error "error: status_dn is working on port ${port}"
+        return 1  # fail
+    fi
+
+    curl -sv http://127.0.0.1:${port}/xfs/status_dn
+
+    return 0 # status_dn succ
+}
+
+##############################################
+# status np on one xfs
+##############################################
+function status_np_one_xfs()
+{
+    local tcid
+    local port
+    local ret
+
+    tcid=$1
+    port=$2
+
+    check_one_xfs_is_running ${tcid}
+    if [ $? -ne 0 ]; then
+        return 1 # give up status_np due to its stopped
+    fi
+
+    # confirm no same command is running
+    ret=$(ps -ef | grep xfs | grep status_np | grep ":${port}" | grep -v grep | wc -l)
+    if [ ${ret} -ne 0 ]; then
+        echo_error "error: status_np is working on port ${port}"
+        return 1  # fail
+    fi
+
+    curl -sv http://127.0.0.1:${port}/xfs/status_np
+
+    return 0 # status_np succ
+}
+
+##############################################
+# garbage on one xfs
+##############################################
+function garbage_one_xfs()
+{
+    local tcid
+    local port
+    local ret
+
+    tcid=$1
+    port=$2
+
+    check_one_xfs_is_running ${tcid}
+    if [ $? -ne 0 ]; then
+        return 1 # give up garbage due to its stopped
+    fi
+
+    # confirm no same command is running
+    ret=$(ps -ef | grep xfs | grep locked_file_retire | grep ":${port}" | grep -v grep | wc -l)
+    if [ ${ret} -ne 0 ]; then
+        echo_error "error: locked_file_retire is working on port ${port}"
+        return 1  # fail
+    fi
+
+    curl -svo /dev/null http://127.0.0.1:${port}/xfs/locked_file_retire \
+        -H "retire-max-num:${g_xfs_garbage_max_num}" 
+
+    return 0 # garbage succ
+}
+
+##############################################
+# rotate log on one xfs
+##############################################
+function rotate_one_xfs()
+{
+    local tcid
+    local port
+    local ret
+
+    tcid=$1
+    port=$2
+
+    check_one_xfs_is_running ${tcid}
+    if [ $? -ne 0 ]; then
+        return 1 # give up rotate due to its stopped
+    fi
+
+    # confirm no same command is running
+    ret=$(ps -ef | grep xfs | grep logrotate | grep ":${port}" | grep -v grep | wc -l)
+    if [ ${ret} -ne 0 ]; then
+        echo_error "error: logrotate is working on port ${port}"
+        return 1  # fail
+    fi
+
+    # default rotate log is LOGUSER08
+    curl -svo /dev/null http://127.0.0.1:${port}/xfs/logrotate -H "log-index:8"
+
+    return 0 # rotate succ
+}
+
+##############################################
+# memory breathing on one xfs
+##############################################
+function breathe_one_xfs()
+{
+    local tcid
+    local port
+    local ret
+
+    tcid=$1
+    port=$2
+
+    check_one_xfs_is_running ${tcid}
+    if [ $? -ne 0 ]; then
+        return 1 # give up breathe due to its stopped
+    fi
+
+    # confirm no same command is running
+    ret=$(ps -ef | grep xfs | grep breathe | grep ":${port}" | grep -v grep | wc -l)
+    if [ ${ret} -ne 0 ]; then
+        echo_error "error: breathe is working on port ${port}"
+        return 1  # fail
+    fi
+
+    curl -svo /dev/null http://127.0.0.1:${port}/xfs/breathe
+
+    return 0 # breathe succ
+}
+
+##############################################
+# retire on one xfs
+##############################################
+function retire_one_xfs()
+{
+    local tcid
+    local port
+    local ret
+
+    tcid=$1
+    port=$2
+
+    check_one_xfs_is_running ${tcid}
+    if [ $? -ne 0 ]; then
+        return 1 # give up retire due to its stopped
+    fi
+
+    # confirm no same command is running
+    ret=$(ps -ef | grep xfs | grep retire | grep ":${port}" | grep -v grep | wc -l)
+    if [ ${ret} -ne 0 ]; then
+        echo_error "error: retire is working on port ${port}"
+        return 1  # fail
+    fi    
+
+    curl -svo /dev/null http://127.0.0.1:${port}/xfs/retire \
+		-H "retire-files:${g_xfs_retire_nfile_once}"
+
+    return 0 # retire succ
+}
+
+##############################################
+# flush on one xfs
+##############################################
+function flush_one_xfs()
+{
+    local tcid
+    local port
+    local ret
+
+    tcid=$1
+    port=$2
+
+    check_one_xfs_is_running ${tcid}
+    if [ $? -ne 0 ]; then
+        return 1 # give up flush due to its stopped
+    fi
+
+    # confirm no same command is running
+    ret=$(ps -ef | grep xfs | grep flush | grep ":${port}" | grep -v grep | wc -l)
+    if [ ${ret} -ne 0 ]; then
+        echo_error "error: flush is working on port ${port}"
+        return 1  # fail
+    fi 
+
+    curl -svo /dev/null http://127.0.0.1:${port}/xfs/flush 2>/dev/null
+
+    return 0 # flush succ
+}
+
+##############################################
+# recycle on one xfs
+##############################################
+function recycle_one_xfs()
+{
+    local tcid
+    local port
+    local ret
+
+    tcid=$1
+    port=$2
+
+    check_one_xfs_is_running ${tcid}
+    if [ $? -ne 0 ]; then
+        return 1 # give up recycle due to its stopped
+    fi
+
+    # confirm no same command is running
+    ret=$(ps -ef | grep xfs | grep recycle | grep ":${port}" | grep -v grep | wc -l)
+    if [ ${ret} -ne 0 ]; then
+        echo_error "error: recycle is working on port ${port}"
+        return 1  # fail
+    fi 
+
+    curl -svo /dev/null http://127.0.0.1:${port}/xfs/recycle -H "max-num-per-np:${g_xfs_recycle_nfile_per_loop}"
+
+    return 0 # recycle succ
+}
+
+##############################################
+# obtain status of one xfs
+##############################################
+function status_one_xfs()
+{
+    local tcid
+
+    tcid=$1
+
+    check_one_xfs_is_running ${tcid}
+    if [ $? -ne 0 ]; then
+        return 1 # is stopped
+    fi
+
+    return 0 # is running
+}
+
+##############################################
+# monitor one xfs and notify ngx bgn if down
+##############################################
+function monitor_one_xfs()
+{
+    local tcid
+
+    tcid=$1
+
+    check_one_xfs_is_running ${tcid}
+    if [ $? -ne 0 ]; then
+        notify_all_ngx_xfs_down ${tcid}
+        return 1 # is down
+    fi
+
+    notify_all_ngx_xfs_up ${tcid}
+    return 0 # is up
+}
+
+##############################################
+# stop one xfs
+##############################################
+function stop_one_xfs()
+{
+    local tcid
+    local disk_idx
+    local rnode
+
+    tcid=$1
+    disk_idx=$2
+
+    rnode=rnode${disk_idx}
+
+    check_one_xfs_is_running ${tcid}
+    if [ $? -ne 0 ]; then
+        return 0  # xfs not started, return succ
+    fi
+
+    systemctl stop xfs@${rnode}
+
+    check_one_xfs_is_running ${tcid}
+    if [ $? -ne 0 ]; then
+        return 0  # xfs not exit, return succ
+    fi
+
+    return 1 # fail
+}
+
+##############################################
+# start one xfs
+##############################################
+function start_one_xfs()
+{
+    local tcid
+    local rnode_dir
+    local ssd_dir
+    local rnode
+    
+    tcid=$1
+    rnode_dir=$2
+    ssd_dir=$3
+
+    rnode=$(basename ${rnode_dir})
+
+    echo_debug "[DEBUG] start_one_xfs: tcid ${tcid}, rnode_dir ${rnode_dir}, ssd_dir ${ssd_dir}"
+
+    check_one_xfs_is_running ${tcid}
+    if [ $? -eq 0 ]; then
+        echo_debug "[DEBUG] start_one_xfs: XFS ${tcid} is already running"
+        return 0 # succ
+    fi
+
+    systemctl start xfs@${rnode}
+    if [ $? -ne 0 ]; then
+        echo_error "error: start_one_xfs: XFS ${tcid} start failed"
+        echo_error "error: start_one_xfs: XFS ${tcid} start cmd: ${g_xfs_main_exe} -tcid ${tcid} -node_type xfs -xfs_sata_path ${rnode_dir} -xfs_ssd_path ${ssd_dir} -logp ${g_xfs_log_dir} -sconfig ${g_xfs_cfg_xml} -d"
+        return 1 # fail
+    fi
+
+    sleep 1 # fuck due to fork
+
+    check_one_xfs_is_running ${tcid}
+    if [ $? -ne 0 ]; then
+        echo_debug "[DEBUG] start_one_xfs: XFS ${tcid} is not running"
+        return 1 # fail
+    fi
+
+    echo_debug "[DEBUG] start_one_xfs: XFS ${tcid} start succ"
+    return 0 # succ
+}
+
+##############################################
+# retrieve one xfs
+##############################################
+function retrieve_one_xfs()
+{
+    local tcid
+    local rnode_dir
+    local ssd_dir
+    
+    tcid=$1
+    rnode_dir=$2
+    ssd_dir=$3
+
+    echo_debug "[DEBUG] retrieve_one_xfs: tcid ${tcid}, rnode_dir ${rnode_dir}, ssd_dir ${ssd_dir}"
+
+    check_one_xfs_is_running ${tcid}
+    if [ $? -eq 0 ]; then
+        echo_debug "[DEBUG] retrieve_one_xfs: XFS ${tcid} is already running"
+        return 0 # succ
+    fi
+
+    if [ ! -L "${rnode_dir}" ]; then
+        echo_error "error:retrieve_one_xfs: ${rnode_dir} is not block device"
+        return 1 # fail
+    fi
+
+    if [ -L "${ssd_dir}" ]; then # has ssd
+        ${g_xfs_main_exe} -tcid ${tcid} -node_type xfs -xfs_sata_path ${rnode_dir} -xfs_ssd_path ${ssd_dir} -logp ${g_xfs_log_dir} -sconfig ${g_xfs_cfg_xml} -retrieve -d &
+        if [ $? -ne 0 ]; then
+            echo_error "error: retrieve_one_xfs: XFS ${tcid} retrieve failed"
+            echo_error "error: retrieve_one_xfs: XFS ${tcid} retrieve cmd: ${g_xfs_main_exe} -tcid ${tcid} -node_type xfs -xfs_sata_path ${rnode_dir} -xfs_ssd_path ${ssd_dir} -logp ${g_xfs_log_dir} -sconfig ${g_xfs_cfg_xml} -retrieve -d"
+            return 1 # fail
+        fi
+    else # no ssd
+        ${g_xfs_main_exe} -tcid ${tcid} -node_type xfs -xfs_sata_path ${rnode_dir} -logp ${g_xfs_log_dir} -sconfig ${g_xfs_cfg_xml} -retrieve -d &
+        if [ $? -ne 0 ]; then
+            echo_error "error: retrieve_one_xfs: XFS ${tcid} retrieve failed"
+            echo_error "error: retrieve_one_xfs: XFS ${tcid} retrieve cmd: ${g_xfs_main_exe} -tcid ${tcid} -node_type xfs -xfs_sata_path ${rnode_dir} -logp ${g_xfs_log_dir} -sconfig ${g_xfs_cfg_xml} -retrieve -d"
+            return 1 # fail
+        fi        
+    fi
+
+    sleep 1 # fuck due to fork
+
+    check_one_xfs_is_running ${tcid}
+    if [ $? -ne 0 ]; then
+        echo_debug "[DEBUG] retrieve_one_xfs: XFS ${tcid} is not running"
+        return 1 # fail
+    fi
+
+    echo_debug "[DEBUG] retrieve_one_xfs: XFS ${tcid} retrieve succ"
+    return 0 # succ
+}
+
+##############################################
+# activate system configure on one xfs
+##############################################
+function actsyscfg_one_xfs()
+{ 
+    local tcid
+    local port
+    local ret
+    
+    tcid=$1
+    port=$2
+
+    echo_debug "[DEBUG] actsyscfg_one_xfs: tcid ${tcid}, port ${port}"
+
+    check_one_xfs_is_running ${tcid} 
+    if [ $? -ne 0 ]; then  
+        echo_debug "[DEBUG] actsyscfg_one_xfs: XFS ${tcid} is not running"
+        return 1 # fail
+    fi
+
+    # confirm no same command is running
+    ret=$(ps -ef | grep xfs | grep actsyscfg | grep ":${port}" | grep -v grep | wc -l)
+    if [ ${ret} -ne 0 ]; then
+        echo_error "error: actsyscfg is working on port ${port}"
+        return 1  # fail
+    fi
+
+    curl -svo /dev/null http://127.0.0.1:${port}/xfs/actsyscfg 
+
+    return 0 # succ
+}
+
+##############################################
+# check one rnode exist or not
+##############################################
+function check_one_rnode_is_existing()
+{
+    local rnode_id
+    local cache_dir
+
+    rnode_id=$1
+    cache_dir=${g_cache_dir_prefix}${rnode_id}
+
+    if [ ! -L ${cache_dir} ]; then
+        return 1 # fail
+    fi
+
+    return 0 # succ
+}
+
+##############################################
+# check one xfs running or not
+##############################################
+function check_one_xfs_is_running()
+{
+    local tcid
+    local ret
+
+    tcid=$1
+    echo_debug "[DEBUG] check_one_xfs_is_running: tcid = ${tcid}"
+
+    ret=$(ps -ef | grep xfs | grep "\-node_type xfs" | grep "\-tcid ${tcid}" | grep -v grep | wc -l)
+    if [ ${ret} -eq 0 ]; then
+        return 1  # fail
+    fi
+    return 0 # succ
+}
+
+##############################################
+# collect all ngx worker status (running or not)
+##############################################
+function collect_all_ngx_worker_status()
+{
+    local ngx_netstat
+    local cfg_line
+    local cfg_type
+    local port
+    local idx
+    local ret
+
+    ngx_netstat=$(netstat -nltp | grep nginx | grep -v grep)
+ 
+    idx=0
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'ngx' ]; then
+            continue
+        fi
+
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+        ret=$(echo ${ngx_netstat} | grep ":${port} " | wc -l)
+        if [ ${ret} -eq 0 ]; then
+            # ngx worker is stopped
+            echo_debug "[DEBUG] collect_all_ngx_worker_status: ngx ${port} is stopped"
+            g_ngx_worker_list[ $idx ]="ngx,${port},stopped"
+        else
+            # ngx worker is running            
+            echo_debug "[DEBUG] collect_all_ngx_worker_status: ngx ${port} is running"
+            g_ngx_worker_list[ $idx ]="ngx,${port},running"
+        fi
+
+        idx=$(expr $idx + 1)
+    done
+
+    return 0
+}
+
+##############################################
+# check one ngx worker running or not
+##############################################
+function check_one_ngx_is_running()
+{
+    local port    
+    local ngx_worker
+    local node_type
+    local node_port
+    local node_status
+    
+    local ret
+ 
+    port=$1
+
+    for ngx_worker in ${g_ngx_worker_list[*]}
+    do
+        node_type=$(echo ${ngx_worker} | cut -d, -f 1)
+        if [ ${node_type} != 'ngx' ]; then
+            continue
+        fi
+
+        node_port=$(echo ${ngx_worker} | cut -d, -f 2)
+        if [ ${node_port} != ${port} ]; then
+            continue
+        fi
+
+        node_status=$(echo ${ngx_worker} | cut -d, -f 3)
+        if [ ${node_status} == "stopped" ]; then
+            echo_debug "[DEBUG] check_one_ngx_is_running: ngx ${port} is stopped"
+            return 1 # stopped
+        fi
+        echo_debug "[DEBUG] check_one_ngx_is_running: ngx ${port} is running"
+        return 0 # running
+    done
+
+    echo_debug "[DEBUG] check_one_ngx_is_running: * ngx ${port} is stopped"
+    return 1 # stopped
+}
+
+##############################################
+# check one ngx worker running or not
+##############################################
+# function check_one_ngx_is_running()
+# {
+#     local port
+#     local ret
+
+#     port=$1
+#     echo_debug "[DEBUG] check_one_ngx_is_running: port = ${port}"
+
+#     ret=$(netstat -nltp | grep nginx | grep ":${port} " | wc -l)
+#     if [ ${ret} -eq 0 ]; then
+#         return 1  # stopped
+#     fi
+#     return 0 # running
+# }
+
+##############################################
+# notify all ngx bgn that xfs is down
+##############################################
+function notify_all_ngx_xfs_down()
+{
+    local tcid_list
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    tcid=$1
+    echo_debug "[DEBUG] notify_all_ngx_xfs_down: tcid = ${tcid}"
+
+ 
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'ngx' ]; then
+            continue
+        fi
+
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+
+        # check ngx worker is running
+        check_one_ngx_is_running ${port} 
+        if [ $? -ne 0 ]; then  
+            # echo_debug "[DEBUG] notify_all_ngx_xfs_down: ngx ${port} is not running"
+            continue
+        fi        
+
+        notify_one_ngx_xfs_down ${tcid} ${port}
+    done
+
+    return 0
+}
+
+##############################################
+# notify one ngx bgn that xfs is down
+##############################################
+function notify_one_ngx_xfs_down()
+{
+    local tcid # xfs tcid which is down
+    local port # ngx http port which would be notified
+    local ret
+
+    tcid=$1
+    port=$2
+    echo_debug "[DEBUG] notify_one_ngx_xfs_down: notify ngx ${port}: xfs ${tcid} is down"
+
+    # confirm no same command is running
+    ret=$(ps -ef | grep xfs | grep xfs_down | grep ":${port}" | grep -v grep | wc -l)
+    if [ ${ret} -ne 0 ]; then
+        echo_error "error: xfs_down is working on port ${port}"
+        return 1  # fail
+    fi
+
+    curl -svo /dev/null http://127.0.0.1:${port}/xfs/xfs_down \
+        -H "xfs-tcid:${tcid}" 2>/dev/null &
+
+    return 0 # notify succ        
+}
+
+##############################################
+# notify all ngx bgn that xfs is up
+##############################################
+function notify_all_ngx_xfs_up()
+{
+    local tcid_list
+    local cfg_line
+    local cfg_type
+    local tcid
+    local port
+
+    tcid=$1
+    echo_debug "[DEBUG] notify_all_ngx_xfs_up: tcid = ${tcid}"
+
+ 
+    for cfg_line in ${g_tasks_cfg_list[*]}
+    do
+        cfg_type=$(echo ${cfg_line} | cut -d, -f 1)
+        if [ ${cfg_type} != 'ngx' ]; then
+            continue
+        fi
+
+        port=$(echo ${cfg_line} | cut -d, -f 6)
+        # check ngx worker is running
+        check_one_ngx_is_running ${port} 
+        if [ $? -ne 0 ]; then  
+            # echo_debug "[DEBUG] notify_all_ngx_xfs_up: ngx ${port} is not running"
+            continue
+        fi 
+
+        notify_one_ngx_xfs_up ${tcid} ${port}
+    done
+
+    return 0
+}
+
+##############################################
+# notify one ngx bgn that xfs is up
+##############################################
+function notify_one_ngx_xfs_up()
+{
+    local tcid # xfs tcid which is up
+    local port # ngx http port which would be notified
+    local ret
+
+    tcid=$1
+    port=$2
+    echo_debug "[DEBUG] notify_one_ngx_xfs_up: notify ngx ${port}: xfs ${tcid} is up"
+
+    # confirm no same command is running
+    ret=$(ps -ef | grep xfs | grep xfs_up | grep ":${port}" | grep -v grep | wc -l)
+    if [ ${ret} -ne 0 ]; then
+        echo_error "error: xfs_up is working on port ${port}"
+        return 1  # fail
+    fi
+
+    curl -svo /dev/null http://127.0.0.1:${port}/xfs/xfs_up \
+        -H "xfs-tcid:${tcid}" 2>/dev/null &
+
+    return 0 # notify succ        
+}
+
+
+##############################################
+# count the num of data disks
+##############################################
+function count_disk_num()
+{
+    local disk_idx
+    local cache_dir
+
+    echo_debug "[DEBUG] count_data_disk_num: g_disk_max: ${g_disk_max}"
+
+    disk_idx=1
+    while [ ${disk_idx} -le ${g_disk_max} ]; 
+    do
+        cache_dir=${g_cache_dir_prefix}${disk_idx}
+        if [ ! -L  ${cache_dir} ]; then
+            echo_debug "[DEBUG] count_data_disk_num: not found ${cache_dir}"
+            break
+        fi
+        echo_debug "[DEBUG] count_data_disk_num: found ${cache_dir}"
+        disk_idx=$(expr ${disk_idx} + 1)
+    done
+
+    g_disk_num=$(expr ${disk_idx} - 1)
+    echo_debug "[DEBUG] count_data_disk_num: count disk num: ${g_disk_num}"
+    return 0
+}
+
+##############################################
+# echo debug info if debug switch on
+##############################################
+function echo_debug()
+{
+    if [ ${g_debug_switch} == 'on' ]; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+    fi
+    return 0
+}
+
+##############################################
+# echo error info
+##############################################
+function echo_error()
+{
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+    return 0
+}
+
+##############################################
+# echo general info
+##############################################
+function echo_info()
+{
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+    return 0
+}
+
+##############################################
+# echo empty line
+##############################################
+function echo_nothing()
+{
+    echo 
+    return 0
+}
+
+##############################################
+# main entry
+##############################################
+function main_all()
+{
+    local cmd_op
+    local ret
+
+    cmd_op=$1
+
+    case "${cmd_op}" in
+        start)
+            start_all_xfs
+            ret=$?
+            ;;
+        retrieve)
+            retrieve_all_xfs
+            ret=$?
+            ;;
+        stop)
+            stop_all_xfs
+            ret=$?
+            ;;
+        restart)
+            stop_all_xfs && start_all_xfs
+            ret=$?
+            ;;            
+        status)
+            status_all_xfs
+            ret=$?
+            ;;
+        monitor)
+            monitor_all_xfs
+            ret=$?
+            ;;
+        garbage)
+            garbage_all_xfs
+            ret=$?
+            ;;    
+        status_np)
+            status_np_all_xfs
+            ret=$?
+            ;;      
+        status_dn)
+            status_dn_all_xfs
+            ret=$?
+            ;;                                 
+        rotate)
+            rotate_all_xfs
+            ret=$?
+            ;;              
+        recycle)
+            recycle_all_xfs
+            ret=$?
+            ;;   
+        flush)
+            flush_all_xfs
+            ret=$?
+            ;;
+        retire)
+            retire_all_xfs
+            ret=$?
+            ;;  
+        breathe)
+            breathe_all_xfs
+            ret=$?
+            ;; 
+        actsyscfg)
+            actsyscfg_all_xfs
+            ret=$?
+            ;; 
+        *)
+            usage
+            ret=1
+            ;;
+    esac
+
+    return ${ret}
+}
+
+function main_some()
+{
+    local cmd_op
+    local cmd_paras
+    local ret
+
+    cmd_op=$1
+    cmd_paras=$2
+
+    case "${cmd_op}" in
+    start)
+        start_some_xfs ${cmd_paras}
+        ret=$?
+        ;;
+    retrieve)
+        retrieve_some_xfs ${cmd_paras}
+        ret=$?
+        ;;
+    stop)
+        stop_some_xfs ${cmd_paras}
+        ret=$?
+        ;;
+    restart)
+        stop_some_xfs ${cmd_paras} && start_some_xfs ${cmd_paras}
+        ret=$?
+        ;;        
+    status)
+        status_some_xfs ${cmd_paras}
+        ret=$?
+        ;;  
+    monitor)
+        monitor_some_xfs ${cmd_paras}
+        ret=$?
+        ;; 
+    garbage)
+        garbage_some_xfs ${cmd_paras}
+        ret=$?
+        ;;    
+    status_np)
+        status_np_some_xfs ${cmd_paras}
+        ret=$?
+        ;;       
+    status_dn)
+        status_dn_some_xfs ${cmd_paras}
+        ret=$?
+        ;;                 
+    rotate)
+        rotate_some_xfs ${cmd_paras}
+        ret=$?
+        ;;         
+    recycle)
+        recycle_some_xfs ${cmd_paras}
+        ret=$?
+        ;;
+    flush)
+        flush_some_xfs ${cmd_paras}
+        ret=$?
+        ;;  
+    retire)
+        retire_some_xfs ${cmd_paras}
+        ret=$?
+        ;;    
+    breathe)
+        breathe_some_xfs ${cmd_paras}
+        ret=$?
+        ;; 
+    actsyscfg)
+        actsyscfg_some_xfs ${cmd_paras}
+        ret=$?
+        ;; 
+    *)
+        usage
+        ret=1
+        ;;
+    esac
+
+    return ${ret}
+}
+
+##############################################
+# interactive command line
+##############################################
+if [ $# -eq 1 ]; then
+    count_disk_num
+    main_all $1
+    exit $?
+fi
+
+if [ $# -eq 2 ]; then
+    count_disk_num
+    main_some $1 $2
+    exit $?
+fi
+
+usage
+exit 1

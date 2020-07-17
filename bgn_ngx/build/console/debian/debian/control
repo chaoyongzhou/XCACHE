@@ -1,0 +1,15 @@
+Source: console
+Section: debug
+Priority: extra
+Maintainer: root <bgnvendor@n163.com>
+Build-Depends: debhelper (>= 9), libncurses5-dev (>= 6)
+Standards-Version: 3.9.8
+Homepage: <insert the upstream URL, if relevant>
+#Vcs-Git: https://anonscm.debian.org/collab-maint/uk-deb-demo.git
+#Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/uk-deb-demo.git
+
+Package: console
+Architecture: any
+Depends: ncurses-base (>= 6), libncurses5-dev (>= 6), ${shlibs:Depends}, ${misc:Depends}
+Description: console ui to system based on bgn
+ <insert long description, indented with spaces>

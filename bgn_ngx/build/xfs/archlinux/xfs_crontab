@@ -1,0 +1,8 @@
+*/1  * * * * root /sbin/service xfs monitor > /dev/null 2>&1
+#*/5  * * * * root /sbin/service xfs recycle > /dev/null 2>&1
+#30   2 * * * root /sbin/service xfs flush   > /dev/null 2>&1
+#*/30 * * * * root /sbin/service xfs retire  > /dev/null 2>&1
+*/2  * * * * root /sbin/service xfs garbage > /dev/null 2>&1
+*/30 * * * * root /sbin/service xfs breathe > /dev/null 2>&1
+#0  */1 * * * root /sbin/service xfs rotate  > /dev/null 2>&1
+

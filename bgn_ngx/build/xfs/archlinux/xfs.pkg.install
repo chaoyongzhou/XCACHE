@@ -1,0 +1,88 @@
+###############################################################################
+#
+#   Copyright (C) Chaoyong Zhou
+#   Email: bgnvendor@163.com
+#   QQ: 2796796
+#
+################################################################################
+
+docker_switch=off
+
+prefix=/usr/local/xfs
+service_dir=/etc/systemd/system
+
+crontab_files=(
+    xfs_crontab,0644,xfs
+)
+
+#pre_install() {
+#}
+
+post_install() {
+    echo -n '[POST] init xfs ...................... '
+    if [ "${docker_switch}" == "on" ]; then
+        chmod 0755 ${prefix}/bin/xfs_init.sh
+    else
+        bash ${prefix}/bin/xfs_init.sh > /data/proclog/log/xfs/xfs_init.log 2>&1
+    fi
+
+    echo 'done'
+
+    # reload due to service changed
+    systemctl daemon-reload
+
+    for service_file in $(ls -1p ${service_dir}/xfs*)
+    do
+        service_file_des=$(basename ${service_file})
+
+        systemctl enable ${service_file_des}
+
+        if [ "${docker_switch}" != "on" ]; then
+            echo '[POST] start ' ${service_file_des} ' ... '
+            systemctl start ${service_file_des}
+            echo '[POST] start ' ${service_file_des} ' done '
+
+            echo '[POST] check ' ${service_file_des} ' status '
+            systemctl status ${service_file_des}
+        fi
+    done
+
+    # ---- crontab ----
+    echo '[POST] restart cronie'
+    systemctl restart cronie
+}
+
+#pre_upgrade() {
+#}
+#
+#post_upgrade() {
+#}
+#
+
+pre_remove() {
+    for service_file in $(ls -1p ${service_dir}/xfs*)
+    do
+        service_file_des=$(basename ${service_file})
+
+        echo '[POST] stop ' ${service_file_des} ' ... '
+        systemctl stop ${service_file_des}
+        echo '[POST] stop ' ${service_file_des} ' done '
+    
+        echo '[POST] check ' ${service_file_des} ' status '
+        systemctl status ${service_file_des}
+    
+        service_file_des=$(echo ${service_file_des} | cut -d, -f3)
+        systemctl disable ${service_file_des}
+    done
+}
+
+post_remove() {
+    rm -f ${service_dir}/xfs*
+    # reload due to service changed
+    systemctl daemon-reload
+
+    # ---- crontab ----
+    echo '[POST] restart cronie'
+    systemctl restart cronie    
+}
+

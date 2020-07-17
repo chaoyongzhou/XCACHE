@@ -1,0 +1,368 @@
+################################################################################
+#
+# Copyright (C) Chaoyong Zhou
+# Email: bgnvendor@163.com
+# QQ: 2796796
+#
+################################################################################
+
+#ROOT_DIR = $(shell pwd)
+ROOT_DIR = .
+
+MBITS = $(shell getconf LONG_BIT)
+
+LIB_DIR  = $(ROOT_DIR)/lib/tool_lib
+OBJ_DIR  = $(ROOT_DIR)/obj/tool_obj
+BIN_DIR  = $(ROOT_DIR)/bin
+TOOL_DIR = $(ROOT_DIR)/tool
+
+prefix = /usr/local/xfs
+DEPEND_DIR ?= /usr/local/xfs/depend
+
+OPENSSL_DIR ?= $(DEPEND_DIR)/openssl
+OPENSSL_INC_DIR = $(OPENSSL_DIR)/include
+OPENSSL_LIB_DIR = $(OPENSSL_DIR)/lib
+OPENSSL_INC = -I $(OPENSSL_INC_DIR) 
+#OPENSSL_LIB = -Wl,-rpath,$(OPENSSL_LIB_DIR) -L $(OPENSSL_LIB_DIR) -lssl -L $(OPENSSL_LIB_DIR) -lcrypto
+OPENSSL_LIB = $(OPENSSL_LIB_DIR)/libssl.a $(OPENSSL_LIB_DIR)/libcrypto.a
+
+PCRE_DIR ?= $(DEPEND_DIR)/pcre
+PCRE_INC_DIR = $(PCRE_DIR)/include
+PCRE_LIB_DIR = $(PCRE_DIR)/lib
+PCRE_INC = -I $(PCRE_INC_DIR)
+#PCRE_LIB = -Wl,-rpath,$(PCRE_LIB_DIR) -L $(PCRE_LIB_DIR) -lpcre
+PCRE_LIB = $(PCRE_LIB_DIR)/libpcre.a
+
+XML2_DIR ?= $(DEPEND_DIR)/xml2
+XML2_INC_DIR = $(XML2_DIR)/include/libxml2
+XML2_LIB_DIR = $(XML2_DIR)/lib
+XML2_INC = -I $(XML2_INC_DIR)
+#XML2_LIB = -Wl,-rpath,$(XML2_LIB_DIR) -L $(XML2_LIB_DIR) -lxml2
+XML2_LIB = $(XML2_LIB_DIR)/libxml2.a
+
+EXPAT_DIR ?= $(DEPEND_DIR)/expat
+EXPAT_INC_DIR = $(EXPAT_DIR)/include
+EXPAT_LIB_DIR = $(EXPAT_DIR)/lib
+EXPAT_INC = -I $(EXPAT_INC_DIR)
+#EXPAT_LIB = -Wl,-rpath,$(EXPAT_LIB_DIR) -L $(EXPAT_LIB_DIR) -lexpat
+EXPAT_LIB = $(EXPAT_LIB_DIR)/libexpat.a
+
+READLINE_DIR ?= $(DEPEND_DIR)/readline
+READLINE_INC_DIR = $(READLINE_DIR)/include
+READLINE_LIB_DIR = $(READLINE_DIR)/lib
+READLINE_INC = -I $(READLINE_INC_DIR)
+#READLINE_LIB = -Wl,-rpath,$(READLINE_LIB_DIR) -L $(READLINE_LIB_DIR) -lreadline
+READLINE_LIB = $(READLINE_LIB_DIR)/libreadline.a
+
+NCURSES_DIR ?= $(DEPEND_DIR)/ncurses
+NCURSES_INC_DIR = $(NCURSES_DIR)/include
+NCURSES_LIB_DIR = $(NCURSES_DIR)/lib
+NCURSES_INC = -I $(NCURSES_INC_DIR)
+#NCURSES_LIB = -Wl,-rpath,$(NCURSES_LIB_DIR) -L $(NCURSES_LIB_DIR) -lncurses
+NCURSES_LIB = $(NCURSES_LIB_DIR)/libncurses.a
+
+EXT_INC = $(XML2_INC) $(EXPAT_INC) $(PCRE_INC) $(READLINE_INC) $(NCURSES_INC) $(OPENSSL_INC)
+EXT_LIB = $(XML2_LIB) $(EXPAT_LIB) $(PCRE_LIB) $(READLINE_LIB) $(NCURSES_LIB) $(OPENSSL_LIB) -lm -lrt -lpthread -lz -rdynamic -ldl
+
+BGN_SRC  = $(ROOT_DIR)/bgn_src
+BGN_INC  = -I $(ROOT_DIR)/bgn_inc
+BGN_LIB  = -L $(LIB_DIR) -lbgn
+
+AMD_SRC  = $(ROOT_DIR)/amd_src
+AMD_INC  = -I $(ROOT_DIR)/amd_inc
+AMD_LIB  = -L $(LIB_DIR) -lamd
+
+JSON_SRC = $(ROOT_DIR)/json_src
+JSON_INC = -I $(ROOT_DIR)/json_inc
+JSON_LIB = -L $(LIB_DIR) -ljson
+
+REL_SRC = $(ROOT_DIR)/rel_src
+REL_INC = -I $(ROOT_DIR)/rel_inc
+
+TST_SRC = $(ROOT_DIR)/test
+TST_INC =
+
+BYTESIZE   = 8
+WORDSIZE   = ${MBITS}
+DOUBLESIZE = 64
+
+MEM_BUFF_128B = 128 
+MEM_BUFF_512B = 512 
+MEM_BUFF_1K   = 1024
+MEM_BUFF_8K   = 8192
+MEM_BUFF_16K  = 16384 
+MEM_BUFF_32K  = 32768 
+MEM_BUFF_48K  = 49152 
+MEM_BUFF_64K  = 65536 
+MEM_BUFF_128K = 131072 
+MEM_BUFF_1M   = 1048576
+MEM_BUFF_8M   = 8388608
+MEM_BUFF_16M  = 16777216
+MEM_BUFF_32M  = 33554432
+MEM_BUFF_64M  = 67108864
+MEM_BUFF_128M = 134217728 
+
+FILE_LOG_RECORDS_400 = 400
+FILE_LOG_RECORDS_001K  = 1000
+FILE_LOG_RECORDS_002K  = 2000
+FILE_LOG_RECORDS_004K  = 4000
+FILE_LOG_RECORDS_008K  = 8000
+FILE_LOG_RECORDS_010K  = 10000
+FILE_LOG_RECORDS_020K  = 20000
+FILE_LOG_RECORDS_040K  = 40000
+FILE_LOG_RECORDS_080K  = 80000
+FILE_LOG_RECORDS_100K  = 100000
+FILE_LOG_RECORDS_001M  = 1000000
+FILE_LOG_RECORDS_002M  = 2000000
+FILE_LOG_RECORDS_004M  = 4000000
+FILE_LOG_RECORDS_010M  = 10000000
+FILE_LOG_RECORDS_020M  = 20000000
+
+CTHREAD_STACK_MAX_SIZE_008K = 8192
+CTHREAD_STACK_MAX_SIZE_016K = 16384
+CTHREAD_STACK_MAX_SIZE_032K = 32768
+CTHREAD_STACK_MAX_SIZE_064K = 65536
+CTHREAD_STACK_MAX_SIZE_128K = 131072
+CTHREAD_STACK_MAX_SIZE_256K = 262144
+CTHREAD_STACK_MAX_SIZE_512K = 524288
+CTHREAD_STACK_MAX_SIZE_001M = 1048576
+CTHREAD_STACK_MAX_SIZE_002M = 2097152
+CTHREAD_STACK_MAX_SIZE_004M = 4194304
+CTHREAD_STACK_MAX_SIZE_008M = 8388608
+
+CTHREAD_STACK_GUARD_SIZE_001K = 1024
+CTHREAD_STACK_GUARD_SIZE_002K = 2048
+CTHREAD_STACK_GUARD_SIZE_004K = 4096
+CTHREAD_STACK_GUARD_SIZE_008K = 8192
+CTHREAD_STACK_GUARD_SIZE_016K = 16384
+CTHREAD_STACK_GUARD_SIZE_032K = 32768
+CTHREAD_STACK_GUARD_SIZE_064K = 65536
+CTHREAD_STACK_GUARD_SIZE_128K = 131072
+CTHREAD_STACK_GUARD_SIZE_256K = 262144
+CTHREAD_STACK_GUARD_SIZE_512K = 524288
+CTHREAD_STACK_GUARD_SIZE_001M = 1048576
+CTHREAD_STACK_GUARD_SIZE_002M = 2097152
+CTHREAD_STACK_GUARD_SIZE_004M = 4194304
+CTHREAD_STACK_GUARD_SIZE_008M = 8388608
+
+# disk nbytes = (1 << nbits)
+DISK_016T_NBITS = 44
+DISK_008T_NBITS = 43
+DISK_004T_NBITS = 42
+DISK_002T_NBITS = 41
+DISK_001T_NBITS = 40
+DISK_512G_NBITS = 39
+
+# page nbytes = (1 << nbits)
+PAGE_002M_NBITS = 21
+PAGE_001M_NBITS = 20
+PAGE_512K_NBITS = 19
+PAGE_256K_NBITS = 18
+PAGE_128K_NBITS = 17
+PAGE_064K_NBITS = 16
+PAGE_032K_NBITS = 15
+PAGE_016K_NBITS = 14
+
+#DBG_ENCODING_RULE  = 1
+#BYTE_ENCODING_RULE = 2
+
+CMACRO = \
+         -D_GNU_SOURCE \
+         -D_LARGEFILE_SOURCE \
+         -D_LARGEFILE64_SOURCE \
+         -D_FILE_OFFSET_BITS=64 \
+         -DSWITCH_ON=1 \
+         -DSWITCH_OFF=0 \
+         -DTASK_BRD_CPU_UPDATE_INTVAL_NSEC=30 \
+         -DCPU_OVERLOAD_THREASHOLD=70 \
+         -DDBG_ENCODING_RULE=1 \
+         -DBYTE_ENCODING_RULE=2 \
+         -DCPROC_PACKAGE_SWITCH=SWITCH_ON \
+         -DSTATIC_MEM_TYPE_CHECK_SWITCH=SWITCH_OFF \
+         -DWORDSIZE=${WORDSIZE} \
+         -DDOUBLESIZE=${DOUBLESIZE} \
+         -DBYTESIZE=${BYTESIZE} \
+         -DCROUTINE_SUPPORT_COROUTINE_SWITCH=SWITCH_OFF \
+         -DCROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH=SWITCH_OFF \
+         -DCROUTINE_SUPPORT_CTHREAD_SWITCH=SWITCH_ON \
+         -DTASK_REQ_SHORTCUT=SWITCH_OFF \
+         -DTASK_FWD_SHORTCUT=SWITCH_ON \
+         -DCROUTINE_STACK_MAX_SIZE=${CTHREAD_STACK_MAX_SIZE_064K} \
+         -DCROUTINE_STACK_GUARD_SIZE=${CTHREAD_STACK_GUARD_SIZE_004K} \
+         -DCTHREAD_SET_CORE_SWITCH=SWITCH_OFF \
+         -DTASK_HEADER_COMPRESSED_SWITCH=SWITCH_ON \
+         -DTASK_ENCODING_RULE=BYTE_ENCODING_RULE \
+         -DTASK_REPORT_MAX_NUM=16 \
+         -DRANK_HEARTBEAT_ALL_SWITCH=SWITCH_OFF \
+         -DRANK_HEARTBEAT_FASTDEC_SWITCH=SWITCH_ON \
+         -DRANK_HEARTBEAT_FWD_SWITCH=SWITCH_OFF \
+         -DRANK_HEARTBEAT_NODE_SWITCH=SWITCH_OFF \
+         -DCLOAD_HEARTBEAT_INTVL_NSEC=10 \
+         -DRANK_HEARTBEAT_FASTDEC_INTVL_NSEC=10 \
+         -DCLOAD_STAT_UPDATE_INTVL_NSEC=3 \
+         -DCRFS_ASSERT_SWITCH=SWITCH_OFF \
+         -DCMUTEX_DEBUG_SWITCH=SWITCH_OFF \
+         -DCRFSNGX_SWITCH=SWITCH_OFF \
+         -DCRFSNGX_SOCKET_TIMEOUT_NSEC=60 \
+         -DCTDNS_NP_CACHE_IN_MEM=SWITCH_OFF \
+         -DCTDNS_SP_CACHE_IN_MEM=SWITCH_OFF \
+         -DCSRV_ACCEPT_MAX_NUM=20 \
+         -DCRFS_MD5_SWITCH=SWITCH_OFF \
+         -DCXFS_ASSERT_SWITCH=SWITCH_OFF \
+         -DCXFSNGX_SWITCH=SWITCH_OFF \
+         -DCXFSNGX_SOCKET_TIMEOUT_NSEC=60 \
+         -DCXFS_MD5_SWITCH=SWITCH_OFF \
+         -DCXFS_NP_MMAP_SWITCH=SWITCH_OFF \
+         -DCXFS_DN_MMAP_SWITCH=SWITCH_OFF \
+         -DCXFS_OP_SWITCH=SWITCH_OFF \
+         -DCXFSDN_BAD_PAGE_CHOICE=CXFSDN_256K_BAD_PAGE \
+         -DCXFSPGB_PAGE_CHOICE=CXFSPGB_032K_PAGE_CHOICE \
+         -DCXFSPGD_DISK_CHOICE=CXFSPGD_032G_DISK \
+         -DLOAD_UPDATE_SWITCH=SWITCH_OFF \
+         -DNGX_BGN_SWITCH=SWITCH_OFF \
+         -DCAMD_ASSERT_SWITCH=SWITCH_OFF \
+         -DCMCPGD_DISK_CHOICE=CMCPGD_001G_DISK \
+         -DCMCPGB_PAGE_CHOICE=CMCPGB_256K_PAGE \
+         -DCMCDN_NODE_CHOICE=CMCDN_001G_NODE \
+         -DCDC_ASSERT_SWITCH=SWITCH_OFF \
+         -DCDC_BIND_AIO_SWITCH=SWITCH_ON \
+         -DCDCPGD_DISK_CHOICE=CDCPGD_008G_DISK \
+         -DCDCPGB_PAGE_CHOICE=CDCPGB_256K_PAGE \
+         -DCDCDN_NODE_CHOICE=CDCDN_004G_NODE \
+         -DCAIO_ASSERT_SWITCH=SWITCH_OFF \
+         -DCAIO_MODEL_CHOICE=CAIO_256K_MODEL \
+         -DCAMD_SYNC_CDC_SWITCH=SWITCH_OFF \
+         -DCAMD_SATA_DISK_MAX_SIZE_NBITS=${DISK_016T_NBITS} \
+         -DCAMD_SSD_DISK_MAX_SIZE_NBITS=${DISK_004T_NBITS} \
+         -DCAMD_PAGE_SIZE_NBITS=${PAGE_256K_NBITS} \
+
+# C Language
+CC       = /usr/bin/gcc
+CLINKER  = /usr/bin/gcc
+
+# C++ Language
+#CC       = /usr/bin/g++
+#CLINKER  = /usr/bin/g++
+
+AR       = /usr/bin/ar cr
+
+# ignore Wunused-function, Wuninitialized, Wunused-parameter
+CWARNS   = -Wall
+
+#COPTS = -g
+COPTS = -g -O2
+
+CFLAGS   = ${CWARNS} ${COPTS} -m${MBITS} ${CMACRO} -fstack-check
+
+BGN_OBJS  = $(patsubst $(BGN_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(BGN_SRC)/*.c))
+AMD_OBJS  = $(patsubst $(AMD_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(AMD_SRC)/*.c))
+JSON_OBJS = $(patsubst $(JSON_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(JSON_SRC)/*.c))
+REL_OBJS  = $(patsubst $(REL_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(REL_SRC)/*.c))
+TST_OBJS  = $(patsubst $(TST_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(TST_SRC)/*.c))
+
+XFS_OBJS = $(OBJ_DIR)/test_cxfs_tool.o
+RFS_OBJS = $(OBJ_DIR)/test_crfs_tool.o
+
+default: xfs_tool
+
+libbgn: $(BGN_OBJS)
+	$(AR) $(LIB_DIR)/libbgn.a $(BGN_OBJS)
+
+libamd: $(AMD_OBJS)
+	$(AR) $(LIB_DIR)/libamd.a $(AMD_OBJS)
+
+libjson: $(JSON_OBJS)
+	$(AR) $(LIB_DIR)/libjson.a $(JSON_OBJS)
+
+xfs_tool: libbgn libamd libjson libjson $(XFS_OBJS)
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/xfs_tool $(XFS_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
+
+rfs_tool: libbgn libamd libjson libjson $(RFS_OBJS)
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/rfs_tool $(RFS_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
+
+bgn: libbgn $(REL_OBJS)
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/bgn $(REL_OBJS) $(BGN_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(EXT_LIB)
+
+link: $(REL_OBJS)
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/bgn $(REL_OBJS) $(BGN_INC) $(EXT_INC) $(BGN_LIB) $(EXT_LIB)
+
+test_json_1: libbgn libjson obj/crun.o obj/test_json_1.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_json_1.o $(BGN_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
+
+test_csys: libbgn obj/crun.o obj/test_csys.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_csys.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
+
+test_list: libbgn obj/crun.o obj/test_list.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_list.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
+
+test_file_load: libbgn obj/crun.o obj/test_file_load.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_file_load.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
+
+test_sizeof: libbgn obj/crun.o obj/test_sizeof.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_sizeof.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
+
+test_cexpat: libbgn obj/crun.o obj/test_cexpat.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cexpat.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
+
+test_crfsc: libbgn obj/crun.o obj/test_crfsc.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_crfsc.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
+
+test_crb: libbgn obj/crun.o obj/test_crb.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_crb.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
+
+test_cpgrb: libbgn obj/crun.o obj/test_cpgrb.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cpgrb.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
+
+test_cpgb: libbgn obj/crun.o obj/test_cpgb.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cpgb.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
+
+test_cpgd: libbgn obj/crun.o obj/test_cpgd.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cpgd.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
+
+test_cpgv: libbgn obj/crun.o obj/test_cpgv.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cpgv.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
+
+test_crfsdn: libbgn obj/crun.o obj/test_crfsdn.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_crfsdn.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
+
+test_crfsnp: libbgn obj/crun.o obj/test_crfsnp.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_crfsnp.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
+
+test_crfs: libbgn obj/crun.o obj/test_crfs.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_crfs.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
+
+$(BGN_OBJS): $(OBJ_DIR)/%.o: $(BGN_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(JSON_INC) $(EXT_INC) -o $@	
+
+$(AMD_OBJS): $(OBJ_DIR)/%.o: $(AMD_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(JSON_INC) $(EXT_INC) -o $@
+
+$(JSON_OBJS): $(OBJ_DIR)/%.o: $(JSON_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(JSON_INC) $(EXT_INC) -o $@
+
+$(REL_OBJS): $(OBJ_DIR)/%.o: $(REL_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(REL_INC) $(JSON_INC) $(EXT_INC) -o $@
+
+$(TST_OBJS): $(OBJ_DIR)/%.o: $(TST_SRC)/%.c
+	$(CC) $(CFLAGS) -c $< $(TST_INC) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(EXT_INC) -o $@
+
+install: xfs_tool
+	install -p -D bin/xfs_tool $(DESTDIR)$(prefix)/bin/xfs_tool
+
+clean-obj:
+	$(if $(wildcard $(OBJ_DIR)/*.o), rm -f $(OBJ_DIR)/*.o,)	
+
+clean-lib:
+	$(if $(wildcard $(LIB_DIR)/*.a),rm -f $(LIB_DIR)/*.a,)	
+	$(if $(wildcard $(LIB_DIR)/*.so),rm -f $(LIB_DIR)/*.so,)
+
+clean-log:
+	$(if $(wildcard $(BIN_DIR)/*.log),rm -f $(BIN_DIR)/*.log,)	
+
+clean-bin:
+	$(if $(wildcard $(BIN_DIR)/xfs_tool),rm -f $(BIN_DIR)/xfs_tool,)
+	$(if $(wildcard $(BIN_DIR)/rfs_tool),rm -f $(BIN_DIR)/rfs_tool,)
+
+clean-trial: clean-log clean-bin clean-obj
+	
+clean: clean-log clean-bin clean-obj clean-lib

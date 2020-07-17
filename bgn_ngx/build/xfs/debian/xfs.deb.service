@@ -1,0 +1,16 @@
+[Unit]
+Description=XFS
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/local/xfs/bin/xfs -tcid ${xfs_tcid} -node_type xfs -xfs_sata_path ${xfs_sata_path} -xfs_ssd_path ${xfs_ssd_path} -logp /data/proclog/log/xfs -sconfig /usr/local/xfs/bin/config.xml -d
+#ExecStop=
+#Restart=always
+Restart=no
+TimeoutStartSec=120
+TimeoutStopSec=3600
+
+[Install]
+WantedBy=multi-user.target
