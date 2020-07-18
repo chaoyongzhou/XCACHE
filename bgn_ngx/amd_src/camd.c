@@ -6573,12 +6573,12 @@ void camd_process_post_file_reqs(CAMD_MD *camd_md)
 
         if(CAMD_FILE_REQ_OP_WR == CAMD_FILE_REQ_OP(camd_file_req))
         {
-            camd_file_write_aio_do(camd_md,
-                                   CAMD_FILE_REQ_FD(camd_file_req),
-                                   CAMD_FILE_REQ_OFFSET(camd_file_req),
-                                   CAMD_FILE_REQ_RWSIZE(camd_file_req),
-                                   CAMD_FILE_REQ_BUFF(camd_file_req),
-                                   CAMD_FILE_REQ_CAIO_CB(camd_file_req));
+            camd_file_write_do(camd_md,
+                               CAMD_FILE_REQ_FD(camd_file_req),
+                               CAMD_FILE_REQ_OFFSET(camd_file_req),
+                               CAMD_FILE_REQ_RWSIZE(camd_file_req),
+                               CAMD_FILE_REQ_BUFF(camd_file_req),
+                               CAMD_FILE_REQ_CAIO_CB(camd_file_req));
 
             aio_req_num += (CAMD_FILE_REQ_RWSIZE(camd_file_req) + CMCPGB_PAGE_SIZE_NBYTES - 1)
                         / ((UINT32)CMCPGB_PAGE_SIZE_NBYTES);
