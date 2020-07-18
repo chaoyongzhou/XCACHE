@@ -725,6 +725,8 @@ STATIC_CAST static EC_BOOL __crfsnp_mgr_search_file(CRFSNP_MGR *crfsnp_mgr, cons
     uint32_t  crfsnp_id;
     uint32_t  node_pos;
 
+    crfsnp_id = 0;  /*make GCC happy*/
+
     crfsnp = __crfsnp_mgr_get_np(crfsnp_mgr, path_len, path, &crfsnp_id);
     if(NULL_PTR == crfsnp)
     {
@@ -808,6 +810,8 @@ CRFSNP_ITEM *crfsnp_mgr_search_item(CRFSNP_MGR *crfsnp_mgr, const uint32_t path_
     uint32_t  node_pos;
 
     CRFSNP_ITEM *crfsnp_item;
+
+    crfsnp_id = 0; /*make GCC happy*/
 
     crfsnp = __crfsnp_mgr_get_np(crfsnp_mgr, path_len, path, &crfsnp_id);
     if(NULL_PTR == crfsnp)

@@ -772,6 +772,8 @@ STATIC_CAST static EC_BOOL __cxfsnp_mgr_search_file(CXFSNP_MGR *cxfsnp_mgr, cons
     uint32_t  cxfsnp_id;
     uint32_t  node_pos;
 
+    cxfsnp_id = 0; /*make GCC happy*/
+
     cxfsnp = __cxfsnp_mgr_get_np(cxfsnp_mgr, path_len, path, &cxfsnp_id);
     if(NULL_PTR == cxfsnp)
     {
@@ -855,6 +857,8 @@ CXFSNP_ITEM *cxfsnp_mgr_search_item(CXFSNP_MGR *cxfsnp_mgr, const uint32_t path_
     uint32_t  node_pos;
 
     CXFSNP_ITEM *cxfsnp_item;
+
+    cxfsnp_id = 0;  /*make GCC happy*/
 
     cxfsnp = __cxfsnp_mgr_get_np(cxfsnp_mgr, path_len, path, &cxfsnp_id);
     if(NULL_PTR == cxfsnp)

@@ -1012,6 +1012,10 @@ EC_BOOL cxml_parse_tasks_cfg_vec(xmlNodePtr node, TASK_CFG *task_cfg, const UINT
     cvector_init(&ssrvport_vec, 0, MM_UINT32, CVECTOR_LOCK_ENABLE, LOC_CXML_0013);
     cvector_init(&cluster_vec , 0, MM_UINT32, CVECTOR_LOCK_ENABLE, LOC_CXML_0014);
 
+    maski     = CMPI_ERROR_MASK;    /*make GCC happy*/
+    maske     = CMPI_ERROR_MASK;    /*make GCC happy*/
+    srvipaddr = CMPI_ERROR_IPADDR;  /*make GCC happy*/
+
     __cxml_parse_tag_tcid_vec(node, (const char *)"tcid", &tcid_vec);
 
     __cxml_parse_tag_ipv4_mask(node, (const char *)"maski", &maski);
@@ -1791,6 +1795,8 @@ EC_BOOL cxml_parse_para_cfgx(xmlNodePtr node, CVECTOR *paras_cfg)
     UINT32 tcid;
     CVECTOR rank_vec;
     UINT32  pos;
+
+    tcid = CMPI_ERROR_TCID; /*make GCC happy*/
 
     __cxml_parse_tag_tcid(node, (const char *)"tcid", &tcid);
 

@@ -770,6 +770,8 @@ EC_BOOL api_cmd_seg_parse(const CMD_SEG *cmd_seg, const UINT8 *cmd_line, CMD_PAR
             cstring = cstring_new(NULL_PTR, LOC_API_0007);
             pcur = api_cmd_greedy_cstring(pcur, pend, cstring);
 
+            value = 0; /*make GCC happy*/
+
             api_cmd_elem_find_list_item(CMD_SEG_ELEM(cmd_seg), (char *)cstring_get_str(cstring), &value);
             cstring_free(cstring);
 

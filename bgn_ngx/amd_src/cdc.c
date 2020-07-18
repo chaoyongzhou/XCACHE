@@ -8467,7 +8467,7 @@ EC_BOOL cdc_unlock_page(CDC_MD *cdc_md, CDC_PAGE *cdc_page)
 
     if(EC_FALSE == cdcnp_has_key(CDC_MD_NP(cdc_md), &cdcnp_key))
     {
-        dbg_log(SEC_0182_CDC, 0)(LOGSTDOUT, "error:cdc_unlock_page: np has no key for [%ld, %ld)\n",
+        dbg_log(SEC_0182_CDC, 1)(LOGSTDOUT, "error:cdc_unlock_page: np has no key for [%ld, %ld)\n",
                                             CDC_PAGE_F_S_OFFSET(cdc_page),
                                             CDC_PAGE_F_E_OFFSET(cdc_page));
         return (EC_FALSE);

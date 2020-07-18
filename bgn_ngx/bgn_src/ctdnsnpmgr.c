@@ -594,6 +594,8 @@ CTDNSNP_ITEM *ctdnsnp_mgr_search_item(CTDNSNP_MGR *ctdnsnp_mgr, const UINT32 tci
 
     CTDNSNP_ITEM *ctdnsnp_item;
 
+    ctdnsnp_id = 0; /*make GCC happy*/
+
     ctdnsnp = __ctdnsnp_mgr_get_np(ctdnsnp_mgr, tcid, &ctdnsnp_id);
     if(NULL_PTR == ctdnsnp)
     {
