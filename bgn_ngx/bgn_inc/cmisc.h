@@ -489,6 +489,8 @@ void *c_memalign_new(const UINT32 size, const UINT32 align);
 
 void c_memalign_free(void *data);
 
+UINT32 c_memalign_counter();
+
 void c_memalign_counter_print(LOG *log);
 
 EC_BOOL c_mlock(void *addr, const UINT32 size);

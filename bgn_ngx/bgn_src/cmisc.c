@@ -7000,7 +7000,6 @@ void *c_memalign_new(const UINT32 size, const UINT32 align)
 {
     void *data;
 
-    /*WARNING: posix_memalign would not work well with jemalloc. it eats out memory and oom*/
     if(0 != posix_memalign((void **)&data, (size_t)align, (size_t)size))
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_memalign_new: "
@@ -7023,6 +7022,11 @@ void c_memalign_free(void *data)
         free(data);
     }
     return;
+}
+
+UINT32 c_memalign_counter()
+{
+    return g_misc_mem_cache_counter;
 }
 
 void c_memalign_counter_print(LOG *log)

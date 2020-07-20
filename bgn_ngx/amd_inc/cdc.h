@@ -101,6 +101,7 @@ typedef struct
     uint64_t            node_not_aligned_counter[2];  /*RD, WR, node [b_s_offset, b_e_offset] or buff addr are not aligned*/
     uint64_t            mem_reused_counter;
     uint64_t            mem_zcopy_counter;            /*zero copy counter*/
+    uint64_t            mem_fcopy_counter;            /*fast copy counter*/
 }CDC_STAT;
 
 #define CDC_STAT_SSD_USED_RATIO(cdc_stat)               ((cdc_stat)->ssd_used_ratio)
@@ -121,6 +122,7 @@ typedef struct
 
 #define CDC_STAT_MEM_REUSED_COUNTER(cdc_stat)           ((cdc_stat)->mem_reused_counter)
 #define CDC_STAT_MEM_ZCOPY_COUNTER(cdc_stat)            ((cdc_stat)->mem_zcopy_counter)
+#define CDC_STAT_MEM_FCOPY_COUNTER(cdc_stat)            ((cdc_stat)->mem_fcopy_counter)
 
 typedef struct
 {

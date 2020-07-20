@@ -8816,6 +8816,8 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
         json_object_add_kv(cxfs_comm_obj      , "cxfs_camd_overhead_switch_desc", c_switch_to_str(CXFS_CAMD_OVERHEAD_SWITCH));
         json_object_add_k_int32(cxfs_comm_obj , "cxfs_camd_overhead_switch"   , SWITCH_ON == CXFS_CAMD_OVERHEAD_SWITCH?1:0);
         json_object_add_k_int32(cxfs_comm_obj , "cxfs_camd_discard_ratio"     , (int64_t)CXFS_CAMD_DISCARD_RATIO);
+
+        json_object_add_k_int32(cxfs_comm_obj , "c_memalign_counter"          , (int64_t)c_memalign_counter());
     }
 
     if(NULL_PTR != cxfs_obj && NULL_PTR != cxfsnp_mgr)
@@ -8900,6 +8902,7 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
 
         json_object_add_k_int64(camd_stat_obj, "camd_mem_reused_counter", (int64_t)CAMD_STAT_MEM_REUSED_COUNTER(camd_stat));
         json_object_add_k_int64(camd_stat_obj, "camd_mem_zcopy_counter" , (int64_t)CAMD_STAT_MEM_ZCOPY_COUNTER(camd_stat));
+        json_object_add_k_int64(camd_stat_obj, "camd_mem_fcopy_counter" , (int64_t)CAMD_STAT_MEM_FCOPY_COUNTER(camd_stat));
     }
 
     if(NULL_PTR != cxfs_obj && NULL_PTR != cdc_stat)
@@ -8949,6 +8952,7 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
 
         json_object_add_k_int64(cdc_stat_obj, "cdc_mem_reused_counter", (int64_t)CDC_STAT_MEM_REUSED_COUNTER(cdc_stat));
         json_object_add_k_int64(cdc_stat_obj, "cdc_mem_zcopy_counter" , (int64_t)CDC_STAT_MEM_ZCOPY_COUNTER(cdc_stat));
+        json_object_add_k_int64(cdc_stat_obj, "cdc_mem_fcopy_counter" , (int64_t)CDC_STAT_MEM_FCOPY_COUNTER(cdc_stat));
     }
 
     if(NULL_PTR != cxfs_obj && NULL_PTR != cmc_stat)
@@ -9062,6 +9066,9 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
 
             snprintf((char *)k, sizeof(k), "%s_mem_zcopy_counter", CAIO_DISK_TAG(caio_disk));
             json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_MEM_ZCOPY_COUNTER(caio_stat));
+
+            snprintf((char *)k, sizeof(k), "%s_mem_fcopy_counter", CAIO_DISK_TAG(caio_disk));
+            json_object_add_k_int64(caio_stat_obj, (char *)k, (int64_t)CAIO_STAT_MEM_FCOPY_COUNTER(caio_stat));
         }
     }
 
@@ -9081,27 +9088,30 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
 
         json_object_add_k_int64(taskc_stat_obj, "taskc_num", (int64_t)clist_size(taskc_list));
 
-        taskc_list_obj = json_object_new_array();
-        json_object_add_obj(taskc_stat_obj, "taskc_list", taskc_list_obj);
-
-        CLIST_LOOP_NEXT(taskc_list, clist_data)
+        if(NULL_PTR != taskc_debug_switch
+        && EC_TRUE == c_str_is_in(taskc_debug_switch, (const char *)":", (const char *)"on"))
         {
-            TASKC_NODE *taskc_node;
+            taskc_list_obj = json_object_new_array();
+            json_object_add_obj(taskc_stat_obj, "taskc_list", taskc_list_obj);
 
-            json_object   *taskc_node_obj; /*task communication list*/
-
-            taskc_node = CLIST_DATA_DATA(clist_data);
-
-            taskc_node_obj = json_object_new_object();
-            json_object_array_add(taskc_list_obj, taskc_node_obj);
-
-            json_object_add_kv(taskc_node_obj, "tcid", c_word_to_ipv4(TASKC_NODE_TCID(taskc_node)));
-
-            if(NULL_PTR != taskc_debug_switch
-            && EC_TRUE == c_str_is_in(taskc_debug_switch, (const char *)":", (const char *)"on"))
+            CLIST_LOOP_NEXT(taskc_list, clist_data)
             {
-                json_object_add_k_int64(taskc_node_obj, "comm", (int64_t)TASKC_NODE_COMM(taskc_node));
-                json_object_add_k_int64(taskc_node_obj, "size", (int64_t)TASKC_NODE_SIZE(taskc_node));
+                TASKC_NODE *taskc_node;
+
+                json_object   *taskc_node_obj; /*task communication list*/
+
+                taskc_node = CLIST_DATA_DATA(clist_data);
+
+                taskc_node_obj = json_object_new_object();
+                json_object_array_add(taskc_list_obj, taskc_node_obj);
+
+                json_object_add_kv(taskc_node_obj, "tcid", c_word_to_ipv4(TASKC_NODE_TCID(taskc_node)));
+
+                if(1)
+                {
+                    json_object_add_k_int64(taskc_node_obj, "comm", (int64_t)TASKC_NODE_COMM(taskc_node));
+                    json_object_add_k_int64(taskc_node_obj, "size", (int64_t)TASKC_NODE_SIZE(taskc_node));
+                }
             }
         }
 

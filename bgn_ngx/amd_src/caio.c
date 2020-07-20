@@ -830,6 +830,7 @@ EC_BOOL caio_stat_init(CAIO_STAT *caio_stat)
 
     CAIO_STAT_MEM_REUSED_COUNTER(caio_stat)                     = 0;
     CAIO_STAT_MEM_ZCOPY_COUNTER(caio_stat)                      = 0;
+    CAIO_STAT_MEM_FCOPY_COUNTER(caio_stat)                      = 0;
 
     return (EC_TRUE);
 }
@@ -858,6 +859,7 @@ EC_BOOL caio_stat_clean(CAIO_STAT *caio_stat)
 
     CAIO_STAT_MEM_REUSED_COUNTER(caio_stat)                     = 0;
     CAIO_STAT_MEM_ZCOPY_COUNTER(caio_stat)                      = 0;
+    CAIO_STAT_MEM_FCOPY_COUNTER(caio_stat)                      = 0;
 
     return (EC_TRUE);
 }
@@ -1377,6 +1379,10 @@ EC_BOOL caio_page_complete(CAIO_PAGE *caio_page)
                 {
                     CAIO_STAT_MEM_ZCOPY_COUNTER(caio_stat) ++;
                 }
+                else
+                {
+                    CAIO_STAT_MEM_FCOPY_COUNTER(caio_stat) ++;
+                }
 
                 /*copy data from mem cache to application mem buff*/
                 FCOPY(CAIO_PAGE_M_CACHE(caio_page) + CAIO_NODE_B_S_OFFSET(caio_node),
@@ -1416,6 +1422,10 @@ EC_BOOL caio_page_complete(CAIO_PAGE *caio_page)
             if(CAIO_NODE_M_BUFF(caio_node) == CAIO_PAGE_M_CACHE(caio_page) + CAIO_NODE_B_S_OFFSET(caio_node))
             {
                 CAIO_STAT_MEM_ZCOPY_COUNTER(caio_stat) ++;
+            }
+            else
+            {
+                CAIO_STAT_MEM_FCOPY_COUNTER(caio_stat) ++;
             }
 
             /*copy data from application mem buff to mem cache*/
@@ -3556,7 +3566,7 @@ void caio_process(CAIO_MD *caio_md)
     caio_process_pages(caio_md);
     caio_process_events(caio_md);
     caio_process_reqs(caio_md);
-    caio_process_stat(caio_md);
+    /*caio_process_stat(caio_md);*/
 
    return;
 }
@@ -3758,10 +3768,12 @@ void caio_process_timeout_reqs(CAIO_MD *caio_md)
         caio_req_timeout(caio_req);
     }
 
-    dbg_log(SEC_0093_CAIO, 5)(LOGSTDOUT, "[DEBUG] caio_process_timeout_reqs: "
-                                         "process %ld timeout reqs\n",
-                                         req_num);
-
+    if(0 < req_num)
+    {
+        dbg_log(SEC_0093_CAIO, 7)(LOGSTDOUT, "[DEBUG] caio_process_timeout_reqs: "
+                                             "process %ld timeout reqs\n",
+                                             req_num);
+    }
     return;
 }
 
@@ -3976,7 +3988,7 @@ UINT32 __caio_process_pages(CAIO_MD *caio_md, const UINT32 op)
     aio_total_nr = (long)(aio_req_num - aio_req_num_saved);
     if(0 == aio_total_nr)
     {
-        dbg_log(SEC_0093_CAIO, 5)(LOGSTDOUT, "[DEBUG] __caio_process_pages: "
+        dbg_log(SEC_0093_CAIO, 7)(LOGSTDNULL, "[DEBUG] __caio_process_pages: "
                                              "submit %ld aio requests\n",
                                              aio_total_nr);
         return ((UINT32)0);
@@ -4230,8 +4242,12 @@ void caio_process_post_event_reqs(CAIO_MD *caio_md, const UINT32 process_event_m
         handler(caio_req);
     }
 
-    dbg_log(SEC_0093_CAIO, 5)(LOGSTDOUT, "[DEBUG] caio_process_post_event_reqs: process %ld reqs\n", counter);
-
+    if(0 < counter)
+    {
+        dbg_log(SEC_0093_CAIO, 7)(LOGSTDOUT, "[DEBUG] caio_process_post_event_reqs: "
+                                             "process %ld reqs\n",
+                                             counter);
+    }
     return;
 }
 

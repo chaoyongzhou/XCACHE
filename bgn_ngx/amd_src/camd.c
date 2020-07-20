@@ -248,6 +248,7 @@ EC_BOOL camd_stat_init(CAMD_STAT  *camd_stat)
 
     CAMD_STAT_MEM_REUSED_COUNTER(camd_stat)                    = 0;
     CAMD_STAT_MEM_ZCOPY_COUNTER(camd_stat)                     = 0;
+    CAMD_STAT_MEM_FCOPY_COUNTER(camd_stat)                     = 0;
     return (EC_TRUE);
 }
 
@@ -264,6 +265,7 @@ EC_BOOL camd_stat_clean(CAMD_STAT  *camd_stat)
 
     CAMD_STAT_MEM_REUSED_COUNTER(camd_stat)                    = 0;
     CAMD_STAT_MEM_ZCOPY_COUNTER(camd_stat)                     = 0;
+    CAMD_STAT_MEM_FCOPY_COUNTER(camd_stat)                     = 0;
     return (EC_TRUE);
 }
 
@@ -706,6 +708,10 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
                 {
                     CAMD_STAT_MEM_ZCOPY_COUNTER(camd_stat) ++;
                 }
+                else
+                {
+                    CAMD_STAT_MEM_FCOPY_COUNTER(camd_stat) ++;
+                }
 
                 /*copy data from mem cache to application mem buff*/
                 FCOPY(CAMD_PAGE_M_CACHE(camd_page) + CAMD_NODE_B_S_OFFSET(camd_node),
@@ -745,6 +751,10 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
             if(CAMD_NODE_M_BUFF(camd_node) == CAMD_PAGE_M_CACHE(camd_page) + CAMD_NODE_B_S_OFFSET(camd_node))
             {
                 CAMD_STAT_MEM_ZCOPY_COUNTER(camd_stat) ++;
+            }
+            else
+            {
+                CAMD_STAT_MEM_FCOPY_COUNTER(camd_stat) ++;
             }
 
             /*copy data from application mem buff to mem cache*/
@@ -854,6 +864,61 @@ EC_BOOL camd_page_process(CAMD_PAGE *camd_page, const UINT32 retry_page_tree_idx
         camd_page_terminate(camd_page);
         camd_page_free(camd_page);
         return (EC_FALSE);
+    }
+
+    /*no mem cache but has ssd cache*/
+    if(NULL_PTR == CAMD_MD_CMC_MD(camd_md)
+    && NULL_PTR != CAMD_MD_CDC_MD(camd_md))
+    {
+        if(BIT_TRUE == CAMD_PAGE_SSD_DIRTY_FLAG(camd_page))
+        {
+            if(EC_FALSE == camd_page_flush_ssd_aio(camd_page, CAMD_PAGE_SATA_DIRTY_FLAG(camd_page)))
+            {
+                dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_page_process: "
+                                 "[no memcache, has ssd cache] "
+                                 "flush page [%ld, %ld) to ssd failed\n",
+                                 CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
+
+                camd_page_terminate(camd_page);
+                camd_page_free(camd_page);
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0125_CAMD, 5)(LOGSTDOUT, "[DEBUG] camd_page_process: "
+                             "[no memcache, has ssd cache] "
+                             "flush page [%ld, %ld) to ssd done => flush ssd aio done\n",
+                             CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
+            return (EC_TRUE);
+        }
+
+        if(BIT_TRUE == CAMD_PAGE_SATA_DIRTY_FLAG(camd_page))
+        {
+            if(EC_FALSE == camd_page_flush_sata_aio(camd_page))
+            {
+                dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "error:camd_page_process: "
+                                 "[no memcache, has ssd cache] "
+                                 "flush page [%ld, %ld) to sata failed\n",
+                                 CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
+
+                camd_page_terminate(camd_page);
+                camd_page_free(camd_page);
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0125_CAMD, 5)(LOGSTDOUT, "[DEBUG] camd_page_process: "
+                             "[no memcache, has ssd cache] "
+                             "flush page [%ld, %ld) to sata done => flush sata aio done\n",
+                             CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0125_CAMD, 5)(LOGSTDOUT, "[DEBUG] camd_page_process: "
+                         "[no memcache, has ssd cache] "
+                         "process page [%ld, %ld) done\n",
+                         CAMD_PAGE_F_S_OFFSET(camd_page), CAMD_PAGE_F_E_OFFSET(camd_page));
+
+        camd_page_free(camd_page);
+        return (EC_TRUE);
     }
 
     /*flush sata or ssd or dirty page to mem cache*/
@@ -1386,7 +1451,7 @@ EC_BOOL camd_page_flush_ssd_aio_complete(CAMD_PAGE *camd_page)
 }
 
 /*flush page to ssd*/
-EC_BOOL camd_page_flush_ssd_aio(CAMD_PAGE *camd_page)
+EC_BOOL camd_page_flush_ssd_aio(CAMD_PAGE *camd_page, const uint32_t sata_dirty_flag)
 {
     CAMD_MD         *camd_md;
     CDC_MD          *cdc_md;
@@ -1411,7 +1476,7 @@ EC_BOOL camd_page_flush_ssd_aio(CAMD_PAGE *camd_page)
                     &CAMD_PAGE_F_T_OFFSET(camd_page),
                     CAMD_PAGE_F_E_OFFSET(camd_page) - CAMD_PAGE_F_S_OFFSET(camd_page),
                     CAMD_PAGE_M_CACHE(camd_page),
-                    BIT_TRUE, /*default sata dirty flag*/
+                    sata_dirty_flag,
                     &caio_cb))
     {
         dbg_log(SEC_0125_CAMD, 9)(LOGSTDOUT, "[DEBUG] camd_page_flush_ssd_aio: "
@@ -5923,8 +5988,12 @@ void camd_process_timeout_reqs(CAMD_MD *camd_md)
         }
     }
 
-    dbg_log(SEC_0125_CAMD, 5)(LOGSTDOUT, "[DEBUG] camd_process_timeout_reqs: process %ld timeout reqs\n", req_num);
-
+    if(0 < req_num)
+    {
+        dbg_log(SEC_0125_CAMD, 7)(LOGSTDOUT, "[DEBUG] camd_process_timeout_reqs: "
+                                             "process %ld timeout reqs\n",
+                                             req_num);
+    }
     return;
 }
 
@@ -6455,8 +6524,12 @@ void camd_process_post_event_reqs(CAMD_MD *camd_md, const UINT32 process_event_m
         handler(camd_req);
     }
 
-    dbg_log(SEC_0125_CAMD, 5)(LOGSTDOUT, "[DEBUG] camd_process_post_event_reqs: process %ld reqs\n", counter);
-
+    if(0 < counter)
+    {
+        dbg_log(SEC_0125_CAMD, 7)(LOGSTDOUT, "[DEBUG] camd_process_post_event_reqs: "
+                                             "process %ld reqs\n",
+                                             counter);
+    }
     return;
 }
 
@@ -8263,6 +8336,7 @@ EC_BOOL camd_file_read_aio_do(CAMD_MD *camd_md, int fd, UINT32 *offset, const UI
     CAMD_ASSERT(NULL_PTR != camd_md);
 
     if(NULL_PTR == CAMD_MD_CMC_MD(camd_md)   /*no mem cache*/
+    && NULL_PTR == CAMD_MD_CDC_MD(camd_md)   /*no ssd cache*/
     && NULL_PTR != CAMD_MD_CAIO_MD(camd_md))
     {
         return caio_file_read(CAMD_MD_CAIO_MD(camd_md), fd, offset, rsize, buff, caio_cb);
@@ -8303,7 +8377,7 @@ EC_BOOL camd_file_read_aio_do(CAMD_MD *camd_md, int fd, UINT32 *offset, const UI
     CAMD_REQ_F_E_OFFSET(camd_req)   = (*offset) + rsize;
     CAMD_REQ_U_E_OFFSET(camd_req)   = CAMD_REQ_F_E_OFFSET(camd_req);
     CAMD_REQ_TIMEOUT_NSEC(camd_req) = CAIO_CB_TIMEOUT_NSEC(caio_cb);
-    CAMD_REQ_NTIME_MS(camd_req)     = c_get_cur_time_msec() + CAIO_CB_TIMEOUT_NSEC(caio_cb) * 1000;
+    CAMD_REQ_NTIME_MS(camd_req)     = CAMD_REQ_S_MSEC(camd_req) + CAIO_CB_TIMEOUT_NSEC(caio_cb) * 1000;
 
     if(EC_FALSE == camd_submit_req(camd_md, camd_req))
     {
@@ -8381,6 +8455,7 @@ EC_BOOL camd_file_write_aio_do(CAMD_MD *camd_md, int fd, UINT32 *offset, const U
     }
 
     if(NULL_PTR == CAMD_MD_CMC_MD(camd_md)   /*no mem cache*/
+    && NULL_PTR == CAMD_MD_CDC_MD(camd_md)   /*no ssd cache*/
     && NULL_PTR != CAMD_MD_CAIO_MD(camd_md))
     {
         return caio_file_write(CAMD_MD_CAIO_MD(camd_md), fd, offset, wsize, buff, caio_cb);
@@ -8421,7 +8496,7 @@ EC_BOOL camd_file_write_aio_do(CAMD_MD *camd_md, int fd, UINT32 *offset, const U
     CAMD_REQ_F_E_OFFSET(camd_req)   = (*offset) + wsize;
     CAMD_REQ_U_E_OFFSET(camd_req)   = CAMD_REQ_F_E_OFFSET(camd_req);
     CAMD_REQ_TIMEOUT_NSEC(camd_req) = CAIO_CB_TIMEOUT_NSEC(caio_cb);
-    CAMD_REQ_NTIME_MS(camd_req)     = c_get_cur_time_msec() + CAIO_CB_TIMEOUT_NSEC(caio_cb) * 1000;
+    CAMD_REQ_NTIME_MS(camd_req)     = CAMD_REQ_S_MSEC(camd_req) + CAIO_CB_TIMEOUT_NSEC(caio_cb) * 1000;
 
     if(EC_FALSE == camd_submit_req(camd_md, camd_req))
     {
@@ -8765,6 +8840,7 @@ EC_BOOL camd_file_read_do(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32
     CAMD_ASSERT(NULL_PTR != camd_md);
 
     if(NULL_PTR == CAMD_MD_CMC_MD(camd_md)   /*no mem cache*/
+    && NULL_PTR == CAMD_MD_CDC_MD(camd_md)   /*no ssd cache*/
     && NULL_PTR != CAMD_MD_CAIO_MD(camd_md))
     {
         if(EC_FALSE == caio_file_read(CAMD_MD_CAIO_MD(camd_md), fd, offset, rsize, buff, caio_cb))
@@ -8813,7 +8889,7 @@ EC_BOOL camd_file_read_do(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT32
     CAMD_REQ_F_E_OFFSET(camd_req)   = (*offset) + rsize;
     CAMD_REQ_U_E_OFFSET(camd_req)   = CAMD_REQ_F_E_OFFSET(camd_req);
     CAMD_REQ_TIMEOUT_NSEC(camd_req) = CAIO_CB_TIMEOUT_NSEC(caio_cb);
-    CAMD_REQ_NTIME_MS(camd_req)     = c_get_cur_time_msec() + CAIO_CB_TIMEOUT_NSEC(caio_cb) * 1000;
+    CAMD_REQ_NTIME_MS(camd_req)     = CAMD_REQ_S_MSEC(camd_req) + CAIO_CB_TIMEOUT_NSEC(caio_cb) * 1000;
 
     if(EC_FALSE == camd_submit_req(camd_md, camd_req))
     {
@@ -8977,6 +9053,7 @@ EC_BOOL camd_file_write_do(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT3
     }
 
     if(NULL_PTR == CAMD_MD_CMC_MD(camd_md)   /*no mem cache*/
+    && NULL_PTR == CAMD_MD_CDC_MD(camd_md)   /*no ssd cache*/
     && NULL_PTR != CAMD_MD_CAIO_MD(camd_md))
     {
         if(EC_FALSE == caio_file_write(CAMD_MD_CAIO_MD(camd_md), fd, offset, wsize, buff, caio_cb))
@@ -9024,7 +9101,7 @@ EC_BOOL camd_file_write_do(CAMD_MD *camd_md, int fd, UINT32 *offset, const UINT3
     CAMD_REQ_F_E_OFFSET(camd_req)   = (*offset) + wsize;
     CAMD_REQ_U_E_OFFSET(camd_req)   = CAMD_REQ_F_E_OFFSET(camd_req);
     CAMD_REQ_TIMEOUT_NSEC(camd_req) = CAIO_CB_TIMEOUT_NSEC(caio_cb);
-    CAMD_REQ_NTIME_MS(camd_req)     = c_get_cur_time_msec() + CAIO_CB_TIMEOUT_NSEC(caio_cb) * 1000;
+    CAMD_REQ_NTIME_MS(camd_req)     = CAMD_REQ_S_MSEC(camd_req) + CAIO_CB_TIMEOUT_NSEC(caio_cb) * 1000;
 
     if(EC_FALSE == camd_submit_req(camd_md, camd_req))
     {

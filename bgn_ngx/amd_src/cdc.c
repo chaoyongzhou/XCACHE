@@ -150,6 +150,8 @@ EC_BOOL cdc_stat_init(CDC_STAT  *cdc_stat)
 
     CDC_STAT_MEM_REUSED_COUNTER(cdc_stat)                   = 0;
     CDC_STAT_MEM_ZCOPY_COUNTER(cdc_stat)                    = 0;
+    CDC_STAT_MEM_FCOPY_COUNTER(cdc_stat)                    = 0;
+
     return (EC_TRUE);
 }
 
@@ -176,6 +178,8 @@ EC_BOOL cdc_stat_clean(CDC_STAT  *cdc_stat)
 
     CDC_STAT_MEM_REUSED_COUNTER(cdc_stat)                   = 0;
     CDC_STAT_MEM_ZCOPY_COUNTER(cdc_stat)                    = 0;
+    CDC_STAT_MEM_FCOPY_COUNTER(cdc_stat)                    = 0;
+
     return (EC_TRUE);
 }
 
@@ -4604,11 +4608,14 @@ EC_BOOL cdc_recycle(CDC_MD *cdc_md, const UINT32 max_num, UINT32 *complete_num)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0182_CDC, 3)(LOGSTDOUT, "[DEBUG] cdc_recycle: recycle complete %ld\n", complete_recycle_num);
-
-    if(NULL_PTR != complete_num)
+    if(0 < complete_recycle_num)
     {
-        (*complete_num) += complete_recycle_num;
+        dbg_log(SEC_0182_CDC, 7)(LOGSTDOUT, "[DEBUG] cdc_recycle: recycle complete %ld\n", complete_recycle_num);
+
+        if(NULL_PTR != complete_num)
+        {
+            (*complete_num) += complete_recycle_num;
+        }
     }
     return (EC_TRUE);
 }
@@ -5292,6 +5299,11 @@ EC_BOOL cdc_page_process(CDC_PAGE *cdc_page, const UINT32 retry_page_tree_idx)
                 {
                     CDC_STAT_MEM_ZCOPY_COUNTER(cdc_stat) ++;
                 }
+                else
+                {
+                    CDC_STAT_MEM_FCOPY_COUNTER(cdc_stat) ++;
+                }
+
                 /*copy data from mem cache to application mem buff*/
                 FCOPY(CDC_PAGE_M_CACHE(cdc_page) + CDC_NODE_B_S_OFFSET(cdc_node),
                       CDC_NODE_M_BUFF(cdc_node),
@@ -5327,6 +5339,10 @@ EC_BOOL cdc_page_process(CDC_PAGE *cdc_page, const UINT32 retry_page_tree_idx)
             if(CDC_NODE_M_BUFF(cdc_node) == CDC_PAGE_M_CACHE(cdc_page) + CDC_NODE_B_S_OFFSET(cdc_node))
             {
                 CDC_STAT_MEM_ZCOPY_COUNTER(cdc_stat) ++;
+            }
+            else
+            {
+                CDC_STAT_MEM_FCOPY_COUNTER(cdc_stat) ++;
             }
 
             /*copy data from application mem buff to mem cache*/
@@ -8233,8 +8249,12 @@ void cdc_process_timeout_reqs(CDC_MD *cdc_md)
         }
     }
 
-    dbg_log(SEC_0182_CDC, 5)(LOGSTDOUT, "[DEBUG] cdc_process_timeout_reqs: process %ld timeout reqs\n", req_num);
-
+    if(0 < req_num)
+    {
+        dbg_log(SEC_0182_CDC, 7)(LOGSTDOUT, "[DEBUG] cdc_process_timeout_reqs: "
+                                            "process %ld timeout reqs\n",
+                                            req_num);
+    }
     return;
 }
 
@@ -8374,10 +8394,12 @@ void cdc_process_post_event_reqs(CDC_MD *cdc_md, const UINT32 process_event_max_
         handler(cdc_req);
     }
 
-    dbg_log(SEC_0182_CDC, 5)(LOGSTDOUT, "[DEBUG] cdc_process_post_event_reqs: "
-                                        "process %ld reqs\n",
-                                        counter);
-
+    if(0 < counter)
+    {
+        dbg_log(SEC_0182_CDC, 7)(LOGSTDOUT, "[DEBUG] cdc_process_post_event_reqs: "
+                                            "process %ld reqs\n",
+                                            counter);
+    }
     return;
 }
 

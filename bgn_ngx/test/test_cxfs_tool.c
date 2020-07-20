@@ -320,7 +320,7 @@ EC_BOOL __cxfs_test_erase_sata_disk(const char *sata_disk_path)
     }
 
     sys_log(LOGCONSOLE, "[DEBUG] __cxfs_test_erase_sata_disk: "
-                        "sata '%s' erase cfg failed\n",
+                        "sata '%s' erase cfg done\n",
                         sata_disk_path);
 
     c_file_close(sata_disk_fd);
@@ -413,7 +413,7 @@ EC_BOOL __cxfs_test_erase_sata_meta(const char *sata_disk_path)
     }
 
     sys_log(LOGCONSOLE, "[DEBUG] __cxfs_test_erase_sata_meta: "
-                        "sata meta '%s' erase cfg failed\n",
+                        "sata meta '%s' erase cfg done\n",
                         sata_meta_path);
 
     c_file_close(sata_meta_fd);
@@ -538,7 +538,8 @@ EC_BOOL __cxfs_test_erase_ssd_disk(const char *ssd_disk_path)
     cfg_len    = CXFSCFG_SIZE;
 
     sys_log(LOGCONSOLE, "[DEBUG] __cxfs_test_erase_ssd_disk: "
-                        "ssd '%s', ssd disk size %ld, vdisk_size %ld => cfg offset %ld, cfg len %ld\n",
+                        "ssd '%s', ssd disk size %ld, vdisk_size %ld "
+                        "=> cfg offset %ld, cfg len %ld\n",
                         ssd_disk_path, ssd_disk_size, vdisk_size,
                         cfg_offset, cfg_len);
 
@@ -553,7 +554,7 @@ EC_BOOL __cxfs_test_erase_ssd_disk(const char *ssd_disk_path)
     }
 
     sys_log(LOGCONSOLE, "[DEBUG] __cxfs_test_erase_ssd_disk: "
-                        "ssd '%s' erase cfg failed\n",
+                        "ssd '%s' erase cfg done\n",
                         ssd_disk_path);
 
     c_file_close(ssd_disk_fd);
@@ -646,7 +647,7 @@ EC_BOOL __cxfs_test_erase_ssd_meta(const char *ssd_disk_path)
     }
 
     sys_log(LOGCONSOLE, "[DEBUG] __cxfs_test_erase_ssd_meta: "
-                        "ssd meta '%s' erase cfg failed\n",
+                        "ssd meta '%s' erase cfg done\n",
                         ssd_meta_path);
 
     c_file_close(ssd_meta_fd);
@@ -945,7 +946,7 @@ int __cxfs_test_suite_0(int argc, char **argv, char *xml_fname, char *tcid_str)
 
                 continue;
             }
-            sys_log(LOGCONSOLE, "[DEBUG] erase cxfs meta of sata '%s' failed\n",
+            sys_log(LOGCONSOLE, "[DEBUG] erase cxfs meta of sata '%s' done\n",
                                 (char *)cstring_get_str(cxfs_sata_dir));
 
             if(EC_FALSE == __cxfs_test_erase_ssd((char *)cstring_get_str(cxfs_ssd_dir)))
@@ -955,7 +956,7 @@ int __cxfs_test_suite_0(int argc, char **argv, char *xml_fname, char *tcid_str)
 
                 continue;
             }
-            sys_log(LOGCONSOLE, "[DEBUG] erase cxfs meta of ssd '%s' failed\n",
+            sys_log(LOGCONSOLE, "[DEBUG] erase cxfs meta of ssd '%s' done\n",
                                 (char *)cstring_get_str(cxfs_ssd_dir));
 
             cxfs_md_id = cxfs_start(cxfs_sata_dir, cxfs_ssd_dir);
