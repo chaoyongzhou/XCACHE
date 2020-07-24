@@ -48,6 +48,10 @@ extern "C"{
 #include "cmd5.h"
 #include "findex.inc"
 
+#if (SWITCH_ON == PMDK_PMEM_SWITCH)
+#include "libpmem.h"
+#endif/*(SWITCH_ON == PMDK_PMEM_SWITCH)*/
+
 STATIC_CAST static uint32_t __cxfsnp_mgr_path_hash(const uint32_t path_len, const uint8_t *path)
 {
     uint8_t   digest[ CMD5_DIGEST_LEN ];
@@ -501,18 +505,34 @@ EC_BOOL cxfsnp_mgr_flush(CXFSNP_MGR *cxfsnp_mgr)
         wsize     = CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr) - CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr);
         mem_cache = CXFSNP_MGR_NP_CACHE(cxfsnp_mgr);
 
+#if (SWITCH_OFF == PMDK_PMEM_SWITCH)
         if(0 != msync(mem_cache, wsize, MS_SYNC))
         {
-            dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "warn:cxfsnp_mgr_flush: "
-                                                   "sync np with size %ld failed\n",
-                                                   wsize);
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "warn:cxfsnp_mgr_flush: "
+                                                      "sync np with size %ld failed\n",
+                                                      wsize);
         }
         else
         {
-            dbg_log(SEC_0081_CRFSNP, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_flush: "
-                                                   "sync np with size %ld done\n",
-                                                   wsize);
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_flush: "
+                                                      "sync np with size %ld done\n",
+                                                      wsize);
         }
+#endif/*(SWITCH_OFF == PMDK_PMEM_SWITCH)*/
+#if (SWITCH_ON == PMDK_PMEM_SWITCH)
+        if(0 != pmem_msync(mem_cache, wsize))
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "warn:cxfsnp_mgr_flush: "
+                                                      "[pmem] sync np with size %ld failed\n",
+                                                      wsize);
+        }
+        else
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_flush: "
+                                                      "[pmem] sync np with size %ld done\n",
+                                                      wsize);
+        }
+#endif/*(SWITCH_OFF == PMDK_PMEM_SWITCH)*/
     }
     return (EC_TRUE);
 }
@@ -1530,8 +1550,6 @@ CXFSNP_FNODE *cxfsnp_mgr_reserve(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_pat
                             (char *)cstring_get_str(file_path));
         return (NULL_PTR);
     }
-
-    CXFSNP_ITEM_CREATE_TIME(cxfsnp_item) = (uint32_t)task_brd_default_get_time();
 
     /*not import yet*/
     return CXFSNP_ITEM_FNODE(cxfsnp_item);

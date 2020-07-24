@@ -45,6 +45,8 @@ typedef struct
     UINT32               arg;
 }CSIG_ATEXIT;
 
+#define CSIG_ATEXIT_NODE_OFFSET ((UINT32)(&((CSIG_ATEXIT *)0)->node))
+
 typedef EC_BOOL (*CSIG_CHLD_HANDLER)(void);
 
 typedef struct

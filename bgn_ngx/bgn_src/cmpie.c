@@ -5285,7 +5285,6 @@ UINT32 cmpi_encode_cxfsnp_item(const UINT32 comm, const CXFSNP_ITEM *cxfsnp_item
 
     cmpi_encode_uint32_t(comm, CXFSNP_ITEM_USED_FLAG(cxfsnp_item), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CXFSNP_ITEM_DIR_FLAG(cxfsnp_item), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint32_t(comm, CXFSNP_ITEM_CREATE_TIME(cxfsnp_item), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CXFSNP_ITEM_PARENT_POS(cxfsnp_item), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CXFSNP_ITEM_SECOND_HASH(cxfsnp_item), out_buff, out_buff_max_len, position);
@@ -5310,7 +5309,6 @@ UINT32 cmpi_encode_cxfsnp_item_size(const UINT32 comm, const CXFSNP_ITEM *cxfsnp
 {
     cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_USED_FLAG(cxfsnp_item), size);
     cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_DIR_FLAG(cxfsnp_item), size);
-    cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_CREATE_TIME(cxfsnp_item), size);
     cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item), size);
     cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_PARENT_POS(cxfsnp_item), size);
     cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_SECOND_HASH(cxfsnp_item), size);
@@ -5358,9 +5356,6 @@ UINT32 cmpi_decode_cxfsnp_item(const UINT32 comm, const UINT8 *in_buff, const UI
 
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
     CXFSNP_ITEM_DIR_FLAG(cxfsnp_item)  = num;
-
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
-    CXFSNP_ITEM_CREATE_TIME(cxfsnp_item) = num;
 
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
     CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item) = num;

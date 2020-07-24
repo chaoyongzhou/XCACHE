@@ -366,7 +366,7 @@ EC_BOOL tasks_node_is_connected(const TASKS_NODE *tasks_node)
 {
     UINT32 pos;
 
-    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0008);
+    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0007);
     for(pos = 0; pos < cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)); pos ++)
     {
         CSOCKET_CNODE *csocket_cnode;
@@ -380,11 +380,11 @@ EC_BOOL tasks_node_is_connected(const TASKS_NODE *tasks_node)
         /*regard tasks_node is connected if exist any one connected csocket_cnode*/
         if(EC_TRUE == csocket_cnode_is_connected(csocket_cnode))
         {
-            CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0009);
+            CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0008);
             return (EC_TRUE);
         }
     }
-    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0010);
+    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0009);
     return (EC_FALSE);
 }
 
@@ -415,7 +415,7 @@ EC_BOOL tasks_node_is_empty(const TASKS_NODE *tasks_node)
 {
     UINT32 pos;
 
-    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0011);
+    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0010);
     for(pos = 0; pos < cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node)); pos ++)
     {
         CSOCKET_CNODE *csocket_cnode;
@@ -423,11 +423,11 @@ EC_BOOL tasks_node_is_empty(const TASKS_NODE *tasks_node)
         csocket_cnode = (CSOCKET_CNODE *)cvector_get_no_lock(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), pos);
         if(NULL_PTR != csocket_cnode)
         {
-            CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0012);
+            CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0011);
             return (EC_FALSE);
         }
     }
-    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0013);
+    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0012);
     return (EC_TRUE);
 }
 
@@ -1117,7 +1117,7 @@ void tasks_node_print(LOG *log, const TASKS_NODE *tasks_node)
     UINT32       pos;
 
     csocket_cnode_vec = (CVECTOR *)TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node);
-    CVECTOR_LOCK(csocket_cnode_vec, LOC_TASKS_0014);
+    CVECTOR_LOCK(csocket_cnode_vec, LOC_TASKS_0013);
     for(pos = 0; pos < cvector_size(csocket_cnode_vec); pos ++)
     {
         CSOCKET_CNODE *csocket_cnode;
@@ -1140,7 +1140,7 @@ void tasks_node_print(LOG *log, const TASKS_NODE *tasks_node)
                      CSOCKET_CNODE_SOCKFD(csocket_cnode)
                 );
     }
-    CVECTOR_UNLOCK(csocket_cnode_vec, LOC_TASKS_0015);
+    CVECTOR_UNLOCK(csocket_cnode_vec, LOC_TASKS_0014);
     return ;
 }
 
@@ -1150,7 +1150,7 @@ void tasks_node_print_csocket_cnode_list(LOG *log, const TASKS_NODE *tasks_node,
     UINT32       pos;
 
     csocket_cnode_vec = (CVECTOR *)TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node);
-    CVECTOR_LOCK(csocket_cnode_vec, LOC_TASKS_0016);
+    CVECTOR_LOCK(csocket_cnode_vec, LOC_TASKS_0015);
     for(pos = 0; pos < cvector_size(csocket_cnode_vec); pos ++)
     {
         CSOCKET_CNODE *csocket_cnode;
@@ -1172,7 +1172,7 @@ void tasks_node_print_csocket_cnode_list(LOG *log, const TASKS_NODE *tasks_node,
                     CSOCKET_CNODE_SOCKFD(csocket_cnode)
                 );
     }
-    CVECTOR_UNLOCK(csocket_cnode_vec, LOC_TASKS_0017);
+    CVECTOR_UNLOCK(csocket_cnode_vec, LOC_TASKS_0016);
     return ;
 }
 
@@ -1181,7 +1181,7 @@ void tasks_node_print_in_plain(LOG *log, const TASKS_NODE *tasks_node)
     UINT32      pos;
     UINT32      csocket_cnode_num;
 
-    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0018);
+    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0017);
     csocket_cnode_num = cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node));
     sys_print(log, "srvipaddr %s, srvport %ld, tcid %s, comm %ld, size %ld, sockfd ",
                     TASKS_NODE_SRVIPADDR_STR(tasks_node),
@@ -1209,7 +1209,7 @@ void tasks_node_print_in_plain(LOG *log, const TASKS_NODE *tasks_node)
             sys_print(log, "%d:",CSOCKET_CNODE_SOCKFD(csocket_cnode));
         }
     }
-    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0019);
+    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0018);
     return ;
 }
 
@@ -1218,7 +1218,7 @@ void tasks_node_sprint(CSTRING *cstring, const TASKS_NODE *tasks_node)
     UINT32      pos;
     UINT32      csocket_cnode_num;
 
-    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0020);
+    CVECTOR_LOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0019);
     csocket_cnode_num = cvector_size(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node));
     cstring_format(cstring, "srvipaddr %s, srvport %ld, tcid %s, comm %ld, size %ld, sockfd ",
                 TASKS_NODE_SRVIPADDR_STR(tasks_node),
@@ -1246,7 +1246,7 @@ void tasks_node_sprint(CSTRING *cstring, const TASKS_NODE *tasks_node)
             cstring_format(cstring, "%d:",CSOCKET_CNODE_SOCKFD(csocket_cnode));
         }
     }
-    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0021);
+    CVECTOR_UNLOCK(TASKS_NODE_CSOCKET_CNODE_VEC(tasks_node), LOC_TASKS_0020);
     return ;
 }
 
@@ -1512,9 +1512,9 @@ UINT32 tasks_worker_count(const TASKS_WORKER *tasks_worker, const UINT32 tcid, c
 {
     UINT32 count;
 
-    CVECTOR_LOCK(TASKS_WORKER_NODES(tasks_worker), LOC_TASKS_0022);
+    CVECTOR_LOCK(TASKS_WORKER_NODES(tasks_worker), LOC_TASKS_0021);
     count = tasks_worker_count_no_lock(tasks_worker, tcid, srv_ipaddr, srv_port);
-    CVECTOR_UNLOCK(TASKS_WORKER_NODES(tasks_worker), LOC_TASKS_0023);
+    CVECTOR_UNLOCK(TASKS_WORKER_NODES(tasks_worker), LOC_TASKS_0022);
 
     return (count);
 }
@@ -1526,7 +1526,7 @@ TASKS_NODE *tasks_worker_search_tasks_node_by_ipaddr(const TASKS_WORKER *tasks_w
 
     tasks_nodes = TASKS_WORKER_NODES(tasks_worker);
 
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0024);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0023);
     for(pos = 0; pos < cvector_size(tasks_nodes); pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -1539,11 +1539,11 @@ TASKS_NODE *tasks_worker_search_tasks_node_by_ipaddr(const TASKS_WORKER *tasks_w
 
         if(ipaddr == TASKS_NODE_SRVIPADDR(tasks_node))
         {
-            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0025);
+            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0024);
             return (tasks_node);
         }
     }
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0026);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0025);
     return (NULL_PTR);
 }
 
@@ -1555,7 +1555,7 @@ TASKS_NODE *tasks_worker_search_tasks_node_by_tcid(const TASKS_WORKER *tasks_wor
 
     tasks_nodes = TASKS_WORKER_NODES(tasks_worker);
 
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0027);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0026);
     for(pos = 0; pos < cvector_size(tasks_nodes); pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -1571,11 +1571,11 @@ TASKS_NODE *tasks_worker_search_tasks_node_by_tcid(const TASKS_WORKER *tasks_wor
 #endif
         if(tcid == TASKS_NODE_TCID(tasks_node))
         {
-            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0028);
+            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0027);
             return (tasks_node);
         }
     }
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0029);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0028);
     return (NULL_PTR);
 }
 
@@ -1586,7 +1586,7 @@ TASKS_NODE *tasks_worker_search_tasks_node_by_tcid_comm(const TASKS_WORKER *task
 
     tasks_nodes = TASKS_WORKER_NODES(tasks_worker);
 
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0030);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0029);
     for(pos = 0; pos < cvector_size(tasks_nodes); pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -1600,11 +1600,11 @@ TASKS_NODE *tasks_worker_search_tasks_node_by_tcid_comm(const TASKS_WORKER *task
         if(tcid == TASKS_NODE_TCID(tasks_node)
         && (comm == TASKS_NODE_COMM(tasks_node) || CMPI_ANY_COMM == comm))
         {
-            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0031);
+            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0030);
             return (tasks_node);
         }
     }
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0032);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0031);
     return (NULL_PTR);
 }
 
@@ -1897,7 +1897,7 @@ EC_BOOL tasks_worker_collect_tcid(const TASKS_WORKER *tasks_worker, CVECTOR *tci
 
     tasks_nodes = TASKS_WORKER_NODES(tasks_worker);
 
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0033);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0032);
     for(pos = 0; pos < cvector_size(tasks_nodes); pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -1915,7 +1915,7 @@ EC_BOOL tasks_worker_collect_tcid(const TASKS_WORKER *tasks_worker, CVECTOR *tci
             cvector_push_no_lock(tcid_vec, (void *)tcid);
         }
     }
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0034);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0033);
     return (EC_TRUE);
 }
 
@@ -1926,7 +1926,7 @@ EC_BOOL tasks_worker_collect_ipaddr(const TASKS_WORKER *tasks_worker, CVECTOR *i
 
     tasks_nodes = TASKS_WORKER_NODES(tasks_worker);
 
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0035);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0034);
     for(pos = 0; pos < cvector_size(tasks_nodes); pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -1944,13 +1944,13 @@ EC_BOOL tasks_worker_collect_ipaddr(const TASKS_WORKER *tasks_worker, CVECTOR *i
             cvector_push_no_lock(ipaddr_vec, (void *)ipaddr);
         }
     }
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0036);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0035);
     return (EC_TRUE);
 }
 
 EC_BOOL tasks_worker_init(TASKS_WORKER *tasks_worker)
 {
-    cvector_init(TASKS_WORKER_NODES(tasks_worker), 0, MM_TASKS_NODE, CVECTOR_LOCK_ENABLE, LOC_TASKS_0037);
+    cvector_init(TASKS_WORKER_NODES(tasks_worker), 0, MM_TASKS_NODE, CVECTOR_LOCK_ENABLE, LOC_TASKS_0036);
 
     ccallback_node_init(TASKS_WORKER_ADD_NODE_CB(tasks_worker));
     ccallback_node_init(TASKS_WORKER_DEL_NODE_CB(tasks_worker));
@@ -1968,7 +1968,7 @@ EC_BOOL tasks_worker_clean(TASKS_WORKER *tasks_worker)
 
     cvector_clean(TASKS_WORKER_NODES(tasks_worker),
                     (CVECTOR_DATA_CLEANER)tasks_node_free,
-                    LOC_TASKS_0038);
+                    LOC_TASKS_0037);
 
     return (EC_TRUE);
 }
@@ -2008,7 +2008,7 @@ void tasks_worker_print_csocket_cnode_list_in_plain(LOG *log, const TASKS_WORKER
         return;
     }
 
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0039);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0038);
     for(pos = 0; pos < num; pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -2021,7 +2021,7 @@ void tasks_worker_print_csocket_cnode_list_in_plain(LOG *log, const TASKS_WORKER
         }
         tasks_node_print_csocket_cnode_list(log, tasks_node, index);
     }
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0040);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0039);
     return;
 }
 
@@ -2257,7 +2257,7 @@ EC_BOOL tasks_worker_heartbeat(TASKS_WORKER *tasks_worker)
 
     task_brd = task_brd_default_get();
 
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0041);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0040);
     for(pos = 0; pos < cvector_size(tasks_nodes); /*pos ++*/)
     {
         TASKS_NODE *tasks_node;
@@ -2286,7 +2286,7 @@ EC_BOOL tasks_worker_heartbeat(TASKS_WORKER *tasks_worker)
             pos ++;
         }
     }
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0042);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0041);
 
     return (EC_TRUE);
 }
@@ -2298,7 +2298,7 @@ TASKS_NODE *tasks_monitor_search_tasks_node_by_tcid(const TASKS_MONITOR *tasks_m
 
     tasks_nodes = TASKS_MONITOR_NODES(tasks_monitor);
 
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0043);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0042);
     for(pos = 0; pos < cvector_size(tasks_nodes); pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -2316,11 +2316,11 @@ TASKS_NODE *tasks_monitor_search_tasks_node_by_tcid(const TASKS_MONITOR *tasks_m
 
         if(tcid == TASKS_NODE_TCID(tasks_node))
         {
-            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0044);
+            CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0043);
             return (tasks_node);
         }
     }
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0045);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0044);
     return (NULL_PTR);
 }
 
@@ -2434,9 +2434,9 @@ UINT32 tasks_monitor_count(const TASKS_MONITOR *tasks_monitor, const UINT32 tcid
 {
     UINT32 count;
 
-    CVECTOR_LOCK(TASKS_MONITOR_NODES(tasks_monitor), LOC_TASKS_0046);
+    CVECTOR_LOCK(TASKS_MONITOR_NODES(tasks_monitor), LOC_TASKS_0045);
     count = tasks_monitor_count_no_lock(tasks_monitor, tcid, srv_ipaddr, srv_port);
-    CVECTOR_UNLOCK(TASKS_MONITOR_NODES(tasks_monitor), LOC_TASKS_0047);
+    CVECTOR_UNLOCK(TASKS_MONITOR_NODES(tasks_monitor), LOC_TASKS_0046);
 
     return (count);
 }
@@ -2479,7 +2479,7 @@ EC_BOOL tasks_monitor_open(TASKS_MONITOR *tasks_monitor, const UINT32 tcid, cons
         csocket_tcpi_stat_print(LOGSTDOUT, client_sockfd);
     }
 
-    csocket_cnode = csocket_cnode_new(LOC_TASKS_0048);/*client save remote server ipaddr and srvport info*/
+    csocket_cnode = csocket_cnode_new(LOC_TASKS_0047);/*client save remote server ipaddr and srvport info*/
     if(NULL_PTR == csocket_cnode)
     {
         dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_monitor_open:new "
@@ -2508,7 +2508,7 @@ EC_BOOL tasks_monitor_open(TASKS_MONITOR *tasks_monitor, const UINT32 tcid, cons
 
 EC_BOOL tasks_monitor_init(TASKS_MONITOR *tasks_monitor)
 {
-    cvector_init(TASKS_MONITOR_NODES(tasks_monitor), 0, MM_TASKS_NODE, CVECTOR_LOCK_ENABLE, LOC_TASKS_0049);
+    cvector_init(TASKS_MONITOR_NODES(tasks_monitor), 0, MM_TASKS_NODE, CVECTOR_LOCK_ENABLE, LOC_TASKS_0048);
 
     ccallback_node_init(TASKS_MONITOR_ADD_NODE_CB(tasks_monitor));
     ccallback_node_init(TASKS_MONITOR_DEL_NODE_CB(tasks_monitor));
@@ -2527,7 +2527,7 @@ EC_BOOL tasks_monitor_clean(TASKS_MONITOR *tasks_monitor)
 
     cvector_clean(TASKS_MONITOR_NODES(tasks_monitor),
                     (CVECTOR_DATA_CLEANER)tasks_node_free,
-                    LOC_TASKS_0050);
+                    LOC_TASKS_0049);
     return (EC_TRUE);
 }
 
@@ -2555,7 +2555,7 @@ void tasks_monitor_print_csocket_cnode_list_in_plain(LOG *log, const TASKS_MONIT
         return;
     }
 
-    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0039);
+    CVECTOR_LOCK(tasks_nodes, LOC_TASKS_0050);
     for(pos = 0; pos < num; pos ++)
     {
         TASKS_NODE *tasks_node;
@@ -2568,7 +2568,7 @@ void tasks_monitor_print_csocket_cnode_list_in_plain(LOG *log, const TASKS_MONIT
         }
         tasks_node_print_csocket_cnode_list(log, tasks_node, index);
     }
-    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0040);
+    CVECTOR_UNLOCK(tasks_nodes, LOC_TASKS_0051);
     return;
 }
 
@@ -2608,7 +2608,7 @@ STATIC_CAST static TASK_NODE *__tasks_handshake_encode()
     data_tag = 0;
     data_num = csocket_encode_actual_size() + xmod_node_encode_actual_size();
 
-    task_node = task_node_new(data_num, LOC_TASKS_0051);
+    task_node = task_node_new(data_num, LOC_TASKS_0052);
     if(NULL_PTR == task_node)
     {
         dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:__tasks_handshake_encode: "

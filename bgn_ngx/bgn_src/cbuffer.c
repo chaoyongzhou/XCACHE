@@ -117,7 +117,7 @@ EC_BOOL cbuffer_set(CBUFFER *cbuffer, const uint8_t *data, const uint32_t len)
     {
         if(BIT_FALSE == CBUFFER_ALIGNED(cbuffer))
         {
-            safe_free(CBUFFER_DATA(cbuffer), LOC_CBUFFER_0004);
+            safe_free(CBUFFER_DATA(cbuffer), LOC_CBUFFER_0006);
             CBUFFER_DATA(cbuffer) = NULL_PTR;
         }
         else
@@ -442,7 +442,7 @@ EC_BOOL cbuffer_mount(CBUFFER *cbuffer, const uint8_t *data, const uint32_t size
     {
         if(BIT_FALSE == CBUFFER_ALIGNED(cbuffer))
         {
-            safe_free(CBUFFER_DATA(cbuffer), LOC_CBUFFER_0004);
+            safe_free(CBUFFER_DATA(cbuffer), LOC_CBUFFER_0010);
             CBUFFER_DATA(cbuffer) = NULL_PTR;
         }
         else

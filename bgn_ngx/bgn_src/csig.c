@@ -189,8 +189,8 @@ EC_BOOL csig_init(CSIG *csig)
     }
 
     /*init free list and used list*/
-    clistbase_init(&(csig->atexit_free_list));
-    clistbase_init(&(csig->atexit_used_list));
+    clistbase_init(&(csig->atexit_free_list), CSIG_ATEXIT_NODE_OFFSET);
+    clistbase_init(&(csig->atexit_used_list), CSIG_ATEXIT_NODE_OFFSET);
 
     /*setup free list*/
     for(idx = 0; idx < CSIG_ATEXIT_MAX_NUM; idx ++)
@@ -385,7 +385,7 @@ EC_BOOL csig_atexit_unregister(CSIG_ATEXIT_HANDLER atexit_handler, UINT32 arg)
 
     clistbase_erase(&(csig->atexit_used_list), clistbase_node_searched);
 
-    csig_atexit_searched = CLISTBASE_NODE_DATA(clistbase_node_searched);
+    csig_atexit_searched = CLISTBASE_NODE_DATA(clistbase_node_searched, csig->atexit_used_list.offset);
     csig_atexit_searched->handler = NULL_PTR;
     csig_atexit_searched->arg     = 0;
 

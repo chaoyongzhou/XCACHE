@@ -23,6 +23,7 @@ typedef struct
 {
     LIST_NODE        head;
     UINT32           size;
+    UINT32           offset;    /*CLISTBASE_NODE offset in host structer*/
 }CLISTBASE;
 
 typedef EC_BOOL (*CLISTBASE_NODE_DATA_CMP)(const void *, const void *);
@@ -62,13 +63,17 @@ typedef EC_BOOL (*CLISTBASE_RETVAL_CHECKER)(const void *);
 
 #define CLISTBASE_HEAD_INIT(clistbase) INIT_LIST_BASE_HEAD(CLISTBASE_HEAD(clistbase))
 
-#define CLISTBASE_NODE_DATA(clistbase_node)  ((void *)(clistbase_node))
+#define CLISTBASE_NODE_DATA(clistbase_node, offset)  ((void *)(((char *)clistbase_node) - (offset)))
+
+#define CLISTBASE_DATA_NODE(data, offset)            ((CLISTBASE_NODE *)(((char *)data) + (offset)))
 
 #define CLISTBASE_NODE_NEXT(clistbase_node)  list_base_entry((clistbase_node)->node.next, CLISTBASE_NODE, node)
 
 #define CLISTBASE_NODE_PREV(clistbase_node)  list_base_entry((clistbase_node)->node.prev, CLISTBASE_NODE, node)
 
 #define CLISTBASE_NODE_DEL(clistbase_node)   list_base_del_init(CLISTBASE_NODE_NODE(clistbase_node))
+
+#define CLISTBASE_NODE_IS_EMPTY(clistbase_node) list_base_empty(CLISTBASE_NODE_NODE(clistbase_node))
 
 #define CLISTBASE_LOOP_PREV(clistbase, data_node) \
     for((data_node) = CLISTBASE_LAST_NODE(clistbase);  (data_node) != CLISTBASE_NULL_NODE(clistbase); (data_node) = CLISTBASE_NODE_PREV(data_node))
@@ -83,7 +88,13 @@ typedef EC_BOOL (*CLISTBASE_RETVAL_CHECKER)(const void *);
     for((data_node) = (data_cur);  (data_node) != CLISTBASE_NULL_NODE(clistbase); (data_node) = CLISTBASE_NODE_NEXT(data_node))
 
 /*----------------------------------------------------------------interface----------------------------------------------------------------*/
-void clistbase_init(CLISTBASE *clistbase);
+void clistbase_node_init(CLISTBASE_NODE *clistbase_node);
+
+EC_BOOL clistbase_node_is_empty(const CLISTBASE_NODE *clistbase_node);
+
+void clistbase_init(CLISTBASE *clistbase, const UINT32 offset);
+
+UINT32 clistbase_offset(const CLISTBASE *clistbase);
 
 EC_BOOL clistbase_is_empty(const CLISTBASE *clistbase);
 

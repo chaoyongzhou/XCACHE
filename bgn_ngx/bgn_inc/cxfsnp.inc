@@ -130,7 +130,7 @@ typedef struct
     /*4B*/
     uint32_t        used_flag   :3;  /* item status: not used, used */
     uint32_t        dir_flag    :2;  /* directory or regular file */
-    uint32_t        create_time :27; /* num of bits is enough */
+    uint32_t        rsvd        :27; /* num of bits is enough */
 
     /*4B*/
     uint32_t        key_offset; /*key address = item address + key_offset*/
@@ -160,7 +160,6 @@ typedef struct
 #define CXFSNP_ITEM_PARENT_POS(cxfsnp_item)       ((cxfsnp_item)->parent_pos)
 #define CXFSNP_ITEM_FNODE(cxfsnp_item)            (&((cxfsnp_item)->u.fnode))
 #define CXFSNP_ITEM_DNODE(cxfsnp_item)            (&((cxfsnp_item)->u.dnode))
-#define CXFSNP_ITEM_CREATE_TIME(cxfsnp_item)      ((cxfsnp_item)->create_time)
 #define CXFSNP_ITEM_SECOND_HASH(cxfsnp_item)      ((cxfsnp_item)->second_hash)
 #define CXFSNP_ITEM_QUE_NODE(cxfsnp_item)         (&((cxfsnp_item)->que_node))
 #define CXFSNP_ITEM_DEL_NODE(cxfsnp_item)         (&((cxfsnp_item)->del_node))

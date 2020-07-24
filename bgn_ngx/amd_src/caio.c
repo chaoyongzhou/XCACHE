@@ -1803,8 +1803,9 @@ EC_BOOL caio_req_init(CAIO_REQ *caio_req)
 
     clist_init(CAIO_REQ_NODES(caio_req), MM_CAIO_NODE, LOC_CAIO_0009);
 
-    CAIO_REQ_MOUNTED_LIST(caio_req)             = NULL_PTR;
-    CAIO_REQ_MOUNTED_TIMEOUT(caio_req)          = NULL_PTR;
+    clistbase_node_init(CAIO_REQ_MOUNTED_LIST(caio_req));
+
+    crbbase_node_init(CAIO_REQ_MOUNTED_TIMEOUT(caio_req));
 
     return (EC_TRUE);
 }
@@ -1813,8 +1814,7 @@ EC_BOOL caio_req_clean(CAIO_REQ *caio_req)
 {
     if(NULL_PTR != caio_req)
     {
-        if(NULL_PTR != CAIO_REQ_MOUNTED_LIST(caio_req)
-        && NULL_PTR != CAIO_REQ_CAIO_MD(caio_req))
+        if(NULL_PTR != CAIO_REQ_CAIO_MD(caio_req))
         {
             caio_del_req(CAIO_REQ_CAIO_MD(caio_req), caio_req);
         }
@@ -2977,11 +2977,11 @@ CAIO_MD *caio_start(const UINT32 model)
 
     clist_init(CAIO_MD_DISK_LIST(caio_md), MM_CAIO_DISK, LOC_CAIO_0012);
 
-    clist_init(CAIO_MD_REQ_LIST(caio_md), MM_CAIO_REQ, LOC_CAIO_0013);
+    clistbase_init(CAIO_MD_REQ_LIST(caio_md), CAIO_REQ_MOUNTED_LIST_OFFSET);
 
     CAIO_MD_PAGE_ACTIVE_IDX(caio_md) = 0; /*set page list[0], tree[0] is active*/
-    clist_init(CAIO_MD_PAGE_LIST(caio_md, 0), MM_CAIO_PAGE, LOC_CAIO_0014);/*init active page list*/
-    clist_init(CAIO_MD_PAGE_LIST(caio_md, 1), MM_CAIO_PAGE, LOC_CAIO_0015);/*init standby page list*/
+    clist_init(CAIO_MD_PAGE_LIST(caio_md, 0), MM_CAIO_PAGE, LOC_CAIO_0013);/*init active page list*/
+    clist_init(CAIO_MD_PAGE_LIST(caio_md, 1), MM_CAIO_PAGE, LOC_CAIO_0014);/*init standby page list*/
     crb_tree_init(CAIO_MD_PAGE_TREE(caio_md, 0), /*init active page tree*/
                   (CRB_DATA_CMP)caio_page_tree_cmp,
                   (CRB_DATA_FREE)NULL_PTR, /*note: not define*/
@@ -2991,12 +2991,13 @@ CAIO_MD *caio_start(const UINT32 model)
                   (CRB_DATA_FREE)NULL_PTR, /*note: not define*/
                   (CRB_DATA_PRINT)caio_page_print);
 
-    crb_tree_init(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), /*init req timeout tree*/
-                  (CRB_DATA_CMP)caio_req_timeout_cmp,
-                  (CRB_DATA_FREE)NULL_PTR, /*note: not define*/
-                  (CRB_DATA_PRINT)caio_req_print);
+    crbbase_tree_init(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), /*init req timeout tree*/
+                  (uint32_t)CAIO_REQ_MOUNTED_TIMEOUT_OFFSET,
+                  (CRBBASE_DATA_CMP)caio_req_timeout_cmp,
+                  (CRBBASE_DATA_FREE)NULL_PTR, /*note: not define*/
+                  (CRBBASE_DATA_PRINT)caio_req_print);
 
-    clist_init(CAIO_MD_POST_EVENT_REQS(caio_md), MM_CAIO_REQ, LOC_CAIO_0016);
+    clist_init(CAIO_MD_POST_EVENT_REQS(caio_md), MM_CAIO_REQ, LOC_CAIO_0015);
 
     CAIO_MD_AIO_EVENTFD(caio_md) = syscall(__NR_eventfd2, 0, O_NONBLOCK | O_CLOEXEC);
     if(ERR_FD == CAIO_MD_AIO_EVENTFD(caio_md))
@@ -3067,7 +3068,7 @@ void caio_end(CAIO_MD *caio_md)
 
         CAIO_MD_RDONLY_FLAG(caio_md)    = BIT_FALSE;
 
-        safe_free(caio_md, LOC_CAIO_0017);
+        safe_free(caio_md, LOC_CAIO_0016);
     }
 
     dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "[DEBUG] caio_end: stop caio done\n");
@@ -3092,7 +3093,7 @@ void caio_print(LOG *log, const CAIO_MD *caio_md)
         }
 
         sys_log(log, "caio_print: caio_md %p: %ld reqs:\n",
-                     caio_md, clist_size(CAIO_MD_REQ_LIST(caio_md)));
+                     caio_md, clistbase_size(CAIO_MD_REQ_LIST(caio_md)));
         if(1)
         {
             caio_show_reqs(log, caio_md);
@@ -3553,7 +3554,7 @@ EC_BOOL caio_poll(CAIO_MD *caio_md)
 
 EC_BOOL caio_is_overhead(CAIO_MD *caio_md)
 {
-    if(CAIO_REQ_QUEUE_MAX_LEN <= clist_size(CAIO_MD_REQ_LIST(caio_md)))
+    if(CAIO_REQ_QUEUE_MAX_LEN <= clistbase_size(CAIO_MD_REQ_LIST(caio_md)))
     {
         return (EC_TRUE);
     }
@@ -3736,7 +3737,7 @@ void caio_process_timeout_reqs(CAIO_MD *caio_md)
     {
         CAIO_REQ       *caio_req;
 
-        caio_req = crb_tree_first_data(CAIO_MD_REQ_TIMEOUT_TREE(caio_md));
+        caio_req = crbbase_tree_first_data(CAIO_MD_REQ_TIMEOUT_TREE(caio_md));
         if(NULL_PTR == caio_req)
         {
             return;
@@ -3750,7 +3751,7 @@ void caio_process_timeout_reqs(CAIO_MD *caio_md)
 
         /*process timeout*/
         CAIO_ASSERT(0 < CAIO_REQ_NTIME_MS(caio_req));
-        CAIO_ASSERT(NULL_PTR != CAIO_REQ_MOUNTED_TIMEOUT(caio_req));
+        CAIO_ASSERT(EC_FALSE == crbbase_node_is_empty(CAIO_REQ_MOUNTED_TIMEOUT(caio_req)));
 
         req_num ++;
 
@@ -4267,7 +4268,7 @@ EC_BOOL caio_has_event(CAIO_MD *caio_md)
 
 EC_BOOL caio_has_req(CAIO_MD *caio_md)
 {
-    if(EC_TRUE == clist_is_empty(CAIO_MD_REQ_LIST(caio_md)))
+    if(EC_TRUE == clistbase_is_empty(CAIO_MD_REQ_LIST(caio_md)))
     {
         return (EC_FALSE);
     }
@@ -4276,13 +4277,13 @@ EC_BOOL caio_has_req(CAIO_MD *caio_md)
 
 EC_BOOL caio_has_wr_req(CAIO_MD *caio_md)
 {
-    CLIST_DATA  *clist_data;
+    CLISTBASE_NODE  *clist_data;
 
-    CLIST_LOOP_NEXT(CAIO_MD_REQ_LIST(caio_md), clist_data)
+    CLISTBASE_LOOP_NEXT(CAIO_MD_REQ_LIST(caio_md), clist_data)
     {
         CAIO_REQ    *caio_req;
 
-        caio_req = CLIST_DATA_DATA(clist_data);
+        caio_req = CLISTBASE_NODE_DATA(clist_data, clistbase_offset(CAIO_MD_REQ_LIST(caio_md)));
         if(NULL_PTR == caio_req)
         {
             continue;
@@ -4333,7 +4334,7 @@ void caio_show_disks(LOG *log, const CAIO_MD *caio_md)
 
 void caio_show_reqs(LOG *log, const CAIO_MD *caio_md)
 {
-    clist_print(log, CAIO_MD_REQ_LIST(caio_md), (CLIST_DATA_DATA_PRINT)caio_req_print);
+    clistbase_print(log, CAIO_MD_REQ_LIST(caio_md), (CLISTBASE_NODE_DATA_PRINT)caio_req_print);
     return;
 }
 
@@ -4341,9 +4342,9 @@ void caio_show_req(LOG *log, const CAIO_MD *caio_md, const UINT32 seq_no)
 {
     CAIO_REQ  *caio_req;
 
-    caio_req = clist_search_data_front(CAIO_MD_REQ_LIST(caio_md),
+    caio_req = clistbase_search_data_front(CAIO_MD_REQ_LIST(caio_md),
                                        (const void *)seq_no,
-                                       (CLIST_DATA_DATA_CMP)caio_req_is);
+                                       (CLISTBASE_NODE_DATA_CMP)caio_req_is);
 
 
     if(NULL_PTR == caio_req)
@@ -4361,9 +4362,9 @@ void caio_show_node(LOG *log, const CAIO_MD *caio_md, const UINT32 seq_no, const
     CAIO_REQ  *caio_req;
     CAIO_NODE *caio_node;
 
-    caio_req = clist_search_data_front(CAIO_MD_REQ_LIST(caio_md),
+    caio_req = clistbase_search_data_front(CAIO_MD_REQ_LIST(caio_md),
                                        (const void *)seq_no,
-                                       (CLIST_DATA_DATA_CMP)caio_req_is);
+                                       (CLISTBASE_NODE_DATA_CMP)caio_req_is);
 
 
     if(NULL_PTR == caio_req)
@@ -4422,14 +4423,14 @@ EC_BOOL caio_submit_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
 
 EC_BOOL caio_add_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
 {
-    CAIO_ASSERT(NULL_PTR == CAIO_REQ_MOUNTED_LIST(caio_req));
-    CAIO_ASSERT(NULL_PTR == CAIO_REQ_MOUNTED_TIMEOUT(caio_req));
+    CAIO_ASSERT(EC_TRUE == clistbase_node_is_empty(CAIO_REQ_MOUNTED_LIST(caio_req)));
+    CAIO_ASSERT(EC_TRUE == crbbase_node_is_empty(CAIO_REQ_MOUNTED_TIMEOUT(caio_req)));
 
     if(0 < CAIO_REQ_NTIME_MS(caio_req))
     {
-        CRB_NODE        *crb_node;
+        CRBBASE_NODE        *crb_node;
 
-        crb_node = crb_tree_insert_data(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), (void *)caio_req);
+        crb_node = crbbase_tree_insert_data(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), (void *)caio_req);
         if(NULL_PTR == crb_node)
         {
             dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_add_req: add req %ld, op %s timeout failed\n",
@@ -4438,7 +4439,7 @@ EC_BOOL caio_add_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
             return (EC_FALSE);
         }
 
-        if(CRB_NODE_DATA(crb_node) != (void *)caio_req)
+        if(crbbase_tree_node_data(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), crb_node) != (void *)caio_req)
         {
             dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_add_req: add req %ld, op %s timeout but found duplicate\n",
                                                  CAIO_REQ_SEQ_NO(caio_req),
@@ -4446,17 +4447,19 @@ EC_BOOL caio_add_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
             return (EC_FALSE);
         }
 
-        CAIO_REQ_MOUNTED_TIMEOUT(caio_req) = crb_node;
+        CAIO_ASSERT(EC_FALSE == crbbase_node_is_empty(CAIO_REQ_MOUNTED_TIMEOUT(caio_req)));
+
+        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_add_req: push req %ld, op %s to tree done\n",
+                                             CAIO_REQ_SEQ_NO(caio_req),
+                                             __caio_op_str(CAIO_REQ_OP(caio_req)));
     }
 
     /*push back*/
-    CAIO_REQ_MOUNTED_LIST(caio_req) = clist_push_back(CAIO_MD_REQ_LIST(caio_md), (void *)caio_req);
-    if(NULL_PTR == CAIO_REQ_MOUNTED_LIST(caio_req))
+    if(NULL_PTR == clistbase_push_back(CAIO_MD_REQ_LIST(caio_md), (void *)caio_req))
     {
-        if(NULL_PTR != CAIO_REQ_MOUNTED_TIMEOUT(caio_req))
+        if(EC_FALSE == crbbase_node_is_empty(CAIO_REQ_MOUNTED_TIMEOUT(caio_req)))
         {
-            crb_tree_erase(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), CAIO_REQ_MOUNTED_TIMEOUT(caio_req));
-            CAIO_REQ_MOUNTED_TIMEOUT(caio_req) = NULL_PTR;
+            crbbase_tree_erase(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), CAIO_REQ_MOUNTED_TIMEOUT(caio_req));
         }
 
         dbg_log(SEC_0093_CAIO, 0)(LOGSTDOUT, "error:caio_add_req: push req %ld, op %s failed\n",
@@ -4465,7 +4468,9 @@ EC_BOOL caio_add_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_add_req: push req %ld, op %s done\n",
+    CAIO_ASSERT(EC_FALSE == clistbase_node_is_empty(CAIO_REQ_MOUNTED_LIST(caio_req)));
+
+    dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_add_req: push req %ld, op %s to list done\n",
                                          CAIO_REQ_SEQ_NO(caio_req),
                                          __caio_op_str(CAIO_REQ_OP(caio_req)));
     return (EC_TRUE);
@@ -4473,18 +4478,31 @@ EC_BOOL caio_add_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
 
 EC_BOOL caio_del_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
 {
-    if(NULL_PTR != CAIO_REQ_MOUNTED_TIMEOUT(caio_req))
+    sys_log(LOGSTDOUT, "[DEBUG] caio_del_req: node %p: parent = %p, left = %p, right = %p, color = %s, data = %p\n",
+                       CAIO_REQ_MOUNTED_TIMEOUT(caio_req),
+                       CRBBASE_NODE_PARENT(CAIO_REQ_MOUNTED_TIMEOUT(caio_req)),
+                       CRBBASE_NODE_LEFT(CAIO_REQ_MOUNTED_TIMEOUT(caio_req)),
+                       CRBBASE_NODE_RIGHT(CAIO_REQ_MOUNTED_TIMEOUT(caio_req)),
+                       (CRBBASE_NODE_IS_RED(CAIO_REQ_MOUNTED_TIMEOUT(caio_req)) ? "red  " : "black"),
+                       crbbase_tree_node_data(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), CAIO_REQ_MOUNTED_TIMEOUT(caio_req))
+                       );
+
+    if(EC_FALSE == crbbase_node_is_empty(CAIO_REQ_MOUNTED_TIMEOUT(caio_req)))
     {
-        crb_tree_erase(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), CAIO_REQ_MOUNTED_TIMEOUT(caio_req));
-        CAIO_REQ_MOUNTED_TIMEOUT(caio_req) = NULL_PTR;
+        crbbase_tree_erase(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), CAIO_REQ_MOUNTED_TIMEOUT(caio_req));
+        CAIO_ASSERT(EC_TRUE == crbbase_node_is_empty(CAIO_REQ_MOUNTED_TIMEOUT(caio_req)));
+
+        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_del_req: req %ld, op %s, erase from tree\n",
+                     CAIO_REQ_SEQ_NO(caio_req),
+                     __caio_op_str(CAIO_REQ_OP(caio_req)));
     }
 
-    if(NULL_PTR != CAIO_REQ_MOUNTED_LIST(caio_req))
+    if(EC_FALSE == clistbase_node_is_empty(CAIO_REQ_MOUNTED_LIST(caio_req)))
     {
-        clist_erase(CAIO_MD_REQ_LIST(caio_md), CAIO_REQ_MOUNTED_LIST(caio_req));
-        CAIO_REQ_MOUNTED_LIST(caio_req) = NULL_PTR;
+        clistbase_erase(CAIO_MD_REQ_LIST(caio_md), CAIO_REQ_MOUNTED_LIST(caio_req));
+        CAIO_ASSERT(EC_TRUE == clistbase_node_is_empty(CAIO_REQ_MOUNTED_LIST(caio_req)));
 
-        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_del_req: req %ld, op %s\n",
+        dbg_log(SEC_0093_CAIO, 9)(LOGSTDOUT, "[DEBUG] caio_del_req: req %ld, op %s, erase from list\n",
                      CAIO_REQ_SEQ_NO(caio_req),
                      __caio_op_str(CAIO_REQ_OP(caio_req)));
 
@@ -4810,14 +4828,11 @@ EC_BOOL caio_cleanup_reqs(CAIO_MD *caio_md)
 {
     CAIO_REQ        *caio_req;
 
-    while(NULL_PTR != (caio_req = clist_pop_front(CAIO_MD_REQ_LIST(caio_md))))
+    while(NULL_PTR != (caio_req = clistbase_pop_front(CAIO_MD_REQ_LIST(caio_md))))
     {
-        CAIO_REQ_MOUNTED_LIST(caio_req) = NULL_PTR;
-
-        if(NULL_PTR != CAIO_REQ_MOUNTED_TIMEOUT(caio_req))
+        if(EC_FALSE == crbbase_node_is_empty(CAIO_REQ_MOUNTED_TIMEOUT(caio_req)))
         {
-            crb_tree_erase(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), CAIO_REQ_MOUNTED_TIMEOUT(caio_req));
-            CAIO_REQ_MOUNTED_TIMEOUT(caio_req) = NULL_PTR;
+            crbbase_tree_erase(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), CAIO_REQ_MOUNTED_TIMEOUT(caio_req));
         }
 
         caio_req_free(caio_req);
@@ -4857,9 +4872,9 @@ CAIO_REQ *caio_search_req(CAIO_MD *caio_md, const UINT32 seq_no)
 {
     CAIO_REQ       *caio_req;
 
-    caio_req = clist_search_data_front(CAIO_MD_REQ_LIST(caio_md),
+    caio_req = clistbase_search_data_front(CAIO_MD_REQ_LIST(caio_md),
                                        (const void *)seq_no,
-                                       (CLIST_DATA_DATA_CMP)caio_req_is);
+                                       (CLISTBASE_NODE_DATA_CMP)caio_req_is);
 
     return (caio_req);
 }

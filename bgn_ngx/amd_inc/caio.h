@@ -26,6 +26,9 @@ extern "C"{
 #include "clist.h"
 #include "crb.h"
 
+#include "clistbase.h"
+#include "crbbase.h"
+
 #include "cpgbitmap.h"
 
 #include "cfc.h"
@@ -233,12 +236,12 @@ typedef struct
 
     CLIST            disk_list;         /*item is CAIO_DISK*/
 
-    CLIST            req_list;          /*item is CAIO_REQ. reading & writing request list in order*/
+    CLISTBASE        req_list;          /*item is CAIO_REQ. reading & writing request list in order*/
     CLIST            page_list[2];      /*item is CAIO_PAGE. working page list*/
     CRB_TREE         page_tree[2];      /*item is CAIO_PAGE. working page tree*/
     UINT32           page_active_idx;   /*page list/tree active index, range in [0, 1]*/
 
-    CRB_TREE         req_timeout_tree;
+    CRBBASE_TREE     req_timeout_tree;
 
     CLIST            post_event_reqs;   /*item is CAIO_REQ */
 }CAIO_MD;
@@ -369,8 +372,8 @@ typedef struct
     CLIST                   nodes;              /*item is CAIO_NODE*/
 
     /*shortcut*/
-    CLIST_DATA             *mounted_list;      /*mount point in req list of caio module*/
-    CRB_NODE               *mounted_timeout;
+    CLISTBASE_NODE          mounted_list;      /*mount point in req list of caio module*/
+    CRBBASE_NODE            mounted_timeout;
 
     CAIO_CB                 callback;
 }CAIO_REQ;
@@ -402,8 +405,11 @@ typedef struct
 #define CAIO_REQ_MOUNTED_POST_EVENT_REQS(caio_req)      ((caio_req)->mounted_post_event_reqs)
 
 #define CAIO_REQ_NODES(caio_req)                        (&((caio_req)->nodes))
-#define CAIO_REQ_MOUNTED_LIST(caio_req)                 ((caio_req)->mounted_list)
-#define CAIO_REQ_MOUNTED_TIMEOUT(caio_req)              ((caio_req)->mounted_timeout)
+#define CAIO_REQ_MOUNTED_LIST(caio_req)                 (&((caio_req)->mounted_list))
+#define CAIO_REQ_MOUNTED_TIMEOUT(caio_req)              (&((caio_req)->mounted_timeout))
+
+#define CAIO_REQ_MOUNTED_LIST_OFFSET                    ((UINT32)(&((CAIO_REQ *)0)->mounted_list))
+#define CAIO_REQ_MOUNTED_TIMEOUT_OFFSET                 ((UINT32)(&((CAIO_REQ *)0)->mounted_timeout))
 
 
 typedef struct

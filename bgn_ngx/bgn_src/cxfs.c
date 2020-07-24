@@ -6480,7 +6480,7 @@ EC_BOOL cxfs_read_e_dn(const UINT32 cxfs_md_id, const CXFSNP_FNODE *cxfsnp_fnode
     {
         if(NULL_PTR != CBYTES_BUF(cbytes))
         {
-            safe_free(CBYTES_BUF(cbytes), LOC_CXFS_0006);
+            safe_free(CBYTES_BUF(cbytes), LOC_CXFS_0005);
             CBYTES_BUF(cbytes) = NULL_PTR;
         }
 
@@ -6488,7 +6488,7 @@ EC_BOOL cxfs_read_e_dn(const UINT32 cxfs_md_id, const CXFSNP_FNODE *cxfsnp_fnode
         {
             void        *data;
 
-            data = safe_malloc(max_len_t, LOC_CXFS_0007);
+            data = safe_malloc(max_len_t, LOC_CXFS_0006);
             if(NULL_PTR == data)
             {
                 dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_read_e_dn: "
@@ -8354,8 +8354,8 @@ EC_BOOL cxfs_qlist_seg_of_np(const UINT32 cxfs_md_id, const CSTRING *file_path, 
 STATIC_CAST static EC_BOOL __cxfs_cat_path(const CXFSNP_ITEM *cxfsnp_item, CSTRING *des_path)
 {
     cstring_rtrim(des_path, (UINT8)'/');
-    cstring_append_chars(des_path, (UINT32)1, (const UINT8 *)"/", LOC_CXFS_0008);
-    cstring_append_chars(des_path, CXFSNP_ITEM_KLEN(cxfsnp_item), CXFSNP_ITEM_KNAME(cxfsnp_item), LOC_CXFS_0009);
+    cstring_append_chars(des_path, (UINT32)1, (const UINT8 *)"/", LOC_CXFS_0007);
+    cstring_append_chars(des_path, CXFSNP_ITEM_KLEN(cxfsnp_item), CXFSNP_ITEM_KNAME(cxfsnp_item), LOC_CXFS_0008);
 
     return (EC_TRUE);
 }
@@ -8377,7 +8377,7 @@ STATIC_CAST static EC_BOOL __cxfs_qlist_tree(CXFSNP_DIT_NODE *cxfsnp_dit_node, C
         base_dir      = CXFSNP_DIT_NODE_ARG(cxfsnp_dit_node, 1);
         path_cstr_vec = CXFSNP_DIT_NODE_ARG(cxfsnp_dit_node, 2);
 
-        full_path = cstring_new(cstring_get_str(base_dir), LOC_CXFS_0010);
+        full_path = cstring_new(cstring_get_str(base_dir), LOC_CXFS_0009);
         if(NULL_PTR == full_path)
         {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_qlist_tree: new cstring failed\n");
@@ -8438,7 +8438,7 @@ EC_BOOL cxfs_qlist_tree(const UINT32 cxfs_md_id, const CSTRING *file_path, CVECT
         return (EC_FALSE);
     }
 
-    base_dir = cstring_new(cstring_get_str(file_path), LOC_CXFS_0011);
+    base_dir = cstring_new(cstring_get_str(file_path), LOC_CXFS_0010);
     if(NULL_PTR == base_dir)
     {
         dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_qlist_tree: new cstring failed\n");
@@ -8512,7 +8512,7 @@ EC_BOOL cxfs_qlist_tree_of_np(const UINT32 cxfs_md_id, const UINT32 cxfsnp_id, c
 
     cxfsnp_id_t = (uint32_t)cxfsnp_id;
 
-    base_dir = cstring_new(cstring_get_str(file_path), LOC_CXFS_0012);
+    base_dir = cstring_new(cstring_get_str(file_path), LOC_CXFS_0011);
     if(NULL_PTR == base_dir)
     {
         dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_qlist_tree_of_np: new cstring failed\n");
@@ -9938,7 +9938,7 @@ EC_BOOL cxfs_retire(const UINT32 cxfs_md_id, const UINT32 expect_retire_num, UIN
 CXFS_WAIT_FILE *cxfs_wait_file_new()
 {
     CXFS_WAIT_FILE *cxfs_wait_file;
-    alloc_static_mem(MM_CXFS_WAIT_FILE, &cxfs_wait_file, LOC_CXFS_0013);
+    alloc_static_mem(MM_CXFS_WAIT_FILE, &cxfs_wait_file, LOC_CXFS_0012);
     if(NULL_PTR != cxfs_wait_file)
     {
         cxfs_wait_file_init(cxfs_wait_file);
@@ -9950,7 +9950,7 @@ EC_BOOL cxfs_wait_file_init(CXFS_WAIT_FILE *cxfs_wait_file)
 {
     cstring_init(CXFS_WAIT_FILE_NAME(cxfs_wait_file), NULL_PTR);
 
-    clist_init(CXFS_WAIT_FILE_OWNER_LIST(cxfs_wait_file), MM_MOD_NODE, LOC_CXFS_0014);
+    clist_init(CXFS_WAIT_FILE_OWNER_LIST(cxfs_wait_file), MM_MOD_NODE, LOC_CXFS_0013);
 
     CXFS_WAIT_FILE_EXPIRE_NSEC(cxfs_wait_file) = 0;
     CXFS_WAIT_FILE_START_TIME(cxfs_wait_file)  = 0;
@@ -9973,7 +9973,7 @@ EC_BOOL cxfs_wait_file_free(CXFS_WAIT_FILE *cxfs_wait_file)
     if(NULL_PTR != cxfs_wait_file)
     {
         cxfs_wait_file_clean(cxfs_wait_file);
-        free_static_mem(MM_CXFS_WAIT_FILE, cxfs_wait_file, LOC_CXFS_0015);
+        free_static_mem(MM_CXFS_WAIT_FILE, cxfs_wait_file, LOC_CXFS_0014);
     }
     return (EC_TRUE);
 }
@@ -10915,7 +10915,7 @@ EC_BOOL cxfs_file_terminate(const UINT32 cxfs_md_id, const CSTRING *file_path)
 CXFS_LOCKED_FILE *cxfs_locked_file_new()
 {
     CXFS_LOCKED_FILE *cxfs_locked_file;
-    alloc_static_mem(MM_CXFS_LOCKED_FILE, &cxfs_locked_file, LOC_CXFS_0016);
+    alloc_static_mem(MM_CXFS_LOCKED_FILE, &cxfs_locked_file, LOC_CXFS_0015);
     if(NULL_PTR != cxfs_locked_file)
     {
         cxfs_locked_file_init(cxfs_locked_file);
@@ -10948,7 +10948,7 @@ EC_BOOL cxfs_locked_file_free(CXFS_LOCKED_FILE *cxfs_locked_file)
     if(NULL_PTR != cxfs_locked_file)
     {
         cxfs_locked_file_clean(cxfs_locked_file);
-        free_static_mem(MM_CXFS_LOCKED_FILE, cxfs_locked_file, LOC_CXFS_0017);
+        free_static_mem(MM_CXFS_LOCKED_FILE, cxfs_locked_file, LOC_CXFS_0016);
     }
     return (EC_TRUE);
 }
@@ -11237,7 +11237,7 @@ EC_BOOL cxfs_file_lock(const UINT32 cxfs_md_id, const CSTRING *file_path, const 
     }
 
     cbase64_encode(CBYTES_BUF(&token_cbyte), CBYTES_LEN(&token_cbyte), auth_token, sizeof(auth_token), &auth_token_len);
-    cstring_append_chars(token_str, auth_token_len, auth_token, LOC_CXFS_0018);
+    cstring_append_chars(token_str, auth_token_len, auth_token, LOC_CXFS_0017);
     cbytes_clean(&token_cbyte);
     return (EC_TRUE);
 }
@@ -13515,7 +13515,7 @@ STATIC_CAST static EC_BOOL __cxfs_fetch_url_cstr(const char *fmem, const UINT32 
     }
 
     line_len = c_line_len(fmem + old_offset);
-    cstring_append_chars(url_cstr, line_len, (UINT8 *)fmem + old_offset, LOC_CXFS_0019);
+    cstring_append_chars(url_cstr, line_len, (UINT8 *)fmem + old_offset, LOC_CXFS_0018);
     cstring_append_char(url_cstr, '\0');
 
     (*offset) += line_len + 1;

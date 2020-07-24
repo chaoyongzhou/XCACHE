@@ -761,7 +761,7 @@ EC_BOOL cepoll_del_event(CEPOLL *cepoll, const int sockfd, const uint32_t event)
     events_des = (events_src & (~event));
     CEPOLL_NODE_EVENTS(cepoll_node) = events_des;
 
-    if(events_des & (CEPOLL_RD_EVENT | CEPOLL_WR_EVENT))/*fuck trap!*/
+    if(events_des & (CEPOLL_RD_EVENT | CEPOLL_WR_EVENT))
     {
         dbg_log(SEC_0072_CEPOLL, 9)(LOGSTDOUT, "[DEBUG] cepoll_del_event: sockfd %d modify events %c%c%c%c => %c%c%c%c\n",
                             sockfd, CEPOLL_ALL_EVENT_CHARS(events_src), CEPOLL_ALL_EVENT_CHARS(events_des));

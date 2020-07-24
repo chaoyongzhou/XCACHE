@@ -204,7 +204,7 @@ extern "C"{
 #define                    MM_CRFSNP_KEY    ((UINT32)137)
 #define             MM_CRFSDN_CACHE_NODE    ((UINT32)138)
 
-#define                        MM_000139    ((UINT32)139) /*-- obsolete --*/
+#define                  MM_CRBBASE_TREE    ((UINT32)139)
 #define                        MM_000140    ((UINT32)140) /*-- obsolete --*/
 #define                        MM_000141    ((UINT32)141) /*-- obsolete --*/
 #define                        MM_000142    ((UINT32)142) /*-- obsolete --*/

@@ -42,6 +42,10 @@ extern "C"{
 
 #include "cxfsdn.h"
 
+#if (SWITCH_ON == PMDK_PMEM_SWITCH)
+#include "libpmem.h"
+#endif/*(SWITCH_ON == PMDK_PMEM_SWITCH)*/
+
 /*X File System Data Node*/
 
 EC_BOOL cxfsdn_node_write(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data_max_len, const UINT8 *data_buff, UINT32 *offset)
@@ -884,6 +888,7 @@ EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg)
                                                CXFSPGV_DISK_NUM(CXFSDN_CXFSPGV(cxfsdn)),
                                                CXFSPGV_DISK_MAX_NUM(CXFSDN_CXFSPGV(cxfsdn)));
 
+#if (SWITCH_OFF == PMDK_PMEM_SWITCH)
         if(0 != msync(mem_cache, wsize, MS_SYNC))
         {
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "warn:cxfsdn_flush: "
@@ -896,6 +901,21 @@ EC_BOOL cxfsdn_flush(CXFSDN *cxfsdn, const CXFSCFG *cxfscfg)
                                                    "sync dn with size %ld done\n",
                                                    wsize);
         }
+#endif/*(SWITCH_OFF == PMDK_PMEM_SWITCH)*/
+#if (SWITCH_ON == PMDK_PMEM_SWITCH)
+        if(0 != pmem_msync(mem_cache, wsize))
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "warn:cxfsdn_flush: "
+                                                   "[pmem] sync dn with size %ld failed\n",
+                                                   wsize);
+        }
+        else
+        {
+            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "[DEBUG] cxfsdn_flush: "
+                                                   "[pmem] sync dn with size %ld done\n",
+                                                   wsize);
+        }
+#endif/*(SWITCH_ON == PMDK_PMEM_SWITCH)*/
     }
     return (EC_TRUE);
 }
@@ -1226,33 +1246,6 @@ EC_BOOL cxfsdn_dump(CXFSDN *cxfsdn, const UINT32 cxfsdn_zone_s_offset)
                                                cxfsdn_zone_s_offset,
                                                cxfsdn_zone_s_offset + wsize);
         ASSERT(cxfsdn_zone_s_offset + wsize == offset);
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfsdn_sync_v1(CXFSDN *cxfsdn)
-{
-    if(SWITCH_ON == CXFS_DN_MMAP_SWITCH
-    && NULL_PTR != cxfsdn
-    && NULL_PTR != CXFSDN_MEM_CACHE(cxfsdn))
-    {
-        UINT8           *mcache;
-        UINT32           size;
-
-        mcache = CXFSDN_MEM_CACHE(cxfsdn);
-        size   = CXFSDN_ZONE_SIZE(cxfsdn);
-
-        if(0 != msync(mcache, size, MS_SYNC))
-        {
-            dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_sync: "
-                                                   "sync dn with size %ld failed, "
-                                                   "errno = %d, errstr = %s\n",
-                                                   size, errno, strerror(errno));
-            return (EC_FALSE);
-        }
-
         return (EC_TRUE);
     }
 

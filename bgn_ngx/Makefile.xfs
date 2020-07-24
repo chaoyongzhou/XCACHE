@@ -22,7 +22,7 @@ TOOL_DIR = $(ROOT_DIR)/tool
 OPENSSL_DIR ?= $(DEPEND_DIR)/openssl
 OPENSSL_INC_DIR = $(OPENSSL_DIR)/include
 OPENSSL_LIB_DIR = $(OPENSSL_DIR)/lib
-OPENSSL_INC = -I $(OPENSSL_INC_DIR) 
+OPENSSL_INC = -I $(OPENSSL_INC_DIR)
 #OPENSSL_LIB = -Wl,-rpath,$(OPENSSL_LIB_DIR) -L $(OPENSSL_LIB_DIR) -lssl -L $(OPENSSL_LIB_DIR) -lcrypto
 OPENSSL_LIB = $(OPENSSL_LIB_DIR)/libssl.a $(OPENSSL_LIB_DIR)/libcrypto.a
 
@@ -61,8 +61,16 @@ NCURSES_INC = -I $(NCURSES_INC_DIR)
 #NCURSES_LIB = -Wl,-rpath,$(NCURSES_LIB_DIR) -L $(NCURSES_LIB_DIR) -lncurses
 NCURSES_LIB = $(NCURSES_LIB_DIR)/libncurses.a
 
-EXT_INC = $(XML2_INC) $(EXPAT_INC) $(PCRE_INC) $(READLINE_INC) $(NCURSES_INC) $(OPENSSL_INC)
-EXT_LIB = $(XML2_LIB) $(EXPAT_LIB) $(PCRE_LIB) $(READLINE_LIB) $(NCURSES_LIB) $(OPENSSL_LIB) -lm -lrt -lpthread -lz -rdynamic -ldl
+PMDK_DIR = /home/aaron/pmdk/src
+PMDK_INC_DIR = $(PMDK_DIR)/include
+PMDK_LIB_DIR = $(PMDK_DIR)/nondebug
+#PMDK_INC = -I $(PMDK_INC_DIR)
+#PMDK_LIB = $(PMDK_LIB_DIR)/libpmem.a
+PMDK_INC =
+PMDK_LIB =
+
+EXT_INC = $(XML2_INC) $(EXPAT_INC) $(PCRE_INC) $(READLINE_INC) $(NCURSES_INC) $(OPENSSL_INC) $(PMDK_INC)
+EXT_LIB = $(XML2_LIB) $(EXPAT_LIB) $(PCRE_LIB) $(READLINE_LIB) $(NCURSES_LIB) $(OPENSSL_LIB) $(PMDK_LIB) -lm -lrt -lpthread -lz -rdynamic -ldl
 
 BGN_SRC  = $(ROOT_DIR)/bgn_src
 BGN_INC  = -I $(ROOT_DIR)/bgn_inc
@@ -86,21 +94,21 @@ BYTESIZE   = 8
 WORDSIZE   = ${MBITS}
 DOUBLESIZE = 64
 
-MEM_BUFF_128B = 128 
-MEM_BUFF_512B = 512 
+MEM_BUFF_128B = 128
+MEM_BUFF_512B = 512
 MEM_BUFF_1K   = 1024
 MEM_BUFF_8K   = 8192
-MEM_BUFF_16K  = 16384 
-MEM_BUFF_32K  = 32768 
-MEM_BUFF_48K  = 49152 
-MEM_BUFF_64K  = 65536 
-MEM_BUFF_128K = 131072 
+MEM_BUFF_16K  = 16384
+MEM_BUFF_32K  = 32768
+MEM_BUFF_48K  = 49152
+MEM_BUFF_64K  = 65536
+MEM_BUFF_128K = 131072
 MEM_BUFF_1M   = 1048576
 MEM_BUFF_8M   = 8388608
 MEM_BUFF_16M  = 16777216
 MEM_BUFF_32M  = 33554432
 MEM_BUFF_64M  = 67108864
-MEM_BUFF_128M = 134217728 
+MEM_BUFF_128M = 134217728
 
 
 FILE_LOG_RECORDS_400 = 400
@@ -236,6 +244,7 @@ CMACRO = \
          -DCAMD_SATA_DISK_MAX_SIZE_NBITS=${DISK_016T_NBITS} \
          -DCAMD_SSD_DISK_MAX_SIZE_NBITS=${DISK_004T_NBITS} \
          -DCAMD_PAGE_SIZE_NBITS=${PAGE_256K_NBITS} \
+         -DPMDK_PMEM_SWITCH=SWITCH_OFF \
 
 # C Language
 CC       = /usr/bin/gcc
@@ -261,7 +270,7 @@ JSON_OBJS = $(patsubst $(JSON_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(JSON_SRC)/*
 REL_OBJS  = $(patsubst $(REL_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(REL_SRC)/*.c))
 TST_OBJS  = $(patsubst $(TST_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(TST_SRC)/*.c))
 
-RFS_OBJS = $(OBJ_DIR)/demo_hsxfs.o
+XFS_OBJS = $(OBJ_DIR)/demo_hsxfs.o
 
 default: xfs xfs_tool
 
@@ -274,8 +283,8 @@ libamd: $(AMD_OBJS)
 libjson: $(JSON_OBJS)
 	$(AR) $(LIB_DIR)/libjson.a $(JSON_OBJS)
 
-xfs: libbgn libamd libjson $(RFS_OBJS)
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/xfs $(RFS_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
+xfs: libbgn libamd libjson $(XFS_OBJS)
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/xfs $(XFS_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
 
 xfs_tool:
 	$(MAKE) -C $(ROOT_DIR) -f Makefile.tool
@@ -288,6 +297,12 @@ link: $(REL_OBJS)
 
 test_local_ipv4: libbgn libamd libjson $(OBJ_DIR)/test_local_ipv4.o
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_local_ipv4.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
+
+test_clistbase: libbgn libamd libjson $(OBJ_DIR)/test_clistbase.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_clistbase.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
+
+test_crbbase: libbgn libamd libjson $(OBJ_DIR)/test_crbbase.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_crbbase.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
 
 test_keepalive: libbgn libamd libjson $(OBJ_DIR)/test_keepalive.o
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_keepalive.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)

@@ -478,7 +478,7 @@ void tasks_cfg_print_in_plain(LOG *log, const TASKS_CFG *tasks_cfg)
             );
     if(NULL_PTR != cluster_str)
     {
-        safe_free(cluster_str, LOC_TASKCFG_0007);
+        safe_free(cluster_str, LOC_TASKCFG_0008);
     }
 
     sys_print(log, "tasks_cfg: worker clients:\n");
@@ -517,7 +517,7 @@ STATIC_CAST static void tasks_cfg_body_print_xml(LOG *log, const TASKS_CFG *task
     if(NULL_PTR != cluster_str)
     {
         sys_print(log, " cluster=\"%s\"", cluster_str);
-        safe_free(cluster_str, LOC_TASKCFG_0008);
+        safe_free(cluster_str, LOC_TASKCFG_0009);
     }
     return;
 }
@@ -541,7 +541,7 @@ void tasks_cfg_print_xml(LOG *log, const TASKS_CFG *tasks_cfg, const UINT32 leve
     tasks_cfg_body_print_xml(log, tasks_cfg, level);
     sys_print(log, ">\n");
 
-    CVECTOR_LOCK(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg), LOC_TASKCFG_0009);
+    CVECTOR_LOCK(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg), LOC_TASKCFG_0010);
     for(pos = 0; pos < cvector_size(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg)); pos ++)
     {
         TASKR_CFG *taskr_cfg;
@@ -553,7 +553,7 @@ void tasks_cfg_print_xml(LOG *log, const TASKS_CFG *tasks_cfg, const UINT32 leve
         }
         taskr_cfg_print_xml(log, taskr_cfg, level + 1);
     }
-    CVECTOR_UNLOCK(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg), LOC_TASKCFG_0010);
+    CVECTOR_UNLOCK(TASKS_CFG_TASKR_CFG_VEC(tasks_cfg), LOC_TASKCFG_0011);
 
     taskx_cfg_ident_print_xml(log, level);
     sys_print(log, "</tasks>\n");
@@ -584,7 +584,7 @@ TASKR_CFG * taskr_cfg_new()
 {
     TASKR_CFG *taskr_cfg;
 
-    alloc_static_mem(MM_TASKR_CFG, &taskr_cfg, LOC_TASKCFG_0011);
+    alloc_static_mem(MM_TASKR_CFG, &taskr_cfg, LOC_TASKCFG_0012);
     if(NULL_PTR == taskr_cfg)
     {
         dbg_log(SEC_0019_TASKCFG, 0)(LOGSTDOUT, "error:taskr_cfg_new: failed to alloc TASKR_CFG\n");
@@ -599,7 +599,7 @@ TASKR_CFG * taskr_cfg_new()
 void taskr_cfg_free(TASKR_CFG *taskr_cfg)
 {
     taskr_cfg_clean(taskr_cfg);
-    free_static_mem(MM_TASKR_CFG, taskr_cfg, LOC_TASKCFG_0012);
+    free_static_mem(MM_TASKR_CFG, taskr_cfg, LOC_TASKCFG_0013);
     return;
 }
 
@@ -672,14 +672,14 @@ void taskr_cfg_print_xml(LOG *log, const TASKR_CFG *taskr_cfg, const UINT32 leve
 void task_cfg_init(TASK_CFG *task_cfg)
 {
     TASK_CFG_DEFAULT_TASKS_PORT(task_cfg) = CMPI_ERROR_SRVPORT;
-    cvector_init(TASK_CFG_TASKS_CFG_VEC(task_cfg), 0, MM_TASKS_CFG, CVECTOR_LOCK_ENABLE, LOC_TASKCFG_0013);
+    cvector_init(TASK_CFG_TASKS_CFG_VEC(task_cfg), 0, MM_TASKS_CFG, CVECTOR_LOCK_ENABLE, LOC_TASKCFG_0014);
     return;
 }
 
 void task_cfg_clean(TASK_CFG *task_cfg)
 {
     TASK_CFG_DEFAULT_TASKS_PORT(task_cfg) = CMPI_ERROR_SRVPORT;
-    cvector_clean(TASK_CFG_TASKS_CFG_VEC(task_cfg), (CVECTOR_DATA_CLEANER)tasks_cfg_free, LOC_TASKCFG_0014);
+    cvector_clean(TASK_CFG_TASKS_CFG_VEC(task_cfg), (CVECTOR_DATA_CLEANER)tasks_cfg_free, LOC_TASKCFG_0015);
     return;
 }
 
@@ -687,7 +687,7 @@ TASK_CFG * task_cfg_new()
 {
     TASK_CFG *task_cfg;
 
-    alloc_static_mem(MM_TASK_CFG, &task_cfg, LOC_TASKCFG_0015);
+    alloc_static_mem(MM_TASK_CFG, &task_cfg, LOC_TASKCFG_0016);
     if(NULL_PTR == task_cfg)
     {
         dbg_log(SEC_0019_TASKCFG, 0)(LOGSTDOUT, "error:task_cfg_new: failed to alloc TASK_CFG\n");
@@ -701,7 +701,7 @@ TASK_CFG * task_cfg_new()
 void task_cfg_free(TASK_CFG *task_cfg)
 {
     task_cfg_clean(task_cfg);
-    free_static_mem(MM_TASK_CFG, task_cfg, LOC_TASKCFG_0016);
+    free_static_mem(MM_TASK_CFG, task_cfg, LOC_TASKCFG_0017);
     return;
 }
 
@@ -727,7 +727,7 @@ EC_BOOL task_cfg_filter(const TASK_CFG *src_task_cfg, const UINT32 tcid, TASK_CF
         return (EC_TRUE);
     }
 
-    CVECTOR_LOCK(TASK_CFG_TASKS_CFG_VEC(src_task_cfg), LOC_TASKCFG_0017);
+    CVECTOR_LOCK(TASK_CFG_TASKS_CFG_VEC(src_task_cfg), LOC_TASKCFG_0018);
     for(pos = 0; pos < cvector_size(TASK_CFG_TASKS_CFG_VEC(src_task_cfg)); pos ++)
     {
         TASKS_CFG *tasks_cfg;
@@ -752,7 +752,7 @@ EC_BOOL task_cfg_filter(const TASK_CFG *src_task_cfg, const UINT32 tcid, TASK_CF
             if(NULL_PTR == cloned_tasks_cfg)
             {
                 dbg_log(SEC_0019_TASKCFG, 0)(LOGSTDOUT, "error:task_cfg_filter: failed to new tasks cfg\n");
-                CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(src_task_cfg), LOC_TASKCFG_0018);
+                CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(src_task_cfg), LOC_TASKCFG_0019);
                 return (EC_FALSE);
             }
 
@@ -760,7 +760,7 @@ EC_BOOL task_cfg_filter(const TASK_CFG *src_task_cfg, const UINT32 tcid, TASK_CF
             cvector_push(TASK_CFG_TASKS_CFG_VEC(des_task_cfg), (void *)cloned_tasks_cfg);
         }
     }
-    CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(src_task_cfg), LOC_TASKCFG_0019);
+    CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(src_task_cfg), LOC_TASKCFG_0020);
     return (EC_TRUE);
 }
 
@@ -773,7 +773,7 @@ EC_BOOL task_cfg_check_all(const TASK_CFG *task_cfg)
 {
     UINT32 pos;
 
-    CVECTOR_LOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0020);
+    CVECTOR_LOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0021);
     for(pos = 0; pos < cvector_size(TASK_CFG_TASKS_CFG_VEC(task_cfg)); pos ++)
     {
         TASKS_CFG *tasks_cfg;
@@ -804,7 +804,7 @@ TASKS_CFG *task_cfg_searchs(const TASK_CFG *task_cfg, const UINT32 tcid, const U
 {
     UINT32 pos;
 
-    CVECTOR_LOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0021);
+    CVECTOR_LOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0022);
     for(pos = 0; pos < cvector_size(TASK_CFG_TASKS_CFG_VEC(task_cfg)); pos ++)
     {
         TASKS_CFG *tasks_cfg;
@@ -817,11 +817,11 @@ TASKS_CFG *task_cfg_searchs(const TASK_CFG *task_cfg, const UINT32 tcid, const U
 
         if(EC_TRUE == tasks_cfg_is_matched(tasks_cfg, tcid, maski, maske, CMPI_ANY_IPADDR, CMPI_ANY_SRVPORT))
         {
-            CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0022);
+            CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0023);
             return (tasks_cfg);
         }
     }
-    CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0023);
+    CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0024);
     return (NULL_PTR);
 }
 
@@ -829,7 +829,7 @@ TASKS_CFG *task_cfg_searchs_by_ip(const TASK_CFG *task_cfg, const UINT32 ipaddr,
 {
     UINT32 pos;
 
-    CVECTOR_LOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0024);
+    CVECTOR_LOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0025);
     for(pos = 0; pos < cvector_size(TASK_CFG_TASKS_CFG_VEC(task_cfg)); pos ++)
     {
         TASKS_CFG *tasks_cfg;
@@ -842,11 +842,11 @@ TASKS_CFG *task_cfg_searchs_by_ip(const TASK_CFG *task_cfg, const UINT32 ipaddr,
 
         if(EC_TRUE == tasks_cfg_match_ip(tasks_cfg, ipaddr, port))
         {
-            CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0025);
+            CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0026);
             return (tasks_cfg);
         }
     }
-    CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0026);
+    CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0027);
     return (NULL_PTR);
 }
 
@@ -854,7 +854,7 @@ TASKS_CFG *task_cfg_searchs_by_netcards(const TASK_CFG *task_cfg, const CSET *cn
 {
     UINT32 pos;
 
-    CVECTOR_LOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0027);
+    CVECTOR_LOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0028);
     for(pos = 0; pos < cvector_size(TASK_CFG_TASKS_CFG_VEC(task_cfg)); pos ++)
     {
         TASKS_CFG *tasks_cfg;
@@ -867,11 +867,11 @@ TASKS_CFG *task_cfg_searchs_by_netcards(const TASK_CFG *task_cfg, const CSET *cn
 
         if(EC_TRUE == tasks_cfg_match_netcards(tasks_cfg, cnetcard_set))
         {
-            CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0028);
+            CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0029);
             return (tasks_cfg);
         }
     }
-    CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0029);
+    CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0030);
     return (NULL_PTR);
 }
 
@@ -879,7 +879,7 @@ TASKS_CFG *task_cfg_searchs_by_csrv(const TASK_CFG *task_cfg, const UINT32 tcid,
 {
     UINT32 pos;
 
-    CVECTOR_LOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0030);
+    CVECTOR_LOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0031);
     for(pos = 0; pos < cvector_size(TASK_CFG_TASKS_CFG_VEC(task_cfg)); pos ++)
     {
         TASKS_CFG *tasks_cfg;
@@ -892,11 +892,11 @@ TASKS_CFG *task_cfg_searchs_by_csrv(const TASK_CFG *task_cfg, const UINT32 tcid,
 
         if(EC_TRUE == tasks_cfg_match_csrv(tasks_cfg, tcid, csrvport))
         {
-            CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0031);
+            CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0032);
             return (tasks_cfg);
         }
     }
-    CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0032);
+    CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0033);
     return (NULL_PTR);
 }
 
@@ -941,7 +941,7 @@ void task_cfg_print_xml(LOG *log, const TASK_CFG *task_cfg, const UINT32 level)
     taskx_cfg_ident_print_xml(log, level);
     task_cfg_head_print_xml(log, task_cfg, level);
 
-    CVECTOR_LOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0033);
+    CVECTOR_LOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0034);
     for(pos = 0; pos < num; pos ++)
     {
         TASKS_CFG *tasks_cfg;
@@ -954,7 +954,7 @@ void task_cfg_print_xml(LOG *log, const TASK_CFG *task_cfg, const UINT32 level)
 
         tasks_cfg_print_xml(log, tasks_cfg, level + 1);
     }
-    CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0034);
+    CVECTOR_UNLOCK(TASK_CFG_TASKS_CFG_VEC(task_cfg), LOC_TASKCFG_0035);
 
     taskx_cfg_ident_print_xml(log, level);
     sys_print(log, "</taskConfig>\n");

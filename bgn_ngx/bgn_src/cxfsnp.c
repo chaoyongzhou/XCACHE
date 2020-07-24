@@ -552,7 +552,6 @@ EC_BOOL cxfsnp_item_init(CXFSNP_ITEM *cxfsnp_item)
     CXFSNP_ITEM_DIR_FLAG(cxfsnp_item)         = CXFSNP_ITEM_FILE_IS_ERR;
     CXFSNP_ITEM_USED_FLAG(cxfsnp_item)        = CXFSNP_ITEM_IS_NOT_USED;
     CXFSNP_ITEM_PARENT_POS(cxfsnp_item)       = CXFSNPRB_ERR_POS;/*fix*/
-    CXFSNP_ITEM_CREATE_TIME(cxfsnp_item)      = 0;
     CXFSNP_ITEM_SECOND_HASH(cxfsnp_item)      = 0;
 
     cxfsnp_fnode_init(CXFSNP_ITEM_FNODE(cxfsnp_item));
@@ -567,7 +566,6 @@ EC_BOOL cxfsnp_item_clean(CXFSNP_ITEM *cxfsnp_item)
     CXFSNP_ITEM_DIR_FLAG(cxfsnp_item)         = CXFSNP_ITEM_FILE_IS_ERR;
     CXFSNP_ITEM_USED_FLAG(cxfsnp_item)        = CXFSNP_ITEM_IS_NOT_USED;
     CXFSNP_ITEM_PARENT_POS(cxfsnp_item)       = CXFSNPRB_ERR_POS;/*fix bug: break pointer to parent*/
-    CXFSNP_ITEM_CREATE_TIME(cxfsnp_item)      = 0;
     CXFSNP_ITEM_SECOND_HASH(cxfsnp_item)      = 0;
 
     /*note:do nothing on rb_node*/
@@ -591,7 +589,6 @@ EC_BOOL cxfsnp_item_clone(const CXFSNP_ITEM *cxfsnp_item_src, CXFSNP_ITEM *cxfsn
 
     CXFSNP_ITEM_USED_FLAG(cxfsnp_item_des)   =  CXFSNP_ITEM_USED_FLAG(cxfsnp_item_src);
     CXFSNP_ITEM_DIR_FLAG(cxfsnp_item_des)    =  CXFSNP_ITEM_DIR_FLAG(cxfsnp_item_src);
-    CXFSNP_ITEM_CREATE_TIME(cxfsnp_item_des) = CXFSNP_ITEM_CREATE_TIME(cxfsnp_item_src);
     CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item_des)  = CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item_src);
     CXFSNP_ITEM_PARENT_POS(cxfsnp_item_des)  = CXFSNP_ITEM_PARENT_POS(cxfsnp_item_src);
     CXFSNP_ITEM_SECOND_HASH(cxfsnp_item_des) = CXFSNP_ITEM_SECOND_HASH(cxfsnp_item_src);
@@ -647,12 +644,11 @@ void cxfsnp_item_print(LOG *log, const CXFSNP_ITEM *cxfsnp_item)
 {
     uint32_t pos;
 
-    sys_print(log, "cxfsnp_item %p: flag 0x%x [%s], stat %u, create time %u, hash %u, "
+    sys_print(log, "cxfsnp_item %p: flag 0x%x [%s], stat %u, hash %u, "
                    "key offset %u, parent %u, que node (%u, %u), del node (%u, %u)\n",
                     cxfsnp_item,
                     CXFSNP_ITEM_DIR_FLAG(cxfsnp_item), __cxfsnp_item_dir_flag_str(CXFSNP_ITEM_DIR_FLAG(cxfsnp_item)),
                     CXFSNP_ITEM_USED_FLAG(cxfsnp_item),
-                    CXFSNP_ITEM_CREATE_TIME(cxfsnp_item),
                     CXFSNP_ITEM_SECOND_HASH(cxfsnp_item),
                     CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item),
                     CXFSNP_ITEM_PARENT_POS(cxfsnp_item),
@@ -698,12 +694,11 @@ void cxfsnp_item_and_key_print(LOG *log, const CXFSNP_ITEM *cxfsnp_item)
 {
     uint32_t pos;
 
-    sys_print(log, "cxfsnp_item %p: flag 0x%x [%s], stat %u, klen %u, create time %u, hash %u\n",
+    sys_print(log, "cxfsnp_item %p: flag 0x%x [%s], stat %u, klen %u, hash %u\n",
                     cxfsnp_item,
                     CXFSNP_ITEM_DIR_FLAG(cxfsnp_item), __cxfsnp_item_dir_flag_str(CXFSNP_ITEM_DIR_FLAG(cxfsnp_item)),
                     CXFSNP_ITEM_USED_FLAG(cxfsnp_item),
                     CXFSNP_ITEM_KLEN(cxfsnp_item),
-                    CXFSNP_ITEM_CREATE_TIME(cxfsnp_item),
                     CXFSNP_ITEM_SECOND_HASH(cxfsnp_item)
                     );
 
@@ -2009,7 +2004,6 @@ CXFSNP_ITEM *cxfsnp_fetch(const CXFSNP *cxfsnp, const uint32_t node_pos)
             return (CXFSNP_ITEM *)CXFSNP_RB_NODE_ITEM(node);
         }
     }
-    //dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_fetch: np %u, fetch cxfsnprb node %u failed\n", CXFSNP_ID(cxfsnp), node_pos);
     return (NULL_PTR);
 }
 
@@ -3471,7 +3465,7 @@ STATIC_CAST static EC_BOOL __cxfsnp_list_seg_vec(const CXFSNP *cxfsnp, const uin
         __cxfsnp_list_seg_vec(cxfsnp, CXFSNPRB_NODE_LEFT_POS(node), path_cstr_vec);
     }
 
-    seg_name_cstr = cstring_new(NULL_PTR, LOC_CXFSNP_0022);
+    seg_name_cstr = cstring_new(NULL_PTR, LOC_CXFSNP_0024);
     if(NULL_PTR == seg_name_cstr)
     {
         dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:__cxfsnp_list_seg_vec: "
@@ -3527,7 +3521,7 @@ EC_BOOL cxfsnp_list_seg_vec(const CXFSNP *cxfsnp, const uint32_t node_pos, CVECT
     {
         CSTRING *seg_name_cstr;
 
-        seg_name_cstr = cstring_new(NULL_PTR, LOC_CXFSNP_0024);
+        seg_name_cstr = cstring_new(NULL_PTR, LOC_CXFSNP_0025);
         if(NULL_PTR == seg_name_cstr)
         {
             dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:cxfsnp_list_seg_vec: np %u, new seg str failed\n", CXFSNP_ID(cxfsnp));
@@ -3846,18 +3840,18 @@ STATIC_CAST static EC_BOOL __cxfsnp_get_item_full_path(const CXFSNP *cxfsnp, con
         return (EC_FALSE);
     }
 
-    path = safe_malloc(CXFSNP_PATH_MAX_LEN, LOC_CXFSNP_0025);
+    path = safe_malloc(CXFSNP_PATH_MAX_LEN, LOC_CXFSNP_0026);
     if(NULL_PTR == path)
     {
         dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:__cxfsnp_get_item_full_path: malloc %u bytes failed\n", CXFSNP_PATH_MAX_LEN);
         return (EC_FALSE);
     }
 
-    cstack = cstack_new(MM_IGNORE, LOC_CXFSNP_0026);
+    cstack = cstack_new(MM_IGNORE, LOC_CXFSNP_0027);
     if(NULL_PTR == cstack)
     {
         dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "error:__cxfsnp_get_item_full_path: new cstack failed\n");
-        safe_free(path, LOC_CXFSNP_0027);
+        safe_free(path, LOC_CXFSNP_0028);
         return (EC_FALSE);
     }
     cur_node_pos = node_pos;
@@ -3902,7 +3896,7 @@ STATIC_CAST static EC_BOOL __cxfsnp_get_item_full_path(const CXFSNP *cxfsnp, con
         //sys_print(log, "%s [klen %u, node_pos %u]\n", (char *)path, CXFSNP_ITEM_KLEN(cxfsnp_item), node_pos);
     }
 
-    cstack_free(cstack, LOC_CXFSNP_0028);
+    cstack_free(cstack, LOC_CXFSNP_0029);
 
     if(path_len >= path_max_len)
     {
@@ -3952,7 +3946,7 @@ EC_BOOL cxfsnp_show_item_full_path(LOG *log, const CXFSNP *cxfsnp, const uint32_
         sys_log(log, "err: %s\n", path);
     }
 
-    safe_free(path, LOC_CXFSNP_0029);
+    safe_free(path, LOC_CXFSNP_0030);
     return (EC_TRUE);
 }
 

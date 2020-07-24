@@ -1054,10 +1054,10 @@ void *cvector_vote(const CVECTOR *cvector, EC_BOOL (*voter)(const void *, const 
 
     void *best_data;
 
-    CVECTOR_LOCK(cvector, LOC_CVECTOR_0076);
+    CVECTOR_LOCK(cvector, LOC_CVECTOR_0074);
     if(EC_TRUE == cvector_is_empty(cvector))
     {
-        CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0077);
+        CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0075);
         return (void *)0;
     }
 
@@ -1069,7 +1069,7 @@ void *cvector_vote(const CVECTOR *cvector, EC_BOOL (*voter)(const void *, const 
             best_data = cvector->data[ pos ];
         }
     }
-    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0078);
+    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0076);
     return best_data;
 }
 
@@ -1079,10 +1079,10 @@ UINT32 cvector_vote_pos(const CVECTOR *cvector, EC_BOOL (*voter)(const void *, c
 
     UINT32 best_data_pos;
 
-    CVECTOR_LOCK(cvector, LOC_CVECTOR_0079);
+    CVECTOR_LOCK(cvector, LOC_CVECTOR_0077);
     if(EC_TRUE == cvector_is_empty(cvector))
     {
-        CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0080);
+        CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0078);
         return (CVECTOR_ERR_POS);
     }
 
@@ -1094,7 +1094,7 @@ UINT32 cvector_vote_pos(const CVECTOR *cvector, EC_BOOL (*voter)(const void *, c
             best_data_pos = pos;
         }
     }
-    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0081);
+    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0079);
     return (best_data_pos);
 }
 
@@ -1115,12 +1115,12 @@ void *cvector_vote_with_prev_filter(const CVECTOR *cvector, const void *conditio
 
     void *best_data;
 
-    CVECTOR_LOCK(cvector, LOC_CVECTOR_0082);
+    CVECTOR_LOCK(cvector, LOC_CVECTOR_0080);
 
     best_data = NULL_PTR;
     if(EC_TRUE == cvector_is_empty(cvector))
     {
-        CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0083);
+        CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0081);
         return (void *)0;
     }
 
@@ -1136,7 +1136,7 @@ void *cvector_vote_with_prev_filter(const CVECTOR *cvector, const void *conditio
     /*if not find any data satifying condition, then return nothing*/
     if(pos >=  cvector->size)
     {
-        CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0084);
+        CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0082);
         return (void *)0;
     }
 
@@ -1154,7 +1154,7 @@ void *cvector_vote_with_prev_filter(const CVECTOR *cvector, const void *conditio
             best_data = cvector->data[ pos ];
         }
     }
-    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0085);
+    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0083);
     return (best_data);
 }
 
@@ -1164,12 +1164,12 @@ void *cvector_vote_with_post_filter(const CVECTOR *cvector, const void *conditio
 
     void *best_data;
 
-    CVECTOR_LOCK(cvector, LOC_CVECTOR_0086);
+    CVECTOR_LOCK(cvector, LOC_CVECTOR_0084);
 
     best_data = NULL_PTR;
     if(EC_TRUE == cvector_is_empty(cvector))
     {
-        CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0087);
+        CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0085);
         return (void *)0;
     }
 
@@ -1185,7 +1185,7 @@ void *cvector_vote_with_post_filter(const CVECTOR *cvector, const void *conditio
     /*if not find any data satifying condition, then return nothing*/
     if(pos >=  cvector->size)
     {
-        CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0088);
+        CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0086);
         return (void *)0;
     }
 
@@ -1203,7 +1203,7 @@ void *cvector_vote_with_post_filter(const CVECTOR *cvector, const void *conditio
             best_data = cvector->data[ pos ];
         }
     }
-    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0089);
+    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0087);
     return (best_data);
 }
 
@@ -1212,10 +1212,10 @@ void *cvector_erase(CVECTOR *cvector, const UINT32 pos)
     void *data;
     UINT32 cur;
 
-    CVECTOR_LOCK(cvector, LOC_CVECTOR_0090);
+    CVECTOR_LOCK(cvector, LOC_CVECTOR_0088);
     if(pos >= cvector->size)
     {
-        CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0091);
+        CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0089);
         return (void *)0;
     }
 
@@ -1227,7 +1227,7 @@ void *cvector_erase(CVECTOR *cvector, const UINT32 pos)
 
     cvector->size --;
 
-    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0092);
+    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0090);
     return data;
 }
 
@@ -1266,7 +1266,7 @@ void cvector_merge_with_clone(const CVECTOR *cvector_src, CVECTOR *cvector_des, 
 
     cvector_codec_clone(cvector_src, cvector_des);
 
-    CVECTOR_LOCK(cvector_src, LOC_CVECTOR_0093);
+    CVECTOR_LOCK(cvector_src, LOC_CVECTOR_0091);
     /*not necessary to lock cvector_des here*/
 
     if(NULL_PTR == cvector_data_malloc || NULL_PTR == cvector_data_clone)
@@ -1294,7 +1294,7 @@ void cvector_merge_with_clone(const CVECTOR *cvector_src, CVECTOR *cvector_des, 
             }
         }
     }
-    CVECTOR_UNLOCK(cvector_src, LOC_CVECTOR_0094);
+    CVECTOR_UNLOCK(cvector_src, LOC_CVECTOR_0092);
     return;
 }
 
@@ -1307,7 +1307,7 @@ void cvector_merge_with_move(CVECTOR *cvector_src, CVECTOR *cvector_des, EC_BOOL
 
     cvector_codec_clone(cvector_src, cvector_des);
 
-    CVECTOR_LOCK(cvector_src, LOC_CVECTOR_0095);
+    CVECTOR_LOCK(cvector_src, LOC_CVECTOR_0093);
     /*not necessary to lock cvector_des here*/
 
     for(pos = 0; pos < cvector_src->size; pos ++)
@@ -1320,7 +1320,7 @@ void cvector_merge_with_move(CVECTOR *cvector_src, CVECTOR *cvector_des, EC_BOOL
         }
     }
 
-    CVECTOR_UNLOCK(cvector_src, LOC_CVECTOR_0096);
+    CVECTOR_UNLOCK(cvector_src, LOC_CVECTOR_0094);
     return;
 }
 
@@ -1329,7 +1329,7 @@ void cvector_merge_direct(CVECTOR *cvector_src, CVECTOR *cvector_des)
     UINT32 pos;
     void *src_data;
 
-    CVECTOR_LOCK(cvector_src, LOC_CVECTOR_0097);
+    CVECTOR_LOCK(cvector_src, LOC_CVECTOR_0095);
     /*not necessary to lock cvector_des here*/
 
     for(pos = 0; pos < cvector_src->size; pos ++)
@@ -1342,7 +1342,7 @@ void cvector_merge_direct(CVECTOR *cvector_src, CVECTOR *cvector_des)
         }
     }
 
-    CVECTOR_UNLOCK(cvector_src, LOC_CVECTOR_0098);
+    CVECTOR_UNLOCK(cvector_src, LOC_CVECTOR_0096);
     return;
 }
 
@@ -1362,7 +1362,7 @@ UINT32 cvector_count(const CVECTOR *cvector, const void *data, EC_BOOL (*cmp)(co
         data_cmp = cmp;
     }
 
-    CVECTOR_LOCK(cvector, LOC_CVECTOR_0099);
+    CVECTOR_LOCK(cvector, LOC_CVECTOR_0097);
     for(count = 0, pos = 0; pos < cvector->size; pos ++)
     {
         if(EC_TRUE == data_cmp(cvector->data[ pos ], data))
@@ -1370,7 +1370,7 @@ UINT32 cvector_count(const CVECTOR *cvector, const void *data, EC_BOOL (*cmp)(co
             count ++;
         }
     }
-    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0100);
+    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0098);
     return (count);
 }
 
@@ -1380,7 +1380,7 @@ void cvector_print(LOG *log, const CVECTOR *cvector, void (*handler)(LOG *, cons
 
     sys_log(log, "cvector %lx, size %ld, capacity %ld\n", cvector, cvector->size, cvector->capacity);
 
-    CVECTOR_LOCK(cvector, LOC_CVECTOR_0101);
+    CVECTOR_LOCK(cvector, LOC_CVECTOR_0099);
     for(pos = 0; pos < cvector->size; pos ++)
     {
         if(NULL_PTR == cvector->data[ pos ])
@@ -1398,7 +1398,7 @@ void cvector_print(LOG *log, const CVECTOR *cvector, void (*handler)(LOG *, cons
         sys_log(log, "cvector %lx No. %ld: ", cvector, pos);
         (handler)(log, cvector->data[ pos ]);
     }
-    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0102);
+    CVECTOR_UNLOCK(cvector, LOC_CVECTOR_0100);
     return;
 }
 
