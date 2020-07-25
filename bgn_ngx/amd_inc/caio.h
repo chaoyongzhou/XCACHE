@@ -207,7 +207,6 @@ typedef struct
 
     /*statistics*/
     CAIO_STAT                caio_stat;
-    CAIO_STAT                caio_stat_saved;
 }CAIO_DISK;
 
 #define CAIO_DISK_FD(caio_disk)                         ((caio_disk)->fd)
@@ -217,7 +216,6 @@ typedef struct
 #define CAIO_DISK_SUBMIT_REQ_NUM(caio_disk)             ((caio_disk)->submit_req_num)
 #define CAIO_DISK_BAD_BITMAP(caio_disk)                 ((caio_disk)->bad_bitmap)
 #define CAIO_DISK_STAT(caio_disk)                       (&((caio_disk)->caio_stat))
-#define CAIO_DISK_STAT_SAVED(caio_disk)                 (&((caio_disk)->caio_stat_saved))
 
 typedef void (*CAIO_EVENT_HANDLER)(void *);
 
@@ -672,8 +670,6 @@ EC_BOOL caio_poll(CAIO_MD *caio_md);
 EC_BOOL caio_is_overhead(CAIO_MD *caio_md);
 
 void caio_process(CAIO_MD *caio_md);
-
-void caio_process_stat(CAIO_MD *caio_md);
 
 void caio_process_reqs(CAIO_MD *caio_md);
 

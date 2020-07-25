@@ -891,7 +891,6 @@ EC_BOOL caio_disk_init(CAIO_DISK *caio_disk)
     CAIO_DISK_BAD_BITMAP(caio_disk)             = NULL_PTR;
 
     caio_stat_init(CAIO_DISK_STAT(caio_disk));
-    caio_stat_init(CAIO_DISK_STAT_SAVED(caio_disk));
     return (EC_TRUE);
 }
 
@@ -907,7 +906,6 @@ EC_BOOL caio_disk_clean(CAIO_DISK *caio_disk)
         CAIO_DISK_BAD_BITMAP(caio_disk)             = NULL_PTR;
 
         caio_stat_clean(CAIO_DISK_STAT(caio_disk));
-        caio_stat_clean(CAIO_DISK_STAT_SAVED(caio_disk));
     }
 
     return (EC_TRUE);
@@ -3567,155 +3565,8 @@ void caio_process(CAIO_MD *caio_md)
     caio_process_pages(caio_md);
     caio_process_events(caio_md);
     caio_process_reqs(caio_md);
-    /*caio_process_stat(caio_md);*/
 
    return;
-}
-
-void caio_process_stat(CAIO_MD *caio_md)
-{
-    CLIST_DATA  *clist_data;
-    uint64_t     cur_time_msec;
-
-    cur_time_msec = c_get_cur_time_msec();
-
-    CLIST_LOOP_NEXT(CAIO_MD_DISK_LIST(caio_md), clist_data)
-    {
-        CAIO_DISK       *caio_disk;
-        CAIO_STAT       *caio_stat;
-        CAIO_STAT       *caio_stat_saved;
-
-        caio_disk= CLIST_DATA_DATA(clist_data);
-        if(NULL_PTR == caio_disk)
-        {
-            continue;
-        }
-
-        caio_stat       = CAIO_DISK_STAT(caio_disk);
-        caio_stat_saved = CAIO_DISK_STAT_SAVED(caio_disk);
-
-        if(cur_time_msec < CAIO_STAT_NEXT_TIME_MSEC(caio_stat))
-        {
-            continue;
-        }
-
-        if(do_log(SEC_0093_CAIO, 3))
-        {
-            uint64_t        read_qps;
-            uint64_t        write_qps;
-
-            uint64_t        read_mps;
-            uint64_t        write_mps;
-
-            uint64_t        cost_msec;
-            uint64_t        cost_nbytes;
-            uint64_t        cost_reqs;
-
-            uint64_t        dispatch_hit;
-            uint64_t        dispatch_miss;
-
-            uint64_t        rd_page_is_aligned_counter;
-            uint64_t        rd_page_not_aligned_counter;
-
-            uint64_t        wr_page_is_aligned_counter;
-            uint64_t        wr_page_not_aligned_counter;
-
-            uint64_t        rd_node_is_aligned_counter;
-            uint64_t        rd_node_not_aligned_counter;
-
-            uint64_t        wr_node_is_aligned_counter;
-            uint64_t        wr_node_not_aligned_counter;
-
-            uint64_t        mem_reused_counter;
-
-            cost_reqs   = CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_RD) - CAIO_STAT_OP_COUNTER(caio_stat_saved, CAIO_OP_RD);
-            cost_nbytes = CAIO_STAT_OP_NBYTES(caio_stat, CAIO_OP_RD)  - CAIO_STAT_OP_NBYTES(caio_stat_saved, CAIO_OP_RD);
-            cost_msec   = CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_RD)  - CAIO_STAT_COST_MSEC(caio_stat_saved, CAIO_OP_RD);
-            read_qps    = (0 == cost_msec? 0 : ((cost_reqs * 1000) / cost_msec));
-            read_mps    = (0 == cost_msec? 0 : ((cost_nbytes * 1000) / (cost_msec * 1024 * 1024)));
-
-            cost_reqs   = CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_WR) - CAIO_STAT_OP_COUNTER(caio_stat_saved, CAIO_OP_WR);
-            cost_nbytes = CAIO_STAT_OP_NBYTES(caio_stat, CAIO_OP_WR)  - CAIO_STAT_OP_NBYTES(caio_stat_saved, CAIO_OP_WR);
-            cost_msec   = CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_WR)  - CAIO_STAT_COST_MSEC(caio_stat_saved, CAIO_OP_WR);
-            write_qps   = (0 == cost_msec? 0 : ((cost_reqs * 1000) / cost_msec));
-            write_mps   = (0 == cost_msec? 0 : ((cost_nbytes * 1000) / (cost_msec * 1024 * 1024)));
-
-            dispatch_hit  = CAIO_STAT_DISPATCH_HIT(caio_stat)  - CAIO_STAT_DISPATCH_HIT(caio_stat_saved);
-            dispatch_miss = CAIO_STAT_DISPATCH_MISS(caio_stat) - CAIO_STAT_DISPATCH_MISS(caio_stat_saved);
-
-            rd_page_is_aligned_counter  = CAIO_STAT_PAGE_IS_ALIGNED_COUNTER(caio_stat, CAIO_OP_RD)
-                                        - CAIO_STAT_PAGE_IS_ALIGNED_COUNTER(caio_stat_saved, CAIO_OP_RD);
-            rd_page_not_aligned_counter = CAIO_STAT_PAGE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_OP_RD)
-                                        - CAIO_STAT_PAGE_NOT_ALIGNED_COUNTER(caio_stat_saved, CAIO_OP_RD);
-
-            wr_page_is_aligned_counter  = CAIO_STAT_PAGE_IS_ALIGNED_COUNTER(caio_stat, CAIO_OP_WR)
-                                        - CAIO_STAT_PAGE_IS_ALIGNED_COUNTER(caio_stat_saved, CAIO_OP_WR);
-            wr_page_not_aligned_counter = CAIO_STAT_PAGE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_OP_WR)
-                                        - CAIO_STAT_PAGE_NOT_ALIGNED_COUNTER(caio_stat_saved, CAIO_OP_WR);
-
-            rd_node_is_aligned_counter  = CAIO_STAT_NODE_IS_ALIGNED_COUNTER(caio_stat, CAIO_OP_RD)
-                                        - CAIO_STAT_NODE_IS_ALIGNED_COUNTER(caio_stat_saved, CAIO_OP_RD);
-            rd_node_not_aligned_counter = CAIO_STAT_NODE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_OP_RD)
-                                        - CAIO_STAT_NODE_NOT_ALIGNED_COUNTER(caio_stat_saved, CAIO_OP_RD);
-
-            wr_node_is_aligned_counter  = CAIO_STAT_NODE_IS_ALIGNED_COUNTER(caio_stat, CAIO_OP_WR)
-                                        - CAIO_STAT_NODE_IS_ALIGNED_COUNTER(caio_stat_saved, CAIO_OP_WR);
-            wr_node_not_aligned_counter = CAIO_STAT_NODE_NOT_ALIGNED_COUNTER(caio_stat, CAIO_OP_WR)
-                                        - CAIO_STAT_NODE_NOT_ALIGNED_COUNTER(caio_stat_saved, CAIO_OP_WR);
-
-            mem_reused_counter = CAIO_STAT_MEM_REUSED_COUNTER(caio_stat) - CAIO_STAT_MEM_REUSED_COUNTER(caio_stat_saved);
-
-            sys_log(LOGSTDOUT, "caio_process_stat:"
-                       "disk %d, tag %s, "
-                       "[RD] counter %lu, nbytes %ld, cost %lu, qps %lu, speed %lu MB/s, "
-                       "[WR] counter %lu, nbytes %ld, cost %lu, qps %lu, speed %lu MB/s, "
-                       "dispatch hit %lu, dispatch miss %lu, "
-                       "[RD] page aligned %lu, page not aligned %lu, "
-                       "[WR] page aligned %lu, page not aligned %lu, "
-                       "[RD] node aligned %lu, node not aligned %lu, "
-                       "[WR] node aligned %lu, node not aligned %lu, "
-                       "mem reused %lu\n",
-                       CAIO_DISK_FD(caio_disk),
-                       CAIO_DISK_TAG(caio_disk),
-
-                       CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_RD) - CAIO_STAT_OP_COUNTER(caio_stat_saved, CAIO_OP_RD),
-                       CAIO_STAT_OP_NBYTES(caio_stat, CAIO_OP_RD)  - CAIO_STAT_OP_NBYTES(caio_stat_saved, CAIO_OP_RD),
-                       CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_RD)  - CAIO_STAT_COST_MSEC(caio_stat_saved, CAIO_OP_RD),
-                       read_qps,
-                       read_mps,
-
-                       CAIO_STAT_OP_COUNTER(caio_stat, CAIO_OP_WR) - CAIO_STAT_OP_COUNTER(caio_stat_saved, CAIO_OP_WR),
-                       CAIO_STAT_OP_NBYTES(caio_stat, CAIO_OP_WR)  - CAIO_STAT_OP_NBYTES(caio_stat_saved, CAIO_OP_WR),
-                       CAIO_STAT_COST_MSEC(caio_stat, CAIO_OP_WR)  - CAIO_STAT_COST_MSEC(caio_stat_saved, CAIO_OP_WR),
-                       write_qps,
-                       write_mps,
-
-                       dispatch_hit,
-                       dispatch_miss,
-
-                       rd_page_is_aligned_counter,
-                       rd_page_not_aligned_counter,
-
-                       wr_page_is_aligned_counter,
-                       wr_page_not_aligned_counter,
-
-                       rd_node_is_aligned_counter,
-                       rd_node_not_aligned_counter,
-
-                       wr_node_is_aligned_counter,
-                       wr_node_not_aligned_counter,
-
-                       mem_reused_counter);
-        }
-
-        /*save*/
-        BCOPY(caio_stat, caio_stat_saved, sizeof(CAIO_STAT));
-
-        /*set next time*/
-        CAIO_STAT_NEXT_TIME_MSEC(caio_stat) = cur_time_msec + CAIO_STAT_INTERVAL_NSEC * 1000;
-    }
-
-    return;
 }
 
 void caio_process_reqs(CAIO_MD *caio_md)
