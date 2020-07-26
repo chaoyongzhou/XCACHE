@@ -4329,15 +4329,6 @@ EC_BOOL caio_add_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
 
 EC_BOOL caio_del_req(CAIO_MD *caio_md, CAIO_REQ *caio_req)
 {
-    sys_log(LOGSTDOUT, "[DEBUG] caio_del_req: node %p: parent = %p, left = %p, right = %p, color = %s, data = %p\n",
-                       CAIO_REQ_MOUNTED_TIMEOUT(caio_req),
-                       CRBBASE_NODE_PARENT(CAIO_REQ_MOUNTED_TIMEOUT(caio_req)),
-                       CRBBASE_NODE_LEFT(CAIO_REQ_MOUNTED_TIMEOUT(caio_req)),
-                       CRBBASE_NODE_RIGHT(CAIO_REQ_MOUNTED_TIMEOUT(caio_req)),
-                       (CRBBASE_NODE_IS_RED(CAIO_REQ_MOUNTED_TIMEOUT(caio_req)) ? "red  " : "black"),
-                       crbbase_tree_node_data(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), CAIO_REQ_MOUNTED_TIMEOUT(caio_req))
-                       );
-
     if(EC_FALSE == crbbase_node_is_empty(CAIO_REQ_MOUNTED_TIMEOUT(caio_req)))
     {
         crbbase_tree_erase(CAIO_MD_REQ_TIMEOUT_TREE(caio_md), CAIO_REQ_MOUNTED_TIMEOUT(caio_req));
