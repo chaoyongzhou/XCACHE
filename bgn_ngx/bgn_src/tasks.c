@@ -2087,7 +2087,7 @@ EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tci
         TASKS_ASSERT(TASK_REQ_SENDAGN != TASK_NODE_STATUS(task_node));
 
         dbg_log(SEC_0121_TASKS, 0)(LOGSTDOUT, "error:tasks_worker_isend_node: "
-                        "des_tcid %s not exit where "
+                        "des_tcid %s not exist where "
                         "(tcid %s,comm %ld,rank %ld,modi %ld) -> (tcid %s,comm %ld,rank %ld,modi %ld), "
                         "with priority %ld, type %ld, tag %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx\n",
                         c_word_to_ipv4(des_tcid),

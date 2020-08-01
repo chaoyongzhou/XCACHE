@@ -4948,7 +4948,7 @@ EC_BOOL caio_file_read(CAIO_MD *caio_md, int fd, UINT32 *offset, const UINT32 rs
     CAIO_REQ_F_E_OFFSET(caio_req)   = (*offset) + rsize;
     CAIO_REQ_U_S_OFFSET(caio_req)   = CAIO_REQ_F_E_OFFSET(caio_req);
     CAIO_REQ_TIMEOUT_NSEC(caio_req) = timeout_nsec;
-    CAIO_REQ_NTIME_MS(caio_req)     = c_get_cur_time_msec() + timeout_nsec * 1000;
+    CAIO_REQ_NTIME_MS(caio_req)     = CAIO_REQ_S_MSEC(caio_req) + timeout_nsec * 1000;
 
     if(EC_FALSE == caio_submit_req(caio_md, caio_req))
     {
@@ -5019,7 +5019,7 @@ EC_BOOL caio_file_write(CAIO_MD *caio_md, int fd, UINT32 *offset, const UINT32 w
     CAIO_REQ_F_E_OFFSET(caio_req)   = (*offset) + wsize;
     CAIO_REQ_U_S_OFFSET(caio_req)   = CAIO_REQ_F_E_OFFSET(caio_req);
     CAIO_REQ_TIMEOUT_NSEC(caio_req) = timeout_nsec;
-    CAIO_REQ_NTIME_MS(caio_req)     = c_get_cur_time_msec() + timeout_nsec * 1000;
+    CAIO_REQ_NTIME_MS(caio_req)     = CAIO_REQ_S_MSEC(caio_req) + timeout_nsec * 1000;
 
     if(EC_FALSE == caio_submit_req(caio_md, caio_req))
     {
