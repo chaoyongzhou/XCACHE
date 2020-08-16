@@ -768,8 +768,6 @@ EC_BOOL alloc_nodeblock_static_mem(const UINT32 type)
 
     pMan = &(g_mem_manager[ type ]);
 
-    //man_debug("alloc_nodeblock_static_mem[1]: ", pMan);
-
     /*alloc a node block and intilize it */
     size = sizeof(MM_NODE_BLOCK)
          + pMan->nodenumperblock * sizeof ( MM_NODE )
@@ -804,6 +802,7 @@ EC_BOOL alloc_nodeblock_static_mem(const UINT32 type)
 
         /*set the current node be un-used status*/
         pNode->usedflag = MM_NODE_NOT_USED;
+        pNode->counter  = 0;
 
         /*link the memory piece which will be used by user's defined type but not memory manager*/
         pNode->pmem = pNodeBlock->pbaseaddr + ( node_idx * (pNodeBlock->typesize + sizeof(MM_AUX)) );
@@ -820,23 +819,14 @@ EC_BOOL alloc_nodeblock_static_mem(const UINT32 type)
     pNodeBlock->maxusedsum = 0;
     pNodeBlock->curusedsum = 0;
 
-    //nodeblock_debug("alloc_nodeblock_static_mem[3]: ", pNodeBlock);
     /*link the new node block to manager*/
     MAN_LINKNODEBLOCK_NODE_ADD_HEAD(pMan, pNodeBlock);
 
-    //man_debug("alloc_nodeblock_static_mem[4]: ", pMan);
-    //nodeblock_debug("alloc_nodeblock_static_mem[5]: ", pNodeBlock);
-
     MAN_FREENODEBLOCK_NODE_ADD_HEAD(pMan, pNodeBlock);
-
-    //nodeblock_debug("alloc_nodeblock_static_mem[6]: ", pNodeBlock);
-    //man_debug("alloc_nodeblock_static_mem[7]: ", pMan);
-
 
     /*update manager's stat data*/
     pMan->nodeblocknum ++;
     pMan->nodenumsum = pMan->nodenumsum + pNodeBlock->nodenum;
-    //dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "alloc_nodeblock_static_mem: type = %ld, nodenum = %ld, nodenumsum = %ld\n", type, pNodeBlock->nodenum, pMan->nodenumsum);
 
     return ( EC_TRUE );
 }
@@ -868,7 +858,6 @@ EC_BOOL free_nodeblock_static_mem(MM_MAN *pMan, MM_NODE_BLOCK *pNodeBlock)
     /*update the node block's stat data*/
     pNodeBlock->maxusedsum = 0;
     pNodeBlock->curusedsum = 0;
-
 
     /*the node block has no any node entity now*/
     pNodeBlock->nextfree = NODE_LIST_TAIL;
@@ -949,7 +938,7 @@ UINT32 fetch_static_mem_typesize(UINT32 type)
 *   which makes the BGN package more flexible.
 *
 **/
-UINT32 alloc_static_mem_0(const UINT32 location, const UINT32 type,void **ppvoid)
+UINT32 alloc_static_mem_0(const UINT32 location, const UINT32 type, void **ppvoid)
 {
     MM_MAN *pMan;
     MM_NODE *pNode;
@@ -976,12 +965,6 @@ UINT32 alloc_static_mem_0(const UINT32 location, const UINT32 type,void **ppvoid
     if(1)
     {
         (*ppvoid) = safe_malloc(pMan->typesize, location);
-#if 0
-        void *__pvoid;
-
-        __pvoid = malloc((size_t)pMan->typesize);
-        (*ppvoid) = __pvoid;
-#endif
         return (0);
     }
 #endif/*(SWITCH_ON == MM_DEBUG)*/
@@ -992,11 +975,6 @@ UINT32 alloc_static_mem_0(const UINT32 location, const UINT32 type,void **ppvoid
     if ( pMan->curusedsum >= pMan->nodenumsum )
     {
         ret = alloc_nodeblock_static_mem(type);
-        //dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "=========================== debug beg ============================\n");
-        //print_static_mem_diag_info(LOGSTDOUT);
-        //dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "=========================== debug end ============================\n");
-        //dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "==================== alloc_static_mem_0: type = %ld =================\n", type);
-        //print_static_mem_status(LOGSTDOUT);
 
         /*if failed to alloc a new node block, then exit*/
         if ( EC_FALSE == ret )
@@ -1013,23 +991,7 @@ UINT32 alloc_static_mem_0(const UINT32 location, const UINT32 type,void **ppvoid
     }
 
     pNodeBlock = MAN_FREENODEBLOCK_FIRST_NODE(pMan);
-#if 0
-    UINT32 count = 0;
-    /*now the manager has at least one more free node, then find one out*/
-    for ( pNodeBlock = pMan->pnodeblockhead; NULL_PTR != pNodeBlock; pNodeBlock = pNodeBlock->pnextlinknodeblock )
-    {
-        count ++;
-        if ( pNodeBlock->nextfree < pNodeBlock->nodenum )
-        {
-            break;
-        }
-    }
 
-    if(count >= 8)
-    {
-        dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "alloc_static_mem_0: type = %ld, count = %ld\n", type, count);
-    }
-#endif
     /* that pNodeBlock is null is impossible, since a new node block is alloced just now.*/
     if ( NULL_PTR == pNodeBlock )
     {
@@ -1061,9 +1023,9 @@ UINT32 alloc_static_mem_0(const UINT32 location, const UINT32 type,void **ppvoid
     }
 
     pNodeBlock->nextfree = pNode->next;
-    pNode->usedflag    = MM_NODE_USED;
-
-    pNode->location = location;
+    pNode->usedflag      = MM_NODE_USED;
+    pNode->counter       = 1;
+    pNode->location      = location;
 
     *ppvoid = pNode->pmem + sizeof(MM_AUX);
     MM_ASSERT(((MM_AUX *)pNode->pmem)->type == type);
@@ -1113,7 +1075,7 @@ UINT32 alloc_static_mem_0(const UINT32 location, const UINT32 type,void **ppvoid
 *       3) this node is not allocated by alloc_static_mem_0
 *
 **/
-UINT32 free_static_mem_0(const UINT32 location, const UINT32 type,void *pvoid)
+UINT32 free_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
 {
     MM_MAN *pMan;
     MM_NODE *pNode;
@@ -1147,9 +1109,6 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type,void *pvoid)
     pMan = &(g_mem_manager[ type ]);
 
 #if(SWITCH_ON == MM_DEBUG)
-#if 0
-    free(pvoid);
-#endif
     safe_free(pvoid, location);
     return (0);
 #endif/*(SWITCH_ON == MM_DEBUG)*/
@@ -1167,7 +1126,6 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type,void *pvoid)
     }
 
     /* search the node's position and update relative info */
-    //pAux = (MM_AUX *)(*(UINT32 *)((UINT8 *)pvoid - sizeof(MM_AUX)));
     pAux = (MM_AUX *)((UINT32)pvoid - sizeof(MM_AUX));
     pNodeBlock = pAux->u.nodeblock;
 
@@ -1224,9 +1182,30 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type,void *pvoid)
         exit ( 2 );
     }
 
-    pNode->usedflag    = MM_NODE_NOT_USED;
+    if ( 0 == pNode->counter)
+    {
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error:free_static_mem_0: status error:the node %p to free of the Manager %ld is not used (counter %u).\n",
+                        pvoid, type, pNode->counter);
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error was free at: %s:%ld\n",MM_LOC_FILE_NAME(pNode->location),MM_LOC_LINE_NO(pNode->location));
 
-    pNode->location = /*LOC_NONE_BASE*/location;
+        MAN_UNLOCK(pMan, LOC_MM_0256);
+
+        c_backtrace_dump(LOGSTDOUT);
+
+        exit ( 2 );
+    }
+
+    pNode->counter --;
+
+    if (0 < pNode->counter)
+    {
+        return 0;
+    }
+
+    pNode->usedflag = MM_NODE_NOT_USED;
+    pNode->counter  = 0;
+    pNode->location = location;
 
     pNode->next = pNodeBlock->nextfree;
     pNodeBlock->nextfree = node_idx;
@@ -1248,6 +1227,132 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type,void *pvoid)
     {
         free_nodeblock_static_mem(pMan, pNodeBlock);
     }
+
+    MAN_UNLOCK(pMan, LOC_MM_0257);
+    return 0;
+}
+
+UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
+{
+    MM_MAN *pMan;
+    MM_NODE *pNode;
+    MM_AUX * pAux;
+    MM_NODE_BLOCK *pNodeBlock;
+    UINT32 offset;
+    UINT32 node_idx;
+    UINT32 res;
+
+    if ( EC_FALSE == g_mem_init_flag)
+    {
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error:reuse_static_mem_0: mm is not initialized yet.\n");
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
+        exit ( 2 );
+    }
+
+    if ( MM_END <= type )
+    {
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error:reuse_static_mem_0: parameter type %ld is invalid.\n", type);
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
+        exit ( 2 );
+    }
+
+    if ( NULL_PTR == pvoid )
+    {
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error:reuse_static_mem_0: parameter pvoid is null.\n");
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
+        exit ( 2 );
+    }
+
+    pMan = &(g_mem_manager[ type ]);
+
+#if(SWITCH_ON == MM_DEBUG)
+    ASSERT(0);
+#endif/*(SWITCH_ON == MM_DEBUG)*/
+
+    MAN_LOCK(pMan, LOC_MM_0251);
+
+    if ( 0 == pMan->curusedsum )
+    {
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error:reuse_static_mem_0: the manager %ld has no any node being used.\n", type);
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld, pvoid %p\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location), pvoid);
+        print_static_mem_status(LOGSTDOUT);
+
+        MAN_UNLOCK(pMan, LOC_MM_0252);
+        exit ( 2 );
+    }
+
+    /* search the node's position and update relative info */
+    pAux = (MM_AUX *)((UINT32)pvoid - sizeof(MM_AUX));
+    pNodeBlock = pAux->u.nodeblock;
+
+    /* if the address pMem does not belong to this manager, then report error */
+    if ( NULL_PTR == pNodeBlock )
+    {
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error:reuse_static_mem_0: pvoid = 0x%lx is out of this manager control.\n",
+                        (UINT32)pvoid);
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
+
+        MAN_UNLOCK(pMan, LOC_MM_0253);
+        exit ( 2 );
+    }
+
+    /* now the address pMem belong to the node block pNodeBlock*/
+    offset = (UINT32)(( (UINT8 *) pvoid ) - sizeof(MM_AUX) - ( pNodeBlock->pbaseaddr ));
+
+    res = offset % (pNodeBlock->typesize + sizeof(MM_AUX));
+    if ( 0 != res )
+    {
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error:reuse_static_mem_0: pvoid = 0x%lx is not an aligned address.\n",
+                        (UINT32)pvoid);
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
+
+        MAN_UNLOCK(pMan, LOC_MM_0254);
+        exit ( 2 );
+    }
+
+    node_idx = offset / (pNodeBlock->typesize + sizeof(MM_AUX));
+    if ( node_idx >= pNodeBlock->nodenum )
+    {
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,
+                        "error:reuse_static_mem_0:status error:the node with index = %ld to free of Manager %ld is out of management.\n",
+                        node_idx,
+                        type);
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
+
+        MAN_UNLOCK(pMan, LOC_MM_0255);
+        exit ( 2 );
+    }
+
+    pNode = &( pNodeBlock->pnodes[ node_idx ] );
+    if ( MM_NODE_NOT_USED == pNode->usedflag)
+    {
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error:reuse_static_mem_0: status error:the node %p to free of the Manager %ld is not used.\n",
+                        pvoid, type);
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error was free at: %s:%ld\n",MM_LOC_FILE_NAME(pNode->location),MM_LOC_LINE_NO(pNode->location));
+
+        MAN_UNLOCK(pMan, LOC_MM_0256);
+
+        c_backtrace_dump(LOGSTDOUT);
+
+        exit ( 2 );
+    }
+
+    if ( 0 == pNode->counter)
+    {
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error:reuse_static_mem_0: status error:the node %p to free of the Manager %ld is not used (counter %u).\n",
+                        pvoid, type, pNode->counter);
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
+        dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error was free at: %s:%ld\n",MM_LOC_FILE_NAME(pNode->location),MM_LOC_LINE_NO(pNode->location));
+
+        MAN_UNLOCK(pMan, LOC_MM_0256);
+
+        c_backtrace_dump(LOGSTDOUT);
+
+        exit ( 2 );
+    }
+
+    pNode->counter ++;
 
     MAN_UNLOCK(pMan, LOC_MM_0257);
     return 0;
@@ -1283,14 +1388,9 @@ UINT32 breathing_static_mem()
         pMan = &(g_mem_manager[ type ]);
 
         MAN_LOCK(pMan, LOC_MM_0258);
-        //dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "breathing_static_mem: type = %ld\n", type);
-        //man_debug("breathing_static_mem: ", pMan);
 
         MAN_FREENODEBLOCK_LOOP_NEXT(pMan, pNodeBlock)
         {
-            //nodeblock_debug("breathing_static_mem: ", pNodeBlock);
-            //dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "breathing_static_mem: pNodeBlock = %lx, curusedsum = %ld\n", pNodeBlock, pNodeBlock->curusedsum);
-
             if ( 0 == pNodeBlock->curusedsum )
             {
                 pNodeBlock = NODEBLOCK_FREENODE_PREV(pNodeBlock);
@@ -1335,8 +1435,6 @@ UINT32 destory_static_mem()
             free_nodeblock_static_mem(pMan, NODEBLOCK_LINKNODE_NEXT(pNodeBlock));
         }
 
-        //pMan->nodenumsum = 0;
-        //pMan->nodeblocknum = 0;
         /*validity checking*/
         if(0 < pMan->nodenumsum)
         {
@@ -1410,41 +1508,6 @@ void safe_free_0(void *pvoid, const UINT32 location)
     free_static_mem(MM_COMM_NODE, mm_comm, location);
     free(pmem);
     return;
-}
-
-void *safe_realloc_x(void *old_pvoid, const UINT32 new_size, const UINT32 location)
-{
-    void *old_pmem;
-    void *new_pmem;
-    void *new_pvoid;
-
-    MM_COMM *old_mm_comm;
-    MM_COMM *new_mm_comm;
-
-    old_pmem = (void *)((UINT32)old_pvoid - sizeof(UINT32));
-    old_mm_comm = (MM_COMM *)(*((UINT32 *)old_pmem));
-
-    alloc_static_mem(MM_COMM_NODE, &new_mm_comm, location);
-
-    new_pmem = realloc(old_pmem, sizeof(UINT32) + new_size);
-    if(new_pmem != old_pmem)
-    {
-        new_pvoid = (void *)((UINT32)new_pmem + sizeof(UINT32));
-
-        *((UINT32 *)new_pmem) = (UINT32)new_mm_comm;
-        new_mm_comm->pmem = new_pmem;
-
-        free_static_mem(MM_COMM_NODE, old_mm_comm, location);
-
-        return (new_pvoid);
-    }
-
-    *((UINT32 *)new_pmem) = (UINT32)new_mm_comm;
-    new_mm_comm->pmem = new_pmem;
-
-    free_static_mem(MM_COMM_NODE, old_mm_comm, location);
-
-    return (old_pvoid);
 }
 
 UINT32 get_static_mem_type(const UINT32 size)
@@ -1555,7 +1618,6 @@ void *safe_fetch_pmem_of_mm_comm(void *pvoid)
 *
 ********************************************************************************************/
 
-#if 1
 void *safe_malloc(const UINT32 size, const UINT32 location)
 {
     void *pmem;
@@ -1601,7 +1663,6 @@ void *safe_malloc(const UINT32 size, const UINT32 location)
         mm_comm->type = MM_END;
         mm_comm->pmem = pmem;
 
-        //ASSERT(EC_TRUE == safe_assert(pvoid, location));
         return (pvoid);
     }
     return (NULL_PTR);
@@ -1626,8 +1687,6 @@ void safe_free(void *pvoid, const UINT32 location)
         return;
     }
 #endif/*(SWITCH_ON == MM_DEBUG)*/
-
-    //ASSERT(EC_TRUE == safe_assert(pvoid, location));
 
     pAux = (MM_AUX *)((UINT32)pvoid - sizeof(MM_AUX));
 
@@ -1663,25 +1722,6 @@ void safe_free(void *pvoid, const UINT32 location)
     free(pmem);
     return;
 }
-#endif
-
-#if 0
-void *safe_malloc(const UINT32 size, const UINT32 location)
-{
-    return malloc(size);
-}
-
-void safe_free(void *pvoid, const UINT32 location)
-{
-    if(pvoid)
-    {
-        free(pvoid);
-    }
-
-    return;
-}
-#endif
-
 
 void safe_copy(UINT8 *old_ptr, UINT8 *new_ptr, UINT32 len)
 {
@@ -1689,69 +1729,14 @@ void safe_copy(UINT8 *old_ptr, UINT8 *new_ptr, UINT32 len)
     return;
 }
 
-#if 0
-/**
-*
-* note:
-*    safe_realloc not support safe_malloc/safe_free to
-* match the defined mem type and alloc/free it due to "free" being used here
-*
-**/
-void *safe_realloc(void *old_pvoid, const UINT32 old_size, const UINT32 new_size, const UINT32 location)
-{
-    MM_AUX  *old_pAux;
-    MM_COMM *mm_comm;
-
-    void *old_pmem;
-    void *new_pmem;
-
-    old_pAux = (MM_AUX *)((UINT32)old_pvoid - sizeof(MM_AUX));
-    mm_comm  = old_pAux->u.mm_comm;/*will keep unchanged after realloc*/
-
-    old_pmem = (void *)(old_pAux);
-
-    new_pmem = realloc(old_pmem, sizeof(MM_AUX) + new_size);
-    if(new_pmem != old_pmem)
-    {
-        MM_AUX  *new_pAux;
-        void *new_pvoid;
-
-        new_pAux  = (MM_AUX *)(new_pmem);
-        new_pvoid = (void *)((UINT32)new_pmem + sizeof(MM_AUX));
-        //BCOPY(old_pvoid, new_pvoid, DMIN(old_size, new_size));/*for both expand and shrink*/
-
-        /*reuse mm_comm*/
-        mm_comm->pmem = new_pmem;
-
-        /*set new_pAux*/
-        new_pAux->type      = MM_END;
-        new_pAux->u.mm_comm = mm_comm;
-
-        //free(old_pmem);
-
-        return (new_pvoid);
-    }
-    return (old_pvoid);
-}
-#endif
 void *safe_realloc(void *old_pvoid, const UINT32 old_size, const UINT32 new_size, const UINT32 location)
 {
     void *new_pvoid;
 
     new_pvoid = safe_malloc(new_size, location);
-    //ASSERT(EC_TRUE == safe_assert(new_pvoid, location));
-    //safe_copy((UINT8 *)old_pvoid, (UINT8 *)new_pvoid, old_size);
-    BCOPY(old_pvoid, new_pvoid, DMIN(old_size, new_size));/*for both expand and shrink*/
-#if 0
-    dbg_log(SEC_0066_MM, 9)(LOGSTDOUT, "[DEBUG] safe_realloc: %p (size %ld, pmem %p) -> %p (size %ld, pmem %p)at %s:%ld\n",
-                        old_pvoid, old_size,__safe_fetch_pmem_of_mm_comm(old_pvoid),
-                        new_pvoid, new_size,__safe_fetch_pmem_of_mm_comm(new_pvoid),
-                        MM_LOC_FILE_NAME(location),
-                        MM_LOC_LINE_NO(location));
-#endif
-    safe_free(old_pvoid, location);
 
-    //ASSERT(EC_TRUE == safe_assert(new_pvoid, location));
+    BCOPY(old_pvoid, new_pvoid, DMIN(old_size, new_size));/*for both expand and shrink*/
+    safe_free(old_pvoid, location);
 
     return (new_pvoid);
 }
@@ -1850,14 +1835,9 @@ UINT32 print_static_mem_diag_info_of_type(LOG *log, const UINT32 type)
 
     /* do this manager */
     pMan = &(g_mem_manager[ type ]);
-    //MAN_LOCK(pMan, LOC_MM_0264);
-
-    //dbg_log(SEC_0066_MM, 3)(LOGSTDOUT, "print_static_mem_diag_info: type = %ld\n", type);
-    //man_debug("print_static_mem_diag_info: ", pMan);
 
     MAN_LINKNODEBLOCK_LOOP_NEXT(pMan, pNodeBlock)
     {
-        //dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] pNodeBlock = %lx\n", pNodeBlock);
         /* do this node block */
         node_num = pNodeBlock->nodenum;
         for ( node_idx = 0; node_idx < node_num; node_idx ++ )
@@ -1867,11 +1847,12 @@ UINT32 print_static_mem_diag_info_of_type(LOG *log, const UINT32 type)
 
             if ( MM_NODE_USED == pNode->usedflag)
             {
-                sys_log(log,"Manager %4ld [%s]: file name = %s, line no = %ld, addr = %lx\n",
+                sys_log(log,"Manager %4ld [%s]: file name = %s, line no = %ld, addr = %p, counter = %u\n",
                     type, pMan->name,
                     MM_LOC_FILE_NAME(pNode->location),
                     MM_LOC_LINE_NO(pNode->location),
-                    pNode->pmem + sizeof(MM_AUX));
+                    pNode->pmem + sizeof(MM_AUX),
+                    pNode->counter);
             }
         }
     }
@@ -1901,14 +1882,9 @@ UINT32 print_static_mem_diag_detail_of_type(LOG *log, const UINT32 type, void (*
 
     /* do this manager */
     pMan = &(g_mem_manager[ type ]);
-    //MAN_LOCK(pMan, LOC_MM_0265);
-
-    //dbg_log(SEC_0066_MM, 3)(LOGSTDOUT, "print_static_mem_diag_info: type = %ld\n", type);
-    //man_debug("print_static_mem_diag_info: ", pMan);
 
     MAN_LINKNODEBLOCK_LOOP_NEXT(pMan, pNodeBlock)
     {
-        //dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] pNodeBlock = %lx\n", pNodeBlock);
         /* do this node block */
         node_num = pNodeBlock->nodenum;
         for ( node_idx = 0; node_idx < node_num; node_idx ++ )
@@ -1918,11 +1894,12 @@ UINT32 print_static_mem_diag_detail_of_type(LOG *log, const UINT32 type, void (*
 
             if ( MM_NODE_USED == pNode->usedflag)
             {
-                sys_log(log,"Manager %4ld [%s]: file name = %s, line no = %ld, addr = %lx\n",
+                sys_log(log,"Manager %4ld [%s]: file name = %s, line no = %ld, addr = %p, counter = %u\n",
                     type, pMan->name,
                     MM_LOC_FILE_NAME(pNode->location),
                     MM_LOC_LINE_NO(pNode->location),
-                    pNode->pmem + sizeof(MM_AUX));
+                    pNode->pmem + sizeof(MM_AUX),
+                    pNode->counter);
                 show(log, (void *)(pNode->pmem + sizeof(MM_AUX)));
             }
         }
@@ -2056,7 +2033,6 @@ UINT32 print_static_mem_stat_info_of_type(LOG *log, const UINT32 type)
 
     MAN_LINKNODEBLOCK_LOOP_NEXT(pMan, pNodeBlock)
     {
-        //dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] pNodeBlock = %lx\n", pNodeBlock);
         /* do this node block */
         node_num = pNodeBlock->nodenum;
         for ( node_idx = 0; node_idx < node_num; node_idx ++ )

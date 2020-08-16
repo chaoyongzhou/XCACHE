@@ -11,13 +11,13 @@ ROOT_DIR = .
 
 MBITS = $(shell getconf LONG_BIT)
 
-prefix = /usr/local/xfs
-DEPEND_DIR ?= /usr/local/xfs/depend
-
-LIB_DIR  = $(ROOT_DIR)/lib/xfs_lib
-OBJ_DIR  = $(ROOT_DIR)/obj/xfs_obj
+LIB_DIR  = $(ROOT_DIR)/lib/tool_lib
+OBJ_DIR  = $(ROOT_DIR)/obj/tool_obj
 BIN_DIR  = $(ROOT_DIR)/bin
 TOOL_DIR = $(ROOT_DIR)/tool
+
+prefix = /usr/local/xfs
+DEPEND_DIR ?= /usr/local/xfs/depend
 
 OPENSSL_DIR ?= $(DEPEND_DIR)/openssl
 OPENSSL_INC_DIR = $(OPENSSL_DIR)/include
@@ -61,17 +61,9 @@ NCURSES_INC = -I $(NCURSES_INC_DIR)
 #NCURSES_LIB = -Wl,-rpath,$(NCURSES_LIB_DIR) -L $(NCURSES_LIB_DIR) -lncurses
 NCURSES_LIB = $(NCURSES_LIB_DIR)/libncurses.a
 
-PMDK_DIR = /usr/local
-PMDK_INC_DIR = $(PMDK_DIR)/include
-PMDK_LIB_DIR = $(PMDK_DIR)/lib
-#PMDK_INC = -I $(PMDK_INC_DIR)
-#PMDK_LIB = $(PMDK_LIB_DIR)/libpmem.a
-PMDK_INC =
-PMDK_LIB =
+EXT_INC = $(XML2_INC) $(EXPAT_INC) $(PCRE_INC) $(READLINE_INC) $(NCURSES_INC) $(OPENSSL_INC)
+EXT_LIB = $(XML2_LIB) $(EXPAT_LIB) $(PCRE_LIB) $(READLINE_LIB) $(NCURSES_LIB) $(OPENSSL_LIB) -lm -lrt -lpthread -lz -rdynamic -ldl
 
-EXT_INC = $(XML2_INC) $(EXPAT_INC) $(PCRE_INC) $(READLINE_INC) $(NCURSES_INC) $(OPENSSL_INC) $(PMDK_INC)
-EXT_LIB = $(XML2_LIB) $(EXPAT_LIB) $(PCRE_LIB) $(READLINE_LIB) $(NCURSES_LIB) $(OPENSSL_LIB) $(PMDK_LIB) -lm -lrt -lpthread -lz -rdynamic -ldl
-#EXT_LIB = $(XML2_LIB) $(EXPAT_LIB) $(PCRE_LIB) $(READLINE_LIB) $(NCURSES_LIB) $(OPENSSL_LIB) $(PMDK_LIB) -lm -lrt -lpthread -lz -rdynamic -ldl -lndctl -ldaxctl
 BGN_SRC  = $(ROOT_DIR)/bgn_src
 BGN_INC  = -I $(ROOT_DIR)/bgn_inc
 BGN_LIB  = -L $(LIB_DIR) -lbgn
@@ -109,7 +101,6 @@ MEM_BUFF_16M  = 16777216
 MEM_BUFF_32M  = 33554432
 MEM_BUFF_64M  = 67108864
 MEM_BUFF_128M = 134217728
-
 
 FILE_LOG_RECORDS_400 = 400
 FILE_LOG_RECORDS_001K  = 1000
@@ -191,9 +182,9 @@ CMACRO = \
          -DWORDSIZE=${WORDSIZE} \
          -DDOUBLESIZE=${DOUBLESIZE} \
          -DBYTESIZE=${BYTESIZE} \
-         -DCROUTINE_SUPPORT_COROUTINE_SWITCH=SWITCH_ON \
-         -DCROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH=SWITCH_ON \
-         -DCROUTINE_SUPPORT_CTHREAD_SWITCH=SWITCH_OFF \
+         -DCROUTINE_SUPPORT_COROUTINE_SWITCH=SWITCH_OFF \
+         -DCROUTINE_SUPPORT_SINGLE_CTHREAD_SWITCH=SWITCH_OFF \
+         -DCROUTINE_SUPPORT_CTHREAD_SWITCH=SWITCH_ON \
          -DTASK_REQ_SHORTCUT=SWITCH_OFF \
          -DTASK_FWD_SHORTCUT=SWITCH_ON \
          -DCROUTINE_STACK_MAX_SIZE=${CTHREAD_STACK_MAX_SIZE_064K} \
@@ -257,7 +248,7 @@ CLINKER  = /usr/bin/gcc
 AR       = /usr/bin/ar cr
 
 # ignore Wunused-function, Wuninitialized, Wunused-parameter
-CWARNS   = -Wall -Werror
+CWARNS   = -Wall
 
 #COPTS = -g
 COPTS = -g -O2
@@ -270,9 +261,10 @@ JSON_OBJS = $(patsubst $(JSON_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(JSON_SRC)/*
 REL_OBJS  = $(patsubst $(REL_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(REL_SRC)/*.c))
 TST_OBJS  = $(patsubst $(TST_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(TST_SRC)/*.c))
 
-XFS_OBJS = $(OBJ_DIR)/demo_hsxfs.o
+XFS_OBJS = $(OBJ_DIR)/test_cxfs_tool.o
+RFS_OBJS = $(OBJ_DIR)/test_crfs_tool.o
 
-default: xfs xfs_tool
+default: xfs_tool
 
 libbgn: $(BGN_OBJS)
 	$(AR) $(LIB_DIR)/libbgn.a $(BGN_OBJS)
@@ -283,11 +275,11 @@ libamd: $(AMD_OBJS)
 libjson: $(JSON_OBJS)
 	$(AR) $(LIB_DIR)/libjson.a $(JSON_OBJS)
 
-xfs: libbgn libamd libjson $(XFS_OBJS)
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/xfs $(XFS_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
+xfs_tool: libbgn libamd libjson libjson $(XFS_OBJS)
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/xfs_tool $(XFS_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
 
-xfs_tool:
-	$(MAKE) -C $(ROOT_DIR) -f Makefile.tool
+rfs_tool: libbgn libamd libjson libjson $(RFS_OBJS)
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/rfs_tool $(RFS_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
 
 bgn: libbgn $(REL_OBJS)
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/bgn $(REL_OBJS) $(BGN_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(EXT_LIB)
@@ -295,38 +287,8 @@ bgn: libbgn $(REL_OBJS)
 link: $(REL_OBJS)
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/bgn $(REL_OBJS) $(BGN_INC) $(EXT_INC) $(BGN_LIB) $(EXT_LIB)
 
-test_local_ipv4: libbgn libamd libjson $(OBJ_DIR)/test_local_ipv4.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_local_ipv4.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
-
-test_clistbase: libbgn libamd libjson $(OBJ_DIR)/test_clistbase.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_clistbase.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
-
-test_crbbase: libbgn libamd libjson $(OBJ_DIR)/test_crbbase.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_crbbase.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
-
-test_reuse_mem: libbgn libamd libjson $(OBJ_DIR)/test_reuse_mem.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_reuse_mem.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
-
-test_keepalive: libbgn libamd libjson $(OBJ_DIR)/test_keepalive.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_keepalive.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
-
-test_csdisc: libbgn libamd libjson $(OBJ_DIR)/test_csdisc.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_csdisc.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
-
-test_cxml: libbgn libamd libjson $(OBJ_DIR)/test_cxml.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_cxml.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
-
-test_cxfspgb: libbgn libamd libjson $(OBJ_DIR)/test_cxfspgb.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_cxfspgb.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
-
 test_json_1: libbgn libjson obj/crun.o obj/test_json_1.o
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_json_1.o $(BGN_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
-
-test_cconhash: libbgn libamd libjson $(OBJ_DIR)/test_cconhash.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_cconhash.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
-
-test_cdequeue: libbgn libamd libjson $(OBJ_DIR)/test_cdequeue.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_cdequeue.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
 
 test_csys: libbgn obj/crun.o obj/test_csys.o
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_csys.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
@@ -337,20 +299,14 @@ test_list: libbgn obj/crun.o obj/test_list.o
 test_file_load: libbgn obj/crun.o obj/test_file_load.o
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_file_load.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
 
-test_sizeof: libbgn libjson $(OBJ_DIR)/test_sizeof.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_sizeof.o $(BGN_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
+test_sizeof: libbgn obj/crun.o obj/test_sizeof.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_sizeof.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
 
 test_cexpat: libbgn obj/crun.o obj/test_cexpat.o
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cexpat.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
 
-test_crbuff: libbgn libjson $(OBJ_DIR)/test_crbuff.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_crbuff.o $(BGN_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
-
-test_cmc: libbgn libamd libjson $(OBJ_DIR)/test_cmc.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_cmc.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
-
-test_cmcdn: libbgn libamd libjson $(OBJ_DIR)/test_cmcdn.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_cmcdn.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
+test_crfsc: libbgn obj/crun.o obj/test_crfsc.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_crfsc.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
 
 test_crb: libbgn obj/crun.o obj/test_crb.o
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_crb.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
@@ -367,17 +323,17 @@ test_cpgd: libbgn obj/crun.o obj/test_cpgd.o
 test_cpgv: libbgn obj/crun.o obj/test_cpgv.o
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cpgv.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
 
-test_cxfsdn: libbgn obj/crun.o obj/test_cxfsdn.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cxfsdn.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
+test_crfsdn: libbgn obj/crun.o obj/test_crfsdn.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_crfsdn.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
 
-test_cxfsnp: libbgn obj/crun.o obj/test_cxfsnp.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cxfsnp.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
+test_crfsnp: libbgn obj/crun.o obj/test_crfsnp.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_crfsnp.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
 
-test_cxfs: libbgn obj/crun.o obj/test_cxfs.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cxfs.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
+test_crfs: libbgn obj/crun.o obj/test_crfs.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_crfs.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
 
 $(BGN_OBJS): $(OBJ_DIR)/%.o: $(BGN_SRC)/%.c
-	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(JSON_INC) $(EXT_INC) -o $@
+	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(JSON_INC) $(EXT_INC) -o $@	
 
 $(AMD_OBJS): $(OBJ_DIR)/%.o: $(AMD_SRC)/%.c
 	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(JSON_INC) $(EXT_INC) -o $@
@@ -391,28 +347,22 @@ $(REL_OBJS): $(OBJ_DIR)/%.o: $(REL_SRC)/%.c
 $(TST_OBJS): $(OBJ_DIR)/%.o: $(TST_SRC)/%.c
 	$(CC) $(CFLAGS) -c $< $(TST_INC) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(EXT_INC) -o $@
 
-install: xfs xfs_tool
-	install -p -D bin/xfs $(DESTDIR)$(prefix)/bin/xfs
+install: xfs_tool
 	install -p -D bin/xfs_tool $(DESTDIR)$(prefix)/bin/xfs_tool
-	install -p -D build/xfs/debian/xfs_init.sh $(DESTDIR)$(prefix)/bin/xfs_init.sh
-	install -p -D build/xfs/debian/xfs_cfg_scan.pl $(DESTDIR)$(prefix)/bin/xfs_cfg_scan.pl
-	install -p -D build/xfs/debian/xfs.deb.service $(DESTDIR)/etc/systemd/system/xfs.deb.service
-	install -p -D build/xfs/debian/xfs.cli $(DESTDIR)/etc/init.d/xfs
-	install -p -D build/xfs/debian/xfs_crontab $(DESTDIR)/etc/cron.d/xfs
 
 clean-obj:
-	$(if $(wildcard $(OBJ_DIR)/*.o), rm -f $(OBJ_DIR)/*.o,)
+	$(if $(wildcard $(OBJ_DIR)/*.o), rm -f $(OBJ_DIR)/*.o,)	
 
 clean-lib:
-	$(if $(wildcard $(LIB_DIR)/*.a),rm -f $(LIB_DIR)/*.a,)
+	$(if $(wildcard $(LIB_DIR)/*.a),rm -f $(LIB_DIR)/*.a,)	
 	$(if $(wildcard $(LIB_DIR)/*.so),rm -f $(LIB_DIR)/*.so,)
 
 clean-log:
-	$(if $(wildcard $(BIN_DIR)/*.log),rm -f $(BIN_DIR)/*.log,)
+	$(if $(wildcard $(BIN_DIR)/*.log),rm -f $(BIN_DIR)/*.log,)	
 
 clean-bin:
-	$(if $(wildcard $(BIN_DIR)/xfs),rm -f $(BIN_DIR)/xfs,)
 	$(if $(wildcard $(BIN_DIR)/xfs_tool),rm -f $(BIN_DIR)/xfs_tool,)
+	$(if $(wildcard $(BIN_DIR)/rfs_tool),rm -f $(BIN_DIR)/rfs_tool,)
 
 clean-trial: clean-log clean-bin clean-obj
 	

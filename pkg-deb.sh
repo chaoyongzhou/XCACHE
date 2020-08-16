@@ -1,6 +1,7 @@
 #! /bin/sh
 
 pkg=${1:-all}
+verbose=${2:-off}
 work_dir=$(pwd)
 bgn_dir=bgn_ngx
 
@@ -51,7 +52,12 @@ make_pkg_xcache()
 
    version=$1
 
-   ln -s ${work_dir}/${bgn_dir}/build/xcache/debian/xcache-pkg-deb.sh .
+   if [ "${verbose}" == "off" ]; then
+       ln -s ${work_dir}/${bgn_dir}/build/xcache/debian/xcache-pkg-deb.sh .
+   else
+       echo "[xcache] debug version"
+       ln -s ${work_dir}/${bgn_dir}/build/xcache/debian/xcache-pkg-deb.debug.sh ./xcache-pkg-deb.sh
+   fi
 
    sh xcache-pkg-deb.sh nginx ${version}
    ret=$?

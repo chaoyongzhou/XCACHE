@@ -380,24 +380,24 @@ extern "C"{
 #define NODE_LIST_TAIL ((UINT32)~0)
 
 /*MM_USED_FLAG*/
-#define MM_NODE_NOT_USED ((UINT32) 0)
-#define MM_NODE_USED     ((UINT32) 1)
-#define MM_NODE_OBSOLETE ((UINT32) 2)
+#define MM_NODE_NOT_USED ((uint32_t) 0)
+#define MM_NODE_USED     ((uint32_t) 1)
 
 typedef struct
 {
-    UINT32  next;
-    UINT32  usedflag;
+    UINT32      next;
+    uint32_t    usedflag;
+    uint32_t    counter;  /*reference counter*/
 
-    UINT32 location;
+    UINT32      location;
 
-    UINT8 * pmem;
+    UINT8      *pmem;
 }MM_NODE;
 
 typedef struct _MM_NODE_BLOCK
 {
-    LIST_NODE      linknodeblock;      /*the mount point of nodeblock in linked nodeblock list of manager. note: after initialization, never modify it until destroy*/
-    LIST_NODE      freenodeblock;      /*the mount point of nodeblock in free nodeblock list of manager. empty means it not belong to manager, otherwise, belong ot manager*/
+    LIST_NODE       linknodeblock;      /*the mount point of nodeblock in linked nodeblock list of manager. note: after initialization, never modify it until destroy*/
+    LIST_NODE       freenodeblock;      /*the mount point of nodeblock in free nodeblock list of manager. empty means it not belong to manager, otherwise, belong ot manager*/
 
     /*current node block info*/
     UINT32          nodenum;        /*number of nodes*/
@@ -407,9 +407,9 @@ typedef struct _MM_NODE_BLOCK
     UINT32          curusedsum;     /*stat data: current number of used nodes*/
 
     UINT32          nextfree;       /*next free node index,if no free node anymore, set it to NODE_LIST_TAIL*/
-    MM_NODE *       pnodes;         /*split the memory space into nodes and link them one by one, meanwhile it's the free nodes spool*/
-    UINT8   *       pbaseaddr;      /*the head address of memory space under management, head belong to the memory space*/
-    UINT8   *       ptailaddr;      /*the tail address of memory space under management, tail is out of the memory space*/
+    MM_NODE        *pnodes;         /*split the memory space into nodes and link them one by one, meanwhile it's the free nodes spool*/
+    UINT8          *pbaseaddr;      /*the head address of memory space under management, head belong to the memory space*/
+    UINT8          *ptailaddr;      /*the tail address of memory space under management, tail is out of the memory space*/
 }MM_NODE_BLOCK;
 
 typedef struct
@@ -423,15 +423,15 @@ typedef struct
     UINT32          type;
     union
     {
-        MM_NODE_BLOCK * nodeblock;
-        MM_COMM       * mm_comm;
+        MM_NODE_BLOCK *nodeblock;
+        MM_COMM       *mm_comm;
     }u;
 }MM_AUX;
 
 typedef struct
 {
-    UINT32  type;
-    UINT8  *        name;
+    UINT32          type;
+    UINT8          *name;
     UINT32          nodenumsum;        /*number of nodes*/
     UINT32          nodeblocknum;      /*number of node blocks*/
     UINT32          nodenumperblock;   /*node number per node block*/
@@ -440,22 +440,22 @@ typedef struct
     UINT32          maxusedsum;        /*stat data: max number of used nodes*/
     UINT32          curusedsum;        /*stat data: current number of used nodes*/
 
-    LIST_NODE       linknodeblockhead;    /*point to the head of the node block list*/
-    LIST_NODE       freenodeblockhead;    /*next free nodeblock,if no free node anymore, set it to NULL_PTR*/
+    LIST_NODE       linknodeblockhead; /*point to the head of the node block list*/
+    LIST_NODE       freenodeblockhead; /*next free nodeblock,if no free node anymore, set it to NULL_PTR*/
 
     CMUTEX          cmutex;
 }MM_MAN;/* Manager */
 
 typedef struct
 {
-    UINT32 location;
+    UINT32      location;
     const char *filename;
-    UINT32 lineno;
+    UINT32      lineno;
 }MM_LOC;
 
 typedef struct
 {
-    UINT32  type;
+    UINT32          type;
     UINT32          nodenumsum;        /*number of nodes*/
     UINT32          maxusedsum;        /*stat data: max number of used nodes*/
     UINT32          curusedsum;        /*stat data: current number of used nodes*/
@@ -468,7 +468,7 @@ typedef struct
 
 typedef struct
 {
-    UINT32  type;
+    UINT32          type;
     REAL            maxusedload;       /*stat data: load percent of max used nodes: (100.0 * maxusedsum) / nodenumsum*/
     REAL            curusedload;       /*stat data: load percent of current used nodes: (100.0 * curusedsum) / nodenumsum*/
 }MM_MAN_LOAD_NODE;
@@ -578,8 +578,9 @@ UINT32 get_line_no_of_location(const UINT32 location);
 
 EC_BOOL check_static_mem_type(const UINT32 type, const UINT32 typesize);
 UINT32 fetch_static_mem_typesize(UINT32 type);
-UINT32 alloc_static_mem_0(const UINT32 location,const UINT32 type,void **ppvoid);
-UINT32 free_static_mem_0(const UINT32 location,const UINT32 type,void *pvoid);
+UINT32 alloc_static_mem_0(const UINT32 location, const UINT32 type, void **ppvoid);
+UINT32 free_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid);
+UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid);
 
 UINT32 init_mm_man(const UINT32 mm_type);
 UINT32 reg_mm_man(const UINT32 mm_type, const char *mm_name, const UINT32 block_num, const UINT32 type_size, const UINT32 location);
@@ -628,6 +629,18 @@ static UINT8 *get_short_file_name(const UINT8 *long_file_name)
     }\
     free_static_mem_0(__location__, mm_type, (void *)pvoid);\
 }while(0)
+
+#define reuse_static_mem(mm_type, pvoid, __location__) do{\
+    UINT32  _static_mem_node_type_size;\
+    EC_BOOL _static_mem_type_flag;\
+    _static_mem_node_type_size = sizeof (*(pvoid));\
+    _static_mem_type_flag = check_static_mem_type(mm_type, _static_mem_node_type_size);\
+    if ( EC_FALSE == _static_mem_type_flag)\
+    {\
+        sys_log(LOGSTDOUT,"reuse_static_mem:>>>at %ld: invalid type %ld.\n",__location__, mm_type);\
+    }\
+    reuse_static_mem_0(__location__, mm_type, (void *)pvoid);\
+}while(0)
 #endif/*(SWITCH_ON == STATIC_MEM_TYPE_CHECK_SWITCH)*/
 
 #if(SWITCH_OFF == STATIC_MEM_TYPE_CHECK_SWITCH)
@@ -637,6 +650,10 @@ static UINT8 *get_short_file_name(const UINT8 *long_file_name)
 
 #define free_static_mem(mm_type, pvoid, __location__) do{\
     free_static_mem_0(__location__,  mm_type, (void *)pvoid);\
+}while(0)
+
+#define reuse_static_mem(mm_type, pvoid, __location__) do{\
+    reuse_static_mem_0(__location__,  mm_type, (void *)pvoid);\
 }while(0)
 #endif/*(SWITCH_OFF == STATIC_MEM_TYPE_CHECK_SWITCH)*/
 

@@ -70,8 +70,9 @@ PMDK_INC =
 PMDK_LIB =
 
 EXT_INC = $(XML2_INC) $(EXPAT_INC) $(PCRE_INC) $(READLINE_INC) $(NCURSES_INC) $(OPENSSL_INC) $(PMDK_INC)
-EXT_LIB = $(XML2_LIB) $(EXPAT_LIB) $(PCRE_LIB) $(READLINE_LIB) $(NCURSES_LIB) $(OPENSSL_LIB) $(PMDK_LIB) -lm -lrt -lpthread -lz -rdynamic -ldl
 #EXT_LIB = $(XML2_LIB) $(EXPAT_LIB) $(PCRE_LIB) $(READLINE_LIB) $(NCURSES_LIB) $(OPENSSL_LIB) $(PMDK_LIB) -lm -lrt -lpthread -lz -rdynamic -ldl -lndctl -ldaxctl
+EXT_LIB = $(XML2_LIB) $(EXPAT_LIB) $(PCRE_LIB) $(READLINE_LIB) $(NCURSES_LIB) $(OPENSSL_LIB) $(PMDK_LIB) -lm -lrt -lpthread -lz -rdynamic -ldl
+
 BGN_SRC  = $(ROOT_DIR)/bgn_src
 BGN_INC  = -I $(ROOT_DIR)/bgn_inc
 BGN_LIB  = -L $(LIB_DIR) -lbgn
@@ -303,9 +304,6 @@ test_clistbase: libbgn libamd libjson $(OBJ_DIR)/test_clistbase.o
 
 test_crbbase: libbgn libamd libjson $(OBJ_DIR)/test_crbbase.o
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_crbbase.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
-
-test_reuse_mem: libbgn libamd libjson $(OBJ_DIR)/test_reuse_mem.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_reuse_mem.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
 
 test_keepalive: libbgn libamd libjson $(OBJ_DIR)/test_keepalive.o
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_keepalive.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
