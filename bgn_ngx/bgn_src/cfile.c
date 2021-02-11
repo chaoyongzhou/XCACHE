@@ -347,6 +347,73 @@ EC_BOOL cfile_md5(const UINT32 cfile_md_id, const CSTRING *file_path, CMD5_DIGES
 
     return (EC_TRUE);
 }
+
+/**
+*
+*  file segment md5
+*
+*
+**/
+EC_BOOL cfile_seg_md5(const UINT32 cfile_md_id, const CSTRING *file_path, const UINT32 seg_offset, const UINT32 seg_size, CMD5_DIGEST *seg_md5sum)
+{
+    int               fd;
+
+#if ( SWITCH_ON == CFILE_DEBUG_SWITCH )
+    if ( CFILE_MD_ID_CHECK_INVALID(cfile_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cfile_seg_md5: cfile module #0x%lx not started.\n",
+                cfile_md_id);
+        cfile_print_module_status(cfile_md_id, LOGSTDOUT);
+        dbg_exit(MD_CFILE, cfile_md_id);
+    }
+#endif/*CFILE_DEBUG_SWITCH*/
+
+    if(EC_TRUE == cstring_is_empty(file_path))
+    {
+        dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_seg_md5: "
+                                              "file path is empty\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == c_file_access((char *)cstring_get_str(file_path), F_OK))
+    {
+        dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_seg_md5: "
+                                              "file '%s' not exist\n",
+                                              (char *)cstring_get_str(file_path));
+        return (EC_FALSE);
+    }
+
+    fd = c_file_open((char *)cstring_get_str(file_path), O_RDONLY, 0666);
+    if(ERR_FD == fd)
+    {
+        dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_seg_md5: "
+                                              "open file '%s' failed\n",
+                                              (char *)cstring_get_str(file_path));
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == c_file_seg_md5(fd, seg_offset, seg_size, CMD5_DIGEST_SUM(seg_md5sum)))
+    {
+        dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_seg_md5: "
+                                              "md5sum file '%s', seg offset %ld, seg size %ld failed\n",
+                                              (char *)cstring_get_str(file_path),
+                                              seg_offset, seg_size);
+        c_file_close(fd);
+        return (EC_FALSE);
+    }
+
+    c_file_close(fd);
+
+    dbg_log(SEC_0069_CFILE, 9)(LOGSTDOUT, "[DEBUG] cfile_seg_md5: "
+                                          "file '%s', seg offset %ld, seg size %ld => md5 %s\n",
+                                          (char *)cstring_get_str(file_path),
+                                          seg_offset, seg_size,
+                                          cmd5_digest_hex_str(seg_md5sum));
+
+    return (EC_TRUE);
+}
+
 /**
 *
 *  load whole file
@@ -401,16 +468,125 @@ EC_BOOL cfile_load(const UINT32 cfile_md_id, const CSTRING *file_path, CBYTES *f
 
 /**
 *
+*  load file segment
+*
+*
+**/
+EC_BOOL cfile_seg_load(const UINT32 cfile_md_id, const CSTRING *file_path, const UINT32 seg_offset, const UINT32 seg_size, CBYTES *seg_content)
+{
+    CBYTES           *seg_content_t;
+
+    UINT32            data_len;
+    UINT8            *data_buf;
+    UINT32            aligned;
+
+    UINT32            offset;
+    UINT32            size;
+
+    UINT32            file_size;
+    int               file_fd;
+
+#if ( SWITCH_ON == CFILE_DEBUG_SWITCH )
+    if ( CFILE_MD_ID_CHECK_INVALID(cfile_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cfile_seg_load: cfile module #0x%lx not started.\n",
+                cfile_md_id);
+        cfile_print_module_status(cfile_md_id, LOGSTDOUT);
+        dbg_exit(MD_CFILE, cfile_md_id);
+    }
+#endif/*CFILE_DEBUG_SWITCH*/
+
+    if(EC_TRUE == cstring_is_empty(file_path))
+    {
+        dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_seg_load: "
+                                              "file path is empty\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == c_file_access((char *)cstring_get_str(file_path), F_OK))
+    {
+        dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_seg_load: "
+                                              "file '%s' not exist\n",
+                                              (char *)cstring_get_str(file_path));
+        return (EC_FALSE);
+    }
+
+    file_fd = c_file_open((char *)cstring_get_str(file_path), O_RDONLY, 0666);
+    if(ERR_FD == file_fd)
+    {
+        dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_seg_load: "
+                                              "open file '%s' failed\n",
+                                              (char *)cstring_get_str(file_path));
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == c_file_size(file_fd, &file_size))
+    {
+        dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_seg_load: "
+                                              "size of file '%s' failed\n",
+                                              (char *)cstring_get_str(file_path));
+        c_file_close(file_fd);
+        return (EC_FALSE);
+    }
+
+    if(file_size >= seg_offset + seg_size)
+    {
+        offset = seg_offset;
+        size   = seg_size;
+    }
+    else
+    {
+        offset = seg_offset;
+        size   = file_size - seg_offset;
+    }
+
+    seg_content_t = cbytes_new(size);
+    if(NULL_PTR == seg_content_t)
+    {
+        dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_seg_load: "
+                                              "new cbytes with size %ld failed\n",
+                                              size);
+        c_file_close(file_fd);
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == c_file_load(file_fd, &offset, size, CBYTES_BUF(seg_content_t)))
+    {
+        dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_seg_load: "
+                                              "load file '%s', offset %ld, size %ld failed\n",
+                                              (char *)cstring_get_str(file_path),
+                                              offset, size);
+        cbytes_free(seg_content_t);
+        c_file_close(file_fd);
+        return (EC_FALSE);
+    }
+
+
+    cbytes_umount(seg_content_t, &data_len, &data_buf, &aligned);
+    cbytes_mount(seg_content, data_len, data_buf, aligned);
+
+    cbytes_free(seg_content_t);
+    c_file_close(file_fd);
+
+    dbg_log(SEC_0069_CFILE, 9)(LOGSTDOUT, "[DEBUG] cfile_seg_load: "
+                                          "load file '%s' done where len = %ld\n",
+                                          (char *)cstring_get_str(file_path), data_len);
+    return (EC_TRUE);
+}
+
+/**
+*
 *  update file content
 *
 *
 **/
 EC_BOOL cfile_update(const UINT32 cfile_md_id, const CSTRING *file_path, const CBYTES *file_content)
 {
-    int               fd;
-
     UINT32            data_len;
     UINT8            *data_buf;
+
+    int               fd;
 
 #if ( SWITCH_ON == CFILE_DEBUG_SWITCH )
     if ( CFILE_MD_ID_CHECK_INVALID(cfile_md_id) )
@@ -470,6 +646,76 @@ EC_BOOL cfile_update(const UINT32 cfile_md_id, const CSTRING *file_path, const C
     c_file_close(fd);
 
     dbg_log(SEC_0069_CFILE, 9)(LOGSTDOUT, "[DEBUG] cfile_update: "
+                                          "update file '%s' with size %ld done\n",
+                                          (char *)cstring_get_str(file_path), data_len);
+
+    return (EC_TRUE);
+}
+
+
+/**
+*
+*  update file segment content
+*
+*
+**/
+EC_BOOL cfile_seg_update(const UINT32 cfile_md_id, const CSTRING *file_path, const UINT32 seg_offset, const UINT32 seg_size, const CBYTES *seg_content)
+{
+    UINT32            data_len;
+    UINT8            *data_buf;
+
+    int               fd;
+
+#if ( SWITCH_ON == CFILE_DEBUG_SWITCH )
+    if ( CFILE_MD_ID_CHECK_INVALID(cfile_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cfile_seg_update: cfile module #0x%lx not started.\n",
+                cfile_md_id);
+        cfile_print_module_status(cfile_md_id, LOGSTDOUT);
+        dbg_exit(MD_CFILE, cfile_md_id);
+    }
+#endif/*CFILE_DEBUG_SWITCH*/
+
+    if(EC_TRUE == cstring_is_empty(file_path))
+    {
+        dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_seg_update: "
+                                              "file path is empty\n");
+        return (EC_FALSE);
+    }
+
+    fd = c_file_open((char *)cstring_get_str(file_path), O_RDWR | O_CREAT, 0666);
+    if(ERR_FD == fd)
+    {
+        dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_seg_update: "
+                                              "open file '%s' failed\n",
+                                              (char *)cstring_get_str(file_path));
+        return (EC_FALSE);
+    }
+
+
+    data_len = CBYTES_LEN(seg_content);
+    data_buf = CBYTES_BUF(seg_content);
+
+    if(0 < data_len)
+    {
+        UINT32 offset;
+
+        offset = seg_offset;
+
+        if(EC_FALSE == c_file_flush(fd, &offset, data_len, data_buf))
+        {
+            dbg_log(SEC_0069_CFILE, 0)(LOGSTDOUT, "error:cfile_seg_update: "
+                                                  "flush file '%s' with data size %ld failed\n",
+                                                  (char *)cstring_get_str(file_path), data_len);
+            c_file_close(fd);
+            return (EC_FALSE);
+        }
+    }
+
+    c_file_close(fd);
+
+    dbg_log(SEC_0069_CFILE, 9)(LOGSTDOUT, "[DEBUG] cfile_seg_update: "
                                           "update file '%s' with size %ld done\n",
                                           (char *)cstring_get_str(file_path), data_len);
 

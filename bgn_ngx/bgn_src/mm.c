@@ -569,7 +569,7 @@ UINT32 init_static_mem()
 
     init_mem_manager();
 
-    dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"[DEBUG] init_static_mem: init done\n");
+    dbg_log(SEC_0066_MM, 1)(LOGSTDOUT,"[DEBUG] init_static_mem: init done\n");
 
     return ( 0 );
 }
@@ -1189,7 +1189,7 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error was free at: %s:%ld\n",MM_LOC_FILE_NAME(pNode->location),MM_LOC_LINE_NO(pNode->location));
 
-        MAN_UNLOCK(pMan, LOC_MM_0256);
+        MAN_UNLOCK(pMan, LOC_MM_0257);
 
         c_backtrace_dump(LOGSTDOUT);
 
@@ -1228,7 +1228,7 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
         free_nodeblock_static_mem(pMan, pNodeBlock);
     }
 
-    MAN_UNLOCK(pMan, LOC_MM_0257);
+    MAN_UNLOCK(pMan, LOC_MM_0258);
     return 0;
 }
 
@@ -1269,7 +1269,7 @@ UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
     ASSERT(0);
 #endif/*(SWITCH_ON == MM_DEBUG)*/
 
-    MAN_LOCK(pMan, LOC_MM_0251);
+    MAN_LOCK(pMan, LOC_MM_0259);
 
     if ( 0 == pMan->curusedsum )
     {
@@ -1277,7 +1277,7 @@ UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld, pvoid %p\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location), pvoid);
         print_static_mem_status(LOGSTDOUT);
 
-        MAN_UNLOCK(pMan, LOC_MM_0252);
+        MAN_UNLOCK(pMan, LOC_MM_0260);
         exit ( 2 );
     }
 
@@ -1292,7 +1292,7 @@ UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
                         (UINT32)pvoid);
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
 
-        MAN_UNLOCK(pMan, LOC_MM_0253);
+        MAN_UNLOCK(pMan, LOC_MM_0261);
         exit ( 2 );
     }
 
@@ -1306,7 +1306,7 @@ UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
                         (UINT32)pvoid);
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
 
-        MAN_UNLOCK(pMan, LOC_MM_0254);
+        MAN_UNLOCK(pMan, LOC_MM_0262);
         exit ( 2 );
     }
 
@@ -1319,7 +1319,7 @@ UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
                         type);
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
 
-        MAN_UNLOCK(pMan, LOC_MM_0255);
+        MAN_UNLOCK(pMan, LOC_MM_0263);
         exit ( 2 );
     }
 
@@ -1331,7 +1331,7 @@ UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error was free at: %s:%ld\n",MM_LOC_FILE_NAME(pNode->location),MM_LOC_LINE_NO(pNode->location));
 
-        MAN_UNLOCK(pMan, LOC_MM_0256);
+        MAN_UNLOCK(pMan, LOC_MM_0264);
 
         c_backtrace_dump(LOGSTDOUT);
 
@@ -1345,7 +1345,7 @@ UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error was free at: %s:%ld\n",MM_LOC_FILE_NAME(pNode->location),MM_LOC_LINE_NO(pNode->location));
 
-        MAN_UNLOCK(pMan, LOC_MM_0256);
+        MAN_UNLOCK(pMan, LOC_MM_0265);
 
         c_backtrace_dump(LOGSTDOUT);
 
@@ -1354,7 +1354,7 @@ UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
 
     pNode->counter ++;
 
-    MAN_UNLOCK(pMan, LOC_MM_0257);
+    MAN_UNLOCK(pMan, LOC_MM_0266);
     return 0;
 }
 
@@ -1387,7 +1387,7 @@ UINT32 breathing_static_mem()
         /* do this manager */
         pMan = &(g_mem_manager[ type ]);
 
-        MAN_LOCK(pMan, LOC_MM_0258);
+        MAN_LOCK(pMan, LOC_MM_0267);
 
         MAN_FREENODEBLOCK_LOOP_NEXT(pMan, pNodeBlock)
         {
@@ -1398,7 +1398,7 @@ UINT32 breathing_static_mem()
             }
         }
 
-        MAN_UNLOCK(pMan, LOC_MM_0259);
+        MAN_UNLOCK(pMan, LOC_MM_0268);
     }
 
     return 0;
@@ -1427,7 +1427,7 @@ UINT32 destory_static_mem()
     for ( type = 0; type < MM_END; type ++ )
     {
         pMan = &(g_mem_manager[ type ]);
-        MAN_LOCK(pMan, LOC_MM_0260);
+        MAN_LOCK(pMan, LOC_MM_0269);
 
         MAN_LINKNODEBLOCK_LOOP_NEXT(pMan, pNodeBlock)
         {
@@ -1452,8 +1452,8 @@ UINT32 destory_static_mem()
         MAN_LINKNODEBLOCK_HEAD_INIT(pMan);
         MAN_FREENODEBLOCK_HEAD_INIT(pMan);
 
-        MAN_UNLOCK(pMan, LOC_MM_0261);
-        MAN_CLEAN_LOCK(pMan, LOC_MM_0262);/*clean lock*/
+        MAN_UNLOCK(pMan, LOC_MM_0270);
+        MAN_CLEAN_LOCK(pMan, LOC_MM_0271);/*clean lock*/
     }
 
     return 0;
@@ -1779,7 +1779,7 @@ void print_static_mem_status_of_type(LOG *log, const UINT32  type)
     }
 
     pMan = &(g_mem_manager[ type ]);
-    //MAN_LOCK(pMan, LOC_MM_0263);
+    //MAN_LOCK(pMan, LOC_MM_0272);
 
     if( 0 < pMan->nodeblocknum || 0 < pMan->nodenumsum || 0 < pMan->maxusedsum || 0 < pMan->curusedsum )
     {
@@ -2074,7 +2074,7 @@ UINT32 mm_man_occupy_node_init(MM_MAN_OCCUPY_NODE *mm_man_occupy_node)
 
 UINT32 mm_man_occupy_node_free(MM_MAN_OCCUPY_NODE *mm_man_occupy_node)
 {
-    free_static_mem(MM_MM_MAN_OCCUPY_NODE, mm_man_occupy_node, LOC_MM_0266);
+    free_static_mem(MM_MM_MAN_OCCUPY_NODE, mm_man_occupy_node, LOC_MM_0273);
     return (0);
 }
 
@@ -2147,7 +2147,7 @@ UINT32 mm_man_load_node_init(MM_MAN_LOAD_NODE *mm_man_load_node)
 
 UINT32 mm_man_load_node_free(MM_MAN_LOAD_NODE *mm_man_load_node)
 {
-    free_static_mem(MM_MM_MAN_LOAD_NODE, mm_man_load_node, LOC_MM_0267);
+    free_static_mem(MM_MM_MAN_LOAD_NODE, mm_man_load_node, LOC_MM_0274);
     return (0);
 }
 

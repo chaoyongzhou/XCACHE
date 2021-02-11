@@ -176,6 +176,51 @@ FUNC_ADDR_NODE g_cfile_func_addr_list[ ] = {
 /*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,},
 /*func para val   */     0, 0, {0},
 },
+{
+/* -- EC_BOOL cfile_seg_md5(const UINT32 cfile_md_id, const CSTRING *file_path, const UINT32 seg_offset, const UINT32 seg_size, CMD5_DIGEST *seg_md5sum); -- */
+/*func module     */     MD_CFILE,
+/*func logic addr */     (UINT32)cfile_seg_md5,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cfile_seg_md5",
+/*func index      */     FI_cfile_seg_md5,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CMD5_DIGEST_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL cfile_seg_load(const UINT32 cfile_md_id, const CSTRING *file_path, const UINT32 seg_offset, const UINT32 seg_size, CBYTES *seg_content); -- */
+/*func module     */     MD_CFILE,
+/*func logic addr */     (UINT32)cfile_seg_load,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cfile_seg_load",
+/*func index      */     FI_cfile_seg_load,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CBYTES_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL cfile_seg_update(const UINT32 cfile_md_id, const CSTRING *file_path, const UINT32 seg_offset, const UINT32 seg_size, const CBYTES *seg_content); -- */
+/*func module     */     MD_CFILE,
+/*func logic addr */     (UINT32)cfile_seg_update,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cfile_seg_update",
+/*func index      */     FI_cfile_seg_update,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CBYTES_ptr,},
+/*func para val   */     0, 0, {0},
+},
 };
 
 UINT32 g_cfile_func_addr_list_len = sizeof(g_cfile_func_addr_list)/sizeof(g_cfile_func_addr_list[0]);

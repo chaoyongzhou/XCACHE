@@ -577,7 +577,16 @@
 #define                             FI_cfile_update  ((UINT32) ((MD_CFILE << (WORDSIZE/2)) + 8))
 #define                             FI_cfile_remove  ((UINT32) ((MD_CFILE << (WORDSIZE/2)) + 9))
 #define                             FI_cfile_rename  ((UINT32) ((MD_CFILE << (WORDSIZE/2)) + 10))
+#define                            FI_cfile_seg_md5  ((UINT32) ((MD_CFILE << (WORDSIZE/2)) + 11))
+#define                           FI_cfile_seg_load  ((UINT32) ((MD_CFILE << (WORDSIZE/2)) + 12))
+#define                         FI_cfile_seg_update  ((UINT32) ((MD_CFILE << (WORDSIZE/2)) + 13))
 
+#define               FI_ctrans_print_module_status  ((UINT32) ((MD_CTRANS << (WORDSIZE/2)) + 0))
+#define            FI_ctrans_free_module_static_mem  ((UINT32) ((MD_CTRANS << (WORDSIZE/2)) + 1))
+#define                             FI_ctrans_start  ((UINT32) ((MD_CTRANS << (WORDSIZE/2)) + 2))
+#define                               FI_ctrans_end  ((UINT32) ((MD_CTRANS << (WORDSIZE/2)) + 3))
+#define                               FI_ctrans_seg  ((UINT32) ((MD_CTRANS << (WORDSIZE/2)) + 4))
+#define                              FI_ctrans_file  ((UINT32) ((MD_CTRANS << (WORDSIZE/2)) + 5))
 
 #endif/* _FINDEX_INC */
 

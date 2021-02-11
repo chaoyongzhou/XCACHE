@@ -755,8 +755,20 @@ EC_BOOL task_node_isend(TASK_BRD *task_brd, TASK_NODE *task_node)
 
     if(CMPI_FWD_RANK == TASK_BRD_RANK(task_brd))
     {
-        /*forwarding process TODO:*/
-        if(TASK_BRD_TCID(task_brd) ==  TASK_NODE_RECV_TCID(task_node)
+        /*sending to itself*/
+        if(TASK_BRD_TCID(task_brd) == TASK_NODE_RECV_TCID(task_node)
+        && (TASK_BRD_COMM(task_brd) == TASK_NODE_RECV_COMM(task_node)
+            || CMPI_ANY_COMM == TASK_NODE_RECV_COMM(task_node))
+        && TASK_BRD_RANK(task_brd) == TASK_NODE_RECV_RANK(task_node))
+        {
+            return cproc_isend(TASK_BRD_CPROC(task_brd),
+                                TASK_NODE_RECV_RANK(task_node),
+                                TASK_ANY_TAG(TASK_NODE_ANY(task_node)),
+                                task_node);
+        }
+
+        /*forwarding to other process in same taskcomm*/
+        else if(TASK_BRD_TCID(task_brd) ==  TASK_NODE_RECV_TCID(task_node)
         && SWITCH_ON == TASK_PROC_SEND_CHANNEL_SWITCH)
         {
             return cproc_isend(TASK_BRD_CPROC(task_brd),
@@ -766,6 +778,7 @@ EC_BOOL task_node_isend(TASK_BRD *task_brd, TASK_NODE *task_node)
         }
         else
         {
+            /*forwarding process*/
             return tasks_worker_isend_node(TASKS_CFG_WORKER(TASK_BRD_LOCAL_TASKS_CFG(task_brd)),
                                            TASK_NODE_RECV_TCID(task_node),
                                            TASK_NODE_RECV_COMM(task_node),
@@ -7969,7 +7982,7 @@ RETURN VALUE
 
 ***********************************************************************************************************************/
 
-    while(0)
+    while(1) /*enabled for ctrans on Dec 07, 2020*/
     {
         pid_t     pid;
         int      *sync_status;
@@ -9657,6 +9670,7 @@ EC_BOOL task_brd_process_add(TASK_BRD *task_brd, TASK_BRD_CALLBACK func, void *a
         TASK_BRD_PROCESS_HANDLER_ARG(task_brd_process_handler)  = arg;
 
         clist_push_back(TASK_BRD_PROCESS_LIST(task_brd), (void *)task_brd_process_handler);
+        dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_process_add: add func %p, arg %p\n", func, arg);
     }
 
     return (EC_TRUE);
@@ -9677,7 +9691,7 @@ EC_BOOL task_brd_process_del(TASK_BRD *task_brd, TASK_BRD_CALLBACK func, void *a
         {
             clist_erase(TASK_BRD_PROCESS_LIST(task_brd), clist_data);
             safe_free((void *)task_brd_process_handler, LOC_TASK_0152);
-
+            dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_process_del: del func %p, arg %p\n", func, arg);
             return (EC_TRUE);
         }
     }
@@ -9725,6 +9739,7 @@ EC_BOOL task_brd_process_do(TASK_BRD *task_brd)
         arg  = TASK_BRD_PROCESS_HANDLER_ARG(task_brd_process_handler);
 
         safe_free((void *)task_brd_process_handler, LOC_TASK_0155);
+        dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT, "[DEBUG] task_brd_process_do:  del func %p, arg %p\n", func, arg);
 
         func(arg);
     }
@@ -10213,7 +10228,7 @@ EC_BOOL task_rsp_node_on_send_succ(TASK_NODE *task_node)
 {
     TASK_RSP     *task_rsp;
 
-    dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT,"[DEBUG] task_rsp_node_on_send_succ: "
+    dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT,"[DEBUG] task_rsp_node_on_send_succ: "
                                         "enter: task_node %p\n",
                                         task_node);
 
@@ -10225,7 +10240,7 @@ EC_BOOL task_rsp_node_on_send_succ(TASK_NODE *task_node)
 
     task_rsp_free(task_rsp);
 
-    dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT,"[DEBUG] task_rsp_node_on_send_succ: "
+    dbg_log(SEC_0015_TASK, 9)(LOGSTDOUT,"[DEBUG] task_rsp_node_on_send_succ: "
                                         "leave: task_node %p\n",
                                         task_node);
 

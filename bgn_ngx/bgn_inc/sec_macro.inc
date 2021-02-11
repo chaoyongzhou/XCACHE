@@ -147,7 +147,7 @@
 #define SEC_0137_DEMO                       ((UINT32)(    137)) /*demo                            */
 #define SEC_0138_CRUN                       ((UINT32)(    138)) /*crun                            */
 #define SEC_0139_MAIN                       ((UINT32)(    139)) /*main                            */
-#define SEC_0140_XXXXXX                     ((UINT32)(    140)) /*-- obsolete --                  */
+#define SEC_0140_CTRANS                     ((UINT32)(    140)) /*ctrans                          */
 #define SEC_0141_XXXXXX                     ((UINT32)(    141)) /*-- obsolete --                  */
 #define SEC_0142_XXXXXX                     ((UINT32)(    142)) /*-- obsolete --                  */
 #define SEC_0143_XXXXX                      ((UINT32)(    143)) /*-- obsolete --                  */
@@ -180,7 +180,7 @@
 #define SEC_0170_XXXXXXXXXXX                ((UINT32)(    170)) /*-- obsolete --                  */
 #define SEC_0171_XXXXXXXXX                  ((UINT32)(    171)) /*-- obsolete --                  */
 #define SEC_0172_XXXXXXXX                   ((UINT32)(    172)) /*-- obsolete --                  */
-#define SEC_0173_XXXXXX                     ((UINT32)(    173)) /*-- obsolete --                  */
+#define SEC_0173_CUPLOAD                    ((UINT32)(    173)) /*cupload                         */
 #define SEC_0174_CMAGLEV                    ((UINT32)(    174)) /*cmaglev                         */
 #define SEC_0175_CVENDOR                    ((UINT32)(    175)) /*cvendor                         */
 #define SEC_0176_CNGX                       ((UINT32)(    176)) /*cngx                            */

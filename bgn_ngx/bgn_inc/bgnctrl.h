@@ -36,6 +36,9 @@ extern "C"{
 /*CREFRESH Package Debug Switch*/
 #define CREFRESH_DEBUG_SWITCH SWITCH_OFF
 
+/*CUPLOAD Package Debug Switch*/
+#define CUPLOAD_DEBUG_SWITCH SWITCH_OFF
+
 /*CRFSGW Package Debug Switch*/
 #define CRFSGW_DEBUG_SWITCH SWITCH_OFF
 
@@ -65,6 +68,9 @@ extern "C"{
 
 /*CFILE Package Debug Switch*/
 #define CFILE_DEBUG_SWITCH SWITCH_OFF
+
+/*CTRANS Package Debug Switch*/
+#define CTRANS_DEBUG_SWITCH SWITCH_OFF
 
 /*Encode/Decode Functions Debug Switch*/
 #define ENCODE_DEBUG_SWITCH SWITCH_OFF

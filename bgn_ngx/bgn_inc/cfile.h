@@ -87,6 +87,15 @@ EC_BOOL cfile_size(const UINT32 cfile_md_id, const CSTRING *file_path, UINT32 *f
 *
 **/
 EC_BOOL cfile_md5(const UINT32 cfile_md_id, const CSTRING *file_path, CMD5_DIGEST *file_md5sum);
+
+/**
+*
+*  file segment md5
+*
+*
+**/
+EC_BOOL cfile_seg_md5(const UINT32 cfile_md_id, const CSTRING *file_path, const UINT32 seg_offset, const UINT32 seg_size, CMD5_DIGEST *seg_md5sum);
+
 /**
 *
 *  load whole file
@@ -97,11 +106,27 @@ EC_BOOL cfile_load(const UINT32 cfile_md_id, const CSTRING *file_path, CBYTES *f
 
 /**
 *
+*  load file segment
+*
+*
+**/
+EC_BOOL cfile_seg_load(const UINT32 cfile_md_id, const CSTRING *file_path, const UINT32 seg_offset, const UINT32 seg_size, CBYTES *seg_content);
+
+/**
+*
 *  update file content
 *
 *
 **/
 EC_BOOL cfile_update(const UINT32 cfile_md_id, const CSTRING *file_path, const CBYTES *file_content);
+
+/**
+*
+*  update file segment content
+*
+*
+**/
+EC_BOOL cfile_seg_update(const UINT32 cfile_md_id, const CSTRING *file_path, const UINT32 seg_offset, const UINT32 seg_size, const CBYTES *seg_content);
 
 /**
 *

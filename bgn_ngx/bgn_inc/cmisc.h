@@ -289,6 +289,8 @@ EC_BOOL c_file_truncate(int fd, const UINT32 fsize);
 
 EC_BOOL c_file_md5(const int fd, uint8_t digest[ CMD5_DIGEST_LEN ]);
 
+EC_BOOL c_file_seg_md5(const int fd, const UINT32 seg_offset, const UINT32 seg_size, uint8_t digest[ CMD5_DIGEST_LEN ]);
+
 EC_BOOL c_file_unlink(const char *filename);
 
 EC_BOOL c_file_remove(const char *filename);
@@ -460,6 +462,8 @@ CSET * c_collect_netcards();
 EC_BOOL c_has_ipv4(const CSET *cnetcard_set, const UINT32 ipv4);
 
 EC_BOOL c_ipv4_is_local(const UINT32 ipv4);
+
+EC_BOOL c_clone_args(const int argc, const char **argv, int *des_argc, char ***des_argv);
 
 EC_BOOL c_save_args(const int argc, const char **argv);
 

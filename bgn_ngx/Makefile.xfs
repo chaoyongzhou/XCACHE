@@ -271,6 +271,7 @@ REL_OBJS  = $(patsubst $(REL_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(REL_SRC)/*.c
 TST_OBJS  = $(patsubst $(TST_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(TST_SRC)/*.c))
 
 XFS_OBJS = $(OBJ_DIR)/demo_hsxfs.o
+TRANS_OBJS = $(OBJ_DIR)/demo_trans.o
 
 default: xfs xfs_tool
 
@@ -282,6 +283,9 @@ libamd: $(AMD_OBJS)
 
 libjson: $(JSON_OBJS)
 	$(AR) $(LIB_DIR)/libjson.a $(JSON_OBJS)
+
+trans: libbgn libamd libjson $(TRANS_OBJS)
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/trans $(TRANS_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
 
 xfs: libbgn libamd libjson $(XFS_OBJS)
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/xfs $(XFS_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)

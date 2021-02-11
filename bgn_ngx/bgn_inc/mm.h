@@ -37,7 +37,7 @@ extern "C"{
 #define     MD_0012      ((UINT32) 12) /*-- obsolete --*/
 #define     MD_0013      ((UINT32) 13) /*-- obsolete --*/
 #define     MD_0014      ((UINT32) 14) /*-- obsolete --*/
-#define     MD_0015      ((UINT32) 15) /*-- obsolete --*/
+#define     MD_CUPLOAD   ((UINT32) 15)
 #define     MD_CVENDOR   ((UINT32) 16)
 #define     MD_CREFRESH  ((UINT32) 17)
 #define     MD_CRFSGW    ((UINT32) 18)
@@ -50,7 +50,7 @@ extern "C"{
 #define     MD_CDETECTN  ((UINT32) 25)
 #define     MD_CMIAOPAI  ((UINT32) 26)
 #define     MD_CXFS      ((UINT32) 27)
-#define     MD_0028      ((UINT32) 28) /*-- obsolete --*/
+#define     MD_CTRANS    ((UINT32) 28)
 #define     MD_END       ((UINT32) 64)
 
 /* Memory Management */

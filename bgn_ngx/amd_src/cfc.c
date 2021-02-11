@@ -80,6 +80,37 @@ EC_BOOL cfc_calc_speed(CFC *cfc, /*CFC *own_cfc, */const uint64_t cur_time_ms, c
         CFC_TRAFFIC_SPEED(cfc)  = (CFC_TRAFFIC_NBYTES(cfc) * 8 * 1000) / (elapsed_ms);
         CFC_TRAFFIC_NBYTES(cfc) = 0; /*clean up*/
         CFC_NTIME_MS(cfc)       = cur_time_ms + interval_ms;
+
+#if 0
+        if(own_cfc != NULL_PTR && own_cfc == cfc)
+        {
+            CFC_FREQUENCY_RATE_CONTRAL(cfc) = CFC_FREQUENCY_RATE_CONTRAL(cfc) ^ ((UINT32)1);
+            if(0 != CFC_FREQUENCY_RATE_CONTRAL(cfc))
+            {
+                if((CFC_DEGRADE_TRAFFIC_20MB < CFC_TRAFFIC_SPEED_NEXT(cfc)) && (CFC_DEGRADE_TRAFFIC_20MB < CFC_TRAFFIC_SPEED(cfc)))
+                {
+                    CFC_PUNISH_DEGRADE_TRAFFIC_BPS(cfc) = 0;
+                }else if((CFC_DEGRADE_TRAFFIC_18MB < CFC_TRAFFIC_SPEED_NEXT(cfc)) && (CFC_DEGRADE_TRAFFIC_18MB < CFC_TRAFFIC_SPEED(cfc)))
+                {
+                    CFC_PUNISH_DEGRADE_TRAFFIC_BPS(cfc) = CFC_DEGRADE_TRAFFIC_02MB;
+                }else if((CFC_DEGRADE_TRAFFIC_16MB < CFC_TRAFFIC_SPEED_NEXT(cfc)) && (CFC_DEGRADE_TRAFFIC_16MB < CFC_TRAFFIC_SPEED(cfc)))
+                {
+                    CFC_PUNISH_DEGRADE_TRAFFIC_BPS(cfc) = CFC_DEGRADE_TRAFFIC_04MB;
+                }else if((CFC_DEGRADE_TRAFFIC_14MB < CFC_TRAFFIC_SPEED_NEXT(cfc)) && (CFC_DEGRADE_TRAFFIC_14MB < CFC_TRAFFIC_SPEED(cfc)))
+                {
+                    CFC_PUNISH_DEGRADE_TRAFFIC_BPS(cfc) = CFC_DEGRADE_TRAFFIC_08MB;
+                }else
+                {
+                    CFC_PUNISH_DEGRADE_TRAFFIC_BPS(cfc) = -1;
+                }
+            }else
+            {
+                CFC_PUNISH_DEGRADE_TRAFFIC_BPS(cfc) = -1;
+            }
+
+            CFC_TRAFFIC_SPEED_NEXT(cfc) = CFC_TRAFFIC_SPEED(cfc);
+        }
+#endif
     }
 
     return (EC_TRUE);

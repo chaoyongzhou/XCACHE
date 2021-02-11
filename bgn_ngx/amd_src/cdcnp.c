@@ -46,6 +46,7 @@ extern "C"{
 #define CDCNP_ASSERT(condition)   do{}while(0)
 #endif/*(SWITCH_OFF == CDC_ASSERT_SWITCH)*/
 
+#if 0
 static CDCNP_CFG g_cdcnp_cfg_tbl[] = {
     {(const char *)"8M"  , (const char *)"CDCNP_008M_MODEL", CDCNP_008M_CFG_FILE_SIZE,  CDCNP_008M_CFG_ITEM_MAX_NUM, 0 },
     {(const char *)"16M" , (const char *)"CDCNP_016M_MODEL", CDCNP_016M_CFG_FILE_SIZE,  CDCNP_016M_CFG_ITEM_MAX_NUM, 0 },
@@ -60,6 +61,24 @@ static CDCNP_CFG g_cdcnp_cfg_tbl[] = {
     {(const char *)"4G"  , (const char *)"CDCNP_004G_MODEL", CDCNP_004G_CFG_FILE_SIZE,  CDCNP_004G_CFG_ITEM_MAX_NUM, 0 },
 #endif/*(64 == WORDSIZE)*/
 };
+#endif
+#if 1
+static CDCNP_CFG g_cdcnp_cfg_tbl[] = {
+    {(const char *)"8M"  , (const char *)"CDCNP_008M_MODEL", 0,  0, 0 },
+    {(const char *)"16M" , (const char *)"CDCNP_016M_MODEL", 0,  0, 0 },
+    {(const char *)"32M" , (const char *)"CDCNP_032M_MODEL", 0,  0, 0 },
+    {(const char *)"64M" , (const char *)"CDCNP_064M_MODEL", 0,  0, 0 },
+    {(const char *)"128M", (const char *)"CDCNP_128M_MODEL", CDCNP_128M_CFG_FILE_SIZE,  CDCNP_128M_CFG_ITEM_MAX_NUM, 0 },
+    {(const char *)"256M", (const char *)"CDCNP_256M_MODEL", CDCNP_256M_CFG_FILE_SIZE,  CDCNP_256M_CFG_ITEM_MAX_NUM, 0 },
+    {(const char *)"512M", (const char *)"CDCNP_512M_MODEL", CDCNP_512M_CFG_FILE_SIZE,  CDCNP_512M_CFG_ITEM_MAX_NUM, 0 },
+    {(const char *)"1G"  , (const char *)"CDCNP_001G_MODEL", CDCNP_001G_CFG_FILE_SIZE,  CDCNP_001G_CFG_ITEM_MAX_NUM, 0 },
+    {(const char *)"2G"  , (const char *)"CDCNP_002G_MODEL", CDCNP_002G_CFG_FILE_SIZE,  CDCNP_002G_CFG_ITEM_MAX_NUM, 0 },
+#if (64 == WORDSIZE)
+    {(const char *)"4G"  , (const char *)"CDCNP_004G_MODEL", CDCNP_004G_CFG_FILE_SIZE,  CDCNP_004G_CFG_ITEM_MAX_NUM, 0 },
+#endif/*(64 == WORDSIZE)*/
+};
+#endif
+
 
 static uint8_t g_cdcnp_cfg_tbl_len = (uint8_t)(sizeof(g_cdcnp_cfg_tbl)/sizeof(g_cdcnp_cfg_tbl[0]));
 

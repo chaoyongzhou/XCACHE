@@ -3661,6 +3661,62 @@ EC_BOOL c_file_md5(const int fd, uint8_t digest[ CMD5_DIGEST_LEN ])
     return (EC_TRUE);
 }
 
+EC_BOOL c_file_seg_md5(const int fd, const UINT32 seg_offset, const UINT32 seg_size, uint8_t digest[ CMD5_DIGEST_LEN ])
+{
+    UINT32  fsize;
+    CBYTES *content;
+    UINT32  offset;
+    UINT32  size;
+
+    if(EC_FALSE == c_file_size(fd, &fsize))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_seg_md5: size of file failed\n");
+        return (EC_FALSE);
+    }
+
+    if(fsize <= seg_offset)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_seg_md5: "
+                                              "seg offset %ld overflow size of file %ld\n",
+                                              seg_offset, fsize);
+        return (EC_FALSE);
+    }
+
+    if(fsize >= seg_offset + seg_size)
+    {
+        offset = seg_offset;
+        size   = seg_size;
+    }
+    else
+    {
+        offset = seg_offset;
+        size   = fsize - seg_offset;
+    }
+
+    content = cbytes_new(size);
+    if(NULL_PTR == content)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_seg_md5: "
+                                              "new cbytes with %ld bytes failed\n",
+                                              size);
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == c_file_load(fd, &offset, size, CBYTES_BUF(content)))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_seg_md5: read file failed\n");
+        cbytes_free(content);
+        return (EC_FALSE);
+    }
+    CBYTES_LEN(content) = size;
+
+    cmd5_sum((uint32_t)size, CBYTES_BUF(content), digest);
+
+    cbytes_free(content);
+
+    return (EC_TRUE);
+}
+
 EC_BOOL c_file_unlink(const char *filename)
 {
     if(NULL_PTR == filename)
@@ -6561,6 +6617,38 @@ EC_BOOL c_ipv4_is_local(const UINT32 ipv4)
     return c_has_ipv4(g_local_netcard_set, ipv4);
 }
 
+EC_BOOL c_clone_args(const int argc, const char **argv, int *des_argc, char ***des_argv)
+{
+    int idx;
+
+    (*des_argc) = argc;
+
+    (*des_argv) = (char **)safe_malloc((argc + 1) * sizeof(char *), LOC_CMISC_0074);
+    if(NULL_PTR == (*des_argv))
+    {
+        return (EC_FALSE);
+    }
+
+    for(idx = 0; idx < argc; idx ++)
+    {
+        size_t     len;
+
+        len = strlen(argv[ idx ]) + 1;
+
+        (*des_argv)[ idx ] = safe_malloc(len, LOC_CMISC_0075);
+        if(NULL_PTR == (*des_argv)[ idx ])
+        {
+            return (EC_FALSE);
+        }
+
+        BCOPY((void *)argv[ idx ], (void *)(*des_argv)[ idx ], len);
+    }
+
+    (*des_argv)[ idx ] = NULL_PTR;
+
+    return (EC_TRUE);
+}
+
 EC_BOOL c_save_args(const int argc, const char **argv)
 {
     TASK_BRD    *task_brd;
@@ -6576,7 +6664,7 @@ EC_BOOL c_save_args(const int argc, const char **argv)
 
     TASK_BRD_SAVED_ARGC(task_brd) = argc;
 
-    TASK_BRD_SAVED_ARGV(task_brd) = safe_malloc((argc + 1) * sizeof(char *), LOC_CMISC_0074);
+    TASK_BRD_SAVED_ARGV(task_brd) = safe_malloc((argc + 1) * sizeof(char *), LOC_CMISC_0076);
     if(NULL_PTR == TASK_BRD_SAVED_ARGV(task_brd))
     {
         return (EC_FALSE);
@@ -6588,7 +6676,7 @@ EC_BOOL c_save_args(const int argc, const char **argv)
 
         len = strlen(argv[ idx ]) + 1;
 
-        TASK_BRD_SAVED_ARGV(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0075);
+        TASK_BRD_SAVED_ARGV(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0077);
         if(NULL_PTR == TASK_BRD_SAVED_ARGV(task_brd)[ idx ])
         {
             return (EC_FALSE);
@@ -6620,7 +6708,7 @@ EC_BOOL c_save_environ()
         /*do nothing*/
     }
 
-    TASK_BRD_SAVED_ENVIRON(task_brd) = safe_malloc((envc + 1) * sizeof(char *), LOC_CMISC_0076);
+    TASK_BRD_SAVED_ENVIRON(task_brd) = safe_malloc((envc + 1) * sizeof(char *), LOC_CMISC_0078);
     if(NULL_PTR == TASK_BRD_SAVED_ENVIRON(task_brd))
     {
         return (EC_FALSE);
@@ -6632,7 +6720,7 @@ EC_BOOL c_save_environ()
 
         len = strlen(environ[ idx ]) + 1;
 
-        TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0077);
+        TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0079);
         if(NULL_PTR == TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ])
         {
             return (EC_FALSE);
@@ -6909,10 +6997,10 @@ char *c_format_str(const char *format, ...)
 
     va_list ap;
 
-    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0078);
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0080);
     str_cache = (char *)(g_str_buff[g_str_idx]);
     g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
-    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0079);
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0081);
 
     va_start(ap, format);
 
@@ -6945,7 +7033,7 @@ EC_BOOL c_import_resolve_conf(CVECTOR *name_servers)
 
     file_max_size = 2 * 1024; /*2KB*/
 
-    file_buff = safe_malloc(file_max_size, LOC_CMISC_0080);
+    file_buff = safe_malloc(file_max_size, LOC_CMISC_0082);
     if(NULL_PTR == file_buff)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_import_resolve_conf: malloc %ld bytes failed\n", file_max_size);
@@ -6958,7 +7046,7 @@ EC_BOOL c_import_resolve_conf(CVECTOR *name_servers)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_import_resolve_conf: load %s failed\n", file_name);
         close(fd);
-        safe_free(file_buff, LOC_CMISC_0081);
+        safe_free(file_buff, LOC_CMISC_0083);
         return (EC_FALSE);
     }
 
@@ -6991,7 +7079,7 @@ EC_BOOL c_import_resolve_conf(CVECTOR *name_servers)
         }
     }
 
-    safe_free(file_buff, LOC_CMISC_0082);
+    safe_free(file_buff, LOC_CMISC_0084);
     return (EC_TRUE);
 }
 

@@ -3104,7 +3104,7 @@ CAMD_MD *camd_start(const char *camd_shm_root_dir,
 
     aio_model = CAIO_MODEL_CHOICE;
 
-    if(1)
+    if(0)
     {
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_start: camd_shm_root_dir = %s\n" , camd_shm_root_dir);
         dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_start: sata_disk_fd      = %d\n" , sata_disk_fd);
@@ -5466,6 +5466,10 @@ EC_BOOL camd_try_quit(CAMD_MD *camd_md)
     }
 
     warning_counter = 0;
+
+    task_brd_process_del(task_brd_default_get(),
+                (TASK_BRD_CALLBACK)camd_process,
+                (void *)camd_md);
 
     dbg_log(SEC_0125_CAMD, 0)(LOGSTDOUT, "[DEBUG] camd_try_quit: succ\n");
 
