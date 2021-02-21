@@ -115,7 +115,7 @@ EC_BOOL ceventfd_node_dummy(CEVENTFD_NODE *ceventfd_node)
 
     if(ERR_FD == CEVENTFD_NODE_FD(ceventfd_node))
     {
-        dbg_log(SEC_0073_CEVENTFD, 0)(LOGSTDOUT, "error:ceventfd_node_event_dummy: "
+        dbg_log(SEC_0073_CEVENTFD, 0)(LOGSTDOUT, "error:ceventfd_node_dummy: "
                                                  "no event fd\n");
         return (EC_FALSE);
     }
@@ -123,16 +123,17 @@ EC_BOOL ceventfd_node_dummy(CEVENTFD_NODE *ceventfd_node)
     recv_len = read(CEVENTFD_NODE_FD(ceventfd_node), (void *)&data, 8);
     if(0 > recv_len)
     {
-        dbg_log(SEC_0073_CEVENTFD, 0)(LOGSTDOUT, "error:ceventfd_node_event_dummy: "
-                                                 "event fd %d, recv %ld, errno = %d, errstr = %s\n",
+        dbg_log(SEC_0073_CEVENTFD, 0)(LOGSTDOUT, "error:ceventfd_node_dummy: "
+                                                 "event fd %d, recv %ld bytes, "
+                                                 "errno = %d, errstr = %s\n",
                                                  CEVENTFD_NODE_FD(ceventfd_node), recv_len,
                                                  errno, strerror(errno));
 
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0073_CEVENTFD, 5)(LOGSTDOUT, "[DEBUG] ceventfd_node_event_dummy: "
-                                             "event fd %d, recv %ld, data %ld\n",
+    dbg_log(SEC_0073_CEVENTFD, 5)(LOGSTDOUT, "[DEBUG] ceventfd_node_dummy: "
+                                             "event fd %d, recv %ld bytes, data %ld\n",
                                              CEVENTFD_NODE_FD(ceventfd_node), recv_len, data);
     return (EC_TRUE);
 }
@@ -144,7 +145,7 @@ EC_BOOL ceventfd_node_notify(CEVENTFD_NODE *ceventfd_node)
 
     if(ERR_FD == CEVENTFD_NODE_FD(ceventfd_node))
     {
-        dbg_log(SEC_0073_CEVENTFD, 0)(LOGSTDOUT, "error:ceventfd_node_event_notify: "
+        dbg_log(SEC_0073_CEVENTFD, 0)(LOGSTDOUT, "error:ceventfd_node_notify: "
                                                  "no event fd\n");
         return (EC_FALSE);
     }
@@ -154,21 +155,21 @@ EC_BOOL ceventfd_node_notify(CEVENTFD_NODE *ceventfd_node)
         cepoll_set_event(task_brd_default_get_cepoll(),
                           CEVENTFD_NODE_FD(ceventfd_node),
                           CEPOLL_RD_EVENT,
-                          (const char *)"ceventfd_node_event_notify",
+                          (const char *)"ceventfd_node_dummy",
                           (CEPOLL_EVENT_HANDLER)ceventfd_node_dummy,
                           (void *)ceventfd_node);
 
         CEVENTFD_NODE_FLAG(ceventfd_node) = BIT_TRUE;
 
-        dbg_log(SEC_0073_CEVENTFD, 5)(LOGSTDOUT, "[DEBUG] ceventfd_node_event_notify: "
+        dbg_log(SEC_0073_CEVENTFD, 5)(LOGSTDOUT, "[DEBUG] ceventfd_node_notify: "
                                                  "add read event done\n");
     }
 
     sent_len = write(CEVENTFD_NODE_FD(ceventfd_node), (void *)&data, 8);
     if(0 > sent_len)
     {
-        dbg_log(SEC_0073_CEVENTFD, 0)(LOGSTDOUT, "error:ceventfd_node_event_notify: "
-                                                 "event fd %d, sent %ld, "
+        dbg_log(SEC_0073_CEVENTFD, 0)(LOGSTDOUT, "error:ceventfd_node_notify: "
+                                                 "event fd %d, sent %ld bytes, "
                                                  "errno = %d, errstr = %s\n",
                                                  CEVENTFD_NODE_FD(ceventfd_node), sent_len,
                                                  errno, strerror(errno));
@@ -176,8 +177,8 @@ EC_BOOL ceventfd_node_notify(CEVENTFD_NODE *ceventfd_node)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0073_CEVENTFD, 5)(LOGSTDOUT, "[DEBUG] ceventfd_node_event_notify: "
-                                             "event fd %d, sent %ld\n",
+    dbg_log(SEC_0073_CEVENTFD, 5)(LOGSTDOUT, "[DEBUG] ceventfd_node_notify: "
+                                             "event fd %d, sent %ld bytes\n",
                                              CEVENTFD_NODE_FD(ceventfd_node), sent_len);
 
     return (EC_TRUE);

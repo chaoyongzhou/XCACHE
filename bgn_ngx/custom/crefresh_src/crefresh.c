@@ -463,12 +463,6 @@ EC_BOOL crefresh_get_cache_path_list(const UINT32 crefresh_md_id)
 
     safe_free(uri_str, LOC_CREFRESH_0005);
 
-    if(EC_FALSE == cngx_read_req_body(r))
-    {
-        dbg_log(SEC_0179_CREFRESH, 0)(LOGSTDOUT, "error:crefresh_get_cache_path_list: read req body failed\n");
-        return (EC_FALSE);
-    }
-
     req_body = cbytes_new(0);
     if(NULL_PTR == req_body)
     {
@@ -476,13 +470,14 @@ EC_BOOL crefresh_get_cache_path_list(const UINT32 crefresh_md_id)
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cngx_get_req_body(r, req_body))
+    if(EC_FALSE == cngx_read_req_body(r, req_body, &CREFRESH_MD_NGX_RC(crefresh_md)))
     {
-        dbg_log(SEC_0179_CREFRESH, 0)(LOGSTDOUT, "error:crefresh_get_cache_path_list: get req body failed\n");
+        dbg_log(SEC_0179_CREFRESH, 0)(LOGSTDOUT, "error:crefresh_get_cache_path_list: read req body failed\n");
         cbytes_free(req_body);
         return (EC_FALSE);
     }
-    dbg_log(SEC_0179_CREFRESH, 9)(LOGSTDOUT, "[DEBUG] crefresh_get_cache_path_list: get req body: '%.*s'\n",
+
+    dbg_log(SEC_0179_CREFRESH, 9)(LOGSTDOUT, "[DEBUG] crefresh_get_cache_path_list: read req body: '%.*s'\n",
                         (uint32_t)CBYTES_LEN(req_body), (char *)CBYTES_BUF(req_body));
 
     if(EC_FALSE == cbytes_is_empty(req_body))

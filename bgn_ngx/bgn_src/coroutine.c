@@ -2745,9 +2745,14 @@ void coroutine_pool_run_all(COROUTINE_POOL *coroutine_pool)
     task_brd_update_time(task_brd_default_get());
 
     busy_num = coroutine_pool_busy_num(coroutine_pool);
-    dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_all: "
-                                              "beg, busy_num = %ld\n",
-                                              coroutine_pool_busy_num(coroutine_pool));
+
+    if(0 < busy_num && do_log(SEC_0001_COROUTINE, 1))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] coroutine_pool_run_all: "
+                           "beg, busy_num = %ld\n",
+                           coroutine_pool_busy_num(coroutine_pool));
+    }
+
     for(handle_num = 0; handle_num < busy_num; handle_num ++)
     {
         COROUTINE_NODE *coroutine_node_slave;
@@ -2773,9 +2778,14 @@ void coroutine_pool_run_all(COROUTINE_POOL *coroutine_pool)
     }
 
     task_brd_update_time(task_brd_default_get());
-    dbg_log(SEC_0001_COROUTINE, 9)(LOGSTDOUT, "[DEBUG] coroutine_pool_run_all: "
-                                              "end, busy_num = %ld\n",
-                                              coroutine_pool_busy_num(coroutine_pool));
+
+    if(0 < busy_num && do_log(SEC_0001_COROUTINE, 1))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] coroutine_pool_run_all: "
+                           "end, busy_num = %ld\n",
+                           coroutine_pool_busy_num(coroutine_pool));
+    }
+
     return;
 }
 

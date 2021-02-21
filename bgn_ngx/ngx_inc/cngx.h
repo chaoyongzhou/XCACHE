@@ -21,6 +21,7 @@ extern "C"{
 #include "type.h"
 #include "cstring.h"
 #include "clist.h"
+#include "cbytes.h"
 #include "cvector.h"
 #include "chashalgo.h"
 #include "chttp.h"
@@ -101,6 +102,7 @@ extern "C"{
 #define  CNGX_VAR_HEADER_MERGE_SWITCH             ("c_header_merge_switch")
 
 #define  CNGX_VAR_SEND_TIMEOUT_EVENT_MSEC         ("c_send_body_timeout_event_msec")
+#define  CNGX_VAR_RECV_TIMEOUT_EVENT_MSEC         ("c_recv_body_timeout_event_msec")
 
 #define  CNGX_VAR_VISIABLE_HOSTNAME               ("c_visible_hostname")
 #define  CNGX_VAR_TRACE_ID                        ("c_trace_id")
@@ -214,9 +216,9 @@ EC_BOOL cngx_get_req_port(const ngx_http_request_t *r, char **val);
 
 EC_BOOL cngx_discard_req_body(ngx_http_request_t *r);
 
-EC_BOOL cngx_read_req_body(ngx_http_request_t *r);
+EC_BOOL cngx_drain_req_body(ngx_http_request_t *r, CBYTES *body, UINT32 pos, UINT32 size, ngx_int_t *ngx_rc);
 
-EC_BOOL cngx_get_req_body(ngx_http_request_t *r, CBYTES *body);
+EC_BOOL cngx_read_req_body(ngx_http_request_t *r, CBYTES *body, ngx_int_t *ngx_rc);
 
 EC_BOOL cngx_is_debug_switch_on(ngx_http_request_t *r);
 
@@ -279,6 +281,12 @@ EC_BOOL cngx_get_send_timeout_msec(ngx_http_request_t *r, ngx_msec_t *timeout_ms
 EC_BOOL cngx_get_client_body_timeout_msec(ngx_http_request_t *r, ngx_msec_t *timeout_msec);
 
 EC_BOOL cngx_get_send_timeout_event_msec(ngx_http_request_t *r, ngx_msec_t *timeout_msec);
+
+EC_BOOL cngx_get_recv_timeout_event_msec(ngx_http_request_t *r, ngx_msec_t *timeout_msec);
+
+EC_BOOL cngx_recv_wait(ngx_http_request_t *r, ngx_msec_t recv_timeout);
+
+void cngx_recv_again(ngx_event_t *rev);
 
 void    cngx_send_again(ngx_http_request_t *r);
 

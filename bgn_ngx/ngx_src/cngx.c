@@ -28,6 +28,7 @@ extern "C"{
 
 #include "carray.h"
 #include "cvector.h"
+#include "cbytes.h"
 
 #include "crb.h"
 
@@ -1166,72 +1167,240 @@ EC_BOOL cngx_discard_req_body(ngx_http_request_t *r)
     return (EC_TRUE);
 }
 
-static void __cngx_read_req_body_post(ngx_http_request_t *r)
+EC_BOOL cngx_drain_req_body(ngx_http_request_t *r, CBYTES *body, UINT32 pos, UINT32 size, ngx_int_t *ngx_rc)
 {
-    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] __cngx_read_req_body_post: enter\n");
+    ngx_connection_t            *c;
+    ngx_http_core_loc_conf_t    *clcf;
 
-    if (r->connection->read->timer_set)
+    c = r->connection;
+    clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
+
+    while(pos < size)
     {
-        ngx_del_timer(r->connection->read);
-    }
+        ssize_t             n;
 
-    r->main->count --;
-    return;
-}
+        n = c->recv(c, CBYTES_BUF(body) + pos, (size_t)(size - pos));
 
-EC_BOOL cngx_read_req_body(ngx_http_request_t *r)
-{
-    ngx_int_t                    rc;
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_drain_req_body: "
+                                             "[recv] r %p, "
+                                             "recvd %ld / %ld, n %ld\n",
+                                             r, pos, (UINT32)size, (UINT32)n);
 
-    r->request_body_in_single_buf      = 1;
-    r->request_body_in_persistent_file = 1;
-    r->request_body_in_clean_file      = 1;
-
-    rc = ngx_http_read_client_request_body(r, __cngx_read_req_body_post);
-
-    if(rc >= NGX_HTTP_SPECIAL_RESPONSE)
-    {
-        return (EC_FALSE);
-    }
-
-    if(rc == NGX_AGAIN)
-    {
-        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_read_req_body: not support 'NGX_AGAIN' yet\n");
-        return (EC_FALSE);
-    }
-
-    if(rc == NGX_OK)
-    {
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_read_req_body: 'NGX_OK'\n");
-
-        return (EC_TRUE);
-    }
-
-    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_read_req_body: unknown rc '%ld'\n", rc);
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cngx_get_req_body(ngx_http_request_t *r, CBYTES *body)
-{
-    ngx_chain_t                 *cl;
-
-    if (r->request_body == NULL || r->request_body->temp_file || r->request_body->bufs == NULL)
-    {
-        return (EC_TRUE);
-    }
-
-    for (cl = r->request_body->bufs; cl; cl = cl->next)
-    {
-        if(EC_FALSE == cbytes_append(body, (const UINT8 *)cl->buf->pos, (UINT32)(cl->buf->last - cl->buf->pos)))
+        if(n == NGX_AGAIN)
         {
-            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_body: append %ld bytes to body failed\n",
-                                (UINT32)(cl->buf->last - cl->buf->pos));
+            EC_BOOL          ret;
+
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_drain_req_body: "
+                                                 "[again] r %p, "
+                                                 "recvd %ld / %ld\n",
+                                                 r, pos, (UINT32)size);
+
+            c->read->handler = cngx_recv_again;
+
+            ngx_add_timer(c->read, clcf->client_body_timeout);
+
+            if(ngx_handle_read_event(c->read, 0) != NGX_OK)
+            {
+                if(c->read->timer_set)
+                {
+                    ngx_del_timer(c->read);
+                }
+
+                r->read_event_handler = ngx_http_block_reading;
+                c->read->handler      = NULL;
+
+                (*ngx_rc) = NGX_HTTP_INTERNAL_SERVER_ERROR;
+                NGX_W_RC(c->read) = NGX_ERROR;
+
+                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_drain_req_body: "
+                                                     "[event] r %p, "
+                                                     "recvd %ld / %ld, add RD event failed, "
+                                                     "connection error: %d, reset rc to %ld\n",
+                                                     r, pos, (UINT32)size,
+                                                     c->error, NGX_W_RC(c->read));
+                return (EC_FALSE);
+            }
+
+            ret = cngx_recv_wait(r, 0/*never timeout*/);
+
+            if(c->error)
+            {
+                (*ngx_rc) = NGX_HTTP_CLIENT_CLOSED_REQUEST;
+                NGX_W_RC(c->read) = NGX_ERROR;
+
+                if(c->read->timer_set)
+                {
+                    ngx_del_timer(c->read);
+                }
+
+                r->read_event_handler = ngx_http_block_reading;
+                c->read->handler      = NULL;
+
+                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_drain_req_body: "
+                                                     "[broken] r %p, "
+                                                     "recvd %ld / %ld, "
+                                                     "connection error: %d, reset rc to %ld\n",
+                                                     r, pos, (UINT32)size,
+                                                     c->error, NGX_W_RC(c->read));
+                return (EC_FALSE);
+            }
+
+            if(EC_FALSE == ret)
+            {
+                (*ngx_rc) = NGX_HTTP_INTERNAL_SERVER_ERROR;
+                NGX_W_RC(c->read) = NGX_ERROR;
+
+                if(c->read->timer_set)
+                {
+                    ngx_del_timer(c->read);
+                }
+
+                r->read_event_handler = ngx_http_block_reading;
+                c->read->handler      = NULL;
+
+                dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_drain_req_body: "
+                                                     "[fail] r %p, wait back, "
+                                                     "recvd %ld / %ld, "
+                                                     "connection error: %d, reset rc to %ld\n",
+                                                     r, pos, (UINT32)size,
+                                                     c->error, NGX_W_RC(c->read));
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_drain_req_body: "
+                                                 "[next] r %p, wait back, "
+                                                 "recvd %ld / %ld, "
+                                                 "connection error: %d, rc: %ld\n",
+                                                 r, pos, (UINT32)size,
+                                                 c->error, NGX_W_RC(c->read));
+
+            continue;
+        }
+
+        if(n == 0)
+        {
+            ngx_log_error(NGX_LOG_INFO, c->log, 0,
+                          "client closed prematurely connection");
+        }
+
+        if(n == 0 || n == NGX_ERROR)
+        {
+            c->error = 1;
+            (*ngx_rc) = NGX_HTTP_BAD_REQUEST;
+            NGX_W_RC(c->read) = NGX_ERROR;
             return (EC_FALSE);
         }
+
+        pos               += n;
+        r->request_length += n;
     }
 
+    if(c->read->timer_set)
+    {
+        ngx_del_timer(c->read);
+    }
+
+    r->read_event_handler = ngx_http_block_reading;
+
+    NGX_W_RC(c->read) = NGX_OK;
     return (EC_TRUE);
+}
+
+EC_BOOL cngx_read_req_body(ngx_http_request_t *r, CBYTES *body, ngx_int_t *ngx_rc)
+{
+    //ngx_int_t                    rc;
+    ngx_connection_t            *c;
+    ngx_http_core_loc_conf_t    *clcf;
+    off_t                        size;      /*body total size*/
+    ssize_t                      preread;   /*body preread size*/
+
+    if(r->discard_body || r->headers_in.content_length_n <= 0)
+    {
+        return (EC_TRUE);
+    }
+
+    c = r->connection;
+
+    clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
+    if (clcf->client_body_in_file_only)
+    {
+        r->request_body_in_file_only       = 1;
+        r->request_body_in_persistent_file = 1;
+        r->request_body_in_clean_file      = 1;
+        r->request_body_file_log_level     = NGX_LOG_NOTICE;
+    }
+
+    size    = r->headers_in.content_length_n;
+    preread = r->header_in->last - r->header_in->pos;
+
+    /*preread*/
+    if(preread > 0)
+    {
+        if(EC_FALSE == cbytes_append(body, (const UINT8 *)r->header_in->pos, (UINT32)(preread)))
+        {
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_read_req_body: "
+                                                 "[preread] append %ld bytes to body failed\n",
+                                                 (UINT32)(preread));
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_read_req_body: "
+                                             "[preread] append %ld bytes to body done\n",
+                                             (UINT32)(preread));
+
+        /* the whole request body was pre-read */
+        if(preread >= r->headers_in.content_length_n)
+        {
+            r->header_in->pos += r->headers_in.content_length_n;
+            r->request_length += r->headers_in.content_length_n;
+
+            if(c->read->timer_set)
+            {
+                ngx_del_timer(c->read);
+            }
+
+            r->read_event_handler = ngx_http_block_reading;
+
+            return (EC_TRUE);
+        }
+
+        r->header_in->pos  = r->header_in->last;
+        r->request_length += preread;
+    }
+
+    if(size > preread)
+    {
+        UINT32                       pos;
+
+        pos = CBYTES_LEN(body); /*record the starting position to recv*/
+
+        if(EC_FALSE == cbytes_expand_to(body, (UINT32)size))
+        {
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_read_req_body: "
+                                                 "expand body to %ld bytes failed\n",
+                                                 (UINT32)(size));
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_read_req_body: "
+                                             "expand body to %ld bytes done\n",
+                                             (UINT32)(size));
+
+        if(EC_FALSE == cngx_drain_req_body(r, body, pos, (UINT32)size, ngx_rc))
+        {
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_read_req_body: "
+                                                 "drain body %ld/%ld failed\n",
+                                                 pos, (UINT32)(size));
+            return (EC_FALSE);
+        }
+
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_read_req_body: "
+                                         "should never reach here\n");
+
+    return (EC_FALSE);
 }
 
 EC_BOOL cngx_is_debug_switch_on(ngx_http_request_t *r)
@@ -2104,7 +2273,7 @@ EC_BOOL cngx_get_client_body_timeout_msec(ngx_http_request_t *r, ngx_msec_t *tim
 
     if(0 < clcf->client_body_timeout)
     {
-        client_body_timeout = clcf->client_body_timeout; /*default is 60s*/
+        client_body_timeout = clcf->client_body_timeout; /*default is 30s*/
 
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_client_body_timeout_msec: "
                                              "set client_body_timeout to clcf->client_body_timeout %ld ms\n",
@@ -2112,8 +2281,8 @@ EC_BOOL cngx_get_client_body_timeout_msec(ngx_http_request_t *r, ngx_msec_t *tim
     }
     else
     {
-        /*should never reach here due to ngx would set clcf->client_body_timeout to default 60s*/
-        client_body_timeout = 60 * 1000; /*set to default 60s */
+        /*should never reach here due to ngx would set clcf->client_body_timeout to default 30s*/
+        client_body_timeout = 30 * 1000; /*set to default 30s */
 
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_client_body_timeout_msec: "
                                              "set client_body_timeout to default %ld ms\n",
@@ -2155,6 +2324,138 @@ EC_BOOL cngx_get_send_timeout_event_msec(ngx_http_request_t *r, ngx_msec_t *time
     }
 
     return (EC_TRUE);
+}
+
+EC_BOOL cngx_get_recv_timeout_event_msec(ngx_http_request_t *r, ngx_msec_t *timeout_msec)
+{
+    const char      *k;
+    uint32_t         n;
+
+    k = (const char *)CNGX_VAR_RECV_TIMEOUT_EVENT_MSEC;
+    if(EC_FALSE == cngx_get_var_uint32_t(r, k, &n, (uint32_t)30*1000))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_recv_timeout_event_msec: "
+                                             "cngx get var '%s' failed\n",
+                                             k);
+        /*set by force*/
+        n = 30*1000;/*30s*/
+    }
+    else
+    {
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_recv_timeout_event_msec: "
+                                             "cngx var '%s':'%u' done\n",
+                                             k, n);
+    }
+
+    if(NULL_PTR != timeout_msec)
+    {
+        (*timeout_msec) = n;
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cngx_recv_wait(ngx_http_request_t *r, ngx_msec_t recv_timeout)
+{
+    ngx_connection_t          *c;
+    ngx_event_t               *rev;
+
+    COROUTINE_COND            *coroutine_cond;
+    EC_BOOL                    ret;
+
+    c = r->connection;
+    rev = c->read;
+#if 0
+    if(0 == recv_timeout)
+    {
+        return (EC_TRUE);
+    }
+#endif
+    coroutine_cond = coroutine_cond_new((UINT32)recv_timeout, LOC_CNGX_0045);
+    if(NULL_PTR == coroutine_cond)
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_recv_wait: "
+                                             "new coroutine_cond failed\n");
+        return (EC_FALSE);
+    }
+
+    NGX_W_COROUTINE_COND(rev) = coroutine_cond;
+
+    dbg_log(SEC_0176_CNGX, 1)(LOGSTDOUT, "[DEBUG] cngx_recv_wait: "
+                                         "coroutine_cond %p on r:%p, c:%p, rev:%p <= start\n",
+                                         coroutine_cond, r, c, rev);
+
+    coroutine_cond_reserve(coroutine_cond, 1, LOC_CNGX_0046);
+    ret = coroutine_cond_wait(coroutine_cond, LOC_CNGX_0047);
+
+    __COROUTINE_CATCH_EXCEPTION() { /*exception*/
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_recv_wait: "
+                                             "coroutine_cond %p on r:%p, c:%p, rev:%p => cancelled\n",
+                                             coroutine_cond, r, c, rev);
+        coroutine_cond_free(coroutine_cond, LOC_CNGX_0048);
+        NGX_W_COROUTINE_COND(rev) = NULL_PTR;
+    }__COROUTINE_TERMINATE();
+
+    if(NULL_PTR != NGX_W_COROUTINE_COND(rev))/*double confirm its validity for safe reason*/
+    {
+        coroutine_cond_free(coroutine_cond, LOC_CNGX_0049);
+        NGX_W_COROUTINE_COND(rev) = NULL_PTR;
+    }
+
+    if(EC_TRUE != ret) /*ret maybe EC_TRUE, EC_FALSE, EC_TIMEOUT, EC_TERMINATE, etc.*/
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_recv_wait: "
+                                             "coroutine_cond %p on r:%p, c:%p, rev:%p "
+                                             "=> back but ret = %ld (recv_timeout %ld)\n",
+                                             coroutine_cond, r, c, rev, ret, recv_timeout);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_recv_wait: "
+                                         "coroutine_cond %p on r:%p, c:%p, rev:%p => back\n",
+                                         coroutine_cond, r, c, rev);
+    return (EC_TRUE);
+}
+
+void cngx_recv_again(ngx_event_t *rev)
+{
+    if(rev->timer_set)
+    {
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_recv_again: "
+                                             "rev %p, ready %d, co T: %p, cond W:%p, "
+                                             "trigger read event\n",
+                                             rev, rev->ready,
+                                             NGX_T_EVENT_COROUTINE_NODE(rev),
+                                             NGX_W_COROUTINE_COND(rev));
+        ngx_del_timer(rev);
+        //ASSERT(1 == rev->ready);
+    }
+    else
+    {
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_recv_again: "
+                                             "rev %p, ready %d, co T: %p, cond W:%p, "
+                                             "trigger timeout event\n",
+                                             rev, rev->ready,
+                                             NGX_T_EVENT_COROUTINE_NODE(rev),
+                                             NGX_W_COROUTINE_COND(rev));
+        //ASSERT(0 == rev->ready);
+    }
+
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_recv_again: "
+                                         "rev %p, co T: %p, cond W:%p, "
+                                         "timer_set %d, timeout %d, delayed %d, ready %d\n",
+                                         rev,
+                                         NGX_T_EVENT_COROUTINE_NODE(rev),
+                                         NGX_W_COROUTINE_COND(rev),
+                                         rev->timer_set, rev->timedout, rev->delayed,rev->ready);
+
+    if(NULL_PTR != NGX_W_COROUTINE_COND(rev))
+    {
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_recv_again: enter\n");
+        coroutine_cond_release_all(NGX_W_COROUTINE_COND(rev), LOC_CNGX_0050);
+    }
+
+    return;
 }
 
 EC_BOOL cngx_send_wait(ngx_http_request_t *r, ngx_msec_t send_timeout)

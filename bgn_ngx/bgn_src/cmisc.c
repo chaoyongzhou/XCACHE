@@ -2875,7 +2875,10 @@ EC_BOOL c_file_write(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *bu
 
         if(0 > wsize_t)
         {
-            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_write: write data to offset %ld failed where wsize %ld, csize %ld, osize %ld, wsize_t %ld, errno %d, errstr %s\n",
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_write: "
+                                "write data to offset %ld failed "
+                                "where wsize %ld, csize %ld, osize %ld, wsize_t %ld, "
+                                "errno %d, errstr '%s'\n",
                                 (*offset), wsize, csize, osize, wsize_t, errno, strerror(errno));
             (*offset) += csize;
             return (EC_FALSE);

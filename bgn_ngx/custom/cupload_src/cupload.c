@@ -663,13 +663,6 @@ EC_BOOL cupload_parse_file_body(const UINT32 cupload_md_id)
 
     r = CUPLOAD_MD_NGX_HTTP_REQ(cupload_md);
 
-    if(EC_FALSE == cngx_read_req_body(r))
-    {
-        dbg_log(SEC_0173_CUPLOAD, 0)(LOGSTDOUT, "error:cupload_parse_file_body: "
-                                                "read req body failed\n");
-        return (EC_FALSE);
-    }
-
     if(CUPLOAD_MD_FILE_S_OFFSET(cupload_md) > CUPLOAD_MD_FILE_E_OFFSET(cupload_md))
     {
         dbg_log(SEC_0173_CUPLOAD, 0)(LOGSTDOUT, "error:cupload_parse_file_body: "
@@ -679,7 +672,7 @@ EC_BOOL cupload_parse_file_body(const UINT32 cupload_md_id)
         return (EC_FALSE);
     }
 
-    if(CUPLOAD_MD_FILE_S_OFFSET(cupload_md) < CUPLOAD_MD_FILE_E_OFFSET(cupload_md))
+    if(NULL_PTR == CUPLOAD_MD_FILE_BODY(cupload_md))
     {
         CUPLOAD_MD_FILE_BODY(cupload_md) = cbytes_new(0);
         if(NULL_PTR == CUPLOAD_MD_FILE_BODY(cupload_md))
@@ -688,19 +681,21 @@ EC_BOOL cupload_parse_file_body(const UINT32 cupload_md_id)
                                                     "new cbytes failed\n");
             return (EC_FALSE);
         }
-
-        if(EC_FALSE == cngx_get_req_body(r, CUPLOAD_MD_FILE_BODY(cupload_md)))
-        {
-            dbg_log(SEC_0173_CUPLOAD, 0)(LOGSTDOUT, "error:cupload_parse_file_body: "
-                                                    "get req body failed\n");
-            cbytes_free(CUPLOAD_MD_FILE_BODY(cupload_md));
-            CUPLOAD_MD_FILE_BODY(cupload_md) = NULL_PTR;
-            return (EC_FALSE);
-        }
-        dbg_log(SEC_0173_CUPLOAD, 9)(LOGSTDOUT, "[DEBUG] cupload_parse_file_body: "
-                                                "req body len %ld\n",
-                                                CBYTES_LEN(CUPLOAD_MD_FILE_BODY(cupload_md)));
     }
+
+    if(EC_FALSE == cngx_read_req_body(r, CUPLOAD_MD_FILE_BODY(cupload_md), &CUPLOAD_MD_NGX_RC(cupload_md)))
+    {
+        dbg_log(SEC_0173_CUPLOAD, 0)(LOGSTDOUT, "error:cupload_parse_file_body: "
+                                                "read req body failed\n");
+
+        cbytes_free(CUPLOAD_MD_FILE_BODY(cupload_md));
+        CUPLOAD_MD_FILE_BODY(cupload_md) = NULL_PTR;
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0173_CUPLOAD, 9)(LOGSTDOUT, "[DEBUG] cupload_parse_file_body: "
+                                            "req body len %ld\n",
+                                            CBYTES_LEN(CUPLOAD_MD_FILE_BODY(cupload_md)));
 
     dbg_log(SEC_0173_CUPLOAD, 9)(LOGSTDOUT, "[DEBUG] cupload_parse_file_body: done\n");
 
@@ -791,6 +786,20 @@ EC_BOOL cupload_write_file_handler(const UINT32 cupload_md_id)
 
             c_file_close(fd);
             cupload_set_ngx_rc(cupload_md_id, NGX_HTTP_OK, LOC_CUPLOAD_0020);
+
+            return (EC_TRUE);
+        }
+
+        if(NULL_PTR == CUPLOAD_MD_FILE_BODY(cupload_md))
+        {
+            dbg_log(SEC_0173_CUPLOAD, 0)(LOGSTDOUT, "warn:cupload_write_file_handler: "
+                                                    "body of file %s [%ld, %ld] is null\n",
+                                                    (char *)CUPLOAD_MD_FILE_PATH_STR(cupload_md),
+                                                    CUPLOAD_MD_FILE_S_OFFSET(cupload_md),
+                                                    CUPLOAD_MD_FILE_E_OFFSET(cupload_md));
+
+            c_file_close(fd);
+            cupload_set_ngx_rc(cupload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CUPLOAD_0020);
 
             return (EC_TRUE);
         }
