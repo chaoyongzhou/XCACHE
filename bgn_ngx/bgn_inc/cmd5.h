@@ -29,6 +29,8 @@ extern "C"{
 
 #define CMD5_DIGEST_LEN         (16)
 
+#define CMD5_FILE_SEG_MAX_NBYTES (32 << 20) /*32MB*/
+
 typedef struct
 {
     uint32_t buf[4];

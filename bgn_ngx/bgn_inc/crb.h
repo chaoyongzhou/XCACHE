@@ -163,7 +163,7 @@ CRB_NODE *crb_inorder_locate(CRB_TREE *crbtree, void *data);
 /*walk through: left -> right -> root*/
 CRB_NODE *crb_postorder_locate(CRB_TREE *crbtree, void *data);
 
-/*walk through: left -> root -> right*/
+/*walk through: root -> left -> right*/
 CRB_NODE *crb_preorder_locate(CRB_TREE *crbtree, void *data);
 
 /*walk through: left -> root -> right*/

@@ -18,23 +18,30 @@ extern "C"{
 #include "cstring.h"
 #include "clist.h"
 
-#include "csocket.h"
-#include "mod.inc"
+#include "ctimeout.h"
 
 #include "cngx.h"
 #include "chttp.h"
 
 #include "cbytes.h"
-#include "crange.h"
 
-#define CUPLOAD_MODULE_NAME           ("cupload")
+#define CUPLOAD_MODULE_NAME                 ("cupload")
 
-#define CUPLOAD_FILE_UPLOAD_OP        ("/upload")
-#define CUPLOAD_FILE_OVERRIDE_OP      ("/override")
-#define CUPLOAD_FILE_CHECK_OP         ("/check")
-#define CUPLOAD_FILE_DELETE_OP        ("/delete")
-#define CUPLOAD_FILE_SIZE_OP          ("/size")
-#define CUPLOAD_FILE_MD5_OP           ("/md5")
+#define CUPLOAD_FILE_UPLOAD_OP              ("/upload")
+#define CUPLOAD_FILE_EMPTY_OP               ("/empty")
+#define CUPLOAD_FILE_MERGE_OP               ("/merge")
+#define CUPLOAD_FILE_OVERRIDE_OP            ("/override")
+#define CUPLOAD_FILE_CHECK_OP               ("/check")
+#define CUPLOAD_FILE_DELETE_OP              ("/delete")
+#define CUPLOAD_FILE_SIZE_OP                ("/size")
+#define CUPLOAD_FILE_MD5_OP                 ("/md5")
+
+#define CUPLOAD_FILE_MERGE_SEG_SIZE         (32 << 20) /*32MB*/
+
+#define CUPLOAD_PART_FILE_EXPIRED_NSEC      (10 * 60)  /*10min*/
+
+#define CUPLOAD_FILE_NAME_MAX_DEPTH         (64)       /*file name max depth*/
+#define CUPLOAD_FILE_NAME_SEG_MAX_SIZE      (255)      /*posix compatiblity*/
 
 typedef struct
 {
@@ -92,6 +99,14 @@ typedef struct
 #define CUPLOAD_MD_NGX_LOC(cupload_md)                      ((cupload_md)->ngx_loc)
 #define CUPLOAD_MD_NGX_RC(cupload_md)                       ((cupload_md)->ngx_rc)
 
+typedef struct
+{
+    CTIMEOUT_NODE       on_expired_cb;
+    CSTRING             part_file_path;
+}CUPLOAD_NODE;
+
+#define CUPLOAD_NODE_ON_EXPIRED_CB(cupload_node)            (&((cupload_node)->on_expired_cb))
+#define CUPLOAD_NODE_PART_FILE_PATH(cupload_node)           (&((cupload_node)->part_file_path))
 
 /**
 *   for test only
@@ -137,6 +152,16 @@ EC_BOOL cupload_set_ngx_rc(const UINT32 cupload_md_id, const ngx_int_t rc, const
 /*only for failure!*/
 EC_BOOL cupload_override_ngx_rc(const UINT32 cupload_md_id, const ngx_int_t rc, const UINT32 location);
 
+CUPLOAD_NODE *cupload_node_new();
+
+EC_BOOL cupload_node_init(CUPLOAD_NODE *cupload_node);
+
+EC_BOOL cupload_node_clean(CUPLOAD_NODE *cupload_node);
+
+EC_BOOL cupload_node_free(CUPLOAD_NODE *cupload_node);
+
+EC_BOOL cupload_node_expired(CUPLOAD_NODE *cupload_node);
+
 EC_BOOL cupload_parse_uri(const UINT32 cupload_md_id);
 
 EC_BOOL cupload_parse_file_range(const UINT32 cupload_md_id);
@@ -145,7 +170,11 @@ EC_BOOL cupload_parse_file_md5(const UINT32 cupload_md_id);
 
 EC_BOOL cupload_write_file_handler(const UINT32 cupload_md_id);
 
-EC_BOOL cupload_overwrite_file_handler(const UINT32 cupload_md_id);
+EC_BOOL cupload_empty_file_handler(const UINT32 cupload_md_id);
+
+EC_BOOL cupload_merge_file_handler(const UINT32 cupload_md_id);
+
+EC_BOOL cupload_override_file_handler(const UINT32 cupload_md_id);
 
 EC_BOOL cupload_check_file_handler(const UINT32 cupload_md_id);
 

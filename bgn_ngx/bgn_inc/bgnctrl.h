@@ -39,6 +39,9 @@ extern "C"{
 /*CUPLOAD Package Debug Switch*/
 #define CUPLOAD_DEBUG_SWITCH SWITCH_OFF
 
+/*CDOWNLOAD Package Debug Switch*/
+#define CDOWNLOAD_DEBUG_SWITCH SWITCH_OFF
+
 /*CRFSGW Package Debug Switch*/
 #define CRFSGW_DEBUG_SWITCH SWITCH_OFF
 

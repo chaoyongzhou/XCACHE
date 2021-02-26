@@ -261,6 +261,8 @@ EC_BOOL c_file_load(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff);
 
 EC_BOOL c_file_read(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff);
 
+EC_BOOL c_file_merge(int src_fd, int des_fd, const UINT32 seg_size);
+
 CBYTES *c_file_load_whole(const char *file_name);
 
 EC_BOOL c_file_pwrite(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff);

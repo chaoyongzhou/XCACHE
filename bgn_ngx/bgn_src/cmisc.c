@@ -3009,6 +3009,131 @@ EC_BOOL c_file_read(int fd, UINT32 *offset, const UINT32 rsize, UINT8 *buff)
     return (EC_TRUE);
 }
 
+/*append src file to des file*/
+EC_BOOL c_file_merge(int src_fd, int des_fd, const UINT32 seg_size)
+{
+    UINT32  src_fsize;
+    UINT32  des_fsize;
+
+    UINT32  src_offset;
+    UINT32  des_offset;
+
+    UINT8  *data;
+    UINT32  len;
+
+    if(ERR_FD == src_fd)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_merge: "
+                                              "src file is not open\n");
+        return (EC_FALSE);
+    }
+
+    if(ERR_FD == des_fd)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_merge: "
+                                              "des file is not open\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == c_file_size(src_fd, &src_fsize))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_merge: "
+                                              "size src file failed\n");
+        return (EC_FALSE);
+    }
+
+    if(0 == src_fsize)
+    {
+        dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_file_merge: "
+                                              "src file is empty => succ\n");
+        return (EC_TRUE);
+    }
+
+    if(EC_FALSE == c_file_size(des_fd, &des_fsize))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_merge: "
+                                              "size des file failed\n");
+        return (EC_FALSE);
+    }
+
+    data = safe_malloc(seg_size, LOC_CMISC_0060);
+    if(NULL_PTR == data)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_merge: "
+                                              "alloc %ld bytes failed\n",
+                                              seg_size);
+        return (EC_FALSE);
+    }
+
+    src_offset = 0;
+    des_offset = des_fsize;
+
+    while(src_offset < src_fsize)
+    {
+        UINT32  src_offset_t;
+        UINT32  des_offset_t;
+
+        if(src_offset + seg_size <= src_fsize)
+        {
+            len = seg_size;
+        }
+        else
+        {
+            len = src_fsize - src_offset;
+        }
+
+        src_offset_t = src_offset;
+        if(EC_FALSE == c_file_read(src_fd, &src_offset_t, len, data))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_merge: "
+                                                  "read src file [%ld, %ld)/%ld failed\n",
+                                                  src_offset, src_offset + len, src_fsize);
+            safe_free(data, LOC_CMISC_0061);
+            return (EC_FALSE);
+        }
+
+        if(src_offset_t != src_offset + len)
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_merge: "
+                                                  "read src file [%ld, %ld)/%ld failed "
+                                                  "where %ld != %ld + %ld\n",
+                                                  src_offset, src_offset + len, src_fsize,
+                                                  src_offset_t, src_offset + len);
+            safe_free(data, LOC_CMISC_0062);
+            return (EC_FALSE);
+        }
+
+        /*append*/
+        des_offset_t = des_offset;
+        if(EC_FALSE == c_file_write(des_fd, &des_offset_t, len, data))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_merge: "
+                                                  "write des file [%ld, %ld)/%ld failed\n",
+                                                  des_offset, des_offset + len, des_fsize);
+            safe_free(data, LOC_CMISC_0063);
+            return (EC_FALSE);
+        }
+
+        if(des_offset_t != des_offset + len)
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_merge: "
+                                                  "write des file [%ld, %ld)/%ld failed "
+                                                  "where %ld != %ld + %ld\n",
+                                                  des_offset, des_offset + len, des_fsize,
+                                                  des_offset_t, des_offset + len);
+            safe_free(data, LOC_CMISC_0064);
+            return (EC_FALSE);
+        }
+
+        src_offset = src_offset_t;
+        des_offset = des_offset_t;
+    }
+
+    safe_free(data, LOC_CMISC_0065);
+
+    return (EC_TRUE);
+}
+
 CBYTES *c_file_load_whole(const char *file_name)
 {
     UINT32            file_size;
@@ -3621,65 +3746,15 @@ EC_BOOL c_file_truncate(int fd, const UINT32 fsize)
     return (EC_TRUE);
 }
 
-EC_BOOL c_file_md5(const int fd, uint8_t digest[ CMD5_DIGEST_LEN ])
+STATIC_CAST EC_BOOL __c_file_seg_md5_update(const int fd, const UINT32 fsize, const UINT32 seg_offset, const UINT32 seg_size, CMD5_CTX *cmd5_ctx)
 {
-    UINT32  fsize;
-    CBYTES *content;
-    UINT32  offset;
-
-    if(EC_FALSE == c_file_size(fd, &fsize))
-    {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_md5: size of file failed\n");
-        return (EC_FALSE);
-    }
-
-    content = cbytes_new(fsize);
-    if(NULL_PTR == content)
-    {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_md5: new cbytes with %ld bytes failed\n", fsize);
-        return (EC_FALSE);
-    }
-
-    offset = 0;
-    if(EC_FALSE == c_file_load(fd, &offset, fsize, CBYTES_BUF(content)))
-    {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_md5: read file failed\n");
-        cbytes_free(content);
-        return (EC_FALSE);
-    }
-    CBYTES_LEN(content) = offset;
-
-    if(offset != fsize)
-    {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_md5: expect %ld but read %ld bytes\n",
-                        fsize, offset);
-        cbytes_free(content);
-        return (EC_FALSE);
-    }
-
-    cmd5_sum((uint32_t)fsize, CBYTES_BUF(content), digest);
-
-    cbytes_free(content);
-
-    return (EC_TRUE);
-}
-
-EC_BOOL c_file_seg_md5(const int fd, const UINT32 seg_offset, const UINT32 seg_size, uint8_t digest[ CMD5_DIGEST_LEN ])
-{
-    UINT32  fsize;
-    CBYTES *content;
+    UINT8  *data;
     UINT32  offset;
     UINT32  size;
 
-    if(EC_FALSE == c_file_size(fd, &fsize))
-    {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_seg_md5: size of file failed\n");
-        return (EC_FALSE);
-    }
-
     if(fsize <= seg_offset)
     {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_seg_md5: "
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:__c_file_seg_md5_update: "
                                               "seg offset %ld overflow size of file %ld\n",
                                               seg_offset, fsize);
         return (EC_FALSE);
@@ -3696,26 +3771,174 @@ EC_BOOL c_file_seg_md5(const int fd, const UINT32 seg_offset, const UINT32 seg_s
         size   = fsize - seg_offset;
     }
 
-    content = cbytes_new(size);
-    if(NULL_PTR == content)
+    if(size > CMD5_FILE_SEG_MAX_NBYTES)
     {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_seg_md5: "
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:__c_file_seg_md5_update: "
+                                              "size %ld overflow md5 limitation %ld\n",
+                                              size, (UINT32)CMD5_FILE_SEG_MAX_NBYTES);
+        return (EC_FALSE);
+    }
+
+    data = safe_malloc(size, LOC_CMISC_0066);
+    if(NULL_PTR == data)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:__c_file_seg_md5_update: "
                                               "new cbytes with %ld bytes failed\n",
                                               size);
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == c_file_load(fd, &offset, size, CBYTES_BUF(content)))
+    if(EC_FALSE == c_file_load(fd, &offset, size, data))
     {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_seg_md5: read file failed\n");
-        cbytes_free(content);
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:__c_file_seg_md5_update: read file failed\n");
+        safe_free(data, LOC_CMISC_0067);
         return (EC_FALSE);
     }
-    CBYTES_LEN(content) = size;
 
-    cmd5_sum((uint32_t)size, CBYTES_BUF(content), digest);
+    cmd5_update(cmd5_ctx, (void *)data, (uint32_t)size);
 
-    cbytes_free(content);
+    safe_free(data, LOC_CMISC_0068);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_file_md5(const int fd, uint8_t digest[ CMD5_DIGEST_LEN ])
+{
+    UINT32  fsize;
+    UINT32  offset;
+
+    CMD5_CTX cmd5_ctx;
+
+    if(EC_FALSE == c_file_size(fd, &fsize))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_md5: size of file failed\n");
+        return (EC_FALSE);
+    }
+
+    if(0 == fsize)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_md5: "
+                                              "file is empty\n");
+        return (EC_FALSE);
+    }
+
+    cmd5_init(&cmd5_ctx);
+
+    for(offset = 0; offset < fsize; offset += CMD5_FILE_SEG_MAX_NBYTES)
+    {
+        UINT32  seg_size_t;
+
+        seg_size_t = CMD5_FILE_SEG_MAX_NBYTES;
+
+        if(offset + seg_size_t > fsize)
+        {
+            seg_size_t = (fsize - offset);
+        }
+
+        if(EC_FALSE == __c_file_seg_md5_update(fd, fsize, offset, seg_size_t, &cmd5_ctx))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_md5: md5 update [%ld, %ld]/%ld failed\n",
+                                                  offset, offset + seg_size_t, fsize);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_file_md5: md5 update [%ld, %ld]/%ld done\n",
+                                              offset, offset + seg_size_t, fsize);
+    }
+
+    cmd5_final(digest, &cmd5_ctx);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_file_seg_md5(const int fd, const UINT32 seg_offset, const UINT32 seg_size, uint8_t digest[ CMD5_DIGEST_LEN ])
+{
+    UINT32  fsize;
+    UINT32  offset;
+
+    CMD5_CTX cmd5_ctx;
+
+    if(EC_FALSE == c_file_size(fd, &fsize))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_seg_md5: size of file failed\n");
+        return (EC_FALSE);
+    }
+
+    if(0 == fsize)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_seg_md5: "
+                                              "file is empty\n");
+        return (EC_FALSE);
+    }
+
+    if(fsize <= seg_offset)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_seg_md5: "
+                                              "seg offset %ld overflow size of file %ld\n",
+                                              seg_offset, fsize);
+        return (EC_FALSE);
+    }
+
+    cmd5_init(&cmd5_ctx);
+
+    offset = seg_offset;
+
+    if(0 != (offset % CMD5_FILE_SEG_MAX_NBYTES))
+    {
+        UINT32  seg_size_t;
+
+        seg_size_t = (CMD5_FILE_SEG_MAX_NBYTES - (offset % CMD5_FILE_SEG_MAX_NBYTES));
+
+        if(offset + seg_size_t > seg_offset + seg_size)
+        {
+            seg_size_t = (seg_offset + seg_size - offset);
+        }
+
+        if(offset + seg_size_t > fsize)
+        {
+            seg_size_t = (fsize - offset);
+        }
+
+        if(EC_FALSE == __c_file_seg_md5_update(fd, fsize, offset, seg_size_t, &cmd5_ctx))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_seg_md5: md5 update [%ld, %ld]/%ld failed\n",
+                                                  offset, offset + seg_size_t, fsize);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_file_seg_md5: md5 update [%ld, %ld]/%ld done\n",
+                                              offset, offset + seg_size_t, fsize);
+
+        offset += seg_size_t;
+    }
+
+    for(; offset < seg_offset + seg_size && offset < fsize; offset += CMD5_FILE_SEG_MAX_NBYTES)
+    {
+        UINT32  seg_size_t;
+
+        seg_size_t = CMD5_FILE_SEG_MAX_NBYTES;
+        if(offset + seg_size_t > seg_offset + seg_size)
+        {
+            seg_size_t = (seg_offset + seg_size - offset);
+        }
+
+        if(offset + seg_size_t > fsize)
+        {
+            seg_size_t = (fsize - offset);
+        }
+
+        if(EC_FALSE == __c_file_seg_md5_update(fd, fsize, offset, seg_size_t, &cmd5_ctx))
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_seg_md5: md5 update [%ld, %ld]/%ld failed\n",
+                                                  offset, offset + seg_size_t, fsize);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0013_CMISC, 9)(LOGSTDOUT, "[DEBUG] c_file_seg_md5: md5 update [%ld, %ld]/%ld done\n",
+                                              offset, offset + seg_size_t, fsize);
+    }
+
+    cmd5_final(digest, &cmd5_ctx);
 
     return (EC_TRUE);
 }
@@ -3909,7 +4132,7 @@ void c_history_push(char **history, const int max, int *size, const char *str)
 
     if(NULL_PTR != history[ 0 ])
     {
-        safe_free(history[ 0 ], LOC_CMISC_0060);
+        safe_free(history[ 0 ], LOC_CMISC_0069);
         history[ 0 ] = NULL_PTR;
     }
 
@@ -3928,7 +4151,7 @@ void c_history_clean(char **history, const int max, const int size)
 
     for(pos = 0; pos < DMIN(max, size); pos ++)
     {
-        safe_free(history[ pos ], LOC_CMISC_0061);
+        safe_free(history[ pos ], LOC_CMISC_0070);
     }
     return;
 }
@@ -4301,10 +4524,10 @@ EC_BOOL c_file_munmap(void *data, const UINT32 size)
 CTM *c_localtime_r(const time_t *timestamp)
 {
     CTM *ptime;
-    c_mutex_lock(&g_cmisc_tm_cmutex, LOC_CMISC_0062);
+    c_mutex_lock(&g_cmisc_tm_cmutex, LOC_CMISC_0071);
     ptime = &(g_tm_tbl[g_tm_idx]);
     g_tm_idx = ((g_tm_idx + 1) % (CMISC_TM_NUM));
-    c_mutex_unlock(&g_cmisc_tm_cmutex, LOC_CMISC_0063);
+    c_mutex_unlock(&g_cmisc_tm_cmutex, LOC_CMISC_0072);
 
     if(NULL_PTR != timestamp)
     {
@@ -4912,7 +5135,7 @@ CCOND *c_cond_new(const UINT32 location)
 {
     CCOND      *ccond;
 
-    ccond = (CCOND *)SAFE_MALLOC(sizeof(CCOND), LOC_CMISC_0064);
+    ccond = (CCOND *)SAFE_MALLOC(sizeof(CCOND), LOC_CMISC_0073);
     if(NULL_PTR == ccond)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_new: failed to alloc CCOND, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
@@ -4922,7 +5145,7 @@ CCOND *c_cond_new(const UINT32 location)
     if(EC_FALSE == c_cond_init(ccond, location))
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_new: failed to init ccond %p, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
-        SAFE_FREE(ccond, LOC_CMISC_0065);
+        SAFE_FREE(ccond, LOC_CMISC_0074);
         return (NULL_PTR);
     }
 
@@ -5027,9 +5250,9 @@ EC_BOOL c_cond_init(CCOND *ccond, const UINT32 location)
 void c_cond_free(CCOND *ccond, const UINT32 location)
 {
     CCOND_SET_LOCATION(ccond, CCOND_OP_FREE, location);
-    c_cond_clean(ccond, LOC_CMISC_0066);
+    c_cond_clean(ccond, LOC_CMISC_0075);
 
-    SAFE_FREE(ccond, LOC_CMISC_0067);
+    SAFE_FREE(ccond, LOC_CMISC_0076);
 }
 
 EC_BOOL c_cond_clean(CCOND *ccond, const UINT32 location)
@@ -5788,10 +6011,10 @@ char *c_http_time(time_t t)
     char *str_cache;
     CTM  ctm;
 
-    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0068);
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0077);
     str_cache = (char *)(g_str_buff[g_str_idx]);
     g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
-    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0069);
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0078);
 
     c_gmtime(t, &ctm);
 
@@ -5820,10 +6043,10 @@ char *c_http_log_time(time_t t)
     CTM  ctm;
     int  gmtoff;
 
-    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0070);
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0079);
     str_cache = (char *)(g_str_buff[g_str_idx]);
     g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
-    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0071);
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0080);
 
     localtime_r(&t, &ctm);
     ctm.tm_mon ++;
@@ -6570,7 +6793,7 @@ CSET * c_collect_netcards()
 {
     CSET *cnetcard_set;
 
-    cnetcard_set = cset_new(MM_IGNORE, LOC_CMISC_0072);
+    cnetcard_set = cset_new(MM_IGNORE, LOC_CMISC_0081);
     if(NULL_PTR == cnetcard_set)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_collect_netcards: new cset failed\n");
@@ -6580,7 +6803,7 @@ CSET * c_collect_netcards()
     if(0 != cnetcard_collect(cnetcard_set, CDEVICE_NETCARD_MAX_NUM))
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_collect_netcards: collect netcards info failed\n");
-        cset_free(cnetcard_set, LOC_CMISC_0073);
+        cset_free(cnetcard_set, LOC_CMISC_0082);
         return (NULL_PTR);
     }
 
@@ -6626,7 +6849,7 @@ EC_BOOL c_clone_args(const int argc, const char **argv, int *des_argc, char ***d
 
     (*des_argc) = argc;
 
-    (*des_argv) = (char **)safe_malloc((argc + 1) * sizeof(char *), LOC_CMISC_0074);
+    (*des_argv) = (char **)safe_malloc((argc + 1) * sizeof(char *), LOC_CMISC_0083);
     if(NULL_PTR == (*des_argv))
     {
         return (EC_FALSE);
@@ -6638,7 +6861,7 @@ EC_BOOL c_clone_args(const int argc, const char **argv, int *des_argc, char ***d
 
         len = strlen(argv[ idx ]) + 1;
 
-        (*des_argv)[ idx ] = safe_malloc(len, LOC_CMISC_0075);
+        (*des_argv)[ idx ] = safe_malloc(len, LOC_CMISC_0084);
         if(NULL_PTR == (*des_argv)[ idx ])
         {
             return (EC_FALSE);
@@ -6667,7 +6890,7 @@ EC_BOOL c_save_args(const int argc, const char **argv)
 
     TASK_BRD_SAVED_ARGC(task_brd) = argc;
 
-    TASK_BRD_SAVED_ARGV(task_brd) = safe_malloc((argc + 1) * sizeof(char *), LOC_CMISC_0076);
+    TASK_BRD_SAVED_ARGV(task_brd) = safe_malloc((argc + 1) * sizeof(char *), LOC_CMISC_0085);
     if(NULL_PTR == TASK_BRD_SAVED_ARGV(task_brd))
     {
         return (EC_FALSE);
@@ -6679,7 +6902,7 @@ EC_BOOL c_save_args(const int argc, const char **argv)
 
         len = strlen(argv[ idx ]) + 1;
 
-        TASK_BRD_SAVED_ARGV(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0077);
+        TASK_BRD_SAVED_ARGV(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0086);
         if(NULL_PTR == TASK_BRD_SAVED_ARGV(task_brd)[ idx ])
         {
             return (EC_FALSE);
@@ -6711,7 +6934,7 @@ EC_BOOL c_save_environ()
         /*do nothing*/
     }
 
-    TASK_BRD_SAVED_ENVIRON(task_brd) = safe_malloc((envc + 1) * sizeof(char *), LOC_CMISC_0078);
+    TASK_BRD_SAVED_ENVIRON(task_brd) = safe_malloc((envc + 1) * sizeof(char *), LOC_CMISC_0087);
     if(NULL_PTR == TASK_BRD_SAVED_ENVIRON(task_brd))
     {
         return (EC_FALSE);
@@ -6723,7 +6946,7 @@ EC_BOOL c_save_environ()
 
         len = strlen(environ[ idx ]) + 1;
 
-        TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0079);
+        TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0088);
         if(NULL_PTR == TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ])
         {
             return (EC_FALSE);
@@ -7000,10 +7223,10 @@ char *c_format_str(const char *format, ...)
 
     va_list ap;
 
-    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0080);
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0089);
     str_cache = (char *)(g_str_buff[g_str_idx]);
     g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
-    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0081);
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0090);
 
     va_start(ap, format);
 
@@ -7036,7 +7259,7 @@ EC_BOOL c_import_resolve_conf(CVECTOR *name_servers)
 
     file_max_size = 2 * 1024; /*2KB*/
 
-    file_buff = safe_malloc(file_max_size, LOC_CMISC_0082);
+    file_buff = safe_malloc(file_max_size, LOC_CMISC_0091);
     if(NULL_PTR == file_buff)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_import_resolve_conf: malloc %ld bytes failed\n", file_max_size);
@@ -7049,7 +7272,7 @@ EC_BOOL c_import_resolve_conf(CVECTOR *name_servers)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_import_resolve_conf: load %s failed\n", file_name);
         close(fd);
-        safe_free(file_buff, LOC_CMISC_0083);
+        safe_free(file_buff, LOC_CMISC_0092);
         return (EC_FALSE);
     }
 
@@ -7082,7 +7305,7 @@ EC_BOOL c_import_resolve_conf(CVECTOR *name_servers)
         }
     }
 
-    safe_free(file_buff, LOC_CMISC_0084);
+    safe_free(file_buff, LOC_CMISC_0093);
     return (EC_TRUE);
 }
 
