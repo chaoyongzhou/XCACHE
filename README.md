@@ -1,4 +1,4 @@
 # XCACHE
-open source CDN
+open source CDN Cache
 
 XCACHE = NGX + BGN
