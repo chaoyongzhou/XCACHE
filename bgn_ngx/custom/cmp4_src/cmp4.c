@@ -9493,19 +9493,11 @@ EC_BOOL cmp4_content_orig_send_mp4_meta(const UINT32 cmp4_md_id)
 
     ASSERT(0 == out->buf->in_file);
 
-    rc = ngx_http_output_filter(r, out);
-    if(rc == NGX_ERROR || rc > NGX_OK)
+    if(EC_FALSE == cngx_send_body_chain(r, out, &rc))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_orig_send_mp4_meta: send body failed\n");
         cmp4_set_ngx_rc(cmp4_md_id, rc, LOC_CMP4_0211);
         return (EC_FALSE);
-    }
-
-    if(rc == NGX_AGAIN/* || b->last > b->pos + NGX_LUA_OUTPUT_BLOCKING_LOWAT*/)
-    {
-        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_orig_send_mp4_meta: need send body again\n");
-
-        return cngx_send_body_blocking(r, &(CMP4_MD_NGX_RC(cmp4_md)));
     }
 
     CMP4_MD_SENT_BODY_SIZE(cmp4_md) += len;
@@ -18677,20 +18669,11 @@ EC_BOOL cmp4_content_cache_send_mp4_meta(const UINT32 cmp4_md_id)
 
     ASSERT(0 == out->buf->in_file);
 
-    rc = ngx_http_output_filter(r, out);
-    /*rc = ngx_http_write_filter(r, out);*//*no meaningful to takeover/skip ngx body filter*/
-    if(rc == NGX_ERROR || rc > NGX_OK)
+    if(EC_FALSE == cngx_send_body_chain(r, out, &rc))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_mp4_meta: send body failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, rc, LOC_CMP4_0397);
+        cmp4_set_ngx_rc(cmp4_md_id, rc, LOC_CMP4_0211);
         return (EC_FALSE);
-    }
-
-    if(rc == NGX_AGAIN/* || b->last > b->pos + NGX_LUA_OUTPUT_BLOCKING_LOWAT*/)
-    {
-        dbg_log(SEC_0147_CMP4, 9)(LOGSTDOUT, "[DEBUG] cmp4_content_cache_send_mp4_meta: need send body again\n");
-
-        return cngx_send_body_blocking(r, &(CMP4_MD_NGX_RC(cmp4_md)));
     }
 
     CMP4_MD_SENT_BODY_SIZE(cmp4_md) += len;

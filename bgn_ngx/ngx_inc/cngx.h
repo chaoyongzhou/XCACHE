@@ -44,6 +44,8 @@ extern "C"{
 
 #define  CNGX_ORIG_REDIRECT_TIMES_DEFAULT         (3)
 
+#define  CNGX_SEND_BODY_MAX_SIZE_DEFAULT          (256 * 1024 * 1024)/*default body max size is 256MB*/
+
 /*cngx debug*/
 #define  CNGX_BGN_MOD_DBG_SWITCH_HDR              ("X-BGN-MOD-DBG")
 #define  CNGX_BGN_MOD_DBG_NAME_HDR                ("X-BGN-MOD-DBG-NAME")
@@ -103,6 +105,7 @@ extern "C"{
 
 #define  CNGX_VAR_SEND_TIMEOUT_EVENT_MSEC         ("c_send_body_timeout_event_msec")
 #define  CNGX_VAR_RECV_TIMEOUT_EVENT_MSEC         ("c_recv_body_timeout_event_msec")
+#define  CNGX_VAR_SEND_BODY_MAX_SIZE_NBYTES       ("c_send_body_max_size")
 
 #define  CNGX_VAR_VISIABLE_HOSTNAME               ("c_visible_hostname")
 #define  CNGX_VAR_TRACE_ID                        ("c_trace_id")
@@ -200,6 +203,8 @@ EC_BOOL cngx_get_cache_seg_size(ngx_http_request_t *r, uint32_t *cache_seg_size)
 
 EC_BOOL cngx_get_cache_seg_max_num(ngx_http_request_t *r, uint32_t *cache_seg_max_num);
 
+EC_BOOL cngx_get_client_body_max_size(ngx_http_request_t *r, uint32_t *client_body_max_size);
+
 EC_BOOL cngx_get_req_method_str(const ngx_http_request_t *r, char **val);
 
 EC_BOOL cngx_get_req_info_debug(ngx_http_request_t *r);
@@ -290,11 +295,9 @@ EC_BOOL cngx_recv_wait(ngx_http_request_t *r, ngx_msec_t recv_timeout);
 
 void cngx_recv_again(ngx_event_t *rev);
 
-void    cngx_send_again(ngx_http_request_t *r);
+void    cngx_send_again(ngx_event_t *wev);
 
 EC_BOOL cngx_send_wait(ngx_http_request_t *r, ngx_msec_t send_timeout);
-
-EC_BOOL cngx_send_body_blocking(ngx_http_request_t *r, ngx_int_t *ngx_rc);
 
 EC_BOOL cngx_send_header(ngx_http_request_t *r, ngx_int_t *ngx_rc);
 
@@ -305,6 +308,8 @@ EC_BOOL cngx_disable_send_header(ngx_http_request_t *r);
 EC_BOOL cngx_enable_send_header(ngx_http_request_t *r);
 
 EC_BOOL cngx_send_body(ngx_http_request_t *r, const uint8_t *body, const uint32_t len, const uint32_t flag, ngx_int_t *ngx_rc);
+
+EC_BOOL cngx_send_body_chain(ngx_http_request_t *r, ngx_chain_t *body, ngx_int_t *ngx_rc);
 
 EC_BOOL cngx_set_store_cache_rsp_headers(ngx_http_request_t *r, CHTTP_STORE *chttp_store);
 
