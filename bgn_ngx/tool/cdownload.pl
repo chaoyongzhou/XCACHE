@@ -41,7 +41,7 @@ if( defined($verbose) && $verbose =~/on/i )
     &print_config($paras_config);
 }
 
-$g_src_host     = $$paras_config{"host"}        || "download-avatar.bytedance.com";# default server domain
+$g_src_host     = $$paras_config{"host"}        || "www.download.com";# default server domain
 $g_src_ip       = $$paras_config{"ip"};
 $g_timeout_nsec = $$paras_config{"timeout"}     || 30;              # default timeout in seconds
 $g_sleep_nsec   = $$paras_config{"sleep"}       || 10;              # default sleep in seconds

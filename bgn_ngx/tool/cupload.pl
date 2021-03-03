@@ -40,7 +40,7 @@ if( defined($verbose) && $verbose =~/on/i )
     &print_config($paras_config);
 }
 
-$g_des_host     = $$paras_config{"host"}        || "upload-avatar.bytedance.com";# default server domain
+$g_des_host     = $$paras_config{"host"}        || "www.upload.com";# default server domain
 $g_des_ip       = $$paras_config{"ip"};
 $g_timeout_nsec = $$paras_config{"timeout"}     || 30;              # default timeout in seconds
 $g_step_nbytes  = $$paras_config{"step"}        || 2 << 20;         # default segment size in bytes
