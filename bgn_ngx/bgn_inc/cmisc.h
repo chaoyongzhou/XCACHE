@@ -167,6 +167,8 @@ char *c_str_dup(const char *str);
 
 char *c_str_n_dup(const char *str, const uint32_t n);
 
+char *c_str_make(const char *format, ...);
+
 EC_BOOL c_str_free(char *str);
 
 EC_BOOL c_str_is_digit(const char *string);

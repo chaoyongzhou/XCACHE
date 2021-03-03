@@ -30,6 +30,12 @@ extern "C"{
 #define CDOWNLOAD_FILE_SIZE_OP                ("/size")
 #define CDOWNLOAD_FILE_MD5_OP                 ("/md5")
 #define CDOWNLOAD_FILE_DOWNLOAD_OP            ("/download")
+#define CDOWNLOAD_FILE_BACKUP_OP              ("/backup")
+#define CDOWNLOAD_DIR_DELETE_OP               ("/ddir")
+#define CDOWNLOAD_DIR_FINGER_OP               ("/finger")
+
+
+#define CDOWNLOAD_CNGX_VAR_BACKUP_DIR         ("c_download_backup_dir")
 
 #define CDOWNLOAD_FILE_NAME_MAX_DEPTH         (64)       /*file name max depth*/
 #define CDOWNLOAD_FILE_NAME_SEG_MAX_SIZE      (255)      /*posix compatiblity*/
@@ -40,7 +46,9 @@ typedef struct
     UINT32               usedcounter;
     EC_BOOL              terminate_flag;
 
+    CSTRING             *root_path;
     CSTRING             *file_op;
+    CSTRING             *file_relative_path;
     CSTRING             *file_path;
     CSTRING             *file_md5;
     CBYTES              *file_body;
@@ -66,8 +74,13 @@ typedef struct
 
 #define CDOWNLOAD_MD_TERMINATE_FLAG(cdownload_md)               ((cdownload_md)->terminate_flag)
 
+#define CDOWNLOAD_MD_ROOT_PATH(cdownload_md)                    ((cdownload_md)->root_path)
+#define CDOWNLOAD_MD_ROOT_PATH_STR(cdownload_md)                (cstring_get_str(CDOWNLOAD_MD_ROOT_PATH(cdownload_md)))
+
 #define CDOWNLOAD_MD_FILE_OP(cdownload_md)                      ((cdownload_md)->file_op)
 #define CDOWNLOAD_MD_FILE_OP_STR(cdownload_md)                  (cstring_get_str(CDOWNLOAD_MD_FILE_OP(cdownload_md)))
+#define CDOWNLOAD_MD_FILE_RELATIVE_PATH(cdownload_md)           ((cdownload_md)->file_relative_path)
+#define CDOWNLOAD_MD_FILE_RELATIVE_PATH_STR(cdownload_md)       (cstring_get_str(CDOWNLOAD_MD_FILE_RELATIVE_PATH(cdownload_md)))
 #define CDOWNLOAD_MD_FILE_PATH(cdownload_md)                    ((cdownload_md)->file_path)
 #define CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md)                (cstring_get_str(CDOWNLOAD_MD_FILE_PATH(cdownload_md)))
 #define CDOWNLOAD_MD_FILE_MD5(cdownload_md)                     ((cdownload_md)->file_md5)
@@ -150,6 +163,14 @@ EC_BOOL cdownload_size_file_handler(const UINT32 cdownload_md_id);
 EC_BOOL cdownload_md5_file_handler(const UINT32 cdownload_md_id);
 
 EC_BOOL cdownload_read_file_handler(const UINT32 cdownload_md_id);
+
+EC_BOOL cdownload_backup_file_handler(const UINT32 cdownload_md_id);
+
+EC_BOOL cdownload_delete_dir_handler(const UINT32 cdownload_md_id);
+
+EC_BOOL cdownload_finger_dir_handler(const UINT32 cdownload_md_id);
+
+
 
 EC_BOOL cdownload_content_handler(const UINT32 cdownload_md_id);
 

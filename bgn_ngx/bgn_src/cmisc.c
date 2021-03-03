@@ -1725,6 +1725,32 @@ char *c_str_n_dup(const char *str, const uint32_t n)
     return (dup_str);
 }
 
+char *c_str_make(const char *format, ...)
+{
+    char    *str;
+
+    va_list ap;
+    UINT32  len;
+
+    va_start(ap, format);
+
+    len = (UINT32)c_vformat_len(format, ap);
+
+    str = safe_malloc(len + 1, LOC_CMISC_0042);
+    if(NULL_PTR == str)
+    {
+        va_end(ap);
+
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_make: alloc %ld bytes failed\n", len + 1);
+        return (NULL_PTR);
+    }
+
+    len = vsnprintf(str, len + 1, format, ap);
+    va_end(ap);
+
+    return (str);
+}
+
 EC_BOOL c_str_free(char *str)
 {
     if(NULL_PTR != str)
