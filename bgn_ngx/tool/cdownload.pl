@@ -2,12 +2,13 @@
 
 ########################################################################################################################
 # description:  download file from server
-# version    :  v1.1
+# version    :  v1.2
 # creator    :  chaoyong zhou
 #
 # History:
 #    1. 02/23/2021: v1.0, delivered
 #    2. 03/03/2021: v1.1, support sync directory
+#    3. 03/05/2021: v1.2, support direct domain access
 ########################################################################################################################
 
 use strict;
@@ -27,7 +28,7 @@ my $g_ua_agent = "Mozilla/8.0";
 
 my $g_autoflush_flag;
 my $g_usage =
-    "$0 [syncfiles=<num>] des=<local file> src=<remote file> ip=<server server ip[:port]> [host=<hostname>] [sleep=<seconds>] [timeout=<seconds>] [step=<nbytes>] [loglevel=<1..9>] [verbose=on|off]";
+    "$0 [syncfiles=<num>] des=<local file> src=<remote file> [ip=<server server ip[:port]>] [host=<hostname>] [sleep=<seconds>] [timeout=<seconds>] [step=<nbytes>] [loglevel=<1..9>] [verbose=on|off]";
 my $verbose;
 
 my $paras_config = {};
@@ -1405,7 +1406,7 @@ sub make_url
 
     ($op, $remote_path) = @_;
 
-    return sprintf("http://%s/%s%s", &get_remote_ip(), $op, $remote_path);
+    return sprintf("http://%s/%s%s", &get_remote_ip() || &get_remote_host(), $op, $remote_path);
 }
 
 ################################################################################################################
@@ -1413,7 +1414,7 @@ sub make_url
 ################################################################################################################
 sub get_remote_ip
 {
-    return $g_src_ip;
+    return $g_src_ip || &get_remote_host();
 }
 
 ################################################################################################################

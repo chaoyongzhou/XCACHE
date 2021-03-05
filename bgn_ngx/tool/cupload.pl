@@ -2,13 +2,14 @@
 
 ########################################################################################################################
 # description:  upload file to server
-# version    :  v1.2
+# version    :  v1.3
 # creator    :  chaoyong zhou
 #
 # History:
 #    1. 02/23/2021: v1.0, delivered
 #    2. 02/26/2021: v1.1, support merge file parts
 #    3. 03/03/2021: v1.2, support sync directory
+#    4. 03/05/2021: v1.3, support direct domain access
 ########################################################################################################################
 
 use strict;
@@ -26,7 +27,7 @@ my $g_ua_agent = "Mozilla/8.0";
 
 my $g_autoflush_flag;
 my $g_usage =
-    "$0 [sync=<on|off>] src=<local file> des=<remote file> ip=<server server ip[:port]> [host=<hostname>] [timeout=<seconds>] [step=<nbytes>] [loglevel=<1..9>] [verbose=on|off]";
+    "$0 [sync=<on|off>] src=<local file> des=<remote file> [ip=<server server ip[:port]>] [host=<hostname>] [timeout=<seconds>] [step=<nbytes>] [loglevel=<1..9>] [verbose=on|off]";
 my $verbose;
 
 my $paras_config = {};
@@ -82,6 +83,13 @@ sub sync_dir_entrance
     }
     &echo(2, sprintf("[DEBUG] sync_dir_entrance: local dir '%s' exists\n",
                      $local_dir_name));
+
+    if($local_dir_name !~ /^\//)
+    {
+        $local_dir_name = sprintf("%s/%s", $ENV{'PWD'}, $local_dir_name);
+        &echo(2, sprintf("[DEBUG] sync_dir_entrance: local dir => '%s'\n",
+                         $local_dir_name));
+    }
 
     $status = opendir($dp, $local_dir_name);
     if(! $status)
@@ -1067,7 +1075,7 @@ sub make_url
 
     ($op, $remote_path) = @_;
 
-    return sprintf("http://%s/%s%s", &get_remote_ip(), $op, $remote_path);
+    return sprintf("http://%s/%s%s", &get_remote_ip() || &get_remote_host(), $op, $remote_path);
 }
 
 ################################################################################################################
@@ -1075,8 +1083,9 @@ sub make_url
 ################################################################################################################
 sub get_remote_ip
 {
-    return $g_des_ip;
+    return $g_des_ip || &get_remote_host();
 }
+
 
 ################################################################################################################
 # $host = get_remote_host()
