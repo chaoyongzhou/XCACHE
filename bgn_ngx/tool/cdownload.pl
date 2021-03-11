@@ -24,7 +24,7 @@ my $g_timeout_nsec;
 my $g_sleep_nsec    = 10;# default sleep 10s
 my $g_step_nbytes;
 my $g_log_level     = 1; # default log level
-my $g_key_token     = "0123456789abcdef0123456789abcdef";
+my $g_acl_token     = "0123456789abcdef0123456789abcdef";
 my $g_expired_nsec  = 15;
 my $g_ua_agent      = "Mozilla/8.0";
 
@@ -1414,9 +1414,9 @@ sub make_url
     $time = sprintf("%s", time() + $g_expired_nsec);
     $uri  = sprintf("%s%s", $op, $remote_path);
 
-    $md5  = md5_hex(sprintf("%s/%s%s", $g_key_token, $uri, $time));
+    $md5  = md5_hex(sprintf("%s/%s%s", $g_acl_token, $uri, $time));
 
-    &echo(9,sprintf("[DEBUG] make_url: %s/%s%s => md5 %s\n", $g_key_token, $uri, $time, $md5));
+    &echo(9,sprintf("[DEBUG] make_url: %s/%s%s => md5 %s\n", $g_acl_token, $uri, $time, $md5));
 
     return sprintf("http://%s/%s?sig=%s&t=%s", &get_remote_ip() || &get_remote_host(), $uri, $md5, $time);
 }
