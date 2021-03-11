@@ -2607,7 +2607,7 @@ void cngx_send_again(ngx_event_t *wev)
     if(NULL_PTR != NGX_W_COROUTINE_COND(wev))
     {
         dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_send_again: enter\n");
-        coroutine_cond_release_all(NGX_W_COROUTINE_COND(wev), LOC_CNGX_0051);
+        coroutine_cond_release_all(NGX_W_COROUTINE_COND(wev), LOC_CNGX_0057);
     }
 
     return;

@@ -36,6 +36,9 @@ extern "C"{
 /*CREFRESH Package Debug Switch*/
 #define CREFRESH_DEBUG_SWITCH SWITCH_OFF
 
+/*CACLTIME Package Debug Switch*/
+#define CACLTIME_DEBUG_SWITCH SWITCH_OFF
+
 /*CUPLOAD Package Debug Switch*/
 #define CUPLOAD_DEBUG_SWITCH SWITCH_OFF
 

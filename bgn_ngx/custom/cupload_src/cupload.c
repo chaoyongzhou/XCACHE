@@ -124,12 +124,6 @@ UINT32 cupload_start(ngx_http_request_t *r)
     CUPLOAD_MD *cupload_md;
     UINT32      cupload_md_id;
 
-    //TASK_BRD   *task_brd;
-
-    uint32_t    cache_seg_size;
-
-    //task_brd = task_brd_default_get();
-
     cupload_md_id = cbc_md_new(MD_CUPLOAD, sizeof(CUPLOAD_MD));
     if(CMPI_ERROR_MODI == cupload_md_id)
     {
@@ -144,7 +138,6 @@ UINT32 cupload_start(ngx_http_request_t *r)
     init_static_mem();
 
     /* init */
-    cngx_get_cache_seg_size(r, &cache_seg_size);
 
     CUPLOAD_MD_FILE_OP(cupload_md)          = NULL_PTR;
     CUPLOAD_MD_FILE_PATH(cupload_md)        = NULL_PTR;

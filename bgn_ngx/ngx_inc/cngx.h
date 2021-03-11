@@ -115,6 +115,8 @@ extern "C"{
 
 #define  CNGX_VAR_DENY_REASON                     ("c_deny_reason")
 
+#define  CNGX_VAR_ACL_TOKEN                       ("c_acl_token")
+
 /*cache status definition*/
 #define  CNGX_CACHE_STATUS_HIT                    ("TCP_HIT")
 #define  CNGX_CACHE_STATUS_MISS                   ("TCP_MISS")

@@ -120,12 +120,6 @@ UINT32 cdownload_start(ngx_http_request_t *r)
     CDOWNLOAD_MD *cdownload_md;
     UINT32      cdownload_md_id;
 
-    //TASK_BRD   *task_brd;
-
-    uint32_t    cache_seg_size;
-
-    //task_brd = task_brd_default_get();
-
     cdownload_md_id = cbc_md_new(MD_CDOWNLOAD, sizeof(CDOWNLOAD_MD));
     if(CMPI_ERROR_MODI == cdownload_md_id)
     {
@@ -140,7 +134,6 @@ UINT32 cdownload_start(ngx_http_request_t *r)
     init_static_mem();
 
     /* init */
-    cngx_get_cache_seg_size(r, &cache_seg_size);
 
     CDOWNLOAD_MD_ROOT_PATH(cdownload_md)            = NULL_PTR;
     CDOWNLOAD_MD_FILE_OP(cdownload_md)              = NULL_PTR;
@@ -464,13 +457,13 @@ EC_BOOL cdownload_parse_uri(const UINT32 cdownload_md_id)
     ASSERT(NULL_PTR == CDOWNLOAD_MD_FILE_OP(cdownload_md));
     ASSERT(NULL_PTR == CDOWNLOAD_MD_FILE_PATH(cdownload_md));
 
-    CDOWNLOAD_MD_FILE_RELATIVE_PATH(cdownload_md) = cstring_new((UINT8 *)file_path_str, LOC_CDOWNLOAD_0007);
+    CDOWNLOAD_MD_FILE_RELATIVE_PATH(cdownload_md) = cstring_new((UINT8 *)file_path_str, LOC_CDOWNLOAD_0003);
     if(NULL_PTR == CDOWNLOAD_MD_FILE_RELATIVE_PATH(cdownload_md))
     {
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_parse_uri: "
                                                   "make file relative path '%s' failed\n",
                                                   file_path_str);
-        safe_free(uri_str, LOC_CDOWNLOAD_0008);
+        safe_free(uri_str, LOC_CDOWNLOAD_0004);
         return (EC_FALSE);
     }
 
@@ -480,7 +473,7 @@ EC_BOOL cdownload_parse_uri(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_parse_uri: "
                                                   "make file op '%.*s' failed\n",
                                                   file_path_str - file_op_str, file_op_str);
-        safe_free(uri_str, LOC_CDOWNLOAD_0003);
+        safe_free(uri_str, LOC_CDOWNLOAD_0005);
         return (EC_FALSE);
     }
     dbg_log(SEC_0172_CDOWNLOAD, 9)(LOGSTDOUT, "[DEBUG] cdownload_parse_uri: "
@@ -491,21 +484,21 @@ EC_BOOL cdownload_parse_uri(const UINT32 cdownload_md_id)
     {
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_parse_uri: "
                                                   "get root path failed\n");
-        safe_free(uri_str, LOC_CDOWNLOAD_0003);
+        safe_free(uri_str, LOC_CDOWNLOAD_0006);
         return (EC_FALSE);
     }
 
     if(NULL_PTR != root_path_str)
     {
-        CDOWNLOAD_MD_ROOT_PATH(cdownload_md) = cstring_new((UINT8 *)root_path_str, LOC_CDOWNLOAD_0004);
+        CDOWNLOAD_MD_ROOT_PATH(cdownload_md) = cstring_new((UINT8 *)root_path_str, LOC_CDOWNLOAD_0007);
         if(NULL_PTR == CDOWNLOAD_MD_ROOT_PATH(cdownload_md))
         {
             dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_parse_uri: "
                                                       "make root path '%s' failed\n",
                                                       root_path_str);
 
-            safe_free(root_path_str, LOC_CDOWNLOAD_0004);
-            safe_free(uri_str, LOC_CDOWNLOAD_0005);
+            safe_free(root_path_str, LOC_CDOWNLOAD_0008);
+            safe_free(uri_str, LOC_CDOWNLOAD_0009);
             return (EC_FALSE);
         }
     }
@@ -519,28 +512,28 @@ EC_BOOL cdownload_parse_uri(const UINT32 cdownload_md_id)
                                                       "make file path '%s%s' failed\n",
                                                       root_path_str, file_path_str);
 
-            safe_free(root_path_str, LOC_CDOWNLOAD_0004);
-            safe_free(uri_str, LOC_CDOWNLOAD_0005);
+            safe_free(root_path_str, LOC_CDOWNLOAD_0010);
+            safe_free(uri_str, LOC_CDOWNLOAD_0011);
             return (EC_FALSE);
         }
-        safe_free(root_path_str, LOC_CDOWNLOAD_0006);
-        safe_free(uri_str, LOC_CDOWNLOAD_0009);
+        safe_free(root_path_str, LOC_CDOWNLOAD_0012);
+        safe_free(uri_str, LOC_CDOWNLOAD_0013);
         dbg_log(SEC_0172_CDOWNLOAD, 9)(LOGSTDOUT, "[DEBUG] cdownload_parse_uri: "
                                                   "parsed and composed file path '%s'\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
     }
     else
     {
-        CDOWNLOAD_MD_FILE_PATH(cdownload_md) = cstring_new((UINT8 *)file_path_str, LOC_CDOWNLOAD_0007);
+        CDOWNLOAD_MD_FILE_PATH(cdownload_md) = cstring_new((UINT8 *)file_path_str, LOC_CDOWNLOAD_0014);
         if(NULL_PTR == CDOWNLOAD_MD_FILE_PATH(cdownload_md))
         {
             dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_parse_uri: "
                                                       "make file path '%s' failed\n",
                                                       file_path_str);
-            safe_free(uri_str, LOC_CDOWNLOAD_0008);
+            safe_free(uri_str, LOC_CDOWNLOAD_0015);
             return (EC_FALSE);
         }
-        safe_free(uri_str, LOC_CDOWNLOAD_0009);
+        safe_free(uri_str, LOC_CDOWNLOAD_0016);
         dbg_log(SEC_0172_CDOWNLOAD, 9)(LOGSTDOUT, "[DEBUG] cdownload_parse_uri: "
                                                   "parsed file path '%s'\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
@@ -603,7 +596,7 @@ EC_BOOL cdownload_parse_file_range(const UINT32 cdownload_md_id)
             dbg_log(SEC_0172_CDOWNLOAD, 9)(LOGSTDOUT, "[DEBUG] cdownload_parse_file_range: "
                                                       "[cngx] invalid %s\n",
                                                       k);
-            safe_free(v, LOC_CDOWNLOAD_0010);
+            safe_free(v, LOC_CDOWNLOAD_0017);
             return (EC_FALSE);
         }
 
@@ -615,7 +608,7 @@ EC_BOOL cdownload_parse_file_range(const UINT32 cdownload_md_id)
             dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_parse_file_range: "
                                                       "[cngx] invald '%s': %s %s-%s/%s\n",
                                                       k, segs[0], segs[1], segs[2], segs[3]);
-            safe_free(v, LOC_CDOWNLOAD_0011);
+            safe_free(v, LOC_CDOWNLOAD_0018);
             return (EC_FALSE);
         }
 
@@ -629,11 +622,11 @@ EC_BOOL cdownload_parse_file_range(const UINT32 cdownload_md_id)
             dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_parse_file_range: "
                                                       "[cngx] invald '%s': %s %s-%s/%s\n",
                                                       k, segs[0], segs[1], segs[2], segs[3]);
-            safe_free(v, LOC_CDOWNLOAD_0012);
+            safe_free(v, LOC_CDOWNLOAD_0019);
             return (EC_FALSE);
         }
 
-        safe_free(v, LOC_CDOWNLOAD_0013);
+        safe_free(v, LOC_CDOWNLOAD_0020);
 
         dbg_log(SEC_0172_CDOWNLOAD, 9)(LOGSTDOUT, "[DEBUG] cdownload_parse_file_range: "
                                                   "[cngx] parsed range: [%ld, %ld]/%ld\n",
@@ -691,17 +684,17 @@ EC_BOOL cdownload_parse_file_md5(const UINT32 cdownload_md_id)
                                               "[cngx] parsed '%s':'%s'\n",
                                               k, v);
 
-    CDOWNLOAD_MD_FILE_MD5(cdownload_md) = cstring_new((UINT8 *)v, LOC_CDOWNLOAD_0014);
+    CDOWNLOAD_MD_FILE_MD5(cdownload_md) = cstring_new((UINT8 *)v, LOC_CDOWNLOAD_0021);
     if(NULL_PTR == CDOWNLOAD_MD_FILE_MD5(cdownload_md))
     {
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_parse_file_md5: "
                                                   "new cstring '%s' failed\n",
                                                   v);
-        safe_free(v, LOC_CDOWNLOAD_0015);
+        safe_free(v, LOC_CDOWNLOAD_0022);
         return (EC_FALSE);
     }
 
-    safe_free(v, LOC_CDOWNLOAD_0016);
+    safe_free(v, LOC_CDOWNLOAD_0023);
     return (EC_TRUE);
 }
 
@@ -859,7 +852,7 @@ EC_BOOL cdownload_check_file_handler(const UINT32 cdownload_md_id)
     {
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_check_file_handler: "
                                                   "no file name\n");
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0017);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0024);
         return (EC_FALSE);
     }
 
@@ -868,7 +861,7 @@ EC_BOOL cdownload_check_file_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_check_file_handler: "
                                                   "no md5\n");
 
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0018);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0025);
         return (EC_FALSE);
     }
 
@@ -880,7 +873,7 @@ EC_BOOL cdownload_check_file_handler(const UINT32 cdownload_md_id)
                                                   CDOWNLOAD_MD_FILE_E_OFFSET(cdownload_md),
                                                   CDOWNLOAD_MD_FILE_SIZE(cdownload_md));
 
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0019);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0026);
         return (EC_FALSE);
     }
 
@@ -889,7 +882,7 @@ EC_BOOL cdownload_check_file_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_check_file_handler: "
                                                   "file '%s' not exist\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0020);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0027);
         return (EC_FALSE);
     }
 
@@ -899,7 +892,7 @@ EC_BOOL cdownload_check_file_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_check_file_handler: "
                                                   "open file '%s' failed\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0021);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0028);
         return (EC_FALSE);
     }
 
@@ -910,7 +903,7 @@ EC_BOOL cdownload_check_file_handler(const UINT32 cdownload_md_id)
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
 
         c_file_close(fd);
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0022);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0029);
 
         return (EC_FALSE);
     }
@@ -924,7 +917,7 @@ EC_BOOL cdownload_check_file_handler(const UINT32 cdownload_md_id)
                                                   CDOWNLOAD_MD_FILE_SIZE(cdownload_md));
 
         c_file_close(fd);
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_UNAUTHORIZED, LOC_CDOWNLOAD_0023);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_UNAUTHORIZED, LOC_CDOWNLOAD_0030);
 
         return (EC_FALSE);
     }
@@ -949,7 +942,7 @@ EC_BOOL cdownload_check_file_handler(const UINT32 cdownload_md_id)
                                                       CDOWNLOAD_MD_FILE_E_OFFSET(cdownload_md));
 
             c_file_close(fd);
-            cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0024);
+            cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0031);
 
             return (EC_FALSE);
         }
@@ -973,7 +966,7 @@ EC_BOOL cdownload_check_file_handler(const UINT32 cdownload_md_id)
                                                       cmd5_digest_hex_str(&seg_md5sum),
                                                       CDOWNLOAD_MD_FILE_MD5_STR(cdownload_md));
 
-            cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_UNAUTHORIZED, LOC_CDOWNLOAD_0025);
+            cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_UNAUTHORIZED, LOC_CDOWNLOAD_0032);
             return (EC_TRUE);
         }
 
@@ -984,13 +977,13 @@ EC_BOOL cdownload_check_file_handler(const UINT32 cdownload_md_id)
                                                   CDOWNLOAD_MD_FILE_E_OFFSET(cdownload_md),
                                                   CDOWNLOAD_MD_FILE_MD5_STR(cdownload_md));
 
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0026);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0033);
         return (EC_TRUE);
     }
 
     c_file_close(fd);
 
-    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0027);
+    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0034);
     return (EC_TRUE);
 }
 
@@ -1015,7 +1008,7 @@ EC_BOOL cdownload_delete_file_handler(const UINT32 cdownload_md_id)
     {
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_delete_file_handler: "
                                                   "no file name\n");
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0028);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0035);
         return (EC_FALSE);
     }
 
@@ -1024,7 +1017,7 @@ EC_BOOL cdownload_delete_file_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_delete_file_handler: "
                                                   "file '%s' not exist\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0029);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0036);
         return (EC_FALSE);
     }
 
@@ -1033,7 +1026,7 @@ EC_BOOL cdownload_delete_file_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_delete_file_handler: "
                                                   "unlink file '%s' failed\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0030);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0037);
         return (EC_FALSE);
     }
 
@@ -1041,7 +1034,7 @@ EC_BOOL cdownload_delete_file_handler(const UINT32 cdownload_md_id)
                                               "unlink file '%s' done\n",
                                               (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
 
-    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0031);
+    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0038);
     return (EC_TRUE);
 }
 
@@ -1073,7 +1066,7 @@ EC_BOOL cdownload_size_file_handler(const UINT32 cdownload_md_id)
     {
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_size_file_handler: "
                                                   "no file name\n");
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0032);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0039);
         return (EC_FALSE);
     }
 
@@ -1082,7 +1075,7 @@ EC_BOOL cdownload_size_file_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_size_file_handler: "
                                                   "file '%s' not exist\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0033);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0040);
         return (EC_FALSE);
     }
 
@@ -1092,7 +1085,7 @@ EC_BOOL cdownload_size_file_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_size_file_handler: "
                                                   "open file '%s' failed\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0034);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0041);
         return (EC_FALSE);
     }
 
@@ -1103,7 +1096,7 @@ EC_BOOL cdownload_size_file_handler(const UINT32 cdownload_md_id)
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
 
         c_file_close(fd);
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0035);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0042);
 
         return (EC_FALSE);
     }
@@ -1116,7 +1109,7 @@ EC_BOOL cdownload_size_file_handler(const UINT32 cdownload_md_id)
                                               fsize);
 
     cngx_set_header_out_kv(r, (const char *)"X-File-Size", c_word_to_str(fsize));
-    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0036);
+    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0043);
     return (EC_TRUE);
 }
 
@@ -1150,7 +1143,7 @@ EC_BOOL cdownload_md5_file_handler(const UINT32 cdownload_md_id)
     {
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_md5_file_handler: "
                                                   "no file name\n");
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0037);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0044);
         return (EC_FALSE);
     }
 
@@ -1162,7 +1155,7 @@ EC_BOOL cdownload_md5_file_handler(const UINT32 cdownload_md_id)
                                                   CDOWNLOAD_MD_FILE_E_OFFSET(cdownload_md),
                                                   CDOWNLOAD_MD_FILE_SIZE(cdownload_md));
 
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0038);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0045);
         return (EC_FALSE);
     }
 
@@ -1171,7 +1164,7 @@ EC_BOOL cdownload_md5_file_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_md5_file_handler: "
                                                   "file '%s' not exist\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0039);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0046);
         return (EC_FALSE);
     }
 
@@ -1181,7 +1174,7 @@ EC_BOOL cdownload_md5_file_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_md5_file_handler: "
                                                   "open file '%s' failed\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0040);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0047);
         return (EC_FALSE);
     }
 
@@ -1192,7 +1185,7 @@ EC_BOOL cdownload_md5_file_handler(const UINT32 cdownload_md_id)
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
 
         c_file_close(fd);
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0041);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0048);
 
         return (EC_FALSE);
     }
@@ -1217,7 +1210,7 @@ EC_BOOL cdownload_md5_file_handler(const UINT32 cdownload_md_id)
                                                   CDOWNLOAD_MD_FILE_E_OFFSET(cdownload_md));
 
         c_file_close(fd);
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0042);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0049);
 
         return (EC_FALSE);
     }
@@ -1240,7 +1233,7 @@ EC_BOOL cdownload_md5_file_handler(const UINT32 cdownload_md_id)
 
     cngx_set_header_out_kv(r, (const char *)"X-MD5", cmd5_digest_hex_str(&seg_md5sum));
 
-    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0043);
+    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0050);
     return (EC_TRUE);
 }
 
@@ -1276,7 +1269,7 @@ EC_BOOL cdownload_read_file_handler(const UINT32 cdownload_md_id)
     {
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_read_file_handler: "
                                                   "no file name\n");
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0037);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0051);
         return (EC_FALSE);
     }
 
@@ -1288,7 +1281,7 @@ EC_BOOL cdownload_read_file_handler(const UINT32 cdownload_md_id)
                                                   CDOWNLOAD_MD_FILE_E_OFFSET(cdownload_md),
                                                   CDOWNLOAD_MD_FILE_SIZE(cdownload_md));
 
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0038);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0052);
         return (EC_FALSE);
     }
 
@@ -1297,7 +1290,7 @@ EC_BOOL cdownload_read_file_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_read_file_handler: "
                                                   "file '%s' not exist\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0039);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0053);
         return (EC_FALSE);
     }
 
@@ -1307,7 +1300,7 @@ EC_BOOL cdownload_read_file_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_read_file_handler: "
                                                   "open file '%s' failed\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0040);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0054);
         return (EC_FALSE);
     }
 
@@ -1318,7 +1311,7 @@ EC_BOOL cdownload_read_file_handler(const UINT32 cdownload_md_id)
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
 
         c_file_close(fd);
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0041);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0055);
 
         return (EC_FALSE);
     }
@@ -1333,7 +1326,7 @@ EC_BOOL cdownload_read_file_handler(const UINT32 cdownload_md_id)
                                                   CDOWNLOAD_MD_FILE_E_OFFSET(cdownload_md));
 
         c_file_close(fd);
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0041);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0056);
 
         return (EC_FALSE);
     }
@@ -1363,7 +1356,7 @@ EC_BOOL cdownload_read_file_handler(const UINT32 cdownload_md_id)
                                                   rsize, client_body_max_size);
 
         c_file_close(fd);
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0042);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_FORBIDDEN, LOC_CDOWNLOAD_0057);
 
         return (EC_FALSE);
     }
@@ -1380,7 +1373,7 @@ EC_BOOL cdownload_read_file_handler(const UINT32 cdownload_md_id)
                                                   rsize);
 
         c_file_close(fd);
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0042);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0058);
 
         return (EC_FALSE);
     }
@@ -1396,7 +1389,7 @@ EC_BOOL cdownload_read_file_handler(const UINT32 cdownload_md_id)
         cbytes_free(rsp_body);
 
         c_file_close(fd);
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0042);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0059);
 
         return (EC_FALSE);
     }
@@ -1420,7 +1413,7 @@ EC_BOOL cdownload_read_file_handler(const UINT32 cdownload_md_id)
 
     cngx_set_header_out_kv(r, (const char *)"Content-Length", c_word_to_str(rsize));
 
-    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0043);
+    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0060);
     return (EC_TRUE);
 }
 
@@ -1461,7 +1454,7 @@ EC_BOOL cdownload_backup_file_handler(const UINT32 cdownload_md_id)
     {
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_backup_file_handler: "
                                                   "no file name\n");
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0032);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0061);
         return (EC_FALSE);
     }
 
@@ -1470,7 +1463,7 @@ EC_BOOL cdownload_backup_file_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_backup_file_handler: "
                                                   "file '%s' not exist\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0033);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0062);
         return (EC_FALSE);
     }
 
@@ -1481,7 +1474,7 @@ EC_BOOL cdownload_backup_file_handler(const UINT32 cdownload_md_id)
                                                   "get var '%s' failed\n",
                                                   k);
 
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0029);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0063);
         return (EC_FALSE);
     }
 
@@ -1491,7 +1484,7 @@ EC_BOOL cdownload_backup_file_handler(const UINT32 cdownload_md_id)
                                                   "not configure '%s'\n",
                                                   k);
 
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_ALLOWED, LOC_CDOWNLOAD_0029);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_ALLOWED, LOC_CDOWNLOAD_0064);
         return (EC_FALSE);
     }
 
@@ -1503,8 +1496,8 @@ EC_BOOL cdownload_backup_file_handler(const UINT32 cdownload_md_id)
                                                   "configure '%s':'%s' error\n",
                                                   k, backup_dir_path);
 
-        safe_free(backup_dir_path, LOC_CDOWNLOAD_0005);
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0029);
+        safe_free(backup_dir_path, LOC_CDOWNLOAD_0065);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0066);
         return (EC_FALSE);
     }
 
@@ -1514,8 +1507,8 @@ EC_BOOL cdownload_backup_file_handler(const UINT32 cdownload_md_id)
                                                   "configure '%s':'%s' is not dir\n",
                                                   k, backup_dir_path);
 
-        safe_free(backup_dir_path, LOC_CDOWNLOAD_0005);
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0029);
+        safe_free(backup_dir_path, LOC_CDOWNLOAD_0067);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0068);
         return (EC_FALSE);
     }
 
@@ -1546,11 +1539,11 @@ EC_BOOL cdownload_backup_file_handler(const UINT32 cdownload_md_id)
                                                   backup_dir_path,
                                                   relative_file_path);
 
-        safe_free(backup_dir_path, LOC_CDOWNLOAD_0005);
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0029);
+        safe_free(backup_dir_path, LOC_CDOWNLOAD_0069);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0070);
         return (EC_FALSE);
     }
-    safe_free(backup_dir_path, LOC_CDOWNLOAD_0044);
+    safe_free(backup_dir_path, LOC_CDOWNLOAD_0071);
 
     dbg_log(SEC_0172_CDOWNLOAD, 9)(LOGSTDOUT, "[DEBUG] cdownload_backup_file_handler: "
                                               "parsed and composed des file path '%s'\n",
@@ -1562,7 +1555,7 @@ EC_BOOL cdownload_backup_file_handler(const UINT32 cdownload_md_id)
                                                   "create basedir of '%s' failed\n",
                                                   des_file_path);
         c_str_free(des_file_path);
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0029);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0072);
         return (EC_FALSE);
     }
 
@@ -1572,7 +1565,7 @@ EC_BOOL cdownload_backup_file_handler(const UINT32 cdownload_md_id)
                                                   "rename '%s' to '%s' failed\n",
                                                   src_file_path, des_file_path);
         c_str_free(des_file_path);
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0029);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0073);
         return (EC_FALSE);
     }
 
@@ -1581,7 +1574,7 @@ EC_BOOL cdownload_backup_file_handler(const UINT32 cdownload_md_id)
                                               src_file_path, des_file_path);
 
     c_str_free(des_file_path);
-    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0029);
+    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0074);
     return (EC_TRUE);
 }
 
@@ -1606,7 +1599,7 @@ EC_BOOL cdownload_delete_dir_handler(const UINT32 cdownload_md_id)
     {
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_delete_dir_handler: "
                                                   "no dir name\n");
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0028);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0075);
         return (EC_FALSE);
     }
 
@@ -1615,7 +1608,7 @@ EC_BOOL cdownload_delete_dir_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_delete_dir_handler: "
                                                   "dir '%s' not exist\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0029);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0076);
         return (EC_FALSE);
     }
 
@@ -1624,7 +1617,7 @@ EC_BOOL cdownload_delete_dir_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_delete_dir_handler: "
                                                   "remove dir '%s' failed\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0030);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0077);
         return (EC_FALSE);
     }
 
@@ -1632,7 +1625,7 @@ EC_BOOL cdownload_delete_dir_handler(const UINT32 cdownload_md_id)
                                               "remove dir '%s' done\n",
                                               (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
 
-    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0031);
+    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0078);
     return (EC_TRUE);
 }
 
@@ -1846,7 +1839,7 @@ EC_BOOL cdownload_finger_dir_handler(const UINT32 cdownload_md_id)
     {
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_finger_dir_handler: "
                                                   "no dir name\n");
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0028);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0079);
         return (EC_FALSE);
     }
 
@@ -1855,7 +1848,7 @@ EC_BOOL cdownload_finger_dir_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_finger_dir_handler: "
                                                   "dir '%s' not exist\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0029);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_NOT_FOUND, LOC_CDOWNLOAD_0080);
         return (EC_FALSE);
     }
 
@@ -1865,7 +1858,7 @@ EC_BOOL cdownload_finger_dir_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_finger_dir_handler: "
                                                   "finger dir '%s' not exist\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0029);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CDOWNLOAD_0081);
         return (EC_FALSE);
     }
 
@@ -1874,7 +1867,7 @@ EC_BOOL cdownload_finger_dir_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 9)(LOGSTDOUT, "[DEBUG] cdownload_finger_dir_handler: "
                                                   "finger dir '%s' nothing\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0029);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0082);
         return (EC_TRUE);
     }
 
@@ -1900,7 +1893,7 @@ EC_BOOL cdownload_finger_dir_handler(const UINT32 cdownload_md_id)
 
     c_str_free(file_path);
 
-    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0029);
+    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_OK, LOC_CDOWNLOAD_0083);
 
     return (EC_TRUE);
 }
@@ -1945,7 +1938,7 @@ EC_BOOL cdownload_content_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_content_handler: "
                                                   "parse uri failed\n");
 
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0044);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0084);
         cdownload_content_send_response(cdownload_md_id);
         return (EC_FALSE);
     }
@@ -1957,7 +1950,7 @@ EC_BOOL cdownload_content_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_parse_file_range: "
                                                   "parse file range failed\n");
 
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0045);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0085);
         cdownload_content_send_response(cdownload_md_id);
         return (EC_FALSE);
     }
@@ -1969,7 +1962,7 @@ EC_BOOL cdownload_content_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_parse_file_range: "
                                                   "parse file md5 failed\n");
 
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0046);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0086);
         cdownload_content_send_response(cdownload_md_id);
         return (EC_FALSE);
     }
@@ -1981,7 +1974,7 @@ EC_BOOL cdownload_content_handler(const UINT32 cdownload_md_id)
         dbg_log(SEC_0172_CDOWNLOAD, 0)(LOGSTDOUT, "error:cdownload_content_handler: "
                                                   "parse file body failed\n");
 
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0047);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0087);
         cdownload_content_send_response(cdownload_md_id);
         return (EC_FALSE);
     }
@@ -1995,7 +1988,7 @@ EC_BOOL cdownload_content_handler(const UINT32 cdownload_md_id)
                                                   "invalid file path '%s'\n",
                                                   (char *)CDOWNLOAD_MD_FILE_PATH_STR(cdownload_md));
 
-        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0048);
+        cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0088);
         cdownload_content_send_response(cdownload_md_id);
         return (EC_FALSE);
     }
@@ -2136,7 +2129,7 @@ EC_BOOL cdownload_content_handler(const UINT32 cdownload_md_id)
         return (EC_TRUE);
     }
 
-    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0049);
+    cdownload_set_ngx_rc(cdownload_md_id, NGX_HTTP_BAD_REQUEST, LOC_CDOWNLOAD_0089);
     cdownload_content_send_response(cdownload_md_id);
     return (EC_FALSE);
 }

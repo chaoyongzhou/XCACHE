@@ -18672,7 +18672,7 @@ EC_BOOL cmp4_content_cache_send_mp4_meta(const UINT32 cmp4_md_id)
     if(EC_FALSE == cngx_send_body_chain(r, out, &rc))
     {
         dbg_log(SEC_0147_CMP4, 0)(LOGSTDOUT, "error:cmp4_content_cache_send_mp4_meta: send body failed\n");
-        cmp4_set_ngx_rc(cmp4_md_id, rc, LOC_CMP4_0211);
+        cmp4_set_ngx_rc(cmp4_md_id, rc, LOC_CMP4_0397);
         return (EC_FALSE);
     }
 

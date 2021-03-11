@@ -2,13 +2,14 @@
 
 ########################################################################################################################
 # description:  download file from server
-# version    :  v1.2
+# version    :  v1.3
 # creator    :  chaoyong zhou
 #
 # History:
 #    1. 02/23/2021: v1.0, delivered
 #    2. 03/03/2021: v1.1, support sync directory
 #    3. 03/05/2021: v1.2, support direct domain access
+#    4. 03/11/2021: v1.3, support acl based on token and time
 ########################################################################################################################
 
 use strict;
@@ -23,8 +24,9 @@ my $g_timeout_nsec;
 my $g_sleep_nsec    = 10;# default sleep 10s
 my $g_step_nbytes;
 my $g_log_level     = 1; # default log level
-
-my $g_ua_agent = "Mozilla/8.0";
+my $g_key_token     = "0123456789abcdef0123456789abcdef";
+my $g_expired_nsec  = 15;
+my $g_ua_agent      = "Mozilla/8.0";
 
 my $g_autoflush_flag;
 my $g_usage =
@@ -1403,10 +1405,20 @@ sub make_url
 {
     my $op;
     my $remote_path;
+    my $uri;
+    my $time;
+    my $md5;
 
     ($op, $remote_path) = @_;
 
-    return sprintf("http://%s/%s%s", &get_remote_ip() || &get_remote_host(), $op, $remote_path);
+    $time = sprintf("%s", time() + $g_expired_nsec);
+    $uri  = sprintf("%s%s", $op, $remote_path);
+
+    $md5  = md5_hex(sprintf("%s/%s%s", $g_key_token, $uri, $time));
+
+    &echo(9,sprintf("[DEBUG] make_url: %s/%s%s => md5 %s\n", $g_key_token, $uri, $time, $md5));
+
+    return sprintf("http://%s/%s?sig=%s&t=%s", &get_remote_ip() || &get_remote_host(), $uri, $md5, $time);
 }
 
 ################################################################################################################
