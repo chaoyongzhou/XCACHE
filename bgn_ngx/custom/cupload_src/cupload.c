@@ -228,7 +228,7 @@ void cupload_end(const UINT32 cupload_md_id)
         CUPLOAD_MD_FILE_MD5(cupload_md) = NULL_PTR;
     }
 
-    if(NULL_PTR == CUPLOAD_MD_NGX_RSP_BODY(cupload_md))
+    if(NULL_PTR != CUPLOAD_MD_NGX_RSP_BODY(cupload_md))
     {
         cbytes_free(CUPLOAD_MD_NGX_RSP_BODY(cupload_md));
         CUPLOAD_MD_NGX_RSP_BODY(cupload_md) = NULL_PTR;

@@ -34,7 +34,7 @@ extern "C"{
 #define     MD_CRFS      ((UINT32)  9)
 #define     MD_0010      ((UINT32) 10) /*-- obsolete --*/
 #define     MD_0011      ((UINT32) 11) /*-- obsolete --*/
-#define     MD_0012      ((UINT32) 12) /*-- obsolete --*/
+#define     MD_CSHELL    ((UINT32) 12)
 #define     MD_CACLTIME  ((UINT32) 13)
 #define     MD_CDOWNLOAD ((UINT32) 14)
 #define     MD_CUPLOAD   ((UINT32) 15)

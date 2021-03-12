@@ -494,7 +494,7 @@ EC_BOOL cacltime_access_filter_check(const UINT32 cacltime_md_id, const CACLTIME
                                                  "get var '%s' failed\n",
                                                  k);
 
-        cacltime_set_ngx_rc(cacltime_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CACLTIME_0011);
+        cacltime_set_ngx_rc(cacltime_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CACLTIME_0012);
         return (EC_FALSE);
     }
 
@@ -504,7 +504,7 @@ EC_BOOL cacltime_access_filter_check(const UINT32 cacltime_md_id, const CACLTIME
                                                  "not configure '%s'\n",
                                                  k);
 
-        cacltime_set_ngx_rc(cacltime_md_id, NGX_HTTP_NOT_ALLOWED, LOC_CACLTIME_0011);
+        cacltime_set_ngx_rc(cacltime_md_id, NGX_HTTP_NOT_ALLOWED, LOC_CACLTIME_0013);
         return (EC_FALSE);
     }
 
@@ -518,7 +518,7 @@ EC_BOOL cacltime_access_filter_check(const UINT32 cacltime_md_id, const CACLTIME
 
     data_len = key_len + op_len + path_len + time_len;
 
-    data = safe_malloc(data_len, LOC_CACLTIME_0012);
+    data = safe_malloc(data_len, LOC_CACLTIME_0014);
     if(NULL_PTR == data)
     {
         dbg_log(SEC_0171_CACLTIME, 0)(LOGSTDOUT, "error:cacltime_access_filter_check: "
@@ -527,7 +527,7 @@ EC_BOOL cacltime_access_filter_check(const UINT32 cacltime_md_id, const CACLTIME
 
         c_str_free(key_str);
 
-        cacltime_set_ngx_rc(cacltime_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CACLTIME_0013);
+        cacltime_set_ngx_rc(cacltime_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CACLTIME_0015);
         return (EC_FALSE);
     }
 
@@ -547,7 +547,7 @@ EC_BOOL cacltime_access_filter_check(const UINT32 cacltime_md_id, const CACLTIME
     cur += time_len;
 
     cmd5_sum(data_len, data, digest);
-    safe_free(data, LOC_CACLTIME_0014);
+    safe_free(data, LOC_CACLTIME_0016);
 
     digest_str = c_md5_to_hex_str(digest);
     if(0 != STRNCASECMP(digest_str, CACLTIME_ACCESS_NODE_SIG(cacltime_access_node), CMD5_DIGEST_LEN * 2))
@@ -557,7 +557,7 @@ EC_BOOL cacltime_access_filter_check(const UINT32 cacltime_md_id, const CACLTIME
                                                  CMD5_DIGEST_LEN * 2, digest_str,
                                                  CMD5_DIGEST_LEN * 2, CACLTIME_ACCESS_NODE_SIG(cacltime_access_node));
 
-        cacltime_set_ngx_rc(cacltime_md_id, NGX_HTTP_FORBIDDEN, LOC_CACLTIME_0015);
+        cacltime_set_ngx_rc(cacltime_md_id, NGX_HTTP_FORBIDDEN, LOC_CACLTIME_0017);
         return (EC_FALSE);
     }
 
@@ -696,7 +696,7 @@ EC_BOOL cacltime_access_filter_sig(const UINT32 cacltime_md_id, const char *arg,
         dbg_log(SEC_0171_CACLTIME, 0)(LOGSTDOUT, "error:cacltime_access_filter_sig: "
                                                  "not found '%s' in req arg '%s'\n",
                                                  k, arg);
-        cacltime_set_ngx_rc(cacltime_md_id, NGX_HTTP_FORBIDDEN, LOC_CACLTIME_0016);
+        cacltime_set_ngx_rc(cacltime_md_id, NGX_HTTP_FORBIDDEN, LOC_CACLTIME_0018);
         return (EC_FALSE);
     }
     start += sizeof("sig=") - 1;
@@ -713,7 +713,7 @@ EC_BOOL cacltime_access_filter_sig(const UINT32 cacltime_md_id, const char *arg,
                                                  "dup '%.*s' failed\n",
                                                  end - start, start);
 
-        cacltime_set_ngx_rc(cacltime_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CACLTIME_0017);
+        cacltime_set_ngx_rc(cacltime_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CACLTIME_0019);
         return (EC_FALSE);
     }
 
@@ -751,7 +751,7 @@ EC_BOOL cacltime_access_filter_time(const UINT32 cacltime_md_id, const char *arg
         dbg_log(SEC_0171_CACLTIME, 0)(LOGSTDOUT, "error:cacltime_access_filter_time: "
                                                  "not found '%s' in req arg '%s'\n",
                                                  k, arg);
-        cacltime_set_ngx_rc(cacltime_md_id, NGX_HTTP_FORBIDDEN, LOC_CACLTIME_0018);
+        cacltime_set_ngx_rc(cacltime_md_id, NGX_HTTP_FORBIDDEN, LOC_CACLTIME_0020);
         return (EC_FALSE);
     }
     start += sizeof("t=") - 1;
@@ -768,7 +768,7 @@ EC_BOOL cacltime_access_filter_time(const UINT32 cacltime_md_id, const char *arg
                                                  "dup '%.*s' failed\n",
                                                  end - start, start);
 
-        cacltime_set_ngx_rc(cacltime_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CACLTIME_0019);
+        cacltime_set_ngx_rc(cacltime_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CACLTIME_0021);
         return (EC_FALSE);
     }
 
@@ -795,25 +795,25 @@ EC_BOOL cacltime_access_node_clean(CACLTIME_ACCESS_NODE *cacltime_access_node)
 {
     if(NULL_PTR != CACLTIME_ACCESS_NODE_OP(cacltime_access_node))
     {
-        safe_free(CACLTIME_ACCESS_NODE_OP(cacltime_access_node), LOC_CACLTIME_0020);
+        safe_free(CACLTIME_ACCESS_NODE_OP(cacltime_access_node), LOC_CACLTIME_0022);
         CACLTIME_ACCESS_NODE_OP(cacltime_access_node) = NULL_PTR;
     }
 
     if(NULL_PTR != CACLTIME_ACCESS_NODE_PATH(cacltime_access_node))
     {
-        safe_free(CACLTIME_ACCESS_NODE_PATH(cacltime_access_node), LOC_CACLTIME_0021);
+        safe_free(CACLTIME_ACCESS_NODE_PATH(cacltime_access_node), LOC_CACLTIME_0023);
         CACLTIME_ACCESS_NODE_PATH(cacltime_access_node) = NULL_PTR;
     }
 
     if(NULL_PTR != CACLTIME_ACCESS_NODE_TIME(cacltime_access_node))
     {
-        safe_free(CACLTIME_ACCESS_NODE_TIME(cacltime_access_node), LOC_CACLTIME_0022);
+        safe_free(CACLTIME_ACCESS_NODE_TIME(cacltime_access_node), LOC_CACLTIME_0024);
         CACLTIME_ACCESS_NODE_TIME(cacltime_access_node) = NULL_PTR;
     }
 
     if(NULL_PTR != CACLTIME_ACCESS_NODE_SIG(cacltime_access_node))
     {
-        safe_free(CACLTIME_ACCESS_NODE_SIG(cacltime_access_node), LOC_CACLTIME_0023);
+        safe_free(CACLTIME_ACCESS_NODE_SIG(cacltime_access_node), LOC_CACLTIME_0025);
         CACLTIME_ACCESS_NODE_SIG(cacltime_access_node) = NULL_PTR;
     }
 

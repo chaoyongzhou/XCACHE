@@ -177,7 +177,7 @@
 #define SEC_0167_XXXX                       ((UINT32)(    167)) /*-- obsolete --                  */
 #define SEC_0168_XXXXXXXX                   ((UINT32)(    168)) /*-- obsolete --                  */
 #define SEC_0169_XXXXXXX                    ((UINT32)(    169)) /*-- obsolete --                  */
-#define SEC_0170_XXXXXXXXXXX                ((UINT32)(    170)) /*-- obsolete --                  */
+#define SEC_0170_CSHELL                     ((UINT32)(    170)) /*cshell                          */
 #define SEC_0171_CACLTIME                   ((UINT32)(    171)) /*cacltime                        */
 #define SEC_0172_CDOWNLOAD                  ((UINT32)(    172)) /*cdownload                       */
 #define SEC_0173_CUPLOAD                    ((UINT32)(    173)) /*cupload                         */

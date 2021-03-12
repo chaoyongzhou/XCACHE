@@ -154,6 +154,7 @@ UINT32 cdownload_start(ngx_http_request_t *r)
     CDOWNLOAD_MD_CONTENT_LENGTH(cdownload_md)       = 0;
 
     CDOWNLOAD_MD_NGX_RSP_BODY(cdownload_md)         = NULL_PTR;
+    CDOWNLOAD_MD_SENT_BODY_SIZE(cdownload_md)       = 0;
 
     CDOWNLOAD_MD_NGX_LOC(cdownload_md)              = LOC_NONE_END;
     CDOWNLOAD_MD_NGX_RC(cdownload_md)               = NGX_OK;
@@ -238,7 +239,7 @@ void cdownload_end(const UINT32 cdownload_md_id)
         CDOWNLOAD_MD_FILE_MD5(cdownload_md) = NULL_PTR;
     }
 
-    if(NULL_PTR == CDOWNLOAD_MD_NGX_RSP_BODY(cdownload_md))
+    if(NULL_PTR != CDOWNLOAD_MD_NGX_RSP_BODY(cdownload_md))
     {
         cbytes_free(CDOWNLOAD_MD_NGX_RSP_BODY(cdownload_md));
         CDOWNLOAD_MD_NGX_RSP_BODY(cdownload_md) = NULL_PTR;
@@ -252,6 +253,7 @@ void cdownload_end(const UINT32 cdownload_md_id)
 
     CDOWNLOAD_MD_CNGX_DEBUG_SWITCH_ON_FLAG(cdownload_md) = BIT_FALSE;
 
+    CDOWNLOAD_MD_SENT_BODY_SIZE(cdownload_md) = 0;
     CDOWNLOAD_MD_CONTENT_LENGTH(cdownload_md) = 0;
 
     CDOWNLOAD_MD_NGX_LOC(cdownload_md)        = LOC_NONE_END;

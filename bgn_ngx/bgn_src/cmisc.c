@@ -2803,25 +2803,26 @@ EC_BOOL c_dir_remove(const char *pathname)
     return (EC_TRUE);
 }
 
-EC_BOOL exec_shell(const char *cmd_str, char *cmd_output, const UINT32 max_size)
+EC_BOOL exec_shell(const char *cmd_str, char *cmd_output, const UINT32 cmd_output_max_size, UINT32 *cmd_output_size)
 {
     FILE    *rstream;
     char    *cmd_ostream;
     char    *cmd_ostr;
+    UINT32   cmd_ocapacity;
     UINT32   cmd_osize;
-
-    //dbg_log(SEC_0013_CMISC, 5)(LOGSTDNULL, "exec_shell beg: %s\n", cmd_str);
 
     if(NULL_PTR == cmd_output)
     {
-        cmd_osize   = CMISC_CMD_OUTPUT_LINE_MAX_SIZE;
-        cmd_ostream = (char *)SAFE_MALLOC(cmd_osize, LOC_CMISC_0059);
+        cmd_ocapacity   = CMISC_CMD_OUTPUT_LINE_MAX_SIZE;
+        cmd_ostream = (char *)SAFE_MALLOC(cmd_ocapacity, LOC_CMISC_0059);
     }
     else
     {
-        cmd_osize   = max_size;
+        cmd_ocapacity   = cmd_output_max_size;
         cmd_ostream = cmd_output;
     }
+
+    cmd_osize = 0;
 
     rstream = popen(cmd_str, "r");
     if(NULL_PTR == rstream)
@@ -2829,19 +2830,32 @@ EC_BOOL exec_shell(const char *cmd_str, char *cmd_output, const UINT32 max_size)
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:exec_shell: popen %s failed\n", cmd_str);
         return (EC_FALSE);
     }
-    for(cmd_ostr = cmd_ostream;
-        1 < cmd_osize && NULL_PTR != (cmd_ostr = fgets(cmd_ostr, cmd_osize, rstream));
-        cmd_osize -= strlen(cmd_ostr), cmd_ostr += strlen(cmd_ostr))
+
+    cmd_ostr = cmd_ostream;
+    while(1 < cmd_ocapacity
+    && NULL_PTR != (cmd_ostr = fgets(cmd_ostr, cmd_ocapacity, rstream)))
     {
-        /*do nothing*/
+        UINT32  cmd_olen;
+
+        cmd_olen = strlen(cmd_ostr);
+
+        cmd_ocapacity -= cmd_olen;
+        cmd_ostr      += cmd_olen;
+        cmd_osize     += cmd_olen;
     }
+
     pclose( rstream );
+
+    if(NULL_PTR != cmd_output_size)
+    {
+        (*cmd_output_size) = cmd_osize;
+    }
 
     if(cmd_ostream != cmd_output)
     {
         SAFE_FREE(cmd_ostream, LOC_CMISC_0060);
     }
-    //dbg_log(SEC_0013_CMISC, 5)(LOGSTDNULL, "exec_shell end: %s\n", cmd_output);
+
     return (EC_TRUE);
 }
 

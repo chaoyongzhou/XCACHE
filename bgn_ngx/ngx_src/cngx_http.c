@@ -119,7 +119,7 @@ EC_BOOL cngx_http_log_start()
         LOG     *log;
 
         /*open log and redirect LOGUSER08 to it*/
-        log_file_name = cstring_new(NULL_PTR, LOC_CNGX_0071);
+        log_file_name = cstring_new(NULL_PTR, LOC_CNGX_0070);
 #if 0
         cstring_format(log_file_name, "%s/ngx_%s_%ld",
                         (char *)TASK_BRD_LOG_PATH_STR(task_brd),
@@ -158,7 +158,7 @@ EC_BOOL cngx_http_log_start()
         LOG     *log;
 
         /*open log and redirect LOGUSER08 to it*/
-        log_file_name = cstring_new(NULL_PTR, LOC_CNGX_0072);
+        log_file_name = cstring_new(NULL_PTR, LOC_CNGX_0071);
 #if 0
         cstring_format(log_file_name, "%s/storage_%s_%ld",
                         (char *)TASK_BRD_LOG_PATH_STR(task_brd),
@@ -216,7 +216,7 @@ EC_BOOL cngx_http_commit_request(CHTTP_NODE *chttp_node)
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CNGX_0073);
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CNGX_0072);
 
         return (EC_TRUE);
     }
@@ -235,7 +235,7 @@ EC_BOOL cngx_http_commit_request(CHTTP_NODE *chttp_node)
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CNGX_0074);
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CNGX_0073);
 
         return (EC_TRUE);
     }
@@ -254,7 +254,7 @@ EC_BOOL cngx_http_commit_request(CHTTP_NODE *chttp_node)
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CNGX_0075);
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CNGX_0074);
 
         return (EC_TRUE);
     }

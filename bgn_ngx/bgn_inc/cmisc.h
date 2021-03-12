@@ -251,7 +251,7 @@ EC_BOOL c_dir_exist(const char *pathname);
 
 EC_BOOL c_dir_remove(const char *pathname);
 
-EC_BOOL exec_shell(const char *cmd_str, char *cmd_output, const UINT32 max_size);
+EC_BOOL exec_shell(const char *cmd_str, char *cmd_output, const UINT32 cmd_output_max_size, UINT32 *cmd_output_size);
 
 EC_BOOL c_file_flush(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff);
 
