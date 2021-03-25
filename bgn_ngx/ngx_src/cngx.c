@@ -983,6 +983,103 @@ EC_BOOL cngx_get_req_arg(const ngx_http_request_t *r, char **val)
     return (EC_TRUE);
 }
 
+EC_BOOL cngx_get_req_argv(const ngx_http_request_t *r, const char *key, char **val)
+{
+    char       *k;
+    char       *s;
+    char       *e;
+    uint32_t    klen;
+
+    if(0 == r->args.len || NULL_PTR == r->args.data)
+    {
+        (*val) = NULL_PTR;
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_argv: no args\n");
+
+        return (EC_TRUE);
+    }
+
+    klen = strlen(key);
+    if(0 == klen)
+    {
+        (*val) = NULL_PTR;
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_argv: no key\n");
+
+        return (EC_FALSE);
+    }
+
+    if('=' == key[ klen - 1 ])
+    {
+        k = (char *)key;
+
+        s = strstr((char *)(r->args.data), k);
+        if(NULL_PTR == s)
+        {
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_argv: "
+                                                 "not found '%s' in req arg '%.*s'\n",
+                                                 k, r->args.len, (char *)r->args.data);
+            (*val) = NULL_PTR;
+            return (EC_FALSE);
+        }
+
+        s += klen;
+
+        for(e = s; '\0' != (*e) && '&' != (*e) && ' ' != (*e); e ++)
+        {
+            /*do nothing*/
+        }
+
+        (*val) = c_str_n_dup(s, (uint32_t)(e - s));
+
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_argv: "
+                                             "dup args '%s'\n",
+                                             (*val));
+        return (EC_TRUE);
+    }
+    else
+    {
+        k = c_str_make("%s=", key);
+        if(NULL_PTR == k)
+        {
+            (*val) = NULL_PTR;
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_argv: "
+                                                 "make key '%s='\n",
+                                                 key);
+
+            return (EC_FALSE);
+        }
+
+        s = strstr((char *)(r->args.data), k);
+        if(NULL_PTR == s)
+        {
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_argv: "
+                                                 "not found '%s' in req arg '%.*s'\n",
+                                                 k, r->args.len, (char *)r->args.data);
+            (*val) = NULL_PTR;
+            c_str_free(k);
+            return (EC_FALSE);
+        }
+
+        c_str_free(k);
+
+        s += klen + 1;
+
+        for(e = s; '\0' != (*e) && '&' != (*e) && ' ' != (*e); e ++)
+        {
+            /*do nothing*/
+        }
+
+        (*val) = c_str_n_dup(s, (uint32_t)(e - s));
+
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_argv: "
+                                             "dup args '%s'\n",
+                                             (*val));
+        return (EC_TRUE);
+    }
+
+    /*should never reach here*/
+    return (EC_TRUE);
+}
+
 EC_BOOL cngx_get_req_url(ngx_http_request_t *r, CSTRING *req_url, EC_BOOL need_args)
 {
     const char                  *k;

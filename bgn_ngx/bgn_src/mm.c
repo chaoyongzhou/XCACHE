@@ -127,7 +127,7 @@ extern "C"{
 #include "ctimeout.h"
 
 #if (SWITCH_ON == NGX_BGN_SWITCH)
-#include "cupload.h"
+#include "cstore.h"
 #include "cngx.h"
 #include "cngx_mod.h"
 #endif/*(SWITCH_ON == NGX_BGN_SWITCH)*/
@@ -526,7 +526,7 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CMAGLEV_RNODE                ,"MM_CMAGLEV_RNODE                ",1         , sizeof(CMAGLEV_RNODE)              , LOC_MM_0242);
     MM_MGR_DEF(MM_CMAGLEV_QNODE                ,"MM_CMAGLEV_QNODE                ",2         , sizeof(CMAGLEV_QNODE)              , LOC_MM_0243);
 
-    MM_MGR_DEF(MM_CUPLOAD_NODE                 ,"MM_CUPLOAD_NODE                 ",8         , sizeof(CUPLOAD_NODE)               , LOC_MM_0244);
+    MM_MGR_DEF(MM_CSTORE_NODE                  ,"MM_CSTORE_NODE                  ",8         , sizeof(CSTORE_NODE)                , LOC_MM_0244);
 
     return ( 0 );
 }

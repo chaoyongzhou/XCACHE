@@ -117,10 +117,14 @@ EC_BOOL cacltime_override_ngx_rc(const UINT32 cacltime_md_id, const ngx_int_t rc
 **/
 EC_BOOL cacltime_access_filter(const UINT32 cacltime_md_id);
 
-EC_BOOL cacltime_access_filter_check(const UINT32 cacltime_md_id, const CACLTIME_ACCESS_NODE *cacltime_access_node);
+EC_BOOL cacltime_access_check(const UINT32 cacltime_md_id, const CACLTIME_ACCESS_NODE *cacltime_access_node);
 
 EC_BOOL cacltime_access_filter_node(const UINT32 cacltime_md_id, const char *uri, const char *arg,
                                             CACLTIME_ACCESS_NODE *cacltime_access_node);
+
+EC_BOOL cacltime_access_filter_path(const UINT32 cacltime_md_id, const char *uri, char **path);
+
+EC_BOOL cacltime_access_filter_op(const UINT32 cacltime_md_id, const char *arg, char **op);
 
 EC_BOOL cacltime_access_filter_sig(const UINT32 cacltime_md_id, const char *arg, char **sig);
 

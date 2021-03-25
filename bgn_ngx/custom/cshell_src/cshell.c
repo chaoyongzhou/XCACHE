@@ -426,7 +426,7 @@ EC_BOOL cshell_parse_cmd(const UINT32 cshell_md_id)
 
         cbytes_clean(&req_body);
 
-        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSHELL_0001);
+        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSHELL_0002);
         return (EC_FALSE);
     }
 
@@ -469,7 +469,7 @@ EC_BOOL cshell_parse_cmd_default(const UINT32 cshell_md_id)
                                                "get var '%s' failed\n",
                                                k);
 
-        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSHELL_0001);
+        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSHELL_0003);
         return (EC_FALSE);
     }
 
@@ -479,24 +479,24 @@ EC_BOOL cshell_parse_cmd_default(const UINT32 cshell_md_id)
                                                "not configure '%s'\n",
                                                k);
 
-        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSHELL_0002);
+        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSHELL_0004);
         return (EC_FALSE);
     }
 
-    CSHELL_MD_CMD_LINE(cshell_md) = cstring_new((UINT8 *)v, LOC_CSHELL_0002);
+    CSHELL_MD_CMD_LINE(cshell_md) = cstring_new((UINT8 *)v, LOC_CSHELL_0005);
     if(NULL_PTR == CSHELL_MD_CMD_LINE(cshell_md))
     {
         dbg_log(SEC_0170_CSHELL, 0)(LOGSTDOUT, "error:cshell_parse_cmd_default: "
                                                "make cmdline '%s' failed\n",
                                                v);
 
-        safe_free(v, LOC_CSHELL_0002);
+        safe_free(v, LOC_CSHELL_0006);
 
-        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSHELL_0001);
+        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSHELL_0007);
         return (EC_FALSE);
     }
 
-    safe_free(v, LOC_CSHELL_0002);
+    safe_free(v, LOC_CSHELL_0008);
 
     dbg_log(SEC_0170_CSHELL, 9)(LOGSTDOUT, "[DEBUG] cshell_parse_cmd_default: "
                                            "make cmdline '%s' done\n",
@@ -545,7 +545,7 @@ EC_BOOL cshell_cmd_handler(const UINT32 cshell_md_id)
         dbg_log(SEC_0170_CSHELL, 0)(LOGSTDOUT, "error:cshell_cmd_handler: "
                                                "parse cmd output size failed\n");
 
-        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSHELL_0001);
+        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSHELL_0009);
         return (EC_FALSE);
     }
 
@@ -554,20 +554,20 @@ EC_BOOL cshell_cmd_handler(const UINT32 cshell_md_id)
         dbg_log(SEC_0170_CSHELL, 0)(LOGSTDOUT, "error:cshell_cmd_handler: "
                                                "parse cmd failed\n");
 
-        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSHELL_0001);
+        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSHELL_0010);
         return (EC_FALSE);
     }
 
     cmd_output_max_size = CSHELL_MD_CMD_OUTPUT_MAX_SIZE(cshell_md);
 
-    cmd_output_buff = (char *)safe_malloc(cmd_output_max_size, LOC_CSHELL_0003);
+    cmd_output_buff = (char *)safe_malloc(cmd_output_max_size, LOC_CSHELL_0011);
     if(NULL_PTR == cmd_output_buff)
     {
         dbg_log(SEC_0170_CSHELL, 0)(LOGSTDOUT, "error:cshell_cmd_handler: "
                                                "alloc cmd_output_buff %ld bytes failed\n",
                                                cmd_output_max_size);
 
-        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSHELL_0005);
+        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSHELL_0012);
         return (EC_FALSE);
     }
 
@@ -580,9 +580,9 @@ EC_BOOL cshell_cmd_handler(const UINT32 cshell_md_id)
                                                "exec '%s' failed\n",
                                                (char *)CSHELL_MD_CMD_LINE_STR(cshell_md));
 
-        safe_free(cmd_output_buff, LOC_CSHELL_0006);
+        safe_free(cmd_output_buff, LOC_CSHELL_0013);
 
-        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSHELL_0008);
+        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSHELL_0014);
         return (EC_FALSE);
     }
 
@@ -603,9 +603,9 @@ EC_BOOL cshell_cmd_handler(const UINT32 cshell_md_id)
                                                "cmd '%s', new rsp body failed\n",
                                                (char *)CSHELL_MD_CMD_LINE_STR(cshell_md));
 
-        safe_free(cmd_output_buff, LOC_CSHELL_0009);
+        safe_free(cmd_output_buff, LOC_CSHELL_0015);
 
-        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSHELL_0011);
+        cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSHELL_0016);
         return (EC_FALSE);
     }
 
@@ -616,7 +616,7 @@ EC_BOOL cshell_cmd_handler(const UINT32 cshell_md_id)
 
     cngx_set_header_out_kv(r, (const char *)"Content-Length", c_word_to_str(cmd_output_size));
 
-    cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_OK, LOC_CSHELL_0013);
+    cshell_set_ngx_rc(cshell_md_id, NGX_HTTP_OK, LOC_CSHELL_0017);
 
     return (EC_TRUE);
 }

@@ -36,8 +36,8 @@ extern "C"{
 #define     MD_0011      ((UINT32) 11) /*-- obsolete --*/
 #define     MD_CSHELL    ((UINT32) 12)
 #define     MD_CACLTIME  ((UINT32) 13)
-#define     MD_CDOWNLOAD ((UINT32) 14)
-#define     MD_CUPLOAD   ((UINT32) 15)
+#define     MD_0014      ((UINT32) 14) /*-- obsolete --*/
+#define     MD_CSTORE    ((UINT32) 15)
 #define     MD_CVENDOR   ((UINT32) 16)
 #define     MD_CREFRESH  ((UINT32) 17)
 #define     MD_CRFSGW    ((UINT32) 18)
@@ -253,7 +253,7 @@ extern "C"{
 #define                        MM_000182    ((UINT32)182) /*-- obsolete --*/
 #define                        MM_000183    ((UINT32)183) /*-- obsolete --*/
 #define                     MM_CSSL_NODE    ((UINT32)184)
-#define                  MM_CUPLOAD_NODE    ((UINT32)185) /*-- obsolete --*/
+#define                   MM_CSTORE_NODE    ((UINT32)185)
 #define                        MM_000186    ((UINT32)186) /*-- obsolete --*/
 #define                        MM_000187    ((UINT32)187) /*-- obsolete --*/
 #define                        MM_000188    ((UINT32)188) /*-- obsolete --*/

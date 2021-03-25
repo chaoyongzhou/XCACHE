@@ -217,6 +217,8 @@ EC_BOOL cngx_get_req_uri(const ngx_http_request_t *r, char **val);
 
 EC_BOOL cngx_get_req_arg(const ngx_http_request_t *r, char **val);
 
+EC_BOOL cngx_get_req_argv(const ngx_http_request_t *r, const char *key, char **val);
+
 EC_BOOL cngx_get_req_url(ngx_http_request_t *r, CSTRING *req_url, EC_BOOL need_args);
 
 EC_BOOL cngx_rearm_req_uri(ngx_http_request_t *r);
