@@ -187,7 +187,7 @@ EC_BOOL cstore_parse_file_range(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_parse_file_md5(const UINT32 cstore_md_id);
 
-EC_BOOL cstore_write_file_handler(const UINT32 cstore_md_id);
+EC_BOOL cstore_upload_file_handler(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_empty_file_handler(const UINT32 cstore_md_id);
 
@@ -202,6 +202,14 @@ EC_BOOL cstore_delete_file_handler(const UINT32 cstore_md_id);
 EC_BOOL cstore_size_file_handler(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_md5_file_handler(const UINT32 cstore_md_id);
+
+EC_BOOL cstore_download_file_handler(const UINT32 cstore_md_id);
+
+EC_BOOL cstore_backup_file_handler(const UINT32 cstore_md_id);
+
+EC_BOOL cstore_delete_dir_handler(const UINT32 cstore_md_id);
+
+EC_BOOL cstore_finger_dir_handler(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_content_handler(const UINT32 cstore_md_id);
 

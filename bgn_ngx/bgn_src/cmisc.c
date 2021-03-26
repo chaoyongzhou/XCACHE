@@ -2803,7 +2803,7 @@ EC_BOOL c_dir_remove(const char *pathname)
     return (EC_TRUE);
 }
 
-EC_BOOL exec_shell(const char *cmd_str, char *cmd_output, const UINT32 cmd_output_max_size, UINT32 *cmd_output_size)
+EC_BOOL c_exec_shell(const char *cmd_str, char *cmd_output, const UINT32 cmd_output_max_size, UINT32 *cmd_output_size)
 {
     FILE    *rstream;
     char    *cmd_ostream;
@@ -2813,13 +2813,13 @@ EC_BOOL exec_shell(const char *cmd_str, char *cmd_output, const UINT32 cmd_outpu
 
     if(NULL_PTR == cmd_output)
     {
-        cmd_ocapacity   = CMISC_CMD_OUTPUT_LINE_MAX_SIZE;
-        cmd_ostream = (char *)SAFE_MALLOC(cmd_ocapacity, LOC_CMISC_0059);
+        cmd_ocapacity = CMISC_CMD_OUTPUT_LINE_MAX_SIZE;
+        cmd_ostream   = (char *)SAFE_MALLOC(cmd_ocapacity, LOC_CMISC_0059);
     }
     else
     {
-        cmd_ocapacity   = cmd_output_max_size;
-        cmd_ostream = cmd_output;
+        cmd_ocapacity = cmd_output_max_size;
+        cmd_ostream   = cmd_output;
     }
 
     cmd_osize = 0;
@@ -2827,7 +2827,7 @@ EC_BOOL exec_shell(const char *cmd_str, char *cmd_output, const UINT32 cmd_outpu
     rstream = popen(cmd_str, "r");
     if(NULL_PTR == rstream)
     {
-        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:exec_shell: popen %s failed\n", cmd_str);
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_exec_shell: popen %s failed\n", cmd_str);
         return (EC_FALSE);
     }
 
@@ -7457,6 +7457,33 @@ EC_BOOL c_mdontdump(void *addr, const UINT32 size)
                                               errno, strerror(errno));
         return (EC_FALSE);
     }
+    return (EC_TRUE);
+}
+
+EC_BOOL c_get_pid(pid_t *pid)
+{
+    (*pid) = getpid();
+    return (EC_TRUE);
+}
+
+EC_BOOL c_get_ppid(pid_t *ppid)
+{
+    (*ppid) = getppid();
+    return (EC_TRUE);
+}
+
+EC_BOOL c_send_signal(pid_t pid, int sig)
+{
+    if(0 > kill(pid, sig))
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_send_signal: "
+                                              "send signal %d to pid %d failed, "
+                                              "errno = %d, errstr = %s\n",
+                                              sig, pid,
+                                              errno, strerror(errno));
+        return (EC_FALSE);
+    }
+
     return (EC_TRUE);
 }
 

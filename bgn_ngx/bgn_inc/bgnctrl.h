@@ -42,6 +42,9 @@ extern "C"{
 /*CACLTIME Package Debug Switch*/
 #define CACLTIME_DEBUG_SWITCH SWITCH_OFF
 
+/*CSTORECFG Package Debug Switch*/
+#define CSTORECFG_DEBUG_SWITCH SWITCH_OFF
+
 /*CSTORE Package Debug Switch*/
 #define CSTORE_DEBUG_SWITCH SWITCH_OFF
 

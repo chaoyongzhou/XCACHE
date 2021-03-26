@@ -480,7 +480,7 @@ EC_BOOL cngx_bgn_mod_node_dl_reload(CNGX_BGN_MOD_NODE *cngx_bgn_mod_node,
 CNGX_BGN_MOD_MGR *cngx_bgn_mod_mgr_new()
 {
     CNGX_BGN_MOD_MGR *cngx_bgn_mod_mgr;
-    alloc_static_mem(MM_CNGX_BGN_MOD_MGR, &cngx_bgn_mod_mgr, LOC_CNGX_0081);
+    alloc_static_mem(MM_CNGX_BGN_MOD_MGR, &cngx_bgn_mod_mgr, LOC_CNGX_0082);
     if(NULL_PTR != cngx_bgn_mod_mgr)
     {
         cngx_bgn_mod_mgr_init(cngx_bgn_mod_mgr);
@@ -543,7 +543,7 @@ EC_BOOL cngx_bgn_mod_mgr_free(CNGX_BGN_MOD_MGR *cngx_bgn_mod_mgr)
     if(NULL_PTR != cngx_bgn_mod_mgr)
     {
         cngx_bgn_mod_mgr_clean(cngx_bgn_mod_mgr);
-        free_static_mem(MM_CNGX_BGN_MOD_MGR, cngx_bgn_mod_mgr, LOC_CNGX_0082);
+        free_static_mem(MM_CNGX_BGN_MOD_MGR, cngx_bgn_mod_mgr, LOC_CNGX_0083);
     }
     return (EC_TRUE);
 }
@@ -627,7 +627,7 @@ void cngx_bgn_mod_mgr_print(LOG *log, const CNGX_BGN_MOD_MGR *cngx_bgn_mod_mgr)
 /*switch active and standby*/
 EC_BOOL cngx_bgn_mod_mgr_switch(CNGX_BGN_MOD_MGR *cngx_bgn_mod_mgr)
 {
-    CNGX_BGN_MOD_NODE *cngx_bgn_mod_node;
+    CNGX_BGN_MOD_NODE      *cngx_bgn_mod_node;
     uint32_t                choice;
 
     if(CNGX_BGN_MOD_MGR_STATE_ERR == CNGX_BGN_MOD_MGR_STATE(cngx_bgn_mod_mgr))
@@ -735,9 +735,9 @@ CNGX_BGN_MOD_MGR *cngx_bgn_mod_mgr_dl_load(const char *so_path, const uint32_t s
                                                       const char *posix_name, const uint32_t posix_name_len)
 {
     CNGX_BGN_MOD_MGR        *cngx_bgn_mod_mgr;
-    CNGX_BGN_MOD_NODE   *cngx_bgn_mod_node;
+    CNGX_BGN_MOD_NODE       *cngx_bgn_mod_node;
 
-    CSTRING                  *dl_path;
+    CSTRING                 *dl_path;
 
     cngx_bgn_mod_mgr = cngx_bgn_mod_mgr_table_search(mod_name, mod_name_len);
     if(NULL_PTR != cngx_bgn_mod_mgr)
@@ -869,7 +869,7 @@ CNGX_BGN_MOD_MGR *cngx_bgn_mod_mgr_dl_load(const char *so_path, const uint32_t s
 EC_BOOL cngx_bgn_mod_mgr_dl_unload(const char *mod_name, const uint32_t mod_name_len)
 {
     CNGX_BGN_MOD_MGR       *cngx_bgn_mod_mgr;
-    CNGX_BGN_MOD_NODE  *cngx_bgn_mod_node;
+    CNGX_BGN_MOD_NODE      *cngx_bgn_mod_node;
 
     cngx_bgn_mod_mgr = cngx_bgn_mod_mgr_table_search(mod_name, mod_name_len);
     if(NULL_PTR == cngx_bgn_mod_mgr)
@@ -926,8 +926,8 @@ EC_BOOL cngx_bgn_mod_mgr_dl_reload(const char *so_path, const uint32_t so_path_l
                                              const char *mod_name, const uint32_t mod_name_len,
                                              const char *posix_name, const uint32_t posix_name_len)
 {
-    CNGX_BGN_MOD_MGR       *cngx_bgn_mod_mgr;
-    CNGX_BGN_MOD_NODE  *cngx_bgn_mod_node;
+    CNGX_BGN_MOD_MGR        *cngx_bgn_mod_mgr;
+    CNGX_BGN_MOD_NODE       *cngx_bgn_mod_node;
     CSTRING                 *dl_path;
 
     cngx_bgn_mod_mgr = cngx_bgn_mod_mgr_table_search(mod_name, mod_name_len);

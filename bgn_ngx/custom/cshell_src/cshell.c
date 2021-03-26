@@ -572,7 +572,7 @@ EC_BOOL cshell_cmd_handler(const UINT32 cshell_md_id)
     }
 
     /*execute*/
-    if(EC_FALSE == exec_shell((char *)CSHELL_MD_CMD_LINE_STR(cshell_md),
+    if(EC_FALSE == c_exec_shell((char *)CSHELL_MD_CMD_LINE_STR(cshell_md),
                                 cmd_output_buff, cmd_output_max_size,
                                 &cmd_output_size))
     {

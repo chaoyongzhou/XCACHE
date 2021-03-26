@@ -36,7 +36,7 @@ extern "C"{
 #define     MD_0011      ((UINT32) 11) /*-- obsolete --*/
 #define     MD_CSHELL    ((UINT32) 12)
 #define     MD_CACLTIME  ((UINT32) 13)
-#define     MD_0014      ((UINT32) 14) /*-- obsolete --*/
+#define     MD_CSTORECFG ((UINT32) 14)
 #define     MD_CSTORE    ((UINT32) 15)
 #define     MD_CVENDOR   ((UINT32) 16)
 #define     MD_CREFRESH  ((UINT32) 17)

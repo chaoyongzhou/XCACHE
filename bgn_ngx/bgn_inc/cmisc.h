@@ -251,7 +251,7 @@ EC_BOOL c_dir_exist(const char *pathname);
 
 EC_BOOL c_dir_remove(const char *pathname);
 
-EC_BOOL exec_shell(const char *cmd_str, char *cmd_output, const UINT32 cmd_output_max_size, UINT32 *cmd_output_size);
+EC_BOOL c_exec_shell(const char *cmd_str, char *cmd_output, const UINT32 cmd_output_max_size, UINT32 *cmd_output_size);
 
 EC_BOOL c_file_flush(int fd, UINT32 *offset, const UINT32 wsize, const UINT8 *buff);
 
@@ -510,6 +510,12 @@ EC_BOOL c_munlock_all();
 EC_BOOL c_mdiscard(void *addr, const UINT32 size);
 
 EC_BOOL c_mdontdump(void *addr, const UINT32 size);
+
+EC_BOOL c_get_pid(pid_t *pid);
+
+EC_BOOL c_get_ppid(pid_t *ppid);
+
+EC_BOOL c_send_signal(pid_t pid, int sig);
 
 uint32_t c_crc32_compute(const uint32_t in_crc32, const uint8_t *buf, const uint32_t size);
 

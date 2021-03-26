@@ -213,6 +213,8 @@ EC_BOOL cngx_get_req_info_debug(ngx_http_request_t *r);
 
 EC_BOOL cngx_get_root(const ngx_http_request_t *r, char **val);
 
+EC_BOOL cngx_get_req_host(const ngx_http_request_t *r, char **val);
+
 EC_BOOL cngx_get_req_uri(const ngx_http_request_t *r, char **val);
 
 EC_BOOL cngx_get_req_arg(const ngx_http_request_t *r, char **val);

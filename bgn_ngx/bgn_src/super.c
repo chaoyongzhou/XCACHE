@@ -5093,7 +5093,7 @@ EC_BOOL super_backup(const UINT32 super_md_id, const CSTRING *fname)
 
         cstring_format(cmd_line, "cp -p %s %s.bk",
                         (char *)cstring_get_str(fname), (char *)cstring_get_str(fname));
-        if(EC_FALSE == exec_shell((char *)cstring_get_str(cmd_line), NULL_PTR, 0, NULL_PTR))
+        if(EC_FALSE == c_exec_shell((char *)cstring_get_str(cmd_line), NULL_PTR, 0, NULL_PTR))
         {
             dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_backup: exec cmd %s failed\n", (char *)cstring_get_str(cmd_line));
             cstring_free(cmd_line);
@@ -6540,7 +6540,7 @@ EC_BOOL super_set_hostname(const UINT32 super_md_id, const CSTRING *hostname_cst
     }
 
     snprintf(set_hostname_cmd, SUPER_CMD_BUFF_MAX_SIZE, "hostname %s", (char *)cstring_get_str(hostname_cstr));
-    if(EC_FALSE == exec_shell(set_hostname_cmd, NULL_PTR, 0, NULL_PTR))
+    if(EC_FALSE == c_exec_shell(set_hostname_cmd, NULL_PTR, 0, NULL_PTR))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_set_hostname: exec shell %s failed\n", set_hostname_cmd);
         return (EC_FALSE);
@@ -6551,7 +6551,7 @@ EC_BOOL super_set_hostname(const UINT32 super_md_id, const CSTRING *hostname_cst
     {
         snprintf(set_hostname_cmd, SUPER_CMD_BUFF_MAX_SIZE, "sed -i s/HOSTNAME=.*/HOSTNAME=%s/g %s",
                  (char *)cstring_get_str(hostname_cstr), network_fname);
-        if(EC_FALSE == exec_shell(set_hostname_cmd, NULL_PTR, 0, NULL_PTR))
+        if(EC_FALSE == c_exec_shell(set_hostname_cmd, NULL_PTR, 0, NULL_PTR))
         {
             dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_set_hostname: exec shell %s failed\n", set_hostname_cmd);
             return (EC_FALSE);
@@ -6567,7 +6567,7 @@ EC_BOOL super_set_hostname(const UINT32 super_md_id, const CSTRING *hostname_cst
     {
         snprintf(set_hostname_cmd, SUPER_CMD_BUFF_MAX_SIZE, "sed -i \"/override_hostname/c\\  override_hostname = %s\" %s",
                 (char *)cstring_get_str(hostname_cstr), gmond_cfg_fname);
-        if(EC_FALSE == exec_shell(set_hostname_cmd, NULL_PTR, 0, NULL_PTR))
+        if(EC_FALSE == c_exec_shell(set_hostname_cmd, NULL_PTR, 0, NULL_PTR))
         {
             dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_set_hostname: exec shell %s failed\n", set_hostname_cmd);
             return (EC_FALSE);
@@ -6611,7 +6611,7 @@ EC_BOOL super_get_hostname(const UINT32 super_md_id, CSTRING *hostname_cstr)
 
     BSET(hostname, 0, SUPER_CMD_BUFF_MAX_SIZE);
 #if 0
-    if(EC_FALSE == exec_shell(get_hostname_cmd, hostname, SUPER_CMD_BUFF_MAX_SIZE, NULL_PTR))
+    if(EC_FALSE == c_exec_shell(get_hostname_cmd, hostname, SUPER_CMD_BUFF_MAX_SIZE, NULL_PTR))
     {
         dbg_log(SEC_0117_SUPER, 0)(LOGSTDOUT, "error:super_get_hostname: exec shell %s failed\n", get_hostname_cmd);
         return (EC_FALSE);

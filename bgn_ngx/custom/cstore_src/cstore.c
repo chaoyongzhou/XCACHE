@@ -44,17 +44,19 @@ nginx server configuration example:
 ===================================
 server {
     listen  80;
-    server_name *.upload.com;
+    server_name *.store.com;
 
-    if ($uri = "/") {
-        rewrite (.*) /index.html;
-    }
+    client_body_in_file_only off;
+    client_max_body_size 4m;
 
-    location ~ /(upload|check|merge|delete|size|md5|empty|override) {
+    set $c_acl_token   1234567890abcdef;
+    access_by_bgn cacltime;
+
+    location ~ /bucket {
+        root /tmp/upload;
+        set $c_store_backup_dir /tmp/backup;
         content_by_bgn cstore;
     }
-
-    more_set_headers 'X-Upload: enabled';
 }
 \*-------------------------------------------------------------------*/
 
@@ -68,7 +70,7 @@ static CLIST *g_cstore_node_list = NULL_PTR;
 **/
 void cstore_print_module_status(const UINT32 cstore_md_id, LOG *log)
 {
-    CSTORE_MD *cstore_md;
+    CSTORE_MD  *cstore_md;
     UINT32      this_cstore_md_id;
 
     for( this_cstore_md_id = 0; this_cstore_md_id < CSTORE_MD_CAPACITY(); this_cstore_md_id ++ )
@@ -121,7 +123,7 @@ EC_BOOL cstore_unreg()
 **/
 UINT32 cstore_start(ngx_http_request_t *r)
 {
-    CSTORE_MD *cstore_md;
+    CSTORE_MD  *cstore_md;
     UINT32      cstore_md_id;
 
     cstore_md_id = cbc_md_new(MD_CSTORE, sizeof(CSTORE_MD));
@@ -178,7 +180,7 @@ UINT32 cstore_start(ngx_http_request_t *r)
 **/
 void cstore_end(const UINT32 cstore_md_id)
 {
-    CSTORE_MD *cstore_md;
+    CSTORE_MD  *cstore_md;
 
     csig_atexit_unregister((CSIG_ATEXIT_HANDLER)cstore_end, cstore_md_id);
 
@@ -272,7 +274,7 @@ void cstore_end(const UINT32 cstore_md_id)
 
 EC_BOOL cstore_get_ngx_rc(const UINT32 cstore_md_id, ngx_int_t *rc, UINT32 *location)
 {
-    CSTORE_MD                  *cstore_md;
+    CSTORE_MD                   *cstore_md;
 
 #if ( SWITCH_ON == CSTORE_DEBUG_SWITCH )
     if ( CSTORE_MD_ID_CHECK_INVALID(cstore_md_id) )
@@ -301,7 +303,7 @@ EC_BOOL cstore_get_ngx_rc(const UINT32 cstore_md_id, ngx_int_t *rc, UINT32 *loca
 /*only for failure!*/
 EC_BOOL cstore_set_ngx_rc(const UINT32 cstore_md_id, const ngx_int_t rc, const UINT32 location)
 {
-    CSTORE_MD                  *cstore_md;
+    CSTORE_MD                   *cstore_md;
 
 #if ( SWITCH_ON == CSTORE_DEBUG_SWITCH )
     if ( CSTORE_MD_ID_CHECK_INVALID(cstore_md_id) )
@@ -337,7 +339,7 @@ EC_BOOL cstore_set_ngx_rc(const UINT32 cstore_md_id, const ngx_int_t rc, const U
 /*only for failure!*/
 EC_BOOL cstore_override_ngx_rc(const UINT32 cstore_md_id, const ngx_int_t rc, const UINT32 location)
 {
-    CSTORE_MD                  *cstore_md;
+    CSTORE_MD                   *cstore_md;
 
 #if ( SWITCH_ON == CSTORE_DEBUG_SWITCH )
     if ( CSTORE_MD_ID_CHECK_INVALID(cstore_md_id) )
@@ -578,7 +580,7 @@ EC_BOOL cstore_node_expired(CSTORE_NODE *cstore_node)
 
 EC_BOOL cstore_parse_method(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                   *cstore_md;
+    CSTORE_MD                    *cstore_md;
 
     ngx_http_request_t           *r;
     char                         *method_str;
@@ -634,7 +636,7 @@ EC_BOOL cstore_parse_method(const UINT32 cstore_md_id)
 
 EC_BOOL cstore_parse_file_path(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                   *cstore_md;
+    CSTORE_MD                    *cstore_md;
 
     ngx_http_request_t           *r;
     char                         *uri_str;
@@ -728,7 +730,7 @@ EC_BOOL cstore_parse_file_path(const UINT32 cstore_md_id)
 
 EC_BOOL cstore_parse_file_op(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                   *cstore_md;
+    CSTORE_MD                    *cstore_md;
 
     ngx_http_request_t           *r;
     char                         *file_op_str;
@@ -787,7 +789,7 @@ EC_BOOL cstore_parse_file_op(const UINT32 cstore_md_id)
 
 EC_BOOL cstore_parse_file_range(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                  *cstore_md;
+    CSTORE_MD                   *cstore_md;
 
     ngx_http_request_t          *r;
 
@@ -884,7 +886,7 @@ EC_BOOL cstore_parse_file_range(const UINT32 cstore_md_id)
 
 EC_BOOL cstore_parse_file_md5(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                  *cstore_md;
+    CSTORE_MD                   *cstore_md;
 
     ngx_http_request_t          *r;
 
@@ -943,7 +945,7 @@ EC_BOOL cstore_parse_file_md5(const UINT32 cstore_md_id)
 
 EC_BOOL cstore_parse_file_body(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                  *cstore_md;
+    CSTORE_MD                   *cstore_md;
 
     ngx_http_request_t          *r;
 
@@ -1080,16 +1082,16 @@ STATIC_CAST CSTRING *__cstore_make_part_file_path(CSTRING *file_name, const UINT
     return (part_file_path);
 }
 
-EC_BOOL cstore_write_file_handler(const UINT32 cstore_md_id)
+EC_BOOL cstore_upload_file_handler(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                  *cstore_md;
+    CSTORE_MD                   *cstore_md;
     CSTRING                     *path_cstr;
 
 #if ( SWITCH_ON == CSTORE_DEBUG_SWITCH )
     if ( CSTORE_MD_ID_CHECK_INVALID(cstore_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cstore_write_file_handler: cstore module #0x%lx not started.\n",
+                "error:cstore_upload_file_handler: cstore module #0x%lx not started.\n",
                 cstore_md_id);
         dbg_exit(MD_CSTORE, cstore_md_id);
     }
@@ -1097,12 +1099,12 @@ EC_BOOL cstore_write_file_handler(const UINT32 cstore_md_id)
 
     cstore_md = CSTORE_MD_GET(cstore_md_id);
 
-    dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_write_file_handler: enter\n");
+    dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_upload_file_handler: enter\n");
 
     /*check validity*/
     if(NULL_PTR == CSTORE_MD_FILE_PATH(cstore_md))
     {
-        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_write_file_handler: "
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_upload_file_handler: "
                                                "no file name\n");
         cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0028);
         return (EC_FALSE);
@@ -1111,7 +1113,7 @@ EC_BOOL cstore_write_file_handler(const UINT32 cstore_md_id)
     if(CSTORE_MD_FILE_S_OFFSET(cstore_md) > CSTORE_MD_FILE_E_OFFSET(cstore_md)
     || CSTORE_MD_FILE_E_OFFSET(cstore_md) > CSTORE_MD_FILE_SIZE(cstore_md))
     {
-        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_write_file_handler: "
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_upload_file_handler: "
                                                "file name '%s', invalid range [%ld, %ld]/%ld\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md),
                                                CSTORE_MD_FILE_S_OFFSET(cstore_md),
@@ -1127,7 +1129,7 @@ EC_BOOL cstore_write_file_handler(const UINT32 cstore_md_id)
                                             CSTORE_MD_FILE_SIZE(cstore_md));
     if(NULL_PTR == path_cstr)
     {
-        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_write_file_handler: "
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_upload_file_handler: "
                                                "make file name '%s_%ld_%ld_%ld' failed\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md),
                                                CSTORE_MD_FILE_S_OFFSET(cstore_md),
@@ -1145,7 +1147,7 @@ EC_BOOL cstore_write_file_handler(const UINT32 cstore_md_id)
         fd = c_file_open((char *)cstring_get_str(path_cstr), O_RDWR | O_CREAT, 0666);
         if(ERR_FD == fd)
         {
-            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_write_file_handler: "
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_upload_file_handler: "
                                                    "open or create file '%s' failed\n",
                                                    (char *)cstring_get_str(path_cstr));
 
@@ -1160,7 +1162,7 @@ EC_BOOL cstore_write_file_handler(const UINT32 cstore_md_id)
 
         if(0 == wsize)
         {
-            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "warn:cstore_write_file_handler: "
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "warn:cstore_upload_file_handler: "
                                                    "nothing write to file '%s' [%ld, %ld]\n",
                                                    (char *)CSTORE_MD_FILE_PATH_STR(cstore_md),
                                                    CSTORE_MD_FILE_S_OFFSET(cstore_md),
@@ -1175,7 +1177,7 @@ EC_BOOL cstore_write_file_handler(const UINT32 cstore_md_id)
 
         if(NULL_PTR == CSTORE_MD_FILE_BODY(cstore_md))
         {
-            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "warn:cstore_write_file_handler: "
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "warn:cstore_upload_file_handler: "
                                                    "body of file '%s' [%ld, %ld] is null\n",
                                                    (char *)CSTORE_MD_FILE_PATH_STR(cstore_md),
                                                    CSTORE_MD_FILE_S_OFFSET(cstore_md),
@@ -1191,7 +1193,7 @@ EC_BOOL cstore_write_file_handler(const UINT32 cstore_md_id)
 
         if(EC_FALSE == c_file_write(fd, &offset, wsize, CBYTES_BUF(CSTORE_MD_FILE_BODY(cstore_md))))
         {
-            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_write_file_handler: "
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_upload_file_handler: "
                                                    "write file '%s' [%ld, %ld] failed\n",
                                                    (char *)CSTORE_MD_FILE_PATH_STR(cstore_md),
                                                    CSTORE_MD_FILE_S_OFFSET(cstore_md),
@@ -1207,7 +1209,7 @@ EC_BOOL cstore_write_file_handler(const UINT32 cstore_md_id)
 
         __cstore_part_file_push(path_cstr);
 
-        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_write_file_handler: "
+        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_upload_file_handler: "
                                                "write file '%s' [%ld, %ld] done\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md),
                                                CSTORE_MD_FILE_S_OFFSET(cstore_md),
@@ -1222,7 +1224,7 @@ EC_BOOL cstore_write_file_handler(const UINT32 cstore_md_id)
     }
 
     /*never reach here*/
-    dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_write_file_handler: "
+    dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_upload_file_handler: "
                                            "file '%s', should never reach here\n",
                                            (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
     cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0036);
@@ -1231,7 +1233,7 @@ EC_BOOL cstore_write_file_handler(const UINT32 cstore_md_id)
 
 EC_BOOL cstore_merge_file_handler(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                  *cstore_md;
+    CSTORE_MD                   *cstore_md;
     CSTRING                     *src_file_path;
     CSTRING                     *des_file_path;
 
@@ -1383,7 +1385,7 @@ EC_BOOL cstore_merge_file_handler(const UINT32 cstore_md_id)
 
 EC_BOOL cstore_override_file_handler(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                  *cstore_md;
+    CSTORE_MD                   *cstore_md;
 
 #if ( SWITCH_ON == CSTORE_DEBUG_SWITCH )
     if ( CSTORE_MD_ID_CHECK_INVALID(cstore_md_id) )
@@ -1532,7 +1534,7 @@ EC_BOOL cstore_override_file_handler(const UINT32 cstore_md_id)
 
 EC_BOOL cstore_empty_file_handler(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                  *cstore_md;
+    CSTORE_MD                   *cstore_md;
     int                          fd;
 
 #if ( SWITCH_ON == CSTORE_DEBUG_SWITCH )
@@ -1593,7 +1595,7 @@ EC_BOOL cstore_empty_file_handler(const UINT32 cstore_md_id)
 
 EC_BOOL cstore_check_file_handler(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                  *cstore_md;
+    CSTORE_MD                   *cstore_md;
 
     CMD5_DIGEST                  seg_md5sum;
     UINT32                       fsize;
@@ -1753,7 +1755,7 @@ EC_BOOL cstore_check_file_handler(const UINT32 cstore_md_id)
 
 EC_BOOL cstore_delete_file_handler(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                  *cstore_md;
+    CSTORE_MD                   *cstore_md;
 
 #if ( SWITCH_ON == CSTORE_DEBUG_SWITCH )
     if ( CSTORE_MD_ID_CHECK_INVALID(cstore_md_id) )
@@ -1804,7 +1806,7 @@ EC_BOOL cstore_delete_file_handler(const UINT32 cstore_md_id)
 
 EC_BOOL cstore_size_file_handler(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                  *cstore_md;
+    CSTORE_MD                   *cstore_md;
 
     ngx_http_request_t          *r;
 
@@ -1879,7 +1881,7 @@ EC_BOOL cstore_size_file_handler(const UINT32 cstore_md_id)
 
 EC_BOOL cstore_md5_file_handler(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                  *cstore_md;
+    CSTORE_MD                   *cstore_md;
 
     ngx_http_request_t          *r;
 
@@ -2001,9 +2003,9 @@ EC_BOOL cstore_md5_file_handler(const UINT32 cstore_md_id)
     return (EC_TRUE);
 }
 
-EC_BOOL cstore_read_file_handler(const UINT32 cstore_md_id)
+EC_BOOL cstore_download_file_handler(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                  *cstore_md;
+    CSTORE_MD                   *cstore_md;
 
     ngx_http_request_t          *r;
 
@@ -2018,7 +2020,7 @@ EC_BOOL cstore_read_file_handler(const UINT32 cstore_md_id)
     if ( CSTORE_MD_ID_CHECK_INVALID(cstore_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cstore_read_file_handler: cstore module #0x%lx not started.\n",
+                "error:cstore_download_file_handler: cstore module #0x%lx not started.\n",
                 cstore_md_id);
         dbg_exit(MD_CSTORE, cstore_md_id);
     }
@@ -2031,7 +2033,7 @@ EC_BOOL cstore_read_file_handler(const UINT32 cstore_md_id)
     /*check validity*/
     if(NULL_PTR == CSTORE_MD_FILE_PATH(cstore_md))
     {
-        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_read_file_handler: "
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_download_file_handler: "
                                                "no file name\n");
         cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0087);
         return (EC_FALSE);
@@ -2039,7 +2041,7 @@ EC_BOOL cstore_read_file_handler(const UINT32 cstore_md_id)
 
     if(CSTORE_MD_FILE_S_OFFSET(cstore_md) > CSTORE_MD_FILE_E_OFFSET(cstore_md))
     {
-        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_read_file_handler: "
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_download_file_handler: "
                                                "invalid content-range: [%ld, %ld]/%ld\n",
                                                CSTORE_MD_FILE_S_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_E_OFFSET(cstore_md),
@@ -2051,7 +2053,7 @@ EC_BOOL cstore_read_file_handler(const UINT32 cstore_md_id)
 
     if(EC_FALSE == c_file_access((char *)CSTORE_MD_FILE_PATH_STR(cstore_md), F_OK))
     {
-        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_read_file_handler: "
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_download_file_handler: "
                                                "file '%s' not exist\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
         cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0089);
@@ -2061,7 +2063,7 @@ EC_BOOL cstore_read_file_handler(const UINT32 cstore_md_id)
     fd = c_file_open((char *)CSTORE_MD_FILE_PATH_STR(cstore_md), O_RDONLY, 0666);
     if(ERR_FD == fd)
     {
-        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_read_file_handler: "
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_download_file_handler: "
                                                "open file '%s' failed\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
         cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0090);
@@ -2070,7 +2072,7 @@ EC_BOOL cstore_read_file_handler(const UINT32 cstore_md_id)
 
     if(EC_FALSE == c_file_size(fd, &fsize))
     {
-        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_read_file_handler: "
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_download_file_handler: "
                                                "size file '%s' failed\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
 
@@ -2082,7 +2084,7 @@ EC_BOOL cstore_read_file_handler(const UINT32 cstore_md_id)
 
     if(CSTORE_MD_FILE_E_OFFSET(cstore_md) >= fsize)
     {
-        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_read_file_handler: "
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_download_file_handler: "
                                                "file '%s', size %ld, range [%ld, %ld] is invalid\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md),
                                                fsize,
@@ -2111,7 +2113,7 @@ EC_BOOL cstore_read_file_handler(const UINT32 cstore_md_id)
 
     if(rsize > client_body_max_size)
     {
-        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_read_file_handler: "
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_download_file_handler: "
                                                "file '%s' range [%ld, %ld], "
                                                "rsize %ld > client_body_max_size %u\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md),
@@ -2128,7 +2130,7 @@ EC_BOOL cstore_read_file_handler(const UINT32 cstore_md_id)
     rsp_body = cbytes_new(rsize);
     if(NULL_PTR == rsp_body)
     {
-        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_read_file_handler: "
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_download_file_handler: "
                                                "file '%s' range [%ld, %ld], "
                                                "new cbytes with size %ld failed\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md),
@@ -2144,7 +2146,7 @@ EC_BOOL cstore_read_file_handler(const UINT32 cstore_md_id)
 
     if(EC_FALSE == c_file_load(fd, &offset, rsize, CBYTES_BUF(rsp_body)))
     {
-        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_read_file_handler: "
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_download_file_handler: "
                                                "read file '%s' range [%ld, %ld] failed\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md),
                                                CSTORE_MD_FILE_S_OFFSET(cstore_md),
@@ -2162,7 +2164,7 @@ EC_BOOL cstore_read_file_handler(const UINT32 cstore_md_id)
 
     c_file_close(fd);
 
-    dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_read_file_handler: "
+    dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_download_file_handler: "
                                            "read file '%s' range [%ld, %ld]/%ld => done\n",
                                            (char *)CSTORE_MD_FILE_PATH_STR(cstore_md),
                                            CSTORE_MD_FILE_S_OFFSET(cstore_md),
@@ -2188,7 +2190,7 @@ EC_BOOL cstore_read_file_handler(const UINT32 cstore_md_id)
 **/
 EC_BOOL cstore_backup_file_handler(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                  *cstore_md;
+    CSTORE_MD                   *cstore_md;
 
     ngx_http_request_t          *r;
 
@@ -2579,7 +2581,7 @@ STATIC_CAST EC_BOOL __cstore_finger_dir(char *dir_path, char **file_path)
 **/
 EC_BOOL cstore_finger_dir_handler(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                *cstore_md;
+    CSTORE_MD                   *cstore_md;
 
     char                        *file_path;
     ngx_http_request_t          *r;
@@ -2670,7 +2672,7 @@ EC_BOOL cstore_finger_dir_handler(const UINT32 cstore_md_id)
 **/
 EC_BOOL cstore_content_handler(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                  *cstore_md;
+    CSTORE_MD                   *cstore_md;
 
     ngx_http_request_t          *r;
 
@@ -2786,10 +2788,10 @@ EC_BOOL cstore_content_handler(const UINT32 cstore_md_id)
     && EC_TRUE == cstring_is_str(CSTORE_MD_FILE_OP(cstore_md), (UINT8 *)CSTORE_FILE_UPLOAD_OP)
     && EC_TRUE == cstring_is_str_ignore_case(CSTORE_MD_METHOD(cstore_md), (UINT8 *)"POST"))
     {
-        if(EC_FALSE == cstore_write_file_handler(cstore_md_id))
+        if(EC_FALSE == cstore_upload_file_handler(cstore_md_id))
         {
             dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_content_handler: "
-                                                   "write file failed\n");
+                                                   "upload file failed\n");
 
             cstore_content_send_response(cstore_md_id);
             return (EC_FALSE);
@@ -2930,7 +2932,7 @@ EC_BOOL cstore_content_handler(const UINT32 cstore_md_id)
     && EC_TRUE == cstring_is_str(CSTORE_MD_FILE_OP(cstore_md), (UINT8 *)CSTORE_FILE_DOWNLOAD_OP)
     && EC_TRUE == cstring_is_str_ignore_case(CSTORE_MD_METHOD(cstore_md), (UINT8 *)"GET"))
     {
-        if(EC_FALSE == cstore_read_file_handler(cstore_md_id))
+        if(EC_FALSE == cstore_download_file_handler(cstore_md_id))
         {
             dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_content_handler: "
                                                    "download file failed\n");
@@ -3010,7 +3012,7 @@ EC_BOOL cstore_content_handler(const UINT32 cstore_md_id)
 
 EC_BOOL cstore_content_send_response(const UINT32 cstore_md_id)
 {
-    CSTORE_MD                 *cstore_md;
+    CSTORE_MD                  *cstore_md;
 
     ngx_http_request_t         *r;
     uint32_t                    len;

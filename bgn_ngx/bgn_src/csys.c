@@ -245,7 +245,7 @@ UINT32 csys_cpu_cfg_vec_get(CSYS_CPU_CFG_VEC *csys_cpu_cfg_vec)
         return ((UINT32)-1);
     }
 
-    exec_shell("cat /proc/cpuinfo", cache, CSYS_SHELL_BUF_MAX_SIZE, NULL_PTR);
+    c_exec_shell("cat /proc/cpuinfo", cache, CSYS_SHELL_BUF_MAX_SIZE, NULL_PTR);
 
     cstring = NULL_PTR;
     next = cache;
@@ -467,7 +467,7 @@ UINT32 csys_cpu_stat_vec_get(CSYS_CPU_STAT_VEC *csys_cpu_stat_vec)
         return ((UINT32)-1);
     }
 
-    exec_shell("cat /proc/stat | grep '^cpu'", cache, CSYS_SHELL_BUF_MAX_SIZE, NULL_PTR);
+    c_exec_shell("cat /proc/stat | grep '^cpu'", cache, CSYS_SHELL_BUF_MAX_SIZE, NULL_PTR);
     //dbg_log(SEC_0077_CSYS, 9)(LOGSTDOUT, "[DEBUG] cache: \n%s\n", cache);
 
     /*note:skip the cpu average load info which locate the 1st line in /proc/stat*/
@@ -563,7 +563,7 @@ UINT32 csys_cpu_avg_stat_get(CSYS_CPU_AVG_STAT *csys_cpu_avg_stat)
     0.01     0.00   0.00 1/65 6189
 */
 
-    exec_shell("cat /proc/loadavg", buff, CSYS_SHELL_BUF_MAX_SIZE, NULL_PTR);
+    c_exec_shell("cat /proc/loadavg", buff, CSYS_SHELL_BUF_MAX_SIZE, NULL_PTR);
     //dbg_log(SEC_0077_CSYS, 9)(LOGSTDNULL, "[DEBUG]csys_cpu_avg_stat_get: \n%s\n", buff);
 
     safe_ptr = (char *)buff;
@@ -642,7 +642,7 @@ UINT32 csys_mem_stat_get(CSYS_MEM_STAT *csys_mem_stat)
         return ((UINT32)-1);
     }
 
-    exec_shell("cat /proc/meminfo", cache, CSYS_SHELL_BUF_MAX_SIZE, NULL_PTR);
+    c_exec_shell("cat /proc/meminfo", cache, CSYS_SHELL_BUF_MAX_SIZE, NULL_PTR);
     //dbg_log(SEC_0077_CSYS, 9)(LOGSTDOUT, "[DEBUG] csys_mem_stat_get: cache is \n %s\n", cache);
 
     next = cache;
@@ -1483,7 +1483,7 @@ UINT32 csys_eth_stat_vec_get(CSYS_ETH_VEC *csys_eth_stat_vec)
         return ((UINT32)-1);
     }
 
-    exec_shell("cat /proc/net/dev", cache, CSYS_SHELL_BUF_MAX_SIZE, NULL_PTR);
+    c_exec_shell("cat /proc/net/dev", cache, CSYS_SHELL_BUF_MAX_SIZE, NULL_PTR);
     //dbg_log(SEC_0077_CSYS, 9)(LOGSTDOUT, "[DEBUG] csys_eth_stat_vec_get:cache: \n%s\n", cache);
 
     /**
