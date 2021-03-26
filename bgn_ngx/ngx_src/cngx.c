@@ -1044,11 +1044,11 @@ EC_BOOL cngx_get_req_argv(const ngx_http_request_t *r, const char *key, char **v
         s = strstr((char *)(r->args.data), k);
         if(NULL_PTR == s)
         {
-            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_argv: "
+            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "[DEBUG] cngx_get_req_argv: "
                                                  "not found '%s' in req arg '%.*s'\n",
                                                  k, r->args.len, (char *)r->args.data);
             (*val) = NULL_PTR;
-            return (EC_FALSE);
+            return (EC_TRUE);
         }
 
         s += klen;
@@ -1081,12 +1081,12 @@ EC_BOOL cngx_get_req_argv(const ngx_http_request_t *r, const char *key, char **v
         s = strstr((char *)(r->args.data), k);
         if(NULL_PTR == s)
         {
-            dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_argv: "
+            dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_argv: "
                                                  "not found '%s' in req arg '%.*s'\n",
                                                  k, r->args.len, (char *)r->args.data);
             (*val) = NULL_PTR;
             c_str_free(k);
-            return (EC_FALSE);
+            return (EC_TRUE);
         }
 
         c_str_free(k);

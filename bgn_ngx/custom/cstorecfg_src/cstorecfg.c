@@ -725,10 +725,10 @@ EC_BOOL cstorecfg_parse_bucket_name(const UINT32 cstorecfg_md_id)
 
     if(NULL_PTR == bucket_name_str)
     {
-        dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_parse_bucket_name: "
+        dbg_log(SEC_0172_CSTORECFG, 9)(LOGSTDOUT, "[DEBUG] cstorecfg_parse_bucket_name: "
                                                   "no arg '%s'\n",
                                                   k);
-        return (EC_FALSE);
+        return (EC_TRUE);
     }
 
     CSTORECFG_MD_BUCKET_NAME(cstorecfg_md) = cstring_new((UINT8 *)bucket_name_str, LOC_CSTORECFG_0011);
@@ -1690,6 +1690,8 @@ STATIC_CAST EC_BOOL __cstorecfg_bucket_activate()
 **/
 EC_BOOL cstorecfg_bucket_add_handler(const UINT32 cstorecfg_md_id)
 {
+    CSTORECFG_MD                *cstorecfg_md;
+
     CSTORECFG_NODE               cstorecfg_node;
 
 #if ( SWITCH_ON == CSTORECFG_DEBUG_SWITCH )
@@ -1701,6 +1703,18 @@ EC_BOOL cstorecfg_bucket_add_handler(const UINT32 cstorecfg_md_id)
         dbg_exit(MD_CSTORECFG, cstorecfg_md_id);
     }
 #endif/*CSTORECFG_DEBUG_SWITCH*/
+
+    cstorecfg_md = CSTORECFG_MD_GET(cstorecfg_md_id);
+
+    if(NULL_PTR == CSTORECFG_MD_BUCKET_NAME(cstorecfg_md))
+    {
+        dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_bucket_add_handler: "
+                                                  "no bucket\n");
+
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0024);
+
+        return (EC_FALSE);
+    }
 
     cstorecfg_node_init(&cstorecfg_node);
 
@@ -1756,6 +1770,8 @@ EC_BOOL cstorecfg_bucket_add_handler(const UINT32 cstorecfg_md_id)
 **/
 EC_BOOL cstorecfg_bucket_delete_handler(const UINT32 cstorecfg_md_id)
 {
+    CSTORECFG_MD                *cstorecfg_md;
+
 #if ( SWITCH_ON == CSTORECFG_DEBUG_SWITCH )
     if ( CSTORECFG_MD_ID_CHECK_INVALID(cstorecfg_md_id) )
     {
@@ -1765,6 +1781,18 @@ EC_BOOL cstorecfg_bucket_delete_handler(const UINT32 cstorecfg_md_id)
         dbg_exit(MD_CSTORECFG, cstorecfg_md_id);
     }
 #endif/*CSTORECFG_DEBUG_SWITCH*/
+
+    cstorecfg_md = CSTORECFG_MD_GET(cstorecfg_md_id);
+
+    if(NULL_PTR == CSTORECFG_MD_BUCKET_NAME(cstorecfg_md))
+    {
+        dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_bucket_delete_handler: "
+                                                  "no bucket\n");
+
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0024);
+
+        return (EC_FALSE);
+    }
 
     if(EC_FALSE == __cstorecfg_bucket_delete(cstorecfg_md_id))
     {
@@ -1804,6 +1832,8 @@ EC_BOOL cstorecfg_bucket_delete_handler(const UINT32 cstorecfg_md_id)
 **/
 EC_BOOL cstorecfg_bucket_modify_handler(const UINT32 cstorecfg_md_id)
 {
+    CSTORECFG_MD                *cstorecfg_md;
+
     CSTORECFG_NODE               cstorecfg_node;
 
 #if ( SWITCH_ON == CSTORECFG_DEBUG_SWITCH )
@@ -1815,6 +1845,18 @@ EC_BOOL cstorecfg_bucket_modify_handler(const UINT32 cstorecfg_md_id)
         dbg_exit(MD_CSTORECFG, cstorecfg_md_id);
     }
 #endif/*CSTORECFG_DEBUG_SWITCH*/
+
+    cstorecfg_md = CSTORECFG_MD_GET(cstorecfg_md_id);
+
+    if(NULL_PTR == CSTORECFG_MD_BUCKET_NAME(cstorecfg_md))
+    {
+        dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_bucket_modify_handler: "
+                                                  "no bucket\n");
+
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0024);
+
+        return (EC_FALSE);
+    }
 
     cstorecfg_node_init(&cstorecfg_node);
 
