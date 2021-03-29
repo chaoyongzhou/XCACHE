@@ -201,6 +201,8 @@ EC_BOOL cngx_set_var_str(ngx_http_request_t *r, const char *key, const char *val
 
 EC_BOOL cngx_del_var_str(ngx_http_request_t *r, const char *key);
 
+EC_BOOL cngx_has_var(ngx_http_request_t *r, const char *key);
+
 EC_BOOL cngx_get_cache_seg_size(ngx_http_request_t *r, uint32_t *cache_seg_size);
 
 EC_BOOL cngx_get_cache_seg_max_num(ngx_http_request_t *r, uint32_t *cache_seg_max_num);

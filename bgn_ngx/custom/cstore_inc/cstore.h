@@ -25,30 +25,37 @@ extern "C"{
 
 #include "cbytes.h"
 
-#define CSTORE_MODULE_NAME                 ("cstore")
+#define CSTORE_MODULE_NAME                          ("cstore")
 
-#define CSTORE_FILE_UPLOAD_OP              ("upload")
-#define CSTORE_FILE_EMPTY_OP               ("empty")
-#define CSTORE_FILE_MERGE_OP               ("merge")
-#define CSTORE_FILE_OVERRIDE_OP            ("override")
-#define CSTORE_FILE_CHECK_OP               ("check")
-#define CSTORE_FILE_DELETE_OP              ("delete")
-#define CSTORE_FILE_SIZE_OP                ("size")
-#define CSTORE_FILE_MD5_OP                 ("md5")
+#define CSTORE_FILE_UPLOAD_OP                       ("upload")      /*method: POST*/
+#define CSTORE_FILE_EMPTY_OP                        ("empty")       /*method: PUT*/
+#define CSTORE_FILE_MERGE_OP                        ("merge")       /*method: PUT*/
+#define CSTORE_FILE_COMPLETE_OP                     ("complete")    /*method: GET*/
+#define CSTORE_FILE_OVERRIDE_OP                     ("override")    /*method: PUT*/
+#define CSTORE_FILE_CHECK_OP                        ("check")       /*method: GET*/
+#define CSTORE_FILE_DELETE_OP                       ("delete")      /*method: DELETE*/
+#define CSTORE_FILE_SIZE_OP                         ("size")        /*method: GET*/
+#define CSTORE_FILE_MD5_OP                          ("md5")         /*method: GET*/
+#define CSTORE_FILE_PUSH_OP                         ("push")        /*method: GET*/
+#define CSTORE_FILE_PULL_OP                         ("pull")        /*method: GET*/
+#define CSTORE_FILE_LIST_OP                         ("list")        /*method: GET*/
+#define CSTORE_FILE_PURGE_OP                        ("purge")       /*method: DELETE*/
+#define CSTORE_FILE_DOWNLOAD_OP                     ("download")    /*method: GET*/
+#define CSTORE_FILE_BACKUP_OP                       ("backup")      /*method: GET*/
+#define CSTORE_DIR_DELETE_OP                        ("ddir")        /*method: DELETE*/
+#define CSTORE_DIR_LIST_OP                          ("ldir")        /*method: GET*/
 
-#define CSTORE_FILE_DOWNLOAD_OP            ("download")
-#define CSTORE_FILE_BACKUP_OP              ("backup")
-#define CSTORE_DIR_DELETE_OP               ("ddir")
-#define CSTORE_DIR_FINGER_OP               ("finger")
+#define CSTORE_CNGX_VAR_BACKUP_DIR                  ("c_store_backup_dir")
+#define CSTORE_CNGX_VAR_PUSH_BACKEND_CMD            ("c_store_push_backend_cmd")
+#define CSTORE_CNGX_VAR_PULL_BACKEND_CMD            ("c_store_pull_backend_cmd")
+#define CSTORE_CNGX_VAR_PURGE_BACKEND_CMD           ("c_store_purge_backend_cmd")
+#define CSTORE_CNGX_VAR_LIST_BACKEND_CMD            ("c_store_list_backend_cmd")
 
-#define CSTORE_CNGX_VAR_BACKUP_DIR         ("c_store_backup_dir")
+#define CSTORE_FILE_MERGE_SEG_SIZE                  (32 << 20) /*32MB*/
+#define CSTORE_FILE_NAME_MAX_DEPTH                  (64)       /*file name max depth*/
+#define CSTORE_FILE_NAME_SEG_MAX_SIZE               (255)      /*posix compatiblity*/
 
-#define CSTORE_FILE_MERGE_SEG_SIZE         (32 << 20) /*32MB*/
-
-#define CSTORE_PART_FILE_EXPIRED_NSEC      (10 * 60)  /*10min*/
-
-#define CSTORE_FILE_NAME_MAX_DEPTH         (64)       /*file name max depth*/
-#define CSTORE_FILE_NAME_SEG_MAX_SIZE      (255)      /*posix compatiblity*/
+#define CSTORE_CACHE_MAX_SIZE                       (4 << 20) /*4MB*/
 
 typedef struct
 {
@@ -58,10 +65,12 @@ typedef struct
 
     CSTRING             *method;
 
-    CSTRING             *root_path;
+
+    CSTRING             *root_path;     /* e.g. /tmp/upload */
+    CSTRING             *bucket_path;   /* e.g. /bucket01/a/b/c.log */
 
     CSTRING             *file_op;
-    CSTRING             *file_path;
+    CSTRING             *file_path;     /* e.g. /tmp/upload/bucket01/a/b/c.log, i.e. {root_path}/{bucket_path} */
     CSTRING             *file_md5;
     CBYTES              *file_body;
     UINT32               file_size;
@@ -92,6 +101,9 @@ typedef struct
 #define CSTORE_MD_ROOT_PATH(cstore_md)                    ((cstore_md)->root_path)
 #define CSTORE_MD_ROOT_PATH_STR(cstore_md)                (cstring_get_str(CSTORE_MD_ROOT_PATH(cstore_md)))
 
+#define CSTORE_MD_BUCKET_PATH(cstore_md)                  ((cstore_md)->bucket_path)
+#define CSTORE_MD_BUCKET_PATH_STR(cstore_md)              (cstring_get_str(CSTORE_MD_BUCKET_PATH(cstore_md)))
+
 #define CSTORE_MD_FILE_OP(cstore_md)                      ((cstore_md)->file_op)
 #define CSTORE_MD_FILE_OP_STR(cstore_md)                  (cstring_get_str(CSTORE_MD_FILE_OP(cstore_md)))
 #define CSTORE_MD_FILE_PATH(cstore_md)                    ((cstore_md)->file_path)
@@ -115,15 +127,6 @@ typedef struct
 
 #define CSTORE_MD_NGX_LOC(cstore_md)                      ((cstore_md)->ngx_loc)
 #define CSTORE_MD_NGX_RC(cstore_md)                       ((cstore_md)->ngx_rc)
-
-typedef struct
-{
-    CTIMEOUT_NODE       on_expired_cb;
-    CSTRING             part_file_path;
-}CSTORE_NODE;
-
-#define CSTORE_NODE_ON_EXPIRED_CB(cstore_node)            (&((cstore_node)->on_expired_cb))
-#define CSTORE_NODE_PART_FILE_PATH(cstore_node)           (&((cstore_node)->part_file_path))
 
 /**
 *   for test only
@@ -169,15 +172,7 @@ EC_BOOL cstore_set_ngx_rc(const UINT32 cstore_md_id, const ngx_int_t rc, const U
 /*only for failure!*/
 EC_BOOL cstore_override_ngx_rc(const UINT32 cstore_md_id, const ngx_int_t rc, const UINT32 location);
 
-CSTORE_NODE *cstore_node_new();
-
-EC_BOOL cstore_node_init(CSTORE_NODE *cstore_node);
-
-EC_BOOL cstore_node_clean(CSTORE_NODE *cstore_node);
-
-EC_BOOL cstore_node_free(CSTORE_NODE *cstore_node);
-
-EC_BOOL cstore_node_expired(CSTORE_NODE *cstore_node);
+EC_BOOL cstore_parse_dir_path(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_parse_file_path(const UINT32 cstore_md_id);
 
@@ -205,11 +200,21 @@ EC_BOOL cstore_md5_file_handler(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_download_file_handler(const UINT32 cstore_md_id);
 
+EC_BOOL cstore_complete_file_handler(const UINT32 cstore_md_id);
+
+EC_BOOL cstore_push_file_handler(const UINT32 cstore_md_id);
+
+EC_BOOL cstore_pull_file_handler(const UINT32 cstore_md_id);
+
+EC_BOOL cstore_list_file_handler(const UINT32 cstore_md_id);
+
+EC_BOOL cstore_purge_file_handler(const UINT32 cstore_md_id);
+
 EC_BOOL cstore_backup_file_handler(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_delete_dir_handler(const UINT32 cstore_md_id);
 
-EC_BOOL cstore_finger_dir_handler(const UINT32 cstore_md_id);
+EC_BOOL cstore_list_dir_handler(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_content_handler(const UINT32 cstore_md_id);
 

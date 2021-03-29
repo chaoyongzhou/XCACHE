@@ -690,6 +690,23 @@ EC_BOOL cngx_del_var_str(ngx_http_request_t *r, const char *key)
     return (EC_TRUE);
 }
 
+EC_BOOL cngx_has_var(ngx_http_request_t *r, const char *key)
+{
+    ngx_http_variable_value_t   *vv;
+
+    vv = ngx_http_bgn_var_get(r, (const u_char *)key, (size_t)CONST_STR_LEN(key));
+    if (NULL_PTR == vv || 0 == vv->len)
+    {
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_has_var: not found var '%s'\n",
+                                             key);
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_has_var: found var '%s'\n",
+                                         key);
+    return (EC_TRUE);
+}
+
 EC_BOOL cngx_get_cache_seg_size(ngx_http_request_t *r, uint32_t *cache_seg_size)
 {
     const char      *k;

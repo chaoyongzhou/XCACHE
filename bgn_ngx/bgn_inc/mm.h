@@ -253,7 +253,7 @@ extern "C"{
 #define                        MM_000182    ((UINT32)182) /*-- obsolete --*/
 #define                        MM_000183    ((UINT32)183) /*-- obsolete --*/
 #define                     MM_CSSL_NODE    ((UINT32)184)
-#define                   MM_CSTORE_NODE    ((UINT32)185)
+#define                        MM_000185    ((UINT32)185) /*-- obsolete --*/
 #define                        MM_000186    ((UINT32)186) /*-- obsolete --*/
 #define                        MM_000187    ((UINT32)187) /*-- obsolete --*/
 #define                        MM_000188    ((UINT32)188) /*-- obsolete --*/

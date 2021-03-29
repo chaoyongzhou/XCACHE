@@ -1723,7 +1723,7 @@ EC_BOOL cstorecfg_bucket_add_handler(const UINT32 cstorecfg_md_id)
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_bucket_add_handler: "
                                                   "parse cfg failed\n");
 
-        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0024);
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0025);
 
         cstorecfg_node_clean(&cstorecfg_node);
         return (EC_FALSE);
@@ -1734,7 +1734,7 @@ EC_BOOL cstorecfg_bucket_add_handler(const UINT32 cstorecfg_md_id)
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_bucket_add_handler: "
                                                   "add bucket failed\n");
 
-        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0025);
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0026);
 
         cstorecfg_node_clean(&cstorecfg_node);
         return (EC_FALSE);
@@ -1749,7 +1749,7 @@ EC_BOOL cstorecfg_bucket_add_handler(const UINT32 cstorecfg_md_id)
             dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_bucket_add_handler: "
                                                       "activate bucket failed\n");
 
-            cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0026);
+            cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0027);
 
             return (EC_FALSE);
         }
@@ -1758,7 +1758,7 @@ EC_BOOL cstorecfg_bucket_add_handler(const UINT32 cstorecfg_md_id)
                                                   "activate bucket done\n");
     }
 
-    cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_OK, LOC_CSTORECFG_0027);
+    cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_OK, LOC_CSTORECFG_0028);
 
     return (EC_TRUE);
 }
@@ -1789,7 +1789,7 @@ EC_BOOL cstorecfg_bucket_delete_handler(const UINT32 cstorecfg_md_id)
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_bucket_delete_handler: "
                                                   "no bucket\n");
 
-        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0024);
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0029);
 
         return (EC_FALSE);
     }
@@ -1799,7 +1799,7 @@ EC_BOOL cstorecfg_bucket_delete_handler(const UINT32 cstorecfg_md_id)
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_bucket_delete_handler: "
                                                   "add bucket failed\n");
 
-        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0028);
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0030);
 
         return (EC_FALSE);
     }
@@ -1811,7 +1811,7 @@ EC_BOOL cstorecfg_bucket_delete_handler(const UINT32 cstorecfg_md_id)
             dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_bucket_delete_handler: "
                                                       "activate conf failed\n");
 
-            cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0029);
+            cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0031);
 
             return (EC_FALSE);
         }
@@ -1820,7 +1820,7 @@ EC_BOOL cstorecfg_bucket_delete_handler(const UINT32 cstorecfg_md_id)
                                                   "activate conf done\n");
     }
 
-    cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_OK, LOC_CSTORECFG_0030);
+    cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_OK, LOC_CSTORECFG_0032);
 
     return (EC_TRUE);
 }
@@ -1853,7 +1853,7 @@ EC_BOOL cstorecfg_bucket_modify_handler(const UINT32 cstorecfg_md_id)
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_bucket_modify_handler: "
                                                   "no bucket\n");
 
-        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0024);
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0033);
 
         return (EC_FALSE);
     }
@@ -1865,7 +1865,7 @@ EC_BOOL cstorecfg_bucket_modify_handler(const UINT32 cstorecfg_md_id)
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_bucket_modify_handler: "
                                                   "parse cfg failed\n");
 
-        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0031);
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0034);
 
         cstorecfg_node_clean(&cstorecfg_node);
         return (EC_FALSE);
@@ -1876,7 +1876,7 @@ EC_BOOL cstorecfg_bucket_modify_handler(const UINT32 cstorecfg_md_id)
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_bucket_modify_handler: "
                                                   "add bucket failed\n");
 
-        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0032);
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0035);
 
         cstorecfg_node_clean(&cstorecfg_node);
         return (EC_FALSE);
@@ -1891,7 +1891,7 @@ EC_BOOL cstorecfg_bucket_modify_handler(const UINT32 cstorecfg_md_id)
             dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_bucket_modify_handler: "
                                                       "activate conf failed\n");
 
-            cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0033);
+            cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0036);
 
             return (EC_FALSE);
         }
@@ -1899,7 +1899,7 @@ EC_BOOL cstorecfg_bucket_modify_handler(const UINT32 cstorecfg_md_id)
         dbg_log(SEC_0172_CSTORECFG, 9)(LOGSTDOUT, "[DEBUG] cstorecfg_bucket_modify_handler: "
                                                   "activate conf done\n");
     }
-    cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_OK, LOC_CSTORECFG_0034);
+    cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_OK, LOC_CSTORECFG_0037);
 
     return (EC_TRUE);
 }
@@ -1926,7 +1926,7 @@ EC_BOOL cstorecfg_bucket_activate_handler(const UINT32 cstorecfg_md_id)
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_bucket_activate_handler: "
                                                   "activate conf failed\n");
 
-        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0035);
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0038);
 
         return (EC_FALSE);
     }
@@ -1934,7 +1934,7 @@ EC_BOOL cstorecfg_bucket_activate_handler(const UINT32 cstorecfg_md_id)
     dbg_log(SEC_0172_CSTORECFG, 9)(LOGSTDOUT, "[DEBUG] cstorecfg_bucket_activate_handler: "
                                               "activate conf done\n");
 
-    cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_OK, LOC_CSTORECFG_0036);
+    cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_OK, LOC_CSTORECFG_0039);
 
     return (EC_TRUE);
 }
@@ -1978,7 +1978,7 @@ EC_BOOL cstorecfg_content_handler(const UINT32 cstorecfg_md_id)
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_content_handler: "
                                                   "parse method failed\n");
 
-        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0037);
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0040);
         cstorecfg_content_send_response(cstorecfg_md_id);
         return (EC_FALSE);
     }
@@ -1990,7 +1990,7 @@ EC_BOOL cstorecfg_content_handler(const UINT32 cstorecfg_md_id)
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_content_handler: "
                                                   "parse host failed\n");
 
-        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0038);
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0041);
         cstorecfg_content_send_response(cstorecfg_md_id);
         return (EC_FALSE);
     }
@@ -2002,7 +2002,7 @@ EC_BOOL cstorecfg_content_handler(const UINT32 cstorecfg_md_id)
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_content_handler: "
                                                   "parse conf file name failed\n");
 
-        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0039);
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0042);
         cstorecfg_content_send_response(cstorecfg_md_id);
         return (EC_FALSE);
     }
@@ -2014,7 +2014,7 @@ EC_BOOL cstorecfg_content_handler(const UINT32 cstorecfg_md_id)
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_content_handler: "
                                                   "parse cmd line failed\n");
 
-        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0040);
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0043);
         cstorecfg_content_send_response(cstorecfg_md_id);
         return (EC_FALSE);
     }
@@ -2026,7 +2026,7 @@ EC_BOOL cstorecfg_content_handler(const UINT32 cstorecfg_md_id)
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_content_handler: "
                                                   "parse cache failed\n");
 
-        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0041);
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORECFG_0044);
         cstorecfg_content_send_response(cstorecfg_md_id);
         return (EC_FALSE);
     }
@@ -2038,7 +2038,7 @@ EC_BOOL cstorecfg_content_handler(const UINT32 cstorecfg_md_id)
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_content_handler: "
                                                   "parse name failed\n");
 
-        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0042);
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0045);
         cstorecfg_content_send_response(cstorecfg_md_id);
         return (EC_FALSE);
     }
@@ -2050,7 +2050,7 @@ EC_BOOL cstorecfg_content_handler(const UINT32 cstorecfg_md_id)
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_content_handler: "
                                                   "parse op failed\n");
 
-        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0043);
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0046);
         cstorecfg_content_send_response(cstorecfg_md_id);
         return (EC_FALSE);
     }
@@ -2062,7 +2062,7 @@ EC_BOOL cstorecfg_content_handler(const UINT32 cstorecfg_md_id)
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:cstorecfg_content_handler: "
                                                   "parse body failed\n");
 
-        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0044);
+        cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0047);
         cstorecfg_content_send_response(cstorecfg_md_id);
         return (EC_FALSE);
     }
@@ -2147,7 +2147,7 @@ EC_BOOL cstorecfg_content_handler(const UINT32 cstorecfg_md_id)
                                               (char *)CSTORECFG_MD_BUCKET_OP_STR(cstorecfg_md),
                                               (char *)CSTORECFG_MD_BUCKET_NAME_STR(cstorecfg_md));
 
-    cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0045);
+    cstorecfg_set_ngx_rc(cstorecfg_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORECFG_0048);
     cstorecfg_content_send_response(cstorecfg_md_id);
     return (EC_FALSE);
 }

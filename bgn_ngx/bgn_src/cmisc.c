@@ -1751,11 +1751,87 @@ char *c_str_make(const char *format, ...)
     return (str);
 }
 
+/*replace substr in string*/
+char *c_str_replace(const char *src_str, const char *rep_str, const char *with_str)
+{
+    char       *src;
+    char       *ins;
+    char       *tmp;
+    char       *des;
+    uint32_t    rep_len;
+    uint32_t    with_len;
+    uint32_t    des_len;
+    uint32_t    count;
+
+    if(NULL_PTR == src_str ||NULL_PTR == rep_str)
+    {
+        return (NULL_PTR);
+    }
+
+    rep_len = strlen(rep_str);
+    if(0 == rep_len)
+    {
+        return (NULL_PTR);
+    }
+
+    if(NULL_PTR == with_str)
+    {
+        with_len = 0;
+    }
+    else
+    {
+        with_len = strlen(with_str);
+    }
+
+    ins = (char *)src_str;
+
+    for(count = 0; NULL_PTR != (tmp = strstr(ins, rep_str)); count ++)
+    {
+        ins = tmp + rep_len;
+    }
+
+    des_len = strlen(src_str) - rep_len * count + with_len * count + 1;
+
+    des = safe_malloc(des_len, LOC_CMISC_0044);
+    if(NULL_PTR == des)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_replace: "
+                                              "alloc %u bytes failed "
+                                              "when replace '%s' with '%s' in '%s'\n",
+                                              rep_str, with_str, src_str);
+        return (NULL_PTR);
+    }
+
+    src = (char *)src_str;
+    ins = src;
+    tmp = des;
+
+    while(0 < count --)
+    {
+        uint32_t    front_len;
+
+        ins       = strstr(src, rep_str);
+        front_len = (ins - src);
+
+        tmp       = STRNCOPY(src     , tmp, front_len) + front_len;
+
+        if(0 < with_len)
+        {
+            tmp   = STRNCOPY(with_str, tmp, with_len ) + with_len;
+        }
+
+        src      += front_len + rep_len;
+    }
+    STRCOPY(src, tmp);
+
+    return (des);
+}
+
 EC_BOOL c_str_free(char *str)
 {
     if(NULL_PTR != str)
     {
-        safe_free(str, LOC_CMISC_0044);
+        safe_free(str, LOC_CMISC_0045);
         return (EC_TRUE);
     }
     return (EC_TRUE);
@@ -1790,11 +1866,11 @@ EC_BOOL c_str_is_in(const char *string, const char *delim, const char *tags_str)
     {
         if(0 == strcasecmp(string, tag[ tag_idx ]))
         {
-            safe_free(str_tmp, LOC_CMISC_0045);
+            safe_free(str_tmp, LOC_CMISC_0046);
             return (EC_TRUE);
         }
     }
-    safe_free(str_tmp, LOC_CMISC_0046);
+    safe_free(str_tmp, LOC_CMISC_0047);
     return (EC_FALSE);
 }
 
@@ -2199,7 +2275,7 @@ char *c_chars_dup(const char *str_chars, const uint32_t len)
 {
     char *dup_str;
 
-    dup_str = (char *)safe_malloc(len + 1, LOC_CMISC_0047);
+    dup_str = (char *)safe_malloc(len + 1, LOC_CMISC_0048);
     if(NULL_PTR == dup_str)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_chars_dup: dup chars %.*s failed\n", len, str_chars);
@@ -2336,7 +2412,7 @@ char *uint32_vec_to_str(const CVECTOR *uint32_vec)
     }
 
     len = 1 * 1024;
-    buff = (char *)safe_malloc(len, LOC_CMISC_0048);
+    buff = (char *)safe_malloc(len, LOC_CMISC_0049);
     if(NULL_PTR == buff)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:uint32_vec_to_str: malloc %ld bytes failed\n", len);
@@ -2345,7 +2421,7 @@ char *uint32_vec_to_str(const CVECTOR *uint32_vec)
 
     char_pos = 0;
 
-    CVECTOR_LOCK(uint32_vec, LOC_CMISC_0049);
+    CVECTOR_LOCK(uint32_vec, LOC_CMISC_0050);
 
     cvec_size = cvector_size(uint32_vec);
 
@@ -2395,7 +2471,7 @@ char *uint32_vec_to_str(const CVECTOR *uint32_vec)
         /*move forward*/
         beg_pos = cur_pos;
     }
-    CVECTOR_UNLOCK(uint32_vec, LOC_CMISC_0050);
+    CVECTOR_UNLOCK(uint32_vec, LOC_CMISC_0051);
 
     return (buff);
 }
@@ -2406,7 +2482,7 @@ char *c_bytes_to_hex_str(const UINT8 *bytes, const UINT32 len)
     UINT32 byte_pos;
     UINT32 char_pos;
 
-    str = (char *)safe_malloc(2 * len + 1, LOC_CMISC_0051);
+    str = (char *)safe_malloc(2 * len + 1, LOC_CMISC_0052);
     if(NULL_PTR == str)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_bytes_to_hex_str: malloc %ld bytes failed\n", 2 * len + 1);
@@ -2441,7 +2517,7 @@ EC_BOOL c_hex_str_to_bytes(const char *str, UINT8 **bytes, UINT32 *len)
     }
 
     bytes_len = (str_len >> 1);
-    buff = (UINT8 *)safe_malloc(bytes_len, LOC_CMISC_0052);
+    buff = (UINT8 *)safe_malloc(bytes_len, LOC_CMISC_0053);
     if(NULL_PTR == buff)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_hex_str_to_bytes: malloc %ld bytes failed\n", bytes_len);
@@ -2478,10 +2554,10 @@ char *c_md5_to_hex_str(const uint8_t *md5)
 
     char *str;
 
-    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0053);
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0054);
     str = (char *)(g_str_buff[g_str_idx]);
     g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
-    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0054);
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0055);
 
     end_pos  = CMISC_BUFF_LEN - 3;
     char_pos = 0;
@@ -2606,7 +2682,7 @@ char *c_dirname(const char *path_name)
     }
 
     len = strlen(path_name);
-    dir_name = safe_malloc(len + 1, LOC_CMISC_0055);
+    dir_name = safe_malloc(len + 1, LOC_CMISC_0056);
 
     end = path_name + len - 1;
     while(end > path_name && '/' == (*end)) { end --; }
@@ -2642,7 +2718,7 @@ char *c_dirname(const char *path_name)
         if(2 < count)
         {
             dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dirname: invalid path '%s'\n", path_name);
-            safe_free(dir_name, LOC_CMISC_0056);
+            safe_free(dir_name, LOC_CMISC_0057);
             return (NULL_PTR);
         }
 
@@ -2658,7 +2734,7 @@ char *c_dirname(const char *path_name)
 
     if(des == dir_name)
     {
-        safe_free(dir_name, LOC_CMISC_0057);
+        safe_free(dir_name, LOC_CMISC_0058);
         return (NULL_PTR);
     }
 
@@ -2740,7 +2816,7 @@ EC_BOOL c_basedir_create(const char *file_name)
         return (EC_FALSE);
     }
     ret      = c_dir_create(dir_name);
-    safe_free(dir_name, LOC_CMISC_0058);
+    safe_free(dir_name, LOC_CMISC_0059);
     return (ret);
 }
 
@@ -2814,7 +2890,7 @@ EC_BOOL c_exec_shell(const char *cmd_str, char *cmd_output, const UINT32 cmd_out
     if(NULL_PTR == cmd_output)
     {
         cmd_ocapacity = CMISC_CMD_OUTPUT_LINE_MAX_SIZE;
-        cmd_ostream   = (char *)SAFE_MALLOC(cmd_ocapacity, LOC_CMISC_0059);
+        cmd_ostream   = (char *)SAFE_MALLOC(cmd_ocapacity, LOC_CMISC_0060);
     }
     else
     {
@@ -2853,7 +2929,7 @@ EC_BOOL c_exec_shell(const char *cmd_str, char *cmd_output, const UINT32 cmd_out
 
     if(cmd_ostream != cmd_output)
     {
-        SAFE_FREE(cmd_ostream, LOC_CMISC_0060);
+        SAFE_FREE(cmd_ostream, LOC_CMISC_0061);
     }
 
     return (EC_TRUE);
@@ -3096,7 +3172,7 @@ EC_BOOL c_file_merge(int src_fd, int des_fd, const UINT32 seg_size)
         return (EC_FALSE);
     }
 
-    data = safe_malloc(seg_size, LOC_CMISC_0061);
+    data = safe_malloc(seg_size, LOC_CMISC_0062);
     if(NULL_PTR == data)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_merge: "
@@ -3128,7 +3204,7 @@ EC_BOOL c_file_merge(int src_fd, int des_fd, const UINT32 seg_size)
             dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_merge: "
                                                   "read src file [%ld, %ld)/%ld failed\n",
                                                   src_offset, src_offset + len, src_fsize);
-            safe_free(data, LOC_CMISC_0062);
+            safe_free(data, LOC_CMISC_0063);
             return (EC_FALSE);
         }
 
@@ -3139,7 +3215,7 @@ EC_BOOL c_file_merge(int src_fd, int des_fd, const UINT32 seg_size)
                                                   "where %ld != %ld + %ld\n",
                                                   src_offset, src_offset + len, src_fsize,
                                                   src_offset_t, src_offset + len);
-            safe_free(data, LOC_CMISC_0063);
+            safe_free(data, LOC_CMISC_0064);
             return (EC_FALSE);
         }
 
@@ -3150,7 +3226,7 @@ EC_BOOL c_file_merge(int src_fd, int des_fd, const UINT32 seg_size)
             dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_file_merge: "
                                                   "write des file [%ld, %ld)/%ld failed\n",
                                                   des_offset, des_offset + len, des_fsize);
-            safe_free(data, LOC_CMISC_0064);
+            safe_free(data, LOC_CMISC_0065);
             return (EC_FALSE);
         }
 
@@ -3161,7 +3237,7 @@ EC_BOOL c_file_merge(int src_fd, int des_fd, const UINT32 seg_size)
                                                   "where %ld != %ld + %ld\n",
                                                   des_offset, des_offset + len, des_fsize,
                                                   des_offset_t, des_offset + len);
-            safe_free(data, LOC_CMISC_0065);
+            safe_free(data, LOC_CMISC_0066);
             return (EC_FALSE);
         }
 
@@ -3169,7 +3245,7 @@ EC_BOOL c_file_merge(int src_fd, int des_fd, const UINT32 seg_size)
         des_offset = des_offset_t;
     }
 
-    safe_free(data, LOC_CMISC_0066);
+    safe_free(data, LOC_CMISC_0067);
 
     return (EC_TRUE);
 }
@@ -3819,7 +3895,7 @@ STATIC_CAST EC_BOOL __c_file_seg_md5_update(const int fd, const UINT32 fsize, co
         return (EC_FALSE);
     }
 
-    data = safe_malloc(size, LOC_CMISC_0067);
+    data = safe_malloc(size, LOC_CMISC_0068);
     if(NULL_PTR == data)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:__c_file_seg_md5_update: "
@@ -3831,13 +3907,13 @@ STATIC_CAST EC_BOOL __c_file_seg_md5_update(const int fd, const UINT32 fsize, co
     if(EC_FALSE == c_file_load(fd, &offset, size, data))
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:__c_file_seg_md5_update: read file failed\n");
-        safe_free(data, LOC_CMISC_0068);
+        safe_free(data, LOC_CMISC_0069);
         return (EC_FALSE);
     }
 
     cmd5_update(cmd5_ctx, (void *)data, (uint32_t)size);
 
-    safe_free(data, LOC_CMISC_0069);
+    safe_free(data, LOC_CMISC_0070);
 
     return (EC_TRUE);
 }
@@ -4172,7 +4248,7 @@ void c_history_push(char **history, const int max, int *size, const char *str)
 
     if(NULL_PTR != history[ 0 ])
     {
-        safe_free(history[ 0 ], LOC_CMISC_0070);
+        safe_free(history[ 0 ], LOC_CMISC_0071);
         history[ 0 ] = NULL_PTR;
     }
 
@@ -4191,7 +4267,7 @@ void c_history_clean(char **history, const int max, const int size)
 
     for(pos = 0; pos < DMIN(max, size); pos ++)
     {
-        safe_free(history[ pos ], LOC_CMISC_0071);
+        safe_free(history[ pos ], LOC_CMISC_0072);
     }
     return;
 }
@@ -4564,10 +4640,10 @@ EC_BOOL c_file_munmap(void *data, const UINT32 size)
 CTM *c_localtime_r(const time_t *timestamp)
 {
     CTM *ptime;
-    c_mutex_lock(&g_cmisc_tm_cmutex, LOC_CMISC_0072);
+    c_mutex_lock(&g_cmisc_tm_cmutex, LOC_CMISC_0073);
     ptime = &(g_tm_tbl[g_tm_idx]);
     g_tm_idx = ((g_tm_idx + 1) % (CMISC_TM_NUM));
-    c_mutex_unlock(&g_cmisc_tm_cmutex, LOC_CMISC_0073);
+    c_mutex_unlock(&g_cmisc_tm_cmutex, LOC_CMISC_0074);
 
     if(NULL_PTR != timestamp)
     {
@@ -5175,7 +5251,7 @@ CCOND *c_cond_new(const UINT32 location)
 {
     CCOND      *ccond;
 
-    ccond = (CCOND *)SAFE_MALLOC(sizeof(CCOND), LOC_CMISC_0074);
+    ccond = (CCOND *)SAFE_MALLOC(sizeof(CCOND), LOC_CMISC_0075);
     if(NULL_PTR == ccond)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_new: failed to alloc CCOND, called at %s:%ld\n", MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
@@ -5185,7 +5261,7 @@ CCOND *c_cond_new(const UINT32 location)
     if(EC_FALSE == c_cond_init(ccond, location))
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_cond_new: failed to init ccond %p, called at %s:%ld\n", ccond, MM_LOC_FILE_NAME(location), MM_LOC_LINE_NO(location));
-        SAFE_FREE(ccond, LOC_CMISC_0075);
+        SAFE_FREE(ccond, LOC_CMISC_0076);
         return (NULL_PTR);
     }
 
@@ -5290,9 +5366,9 @@ EC_BOOL c_cond_init(CCOND *ccond, const UINT32 location)
 void c_cond_free(CCOND *ccond, const UINT32 location)
 {
     CCOND_SET_LOCATION(ccond, CCOND_OP_FREE, location);
-    c_cond_clean(ccond, LOC_CMISC_0076);
+    c_cond_clean(ccond, LOC_CMISC_0077);
 
-    SAFE_FREE(ccond, LOC_CMISC_0077);
+    SAFE_FREE(ccond, LOC_CMISC_0078);
 }
 
 EC_BOOL c_cond_clean(CCOND *ccond, const UINT32 location)
@@ -6051,10 +6127,10 @@ char *c_http_time(time_t t)
     char *str_cache;
     CTM  ctm;
 
-    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0078);
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0079);
     str_cache = (char *)(g_str_buff[g_str_idx]);
     g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
-    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0079);
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0080);
 
     c_gmtime(t, &ctm);
 
@@ -6083,10 +6159,10 @@ char *c_http_log_time(time_t t)
     CTM  ctm;
     int  gmtoff;
 
-    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0080);
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0081);
     str_cache = (char *)(g_str_buff[g_str_idx]);
     g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
-    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0081);
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0082);
 
     localtime_r(&t, &ctm);
     ctm.tm_mon ++;
@@ -6833,7 +6909,7 @@ CSET * c_collect_netcards()
 {
     CSET *cnetcard_set;
 
-    cnetcard_set = cset_new(MM_IGNORE, LOC_CMISC_0082);
+    cnetcard_set = cset_new(MM_IGNORE, LOC_CMISC_0083);
     if(NULL_PTR == cnetcard_set)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_collect_netcards: new cset failed\n");
@@ -6843,7 +6919,7 @@ CSET * c_collect_netcards()
     if(0 != cnetcard_collect(cnetcard_set, CDEVICE_NETCARD_MAX_NUM))
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_collect_netcards: collect netcards info failed\n");
-        cset_free(cnetcard_set, LOC_CMISC_0083);
+        cset_free(cnetcard_set, LOC_CMISC_0084);
         return (NULL_PTR);
     }
 
@@ -6889,7 +6965,7 @@ EC_BOOL c_clone_args(const int argc, const char **argv, int *des_argc, char ***d
 
     (*des_argc) = argc;
 
-    (*des_argv) = (char **)safe_malloc((argc + 1) * sizeof(char *), LOC_CMISC_0084);
+    (*des_argv) = (char **)safe_malloc((argc + 1) * sizeof(char *), LOC_CMISC_0085);
     if(NULL_PTR == (*des_argv))
     {
         return (EC_FALSE);
@@ -6901,7 +6977,7 @@ EC_BOOL c_clone_args(const int argc, const char **argv, int *des_argc, char ***d
 
         len = strlen(argv[ idx ]) + 1;
 
-        (*des_argv)[ idx ] = safe_malloc(len, LOC_CMISC_0085);
+        (*des_argv)[ idx ] = safe_malloc(len, LOC_CMISC_0086);
         if(NULL_PTR == (*des_argv)[ idx ])
         {
             return (EC_FALSE);
@@ -6930,7 +7006,7 @@ EC_BOOL c_save_args(const int argc, const char **argv)
 
     TASK_BRD_SAVED_ARGC(task_brd) = argc;
 
-    TASK_BRD_SAVED_ARGV(task_brd) = safe_malloc((argc + 1) * sizeof(char *), LOC_CMISC_0086);
+    TASK_BRD_SAVED_ARGV(task_brd) = safe_malloc((argc + 1) * sizeof(char *), LOC_CMISC_0087);
     if(NULL_PTR == TASK_BRD_SAVED_ARGV(task_brd))
     {
         return (EC_FALSE);
@@ -6942,7 +7018,7 @@ EC_BOOL c_save_args(const int argc, const char **argv)
 
         len = strlen(argv[ idx ]) + 1;
 
-        TASK_BRD_SAVED_ARGV(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0087);
+        TASK_BRD_SAVED_ARGV(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0088);
         if(NULL_PTR == TASK_BRD_SAVED_ARGV(task_brd)[ idx ])
         {
             return (EC_FALSE);
@@ -6974,7 +7050,7 @@ EC_BOOL c_save_environ()
         /*do nothing*/
     }
 
-    TASK_BRD_SAVED_ENVIRON(task_brd) = safe_malloc((envc + 1) * sizeof(char *), LOC_CMISC_0088);
+    TASK_BRD_SAVED_ENVIRON(task_brd) = safe_malloc((envc + 1) * sizeof(char *), LOC_CMISC_0089);
     if(NULL_PTR == TASK_BRD_SAVED_ENVIRON(task_brd))
     {
         return (EC_FALSE);
@@ -6986,7 +7062,7 @@ EC_BOOL c_save_environ()
 
         len = strlen(environ[ idx ]) + 1;
 
-        TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0089);
+        TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ] = safe_malloc(len, LOC_CMISC_0090);
         if(NULL_PTR == TASK_BRD_SAVED_ENVIRON(task_brd)[ idx ])
         {
             return (EC_FALSE);
@@ -7263,10 +7339,10 @@ char *c_format_str(const char *format, ...)
 
     va_list ap;
 
-    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0090);
+    c_mutex_lock(&g_cmisc_str_cmutex, LOC_CMISC_0091);
     str_cache = (char *)(g_str_buff[g_str_idx]);
     g_str_idx = ((g_str_idx + 1) % (CMISC_BUFF_NUM));
-    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0091);
+    c_mutex_unlock(&g_cmisc_str_cmutex, LOC_CMISC_0092);
 
     va_start(ap, format);
 
@@ -7299,7 +7375,7 @@ EC_BOOL c_import_resolve_conf(CVECTOR *name_servers)
 
     file_max_size = 2 * 1024; /*2KB*/
 
-    file_buff = safe_malloc(file_max_size, LOC_CMISC_0092);
+    file_buff = safe_malloc(file_max_size, LOC_CMISC_0093);
     if(NULL_PTR == file_buff)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_import_resolve_conf: malloc %ld bytes failed\n", file_max_size);
@@ -7312,7 +7388,7 @@ EC_BOOL c_import_resolve_conf(CVECTOR *name_servers)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_import_resolve_conf: load %s failed\n", file_name);
         close(fd);
-        safe_free(file_buff, LOC_CMISC_0093);
+        safe_free(file_buff, LOC_CMISC_0094);
         return (EC_FALSE);
     }
 
@@ -7345,7 +7421,7 @@ EC_BOOL c_import_resolve_conf(CVECTOR *name_servers)
         }
     }
 
-    safe_free(file_buff, LOC_CMISC_0094);
+    safe_free(file_buff, LOC_CMISC_0095);
     return (EC_TRUE);
 }
 
