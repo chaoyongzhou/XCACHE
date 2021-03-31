@@ -1827,6 +1827,80 @@ char *c_str_replace(const char *src_str, const char *rep_str, const char *with_s
     return (des);
 }
 
+char *c_str_shrink(char *src_str, const char *rep_str, const char *with_str)
+{
+    char       *src;
+    char       *ins;
+    char       *tmp;
+    char       *des;
+    uint32_t    rep_len;
+    uint32_t    with_len;
+    uint32_t    count;
+
+    if(NULL_PTR == src_str ||NULL_PTR == rep_str)
+    {
+        return (NULL_PTR);
+    }
+
+    rep_len = strlen(rep_str);
+    if(0 == rep_len)
+    {
+        return (NULL_PTR);
+    }
+
+    if(NULL_PTR == with_str)
+    {
+        with_len = 0;
+    }
+    else
+    {
+        with_len = strlen(with_str);
+    }
+
+    if(rep_len < with_len)
+    {
+        dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_str_shrink: "
+                                              "len '%s' < '%s'\n",
+                                              rep_str, with_str);
+        return (NULL_PTR);
+    }
+
+    ins = (char *)src_str;
+
+    for(count = 0; NULL_PTR != (tmp = strstr(ins, rep_str)); count ++)
+    {
+        ins = tmp + rep_len;
+    }
+
+    des = (char *)src_str;
+
+    src = (char *)src_str;
+    ins = src;
+    tmp = des;
+
+    while(0 < count --)
+    {
+        uint32_t    front_len;
+
+        ins       = strstr(src, rep_str);
+        front_len = (ins - src);
+
+        tmp       = STRNCOPY(src     , tmp, front_len) + front_len;
+
+        if(0 < with_len)
+        {
+            tmp   = STRNCOPY(with_str, tmp, with_len ) + with_len;
+        }
+
+        src      += front_len + rep_len;
+    }
+
+    while('\0' != (*src)) { (*tmp ++) = (*src ++); }
+    (*tmp) = '\0';
+
+    return (src_str);
+}
+
 EC_BOOL c_str_free(char *str)
 {
     if(NULL_PTR != str)

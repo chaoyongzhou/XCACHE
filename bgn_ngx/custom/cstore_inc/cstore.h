@@ -36,16 +36,20 @@ extern "C"{
 #define CSTORE_FILE_DELETE_OP                       ("delete")      /*method: DELETE*/
 #define CSTORE_FILE_SIZE_OP                         ("size")        /*method: GET*/
 #define CSTORE_FILE_MD5_OP                          ("md5")         /*method: GET*/
-#define CSTORE_FILE_PUSH_OP                         ("push")        /*method: GET*/
-#define CSTORE_FILE_PULL_OP                         ("pull")        /*method: GET*/
-#define CSTORE_FILE_LIST_OP                         ("list")        /*method: GET*/
-#define CSTORE_FILE_PURGE_OP                        ("purge")       /*method: DELETE*/
+
 #define CSTORE_FILE_DOWNLOAD_OP                     ("download")    /*method: GET*/
-#define CSTORE_FILE_BACKUP_OP                       ("backup")      /*method: GET*/
+#define CSTORE_DIR_MAKE_OP                          ("mkdir")       /*method: PUT*/
 #define CSTORE_DIR_DELETE_OP                        ("ddir")        /*method: DELETE*/
 #define CSTORE_DIR_LIST_OP                          ("ldir")        /*method: GET*/
 
-#define CSTORE_CNGX_VAR_BACKUP_DIR                  ("c_store_backup_dir")
+/*op of backend storage*/
+#define CSTORE_FILE_PUSH_OP                         ("push")        /*method: PUT*/
+#define CSTORE_FILE_PULL_OP                         ("pull")        /*method: GET*/
+#define CSTORE_FILE_LIST_OP                         ("list")        /*method: GET*/
+#define CSTORE_FILE_PURGE_OP                        ("purge")       /*method: DELETE*/
+
+
+#define CSTORE_CNGX_VAR_MKDIR_BACKEND_CMD           ("c_store_mkdir_backend_cmd")
 #define CSTORE_CNGX_VAR_PUSH_BACKEND_CMD            ("c_store_push_backend_cmd")
 #define CSTORE_CNGX_VAR_PULL_BACKEND_CMD            ("c_store_pull_backend_cmd")
 #define CSTORE_CNGX_VAR_PURGE_BACKEND_CMD           ("c_store_purge_backend_cmd")
@@ -202,6 +206,8 @@ EC_BOOL cstore_download_file_handler(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_complete_file_handler(const UINT32 cstore_md_id);
 
+EC_BOOL cstore_make_dir_handler(const UINT32 cstore_md_id);
+
 EC_BOOL cstore_push_file_handler(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_pull_file_handler(const UINT32 cstore_md_id);
@@ -209,8 +215,6 @@ EC_BOOL cstore_pull_file_handler(const UINT32 cstore_md_id);
 EC_BOOL cstore_list_file_handler(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_purge_file_handler(const UINT32 cstore_md_id);
-
-EC_BOOL cstore_backup_file_handler(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_delete_dir_handler(const UINT32 cstore_md_id);
 
