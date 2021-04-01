@@ -523,6 +523,22 @@ EC_BOOL c_send_signal(pid_t pid, int sig);
 
 uint32_t c_crc32_compute(const uint32_t in_crc32, const uint8_t *buf, const uint32_t size);
 
+uint32_t c_base64_encoded_length(const uint32_t len);
+
+uint32_t c_base64_decoded_length(const uint32_t len);
+
+EC_BOOL c_base64_encode(const uint8_t *src_data, const uint32_t src_len,
+                             uint8_t *dst_data, uint32_t *dst_len);
+
+EC_BOOL c_base64_encode_url(const uint8_t *src_data, const uint32_t src_len,
+                                 uint8_t *dst_data, uint32_t *dst_len);
+
+EC_BOOL c_base64_decode(const uint8_t *src_data, const uint32_t src_len,
+                             uint8_t *dst_data, uint32_t *dst_len);
+
+EC_BOOL c_base64_decode_url(const uint8_t *src_data, const uint32_t src_len,
+                                uint8_t *dst_data, uint32_t *dst_len);
+
 const char *c_strerror(int err);
 
 EC_BOOL c_shm_dir_exist(const char *pathname);

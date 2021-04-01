@@ -2,7 +2,7 @@
 
 ########################################################################################################################
 # description:  upload file to server
-# version    :  v1.4
+# version    :  v1.5
 # creator    :  chaoyong zhou
 #
 # History:
@@ -11,6 +11,7 @@
 #    3. 03/03/2021: v1.2, support sync directory
 #    4. 03/05/2021: v1.3, support direct domain access
 #    5. 03/11/2021: v1.4, support acl based on token and time
+#    6. 03/31/2021: v1.5, support complete interface which push file to backend storage
 ########################################################################################################################
 
 use strict;
@@ -43,9 +44,9 @@ if( defined($verbose) && $verbose =~/on/i )
     &print_config($paras_config);
 }
 
-$g_des_host     = $$paras_config{"host"}        || "www.upload.com";# default server domain
+$g_des_host     = $$paras_config{"host"}        || "store.demo.com";# default server domain
 $g_des_ip       = $$paras_config{"ip"};
-$g_timeout_nsec = $$paras_config{"timeout"}     || 30;              # default timeout in seconds
+$g_timeout_nsec = $$paras_config{"timeout"}     || 60;              # default timeout in seconds
 $g_step_nbytes  = $$paras_config{"step"}        || 2 << 20;         # default segment size in bytes
 
 if(defined($$paras_config{"loglevel"}))
@@ -56,7 +57,7 @@ if(defined($$paras_config{"loglevel"}))
 &open_fp_autoflush(\*STDOUT);
 if(defined($$paras_config{"sync"}) && $$paras_config{"sync"} =~ /on/i)
 {
-    &sync_dir_entrance($$paras_config{"src"}, $$paras_config{"des"});
+    &upload_dir_entrance($$paras_config{"src"}, $$paras_config{"des"});
 }
 else
 {
@@ -65,9 +66,9 @@ else
 &restore_fp_autoflush(\*STDOUT);
 
 ################################################################################################################
-# $status = sync_dir_entrance($local_dir_name, $remote_dir_name)
+# $status = upload_dir_entrance($local_dir_name, $remote_dir_name)
 ################################################################################################################
-sub sync_dir_entrance
+sub upload_dir_entrance
 {
     my $status;
     my $local_dir_name;
@@ -79,31 +80,31 @@ sub sync_dir_entrance
 
     if(! -d $local_dir_name)
     {
-        &echo(0, sprintf("error:sync_dir_entrance: local dir '%s' not exist\n",
+        &echo(0, sprintf("error:upload_dir_entrance: local dir '%s' not exist\n",
                          $local_dir_name));
         return 1; # fail
     }
-    &echo(2, sprintf("[DEBUG] sync_dir_entrance: local dir '%s' exists\n",
+    &echo(2, sprintf("[DEBUG] upload_dir_entrance: local dir '%s' exists\n",
                      $local_dir_name));
 
     if($local_dir_name !~ /^\//)
     {
         $local_dir_name = sprintf("%s/%s", $ENV{'PWD'}, $local_dir_name);
-        &echo(2, sprintf("[DEBUG] sync_dir_entrance: local dir => '%s'\n",
+        &echo(2, sprintf("[DEBUG] upload_dir_entrance: local dir => '%s'\n",
                          $local_dir_name));
     }
 
     $status = opendir($dp, $local_dir_name);
     if(! $status)
     {
-        die (sprintf("error:sync_dir_entrance: opendir '%s' failed",
+        die (sprintf("error:upload_dir_entrance: opendir '%s' failed",
                      $local_dir_name))
     }
 
     $status = chdir($dp);
     if(! $status)
     {
-        die (sprintf("error:sync_dir_entrance: chdir '%s' failed",
+        die (sprintf("error:upload_dir_entrance: chdir '%s' failed",
                      $local_dir_name));
     }
 
@@ -122,19 +123,19 @@ sub sync_dir_entrance
 
         if(-d $path_seg)
         {
-            &echo(2, sprintf("[DEBUG] sync_dir_entrance: [D] '%s' -> '%s'\n",
+            &echo(2, sprintf("[DEBUG] upload_dir_entrance: [D] '%s' -> '%s'\n",
                              $local_path_name, $remote_path_name));
 
-            $status = &sync_dir_entrance($local_path_name, $remote_path_name);
+            $status = &upload_dir_entrance($local_path_name, $remote_path_name);
             if(0 != $status)
             {
                 closedir($dp);
 
-                &echo(0, sprintf("error:sync_dir_entrance: sync dir '%s' -> '%s' failed\n",
+                &echo(0, sprintf("error:upload_dir_entrance: sync dir '%s' -> '%s' failed\n",
                                  $local_path_name, $remote_path_name));
                 return 1; # fail
             }
-            &echo(1, sprintf("[DEBUG] sync_dir_entrance: sync dir '%s' -> '%s' done\n",
+            &echo(1, sprintf("[DEBUG] upload_dir_entrance: sync dir '%s' -> '%s' done\n",
                              $local_path_name, $remote_path_name));
 
             $status = chdir($dp);
@@ -142,13 +143,13 @@ sub sync_dir_entrance
             {
                 closedir($dp);
 
-                die (sprintf("error:sync_dir_entrance: chdir '%s' again failed",
+                die (sprintf("error:upload_dir_entrance: chdir '%s' again failed",
                              $local_dir_name));
             }
         }
         else
         {
-            &echo(2, sprintf("[DEBUG] sync_dir_entrance: [F] '%s' -> '%s'\n",
+            &echo(2, sprintf("[DEBUG] upload_dir_entrance: [F] '%s' -> '%s'\n",
                              $local_path_name, $remote_path_name));
 
             $status = &upload_file_entrance($local_path_name, $remote_path_name);
@@ -156,11 +157,11 @@ sub sync_dir_entrance
             {
                 closedir($dp);
 
-                &echo(0, sprintf("error:sync_dir_entrance: sync file '%s' -> '%s' failed\n",
+                &echo(0, sprintf("error:upload_dir_entrance: sync file '%s' -> '%s' failed\n",
                                  $local_path_name, $remote_path_name));
                 return 1; # fail
             }
-            &echo(1, sprintf("[DEBUG] sync_dir_entrance: sync file '%s' -> '%s' done\n",
+            &echo(1, sprintf("[DEBUG] upload_dir_entrance: sync file '%s' -> '%s' done\n",
                              $local_path_name, $remote_path_name));
         }
     }
@@ -168,7 +169,7 @@ sub sync_dir_entrance
     $status = closedir($dp);
     if(! $status)
     {
-        die (sprintf("error:sync_dir_entrance: closedir '%s' failed",
+        die (sprintf("error:upload_dir_entrance: closedir '%s' failed",
                      $local_dir_name))
     }
 
@@ -223,6 +224,18 @@ sub upload_file_entrance
                          &get_remote_host(), &get_remote_ip(), $remote_file_name));
         return 1; # fail
     }
+
+    $status = &complete_remote_file_do($remote_file_name);
+    if(200 != $status)
+    {
+        &echo(0, sprintf("error:upload_file_entrance: upload '%s' -> %s:%s:'%s' done but push to backend failed\n",
+                         $local_file_name,
+                         &get_remote_host(), &get_remote_ip(), $remote_file_name));
+        return 0; # fail
+    }
+
+    &echo(1, sprintf("[DEBUG] upload_file_entrance: push %s:%s:'%s' to backend done\n",
+                     &get_remote_host(), &get_remote_ip(), $remote_file_name));
 
     &echo(1, sprintf("[DEBUG] upload_file_entrance: upload '%s' -> %s:%s:'%s' succ\n",
                      $local_file_name,
@@ -380,7 +393,7 @@ sub del_remote_file_do
 
     $url = &make_url("delete", $remote_file_name);
 
-    $res = $ua->get($url,
+    $res = $ua->delete($url,
                 'Host' => &get_remote_host());
 
     &echo(8, sprintf("[DEBUG] del_remote_file_do: status : %d\n", $res->code));
@@ -457,7 +470,7 @@ sub merge_remote_file_do
 
     $url = &make_url("merge", $remote_file_name);
 
-    $res = $ua->get($url,
+    $res = $ua->put($url,
                 'Content-Type'  => "text/html; charset=utf-8",
                 Content         =>$data,
                 'Host'          => &get_remote_host(),
@@ -500,7 +513,7 @@ sub override_remote_file_do
 
     $url = &make_url("override", $remote_file_name);
 
-    $res = $ua->post($url,
+    $res = $ua->put($url,
                 'Content-Type'  => "text/html; charset=utf-8",
                 Content         =>$data,
                 'Host'          => &get_remote_host(),
@@ -537,11 +550,40 @@ sub empty_remote_file_do
 
     $url = &make_url("empty", $remote_file_name);
 
-    $res = $ua->get($url,
+    $res = $ua->put($url,
                 'Host' => &get_remote_host());
 
     &echo(9, sprintf("[DEBUG] empty_remote_file_do: status : %d\n", $res->code));
     &echo(9, sprintf("[DEBUG] empty_remote_file_do: headers: %s\n", $res->headers_as_string));
+
+    return $res->code;
+}
+
+################################################################################################################
+# $status = complete_remote_file_do($remote_file_name)
+################################################################################################################
+sub complete_remote_file_do
+{
+    my $remote_file_name;
+
+    my $ua;
+    my $url;
+    my $res;
+
+    ($remote_file_name) = @_;
+
+    $ua = LWP::UserAgent->new;
+
+    $ua->agent($g_ua_agent); # pretend we are very capable browser
+    $ua->timeout($g_timeout_nsec);
+
+    $url = &make_url("complete", $remote_file_name);
+
+    $res = $ua->get($url,
+                'Host' => &get_remote_host());
+
+    &echo(9, sprintf("[DEBUG] complete_remote_file_do: status : %d\n", $res->code));
+    &echo(9, sprintf("[DEBUG] complete_remote_file_do: headers: %s\n", $res->headers_as_string));
 
     return $res->code;
 }
@@ -957,7 +999,7 @@ sub upload_file
         {
             $s_offset = 0;
         }
-        else # $local_file_size > $remote_file_size && $remote_file_size > 0
+        else # $local_file_size >= $remote_file_size && $remote_file_size > 0
         {
             ($status, $local_file_md5) = &md5_local_file_do($local_file_name,
                                                         0, $remote_file_size, $local_file_size);
@@ -1074,20 +1116,21 @@ sub make_url
 {
     my $op;
     my $remote_path;
-    my $uri;
     my $time;
     my $md5;
 
     ($op, $remote_path) = @_;
 
     $time = sprintf("%s", time() + $g_expired_nsec);
-    $uri  = sprintf("%s%s", $op, $remote_path);
 
-    $md5  = md5_hex(sprintf("%s/%s%s", $g_acl_token, $uri, $time));
+    $md5  = md5_hex(sprintf("%s@%s%s@%s", $g_acl_token, $op, $remote_path, $time));
 
-    &echo(9,sprintf("[DEBUG] make_url: %s/%s%s => md5 %s\n", $g_acl_token, $uri, $time, $md5));
+    &echo(9, sprintf("[DEBUG] make_url: %s@%s%s@%s => md5 %s\n",
+                    $g_acl_token, $op, $remote_path, $time, $md5));
 
-    return sprintf("http://%s/%s?sig=%s&t=%s", &get_remote_ip() || &get_remote_host(), $uri, $md5, $time);
+    return sprintf("http://%s/%s?op=%s&sig=%s&t=%s",
+                    &get_remote_ip() || &get_remote_host(),
+                    $remote_path, $op, $md5, $time);
 }
 
 ################################################################################################################

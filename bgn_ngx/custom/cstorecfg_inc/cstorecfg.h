@@ -18,8 +18,6 @@ extern "C"{
 #include "cstring.h"
 #include "clist.h"
 
-#include "ctimeout.h"
-
 #include "cngx.h"
 #include "chttp.h"
 
@@ -120,14 +118,13 @@ typedef struct
 
 typedef struct
 {
-    CSTRING        root_path;
-    CSTRING        backup_path;
+    uint32_t       cfg_len;
+    uint32_t       rsvd;
+    char          *cfg_str;
 }CSTORECFG_NODE;
 
-#define CSTORECFG_NODE_ROOT_PATH(cstorecfg_node)                (&((cstorecfg_node)->root_path))
-#define CSTORECFG_NODE_ROOT_PATH_STR(cstorecfg_node)            (cstring_get_str(CSTORECFG_NODE_ROOT_PATH(cstorecfg_node)))
-#define CSTORECFG_NODE_BACKUP_PATH(cstorecfg_node)              (&((cstorecfg_node)->backup_path))
-#define CSTORECFG_NODE_BACKUP_PATH_STR(cstorecfg_node)          (cstring_get_str(CSTORECFG_NODE_BACKUP_PATH(cstorecfg_node)))
+#define CSTORECFG_NODE_CFG_LEN(cstorecfg_node)                  ((cstorecfg_node)->cfg_len)
+#define CSTORECFG_NODE_CFG_STR(cstorecfg_node)                  ((cstorecfg_node)->cfg_str)
 
 /**
 *   for test only

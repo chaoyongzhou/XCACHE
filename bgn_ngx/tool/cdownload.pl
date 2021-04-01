@@ -2,7 +2,7 @@
 
 ########################################################################################################################
 # description:  download file from server
-# version    :  v1.3
+# version    :  v1.5
 # creator    :  chaoyong zhou
 #
 # History:
@@ -10,6 +10,8 @@
 #    2. 03/03/2021: v1.1, support sync directory
 #    3. 03/05/2021: v1.2, support direct domain access
 #    4. 03/11/2021: v1.3, support acl based on token and time
+#    5. 03/31/2021: v1.4, retire backup interface
+#    6. 03/31/2021: v1.5, download directory with ldir interface
 ########################################################################################################################
 
 use strict;
@@ -21,7 +23,6 @@ use File::Basename;
 my $g_src_host;
 my $g_src_ip;
 my $g_timeout_nsec;
-my $g_sleep_nsec    = 10;# default sleep 10s
 my $g_step_nbytes;
 my $g_log_level     = 1; # default log level
 my $g_acl_token     = "0123456789abcdef0123456789abcdef";
@@ -30,7 +31,7 @@ my $g_ua_agent      = "Mozilla/8.0";
 
 my $g_autoflush_flag;
 my $g_usage =
-    "$0 [syncfiles=<num>] des=<local file> src=<remote file> [ip=<server server ip[:port]>] [host=<hostname>] [sleep=<seconds>] [timeout=<seconds>] [step=<nbytes>] [loglevel=<1..9>] [verbose=on|off]";
+    "$0 [sync=on] des=<local file> src=<remote file> [ip=<server server ip[:port]>] [host=<hostname>] [timeout=<seconds>] [step=<nbytes>] [loglevel=<1..9>] [verbose=on|off]";
 my $verbose;
 
 my $paras_config = {};
@@ -44,10 +45,9 @@ if( defined($verbose) && $verbose =~/on/i )
     &print_config($paras_config);
 }
 
-$g_src_host     = $$paras_config{"host"}        || "www.download.com";# default server domain
+$g_src_host     = $$paras_config{"host"}        || "store.demo.com";# default server domain
 $g_src_ip       = $$paras_config{"ip"};
-$g_timeout_nsec = $$paras_config{"timeout"}     || 30;              # default timeout in seconds
-$g_sleep_nsec   = $$paras_config{"sleep"}       || 10;              # default sleep in seconds
+$g_timeout_nsec = $$paras_config{"timeout"}     || 60;              # default timeout in seconds
 $g_step_nbytes  = $$paras_config{"step"}        || 2 << 20;         # default segment size in bytes
 
 if(defined($$paras_config{"loglevel"}))
@@ -57,9 +57,9 @@ if(defined($$paras_config{"loglevel"}))
 
 &open_fp_autoflush(\*STDOUT);
 
-if(defined($$paras_config{"syncfiles"}) && 0 < $$paras_config{"syncfiles"})
+if(defined($$paras_config{"sync"}) && $$paras_config{"sync"} =~ /on/i)
 {
-    &sync_dir_entrance($$paras_config{"des"}, $$paras_config{"src"}, $$paras_config{"syncfiles"});
+    &download_dir_entrance($$paras_config{"des"}, $$paras_config{"src"});
 
 }
 else
@@ -70,22 +70,24 @@ else
 &restore_fp_autoflush(\*STDOUT);
 
 ################################################################################################################
-# $status = sync_dir_entrance($local_dir_name, $remote_dir_name, $sync_file_num)
+# $status = download_dir_entrance($local_dir_name, $remote_dir_name)
 ################################################################################################################
-sub sync_dir_entrance
+sub download_dir_entrance
 {
     my $status;
 
     my $local_dir_name;
     my $remote_dir_name;
-    my $sync_file_num;
 
     my $local_file_name;
     my $remote_file_name;
 
-    my $sync_file_complete_num;
+    my $remote_file_list_string;
+    my $remote_file_list;
+    my $remote_file_num;
+    my $remote_file_complete_num;
 
-    ($local_dir_name, $remote_dir_name, $sync_file_num) = @_;
+    ($local_dir_name, $remote_dir_name) = @_;
 
     # check src file name validity
     if(defined($remote_dir_name))
@@ -98,7 +100,7 @@ sub sync_dir_entrance
         $status = &check_dir_name_validity($remote_dir_name);
         if($status =~ /false/i)
         {
-            &echo(0, sprintf("error:download_file_entrance: invalid remote dir name '%s'\n",
+            &echo(0, sprintf("error:download_dir_entrance: invalid remote dir name '%s'\n",
                              $remote_dir_name));
             return 1; # fail
         }
@@ -110,101 +112,99 @@ sub sync_dir_entrance
         $status = &check_dir_name_validity($local_dir_name);
         if($status =~ /false/i)
         {
-            &echo(0, sprintf("error:download_file_entrance: invalid local dir name '%s'\n",
+            &echo(0, sprintf("error:download_dir_entrance: invalid local dir name '%s'\n",
                              $local_dir_name));
             return 1; # fail
         }
     }
 
-
     if(! -d $local_dir_name)
     {
-        if(0 != system(sprintf("mkdir %s", $local_dir_name)))
+        if(0 != system(sprintf("mkdir -p %s", $local_dir_name)))
         {
-            &echo(0, sprintf("error:sync_dir_entrance: mkdir local dir '%s' failed\n",
+            &echo(0, sprintf("error:download_dir_entrance: mkdir local dir '%s' failed\n",
                              $local_dir_name));
             return 1; # fail
         }
-        &echo(2, sprintf("[DEBUG] sync_dir_entrance: mkdir local dir '%s' done\n",
+        &echo(2, sprintf("[DEBUG] download_dir_entrance: mkdir local dir '%s' done\n",
                          $local_dir_name));
     }
     else
     {
-        &echo(2, sprintf("[DEBUG] sync_dir_entrance: local dir '%s' exists\n",
+        &echo(2, sprintf("[DEBUG] download_dir_entrance: local dir '%s' exists\n",
                          $local_dir_name));
     }
 
-    $sync_file_complete_num = 0;
-    while($sync_file_complete_num < $sync_file_num)
+    ($status, $remote_file_list_string) = &list_remote_dir_do($remote_dir_name);
+    if(200 != $status)
+    {
+        &echo(0, sprintf("error:download_dir_entrance: list remote dir '%s' failed\n",
+                         $remote_dir_name));
+        return 1; # fail
+    }
+
+    $remote_file_list = [];
+    @$remote_file_list = split(/\n/, $remote_file_list_string);
+
+    $remote_file_num = scalar(@$remote_file_list);
+    $remote_file_complete_num = 0;
+
+    foreach $remote_file_name(@$remote_file_list)
     {
         my $local_basedir_name;
 
-        ($status, $remote_file_name) = &finger_remote_dir_do($remote_dir_name);
-        if(200 != $status)
-        {
-            &echo(0, sprintf("error:sync_dir_entrance: finger remote dir '%s' failed\n",
-                             $remote_dir_name));
-            return 1; # fail
-        }
-
-        if(! defined($remote_file_name))
-        {
-            &echo(1, sprintf("[DEBUG] sync_dir_entrance: no remote file => sleep %d seconds\n",
-                             $g_sleep_nsec));
-            sleep($g_sleep_nsec);
-            next;
-        }
-
-        &echo(2, sprintf("[DEBUG] sync_dir_entrance: finger remote dir '%s' => '%s'\n",
+        &echo(2, sprintf("[DEBUG] download_dir_entrance: remote dir '%s' => remote file: '%s'\n",
                          $remote_dir_name, $remote_file_name));
 
-        $local_file_name = sprintf("%s%s", $local_dir_name, $remote_file_name);
+        $remote_file_name =~ s/.*?(${remote_dir_name}.*)$/$1/;
+        &echo(2, sprintf("[DEBUG] remote_dir_entrance: truncate remote file: '%s'\n",
+                         $remote_file_name));
+
+        if($local_dir_name =~ /\/$/ || $remote_file_name =~ /^\//)
+        {
+            $local_file_name = sprintf("%s%s", $local_dir_name, $remote_file_name);
+        }
+        else
+        {
+            $local_file_name = sprintf("%s/%s", $local_dir_name, $remote_file_name);
+        }
+        &echo(2, sprintf("[DEBUG] remote_dir_entrance: local file: '%s'\n",
+                         $local_file_name));
 
         $local_basedir_name = dirname($local_file_name);
         if(! -d $local_basedir_name)
         {
-            if(!mkdir($local_basedir_name))
+            if(0 != system(sprintf("mkdir -p %s", $local_basedir_name)))
             {
-                &echo(0, sprintf("error:sync_dir_entrance: make local basedir '%s' failed\n",
+                &echo(0, sprintf("error:download_dir_entrance: make local basedir '%s' failed\n",
                                  $local_basedir_name));
                 return 1; # fail
             }
-            &echo(2, sprintf("[DEBUG] sync_dir_entrance: make local basedir '%s' done\n",
+            &echo(2, sprintf("[DEBUG] download_dir_entrance: make local basedir '%s' done\n",
                              $local_basedir_name));
         }
         else
         {
-            &echo(2, sprintf("[DEBUG] sync_dir_entrance: local basedir '%s' exists\n",
+            &echo(2, sprintf("[DEBUG] download_dir_entrance: local basedir '%s' exists\n",
                              $local_basedir_name));
         }
 
         $status = &download_file_entrance($local_file_name, $remote_file_name);
         if(0 != $status)
         {
-            &echo(0, sprintf("error:sync_dir_entrance: download '%s' -> '%s' failed\n",
+            &echo(0, sprintf("error:download_dir_entrance: download '%s' -> '%s' failed\n",
                              $remote_file_name, $local_file_name));
             return 1; # fail
         }
 
-        &echo(2, sprintf("[DEBUG] sync_dir_entrance: download '%s' -> '%s' done\n",
+        &echo(2, sprintf("[DEBUG] download_dir_entrance: download '%s' -> '%s' done\n",
                          $remote_file_name, $local_file_name));
 
-        $status = &backup_remote_file_do($remote_file_name);
-        if(200 != $status)
-        {
-            &echo(0, sprintf("error:sync_dir_entrance: backup '%s' failed\n",
-                             $remote_file_name));
-            return 1; # fail
-        }
+        $remote_file_complete_num ++;
 
-        $sync_file_complete_num ++;
-
-        &echo(2, sprintf("[DEBUG] sync_dir_entrance: backup '%s' done\n",
-                         $remote_file_name));
-
-        &echo(1, sprintf("[DEBUG] sync_dir_entrance: complete %d/%d, %.2f%%\n",
-                         $sync_file_complete_num, $sync_file_num,
-                         100.0 * ($sync_file_complete_num + 0.0) / ($sync_file_num + 0.0)));
+        &echo(1, sprintf("[DEBUG] download_dir_entrance: complete %d/%d, %.2f%%\n",
+                         $remote_file_complete_num, $remote_file_num,
+                         100.0 * ($remote_file_complete_num + 0.0) / ($remote_file_num + 0.0)));
     }
 
     return 0; # succ
@@ -228,6 +228,8 @@ sub download_file_entrance
     {
         if($remote_file_name !~ /^\//)
         {
+            &echo(9, sprntf("[DEBUG] download_file_entrance: %s => /%s\n",
+                            $remote_file_name, $remote_file_name));
             $remote_file_name = "/".$remote_file_name
         }
 
@@ -360,33 +362,36 @@ sub check_dir_name_validity
 }
 
 ################################################################################################################
-# $status = backup_remote_file_do($remote_file_name)
+# ($status, @remote_file_names) = list_remote_dir_do($remote_dir_name)
 ################################################################################################################
-sub backup_remote_file_do
+sub list_remote_dir_do
 {
-    my $remote_file_name;
+    my $remote_dir_name;
 
     my $ua;
     my $url;
     my $res;
+    my $body;
 
-    ($remote_file_name) = @_;
+    ($remote_dir_name) = @_;
 
     $ua = LWP::UserAgent->new;
 
     $ua->agent($g_ua_agent); # pretend we are very capable browser
     $ua->timeout($g_timeout_nsec);
 
-    $url = &make_url("backup", $remote_file_name);
+    $url = &make_url("ldir", $remote_dir_name);
 
     $res = $ua->get($url,
                 'Host' => &get_remote_host());
 
-    &echo(9, sprintf("[DEBUG] backup_remote_file_do: status : %d\n", $res->code));
-    &echo(9, sprintf("[DEBUG] backup_remote_file_do: headers: %s\n", $res->headers_as_string));
+    &echo(9, sprintf("[DEBUG] list_remote_dir_do: status : %d\n", $res->code));
+    &echo(9, sprintf("[DEBUG] list_remote_dir_do: headers: %s\n", $res->headers_as_string));
 
+    $body = $res->content() || "";
+    &echo(8, sprintf("[DEBUG] list_remote_dir_do: \n%s\n", $body));
 
-    return $res->code;
+    return ($res->code, $body);
 }
 
 ################################################################################################################
@@ -518,7 +523,7 @@ sub del_remote_file_do
 
     $url = &make_url("delete", $remote_file_name);
 
-    $res = $ua->get($url,
+    $res = $ua->delete($url,
                 'Host' => &get_remote_host());
 
     &echo(8, sprintf("[DEBUG] del_remote_file_do: status : %d\n", $res->code));
@@ -1124,9 +1129,9 @@ sub append_file
                                            $s_offset_t, $e_offset_t, $remote_file_size);
         if($status =~ /false/i)
         {
-            &echo(0, sprintf("error:append_file: download %s %d-%d/%d failed, status %d\n",
+            &echo(0, sprintf("error:append_file: download %s %d-%d/%d failed\n",
                              $remote_file_name, $s_offset_t, $e_offset_t,
-                             $remote_file_size, $status));
+                             $remote_file_size));
 
             return ("false", $s_offset_t);
         }
@@ -1405,20 +1410,31 @@ sub make_url
 {
     my $op;
     my $remote_path;
-    my $uri;
     my $time;
     my $md5;
 
     ($op, $remote_path) = @_;
 
     $time = sprintf("%s", time() + $g_expired_nsec);
-    $uri  = sprintf("%s%s", $op, $remote_path);
 
-    $md5  = md5_hex(sprintf("%s/%s%s", $g_acl_token, $uri, $time));
+    if($remote_path =~ /^\//)
+    {
+        $md5  = md5_hex(sprintf("%s@%s%s@%s", $g_acl_token, $op, $remote_path, $time));
 
-    &echo(9,sprintf("[DEBUG] make_url: %s/%s%s => md5 %s\n", $g_acl_token, $uri, $time, $md5));
+        &echo(2, sprintf("[DEBUG] make_url: %s@%s%s@%s => md5 %s\n",
+                        $g_acl_token, $op, $remote_path, $time, $md5));
+    }
+    else
+    {
+        $md5  = md5_hex(sprintf("%s@%s/%s@%s", $g_acl_token, $op, $remote_path, $time));
 
-    return sprintf("http://%s/%s?sig=%s&t=%s", &get_remote_ip() || &get_remote_host(), $uri, $md5, $time);
+        &echo(2, sprintf("[DEBUG] make_url: %s@%s/%s@%s => md5 %s\n",
+                        $g_acl_token, $op, $remote_path, $time, $md5));
+    }
+
+    return sprintf("http://%s/%s?op=%s&sig=%s&t=%s",
+                    &get_remote_ip() || &get_remote_host(),
+                    $remote_path, $op, $md5, $time);
 }
 
 ################################################################################################################

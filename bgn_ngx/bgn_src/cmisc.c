@@ -7653,6 +7653,188 @@ uint32_t c_crc32_compute(const uint32_t in_crc32, const uint8_t *buf, const uint
     return (out_crc32 ^ 0xFFFFFFFF);
 }
 
+/*note: copied from nginx*/
+uint32_t c_base64_encoded_length(const uint32_t len)
+{
+    return (((len + 2) / 3) * 4);
+}
+
+/*note: copied from nginx*/
+uint32_t c_base64_decoded_length(const uint32_t len)
+{
+    return (((len + 3) / 4) * 3);
+}
+
+/*note: copied from nginx*/
+STATIC_CAST EC_BOOL __c_base64_encode_internal(const uint8_t *src_data, const uint32_t src_len,
+                                                    uint8_t *dst_data, uint32_t *dst_len,
+                                                    const uint8_t *basis,
+                                                    const uint32_t padding)
+{
+    uint8_t        *d;
+    uint8_t        *s;
+    uint32_t        len;
+
+    len = src_len;
+    s   = (uint8_t *)src_data;
+    d   = dst_data;
+
+    while (len > 2) {
+        *d++ = basis[(s[0] >> 2) & 0x3f];
+        *d++ = basis[((s[0] & 3) << 4) | (s[1] >> 4)];
+        *d++ = basis[((s[1] & 0x0f) << 2) | (s[2] >> 6)];
+        *d++ = basis[s[2] & 0x3f];
+
+        s += 3;
+        len -= 3;
+    }
+
+    if (len) {
+        *d++ = basis[(s[0] >> 2) & 0x3f];
+
+        if (len == 1) {
+            *d++ = basis[(s[0] & 3) << 4];
+            if (padding) {
+                *d++ = '=';
+            }
+
+        } else {
+            *d++ = basis[((s[0] & 3) << 4) | (s[1] >> 4)];
+            *d++ = basis[(s[1] & 0x0f) << 2];
+        }
+
+        if (padding) {
+            *d++ = '=';
+        }
+    }
+
+    (*dst_len) = (uint32_t)(d - dst_data);
+
+    return (EC_TRUE);
+}
+
+/*note: copied from nginx*/
+STATIC_CAST EC_BOOL __c_base64_decode_internal(const uint8_t *src_data, const uint32_t src_len,
+                                                      uint8_t *dst_data, uint32_t *dst_len,
+                                                      const uint8_t *basis)
+{
+    uint8_t        *d;
+    uint8_t        *s;
+    uint32_t        len;
+
+    for (len = 0; len < src_len; len++) {
+        if (src_data[len] == '=') {
+            break;
+        }
+
+        if (basis[src_data[len]] == 77) {
+            return (EC_FALSE);
+        }
+    }
+
+    if (len % 4 == 1) {
+        return (EC_FALSE);
+    }
+
+    s = (uint8_t *)src_data;
+    d = dst_data;
+
+    while (len > 3) {
+        *d++ = (uint8_t) (basis[s[0]] << 2 | basis[s[1]] >> 4);
+        *d++ = (uint8_t) (basis[s[1]] << 4 | basis[s[2]] >> 2);
+        *d++ = (uint8_t) (basis[s[2]] << 6 | basis[s[3]]);
+
+        s += 4;
+        len -= 4;
+    }
+
+    if (len > 1) {
+        *d++ = (uint8_t) (basis[s[0]] << 2 | basis[s[1]] >> 4);
+    }
+
+    if (len > 2) {
+        *d++ = (uint8_t) (basis[s[1]] << 4 | basis[s[2]] >> 2);
+    }
+
+    (*dst_len) = (uint32_t)(d - dst_data);
+
+    return (EC_TRUE);
+}
+
+/*note: copied from nginx*/
+EC_BOOL c_base64_encode(const uint8_t *src_data, const uint32_t src_len,
+                             uint8_t *des_data, uint32_t *des_len)
+{
+    static uint8_t   basis64[] =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    return __c_base64_encode_internal(src_data, src_len, des_data, des_len, basis64, 1);
+}
+
+/*note: copied from nginx*/
+EC_BOOL c_base64_encode_url(const uint8_t *src_data, const uint32_t src_len,
+                                 uint8_t *des_data, uint32_t *des_len)
+{
+    static uint8_t   basis64[] =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+    return __c_base64_encode_internal(src_data, src_len, des_data, des_len, basis64, 0);
+}
+
+/*note: copied from nginx*/
+EC_BOOL c_base64_decode(const uint8_t *src_data, const uint32_t src_len,
+                             uint8_t *des_data, uint32_t *des_len)
+{
+    static uint8_t   basis64[] = {
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 62, 77, 77, 77, 63,
+        52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 77, 77, 77, 77, 77, 77,
+        77,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 77, 77, 77, 77, 77,
+        77, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+        41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 77, 77, 77, 77, 77,
+
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77
+    };
+
+    return __c_base64_decode_internal(src_data, src_len, des_data, des_len, basis64);
+}
+
+/*note: copied from nginx*/
+EC_BOOL c_base64_decode_url(const uint8_t *src_data, const uint32_t src_len,
+                                uint8_t *des_data, uint32_t *des_len)
+{
+    static uint8_t   basis64[] = {
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 62, 77, 77,
+        52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 77, 77, 77, 77, 77, 77,
+        77,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 77, 77, 77, 77, 63,
+        77, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+        41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 77, 77, 77, 77, 77,
+
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77,
+        77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77
+    };
+
+    return __c_base64_decode_internal(src_data, src_len, des_data, des_len, basis64);
+}
+
 const char *c_strerror(int err)
 {
     return c_strerror_get(err);
