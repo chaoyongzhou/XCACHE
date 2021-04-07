@@ -951,6 +951,8 @@ EC_BOOL cngx_get_root(const ngx_http_request_t *r, char **val)
 
 EC_BOOL cngx_get_req_host(const ngx_http_request_t *r, char **val)
 {
+    const char                  *k;
+
     if(NULL_PTR != r->host_start
     && NULL_PTR != r->host_end
     && r->host_start < r->host_end)
@@ -969,14 +971,25 @@ EC_BOOL cngx_get_req_host(const ngx_http_request_t *r, char **val)
         BCOPY(r->host_start, (*val), vlen);
         (*val)[ vlen ] = 0x00;/*terminate*/
 
-        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_host: copy host '%s'\n", (*val));
+        dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_host: "
+                                             "copy host '%s'\n", (*val));
 
         return (EC_TRUE);
     }
 
-    (*val) = NULL_PTR;
-    dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_uri: no uri\n");
-    return (EC_FALSE);
+    k = (const char *)"Host";
+    if(EC_FALSE == cngx_get_header_in(r, k, val))
+    {
+        dbg_log(SEC_0176_CNGX, 0)(LOGSTDOUT, "error:cngx_get_req_host: "
+                                             "get '%s' failed\n",
+                                             k);
+        (*val) = NULL_PTR;
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0176_CNGX, 9)(LOGSTDOUT, "[DEBUG] cngx_get_req_host: "
+                                         "get '%s':'%s'\n", k, (*val));
+    return (EC_TRUE);
 }
 
 EC_BOOL cngx_get_req_uri(const ngx_http_request_t *r, char **val)
