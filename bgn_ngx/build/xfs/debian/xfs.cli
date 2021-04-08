@@ -2249,7 +2249,7 @@ function status_dn_one_xfs()
     fi
 
     if [ ${g_verbose_switch} == 'off' ]; then
-        curl -sv http://127.0.0.1:${port}/xfs/status_dn
+        curl -sv "http://127.0.0.1:${port}/?mod=xfs&op=status_dn"
     fi
 
     return 0 # status_dn succ
@@ -2280,7 +2280,7 @@ function status_np_one_xfs()
     fi
 
     if [ ${g_verbose_switch} == 'off' ]; then
-        curl -sv http://127.0.0.1:${port}/xfs/status_np
+        curl -sv "http://127.0.0.1:${port}/?mod=xfs&op=status_np"
     fi
 
     return 0 # status_np succ
@@ -2311,10 +2311,10 @@ function garbage_one_xfs()
     fi
 
     if [ ${g_verbose_switch} == 'off' ]; then
-        curl -svo /dev/null http://127.0.0.1:${port}/xfs/locked_file_retire \
+        curl -svo /dev/null "http://127.0.0.1:${port}/?mod=xfs&op=locked_file_retire" \
             -H "retire-max-num:${g_xfs_garbage_max_num}" > /dev/null 2>&1
 
-        curl -svo /dev/null http://127.0.0.1:${port}/xfs/wait_file_retire \
+        curl -svo /dev/null "http://127.0.0.1:${port}/?mod=xfs&op=wait_file_retire" \
             -H "retire-max-num:${g_xfs_garbage_max_num}" > /dev/null 2>&1            
     fi
 
@@ -2347,7 +2347,7 @@ function rotate_one_xfs()
 
     if [ ${g_verbose_switch} == 'off' ]; then
         # default rotate log is LOGUSER08
-        curl -svo /dev/null http://127.0.0.1:${port}/xfs/logrotate -H "log-index:8"
+        curl -svo /dev/null "http://127.0.0.1:${port}/?mod=xfs&op=logrotate" -H "log-index:8"
     fi
 
     return 0 # rotate succ
@@ -2378,7 +2378,7 @@ function breathe_one_xfs()
     fi
 
     if [ ${g_verbose_switch} == 'off' ]; then
-        curl -svo /dev/null http://127.0.0.1:${port}/xfs/breathe
+        curl -svo /dev/null "http://127.0.0.1:${port}/?mod=xfs&op=breathe"
     fi
 
     return 0 # breathe succ
@@ -2409,7 +2409,7 @@ function retire_one_xfs()
     fi
 
     if [ ${g_verbose_switch} == 'off' ]; then
-        curl -svo /dev/null http://127.0.0.1:${port}/xfs/retire \
+        curl -svo /dev/null "http://127.0.0.1:${port}/?mod=xfs&op=retire" \
             -H "retire-files:${g_xfs_retire_nfile_once}"
     fi
 
@@ -2441,7 +2441,7 @@ function flush_one_xfs()
     fi
 
     if [ ${g_verbose_switch} == 'off' ]; then
-        curl -svo /dev/null http://127.0.0.1:${port}/xfs/flush 2>/dev/null
+        curl -svo /dev/null "http://127.0.0.1:${port}/?mod=xfs&op=flush" 2>/dev/null
     fi
 
     return 0 # flush succ
@@ -2472,7 +2472,7 @@ function recycle_one_xfs()
     fi
 
     if [ ${g_verbose_switch} == 'off' ]; then
-        curl -svo /dev/null http://127.0.0.1:${port}/xfs/recycle \
+        curl -svo /dev/null "http://127.0.0.1:${port}/?mod=xfs&op=recycle" \
             -H "max-num-per-np:${g_xfs_recycle_nfile_per_loop}"
     fi
     return 0 # recycle succ
@@ -2538,7 +2538,7 @@ function activate_one_xfs()
     echo_debug "[DEBUG] activate_one_xfs: notify xfs ${xfs_tcid} is up"
 
     if [ ${g_verbose_switch} == 'off' ]; then
-        curl -svo /dev/null http://${xfs_ip}:${xfs_rest_port}/xfs/activate 2>/dev/null &
+        curl -svo /dev/null "http://${xfs_ip}:${xfs_rest_port}/?mod=xfs&op=activate" 2>/dev/null &
     fi
 
     return 0;
@@ -2564,7 +2564,7 @@ function deactivate_one_xfs()
     echo_debug "[DEBUG] deactivate_one_xfs: notify xfs ${xfs_tcid} is down"
 
     if [ ${g_verbose_switch} == 'off' ]; then
-        curl -svo /dev/null http://${xfs_ip}:${xfs_rest_port}/xfs/deactivate 2>/dev/null &
+        curl -svo /dev/null "http://${xfs_ip}:${xfs_rest_port}/?mod=xfs&op=deactivate" 2>/dev/null &
     fi
     return 0;
 }
@@ -2587,7 +2587,7 @@ function stat_one_xfs()
     echo_debug "[DEBUG] stat_one_xfs: stat of xfs ${xfs_tcid}"
 
     if [ ${g_verbose_switch} == 'off' ]; then
-        curl -sv http://${xfs_ip}:${xfs_rest_port}/xfs/stat
+        curl -sv "http://${xfs_ip}:${xfs_rest_port}/?mod=xfs&op=stat"
     fi
 
     return 0;
@@ -2611,7 +2611,7 @@ function paracfg_one_xfs()
     echo_debug "[DEBUG] paracfg_one_xfs: paracfg of xfs ${xfs_tcid}"
 
     if [ ${g_verbose_switch} == 'off' ]; then
-        curl -sv http://${xfs_ip}:${xfs_rest_port}/xfs/paracfg
+        curl -sv "http://${xfs_ip}:${xfs_rest_port}/?mod=xfs&op=paracfg"
     fi
 
     return 0;
@@ -2786,7 +2786,7 @@ function actsyscfg_one_xfs()
     fi
 
     if [ ${g_verbose_switch} == 'off' ]; then
-        curl -svo /dev/null http://127.0.0.1:${port}/xfs/actsyscfg
+        curl -svo /dev/null "http://127.0.0.1:${port}/?mod=xfs&op=actsyscfg"
     fi
 
     return 0 # succ
@@ -2990,7 +2990,7 @@ function notify_one_ngx_xfs_down()
     echo_debug "[DEBUG] notify_one_ngx_xfs_down: notify ngx ${ngx_ip}:${ngx_port}: xfs ${xfs_tcid} is down"
 
     if [ ${g_verbose_switch} == 'off' ]; then
-        curl -svo /dev/null http://${ngx_ip}:${ngx_port}/ngx/xfs_down \
+        curl -svo /dev/null "http://${ngx_ip}:${ngx_port}/?mod=ngx&op=xfs_down" \
             -H "xfs-tcid:${xfs_tcid}" -H "xfs-ip:${xfs_ip}" -H "xfs-port:${xfs_port}" 2>/dev/null &
     fi
 
@@ -3070,7 +3070,7 @@ function notify_one_ngx_xfs_up()
     echo_debug "[DEBUG] notify_one_ngx_xfs_up: notify ngx ${ngx_ip}:${ngx_port}: xfs ${xfs_tcid} is up"
 
     if [ ${g_verbose_switch} == 'off' ]; then
-        curl -svo /dev/null http://${ngx_ip}:${ngx_port}/ngx/xfs_up \
+        curl -svo /dev/null "http://${ngx_ip}:${ngx_port}/?mod=ngx&op=xfs_up" \
             -H "xfs-tcid:${xfs_tcid}" -H "xfs-ip:${xfs_ip}" -H "xfs-port:${xfs_port}" 2>/dev/null &
     fi
 

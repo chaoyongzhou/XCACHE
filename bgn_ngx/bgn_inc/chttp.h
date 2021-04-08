@@ -86,6 +86,8 @@ EC_BOOL chttp_node_free(CHTTP_NODE *chttp_node);
 
 EC_BOOL chttp_node_clear(CHTTP_NODE *chttp_node);/*note: chttp_node_clear is ONLY for memory recycle asap before it comes to life-cycle end*/
 
+const CHTTP_API *chttp_node_find_api(const CHTTP_NODE *chttp_node, const CHTTP_API *chttp_api_list, const uint32_t chttp_api_num, const uint32_t method);
+
 uint32_t chttp_node_chunk_size(CHTTP_NODE *chttp_node);
 
 EC_BOOL chttp_node_has_error(CHTTP_NODE *chttp_node);
@@ -166,6 +168,10 @@ EC_BOOL chttp_node_has_header(CHTTP_NODE *chttp_node, const char *k, const char 
 
 void    chttp_node_print_header(LOG *log, const CHTTP_NODE *chttp_node);
 
+EC_BOOL chttp_node_has_arg(const CHTTP_NODE *chttp_node, const char *k);
+
+char *chttp_node_get_arg(const CHTTP_NODE *chttp_node, const char *k);
+
 void    chttp_node_check_cacheable(CHTTP_NODE *chttp_node);
 
 EC_BOOL chttp_node_adjust_seg_id(CHTTP_NODE *chttp_node);
@@ -185,6 +191,8 @@ EC_BOOL chttp_parse_content_length(CHTTP_NODE *chttp_node);
 EC_BOOL chttp_parse_connection_keepalive(CHTTP_NODE *chttp_node);
 
 EC_BOOL chttp_parse_uri(CHTTP_NODE *chttp_node);
+
+EC_BOOL chttp_parse_args(CHTTP_NODE *chttp_node);
 
 EC_BOOL chttp_parse_post(CHTTP_NODE *chttp_node, const uint32_t prev_parsed_len, const uint32_t cur_parsed_len);
 

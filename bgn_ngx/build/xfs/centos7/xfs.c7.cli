@@ -1390,7 +1390,7 @@ function status_dn_one_xfs()
         return 1  # fail
     fi
 
-    curl -sv http://127.0.0.1:${port}/xfs/status_dn
+    curl -sv "http://127.0.0.1:${port}/?mod=xfs&op=status_dn"
 
     return 0 # status_dn succ
 }
@@ -1419,7 +1419,7 @@ function status_np_one_xfs()
         return 1  # fail
     fi
 
-    curl -sv http://127.0.0.1:${port}/xfs/status_np
+    curl -sv "http://127.0.0.1:${port}/?mod=xfs&op=status_np"
 
     return 0 # status_np succ
 }
@@ -1448,7 +1448,7 @@ function garbage_one_xfs()
         return 1  # fail
     fi
 
-    curl -svo /dev/null http://127.0.0.1:${port}/xfs/locked_file_retire \
+    curl -svo /dev/null "http://127.0.0.1:${port}/?mod=xfs&op=locked_file_retire" \
         -H "retire-max-num:${g_xfs_garbage_max_num}" 
 
     return 0 # garbage succ
@@ -1479,7 +1479,7 @@ function rotate_one_xfs()
     fi
 
     # default rotate log is LOGUSER08
-    curl -svo /dev/null http://127.0.0.1:${port}/xfs/logrotate -H "log-index:8"
+    curl -svo /dev/null "http://127.0.0.1:${port}/?mod=xfs&op=logrotate" -H "log-index:8"
 
     return 0 # rotate succ
 }
@@ -1508,7 +1508,7 @@ function breathe_one_xfs()
         return 1  # fail
     fi
 
-    curl -svo /dev/null http://127.0.0.1:${port}/xfs/breathe
+    curl -svo /dev/null "http://127.0.0.1:${port}/?mod=xfs&op=breathe"
 
     return 0 # breathe succ
 }
@@ -1537,7 +1537,7 @@ function retire_one_xfs()
         return 1  # fail
     fi    
 
-    curl -svo /dev/null http://127.0.0.1:${port}/xfs/retire \
+    curl -svo /dev/null "http://127.0.0.1:${port}/?mod=xfs&op=retire" \
 		-H "retire-files:${g_xfs_retire_nfile_once}"
 
     return 0 # retire succ
@@ -1567,7 +1567,7 @@ function flush_one_xfs()
         return 1  # fail
     fi 
 
-    curl -svo /dev/null http://127.0.0.1:${port}/xfs/flush 2>/dev/null
+    curl -svo /dev/null "http://127.0.0.1:${port}/?mod=xfs&op=flush" 2>/dev/null
 
     return 0 # flush succ
 }
@@ -1596,7 +1596,7 @@ function recycle_one_xfs()
         return 1  # fail
     fi 
 
-    curl -svo /dev/null http://127.0.0.1:${port}/xfs/recycle -H "max-num-per-np:${g_xfs_recycle_nfile_per_loop}"
+    curl -svo /dev/null "http://127.0.0.1:${port}/?mod=xfs&op=recycle" -H "max-num-per-np:${g_xfs_recycle_nfile_per_loop}"
 
     return 0 # recycle succ
 }
@@ -1790,7 +1790,7 @@ function actsyscfg_one_xfs()
         return 1  # fail
     fi
 
-    curl -svo /dev/null http://127.0.0.1:${port}/xfs/actsyscfg 
+    curl -svo /dev/null "http://127.0.0.1:${port}/?mod=xfs&op=actsyscfg"
 
     return 0 # succ
 }
@@ -1986,7 +1986,7 @@ function notify_one_ngx_xfs_down()
         return 1  # fail
     fi
 
-    curl -svo /dev/null http://127.0.0.1:${port}/xfs/xfs_down \
+    curl -svo /dev/null "http://127.0.0.1:${port}/?mod=xfs&op=xfs_down" \
         -H "xfs-tcid:${tcid}" 2>/dev/null &
 
     return 0 # notify succ        
@@ -2048,7 +2048,7 @@ function notify_one_ngx_xfs_up()
         return 1  # fail
     fi
 
-    curl -svo /dev/null http://127.0.0.1:${port}/xfs/xfs_up \
+    curl -svo /dev/null "http://127.0.0.1:${port}/?mod=xfs&op=xfs_up" \
         -H "xfs-tcid:${tcid}" 2>/dev/null &
 
     return 0 # notify succ        

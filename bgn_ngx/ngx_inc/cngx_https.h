@@ -29,7 +29,7 @@ extern "C"{
 
 #define CNGX_HTTPS_SOCKET_TIMEOUT_NSEC  CONN_TIMEOUT_NSEC
 
-#define CNGX_HTTPS_REST_API_NAME            ("/ngx")
+#define CNGX_HTTPS_REST_API_NAME            ("ngx")
 
 EC_BOOL cngx_https_log_start();
 
@@ -40,98 +40,76 @@ EC_BOOL cngx_https_commit_http_head(CHTTP_NODE *chttp_node);
 
 EC_BOOL cngx_https_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result);
 EC_BOOL cngx_https_commit_response(CHTTP_NODE *chttp_node);
-/**
-    interface name rule:
-    cngx_https_is_http_[get|post|put|head|delete]_<op>
-    cngx_https_commit_<op>_[get|post|put|head|delete]_request
-    cngx_https_handle_<op>_[get|post|put|head|delete]_request
-    cngx_https_make_<op>_[get|post|put|head|delete]_response
-    cngx_https_commit_<op>_[get|post|put|head|delete]_response
-**/
 
-EC_BOOL cngx_https_is_http_get_breathe(const CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_breathe_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_breathe_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_breathe_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_breathe_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_breathe_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_handle_breathe_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_make_breathe_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_breathe_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cngx_https_is_http_get_logrotate(const CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_logrotate_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_logrotate_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_logrotate_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_logrotate_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_logrotate_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_handle_logrotate_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_make_logrotate_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_logrotate_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cngx_https_is_http_get_actsyscfg(const CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_actsyscfg_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_actsyscfg_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_actsyscfg_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_actsyscfg_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_actsyscfg_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_handle_actsyscfg_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_make_actsyscfg_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_actsyscfg_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cngx_https_is_http_get_xfs_up(const CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_xfs_up_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_xfs_up_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_xfs_up_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_xfs_up_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_xfs_up_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_handle_xfs_up_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_make_xfs_up_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_xfs_up_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cngx_https_is_http_get_xfs_down(const CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_xfs_down_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_xfs_down_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_xfs_down_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_xfs_down_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_xfs_down_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_handle_xfs_down_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_make_xfs_down_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_xfs_down_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cngx_https_is_http_get_xfs_add(const CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_xfs_add_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_xfs_add_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_xfs_add_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_xfs_add_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_xfs_add_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_handle_xfs_add_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_make_xfs_add_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_xfs_add_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cngx_https_is_http_get_xfs_del(const CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_xfs_del_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_xfs_del_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_xfs_del_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_xfs_del_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_xfs_del_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_handle_xfs_del_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_make_xfs_del_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_xfs_del_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cngx_https_is_http_get_xfs_list(const CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_xfs_list_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_xfs_list_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_xfs_list_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_xfs_list_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_xfs_list_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_handle_xfs_list_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_make_xfs_list_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_xfs_list_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cngx_https_is_http_get_rfs_up(const CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_rfs_up_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_rfs_up_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_rfs_up_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_rfs_up_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_rfs_up_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_handle_rfs_up_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_make_rfs_up_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_rfs_up_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cngx_https_is_http_get_rfs_down(const CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_rfs_down_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_rfs_down_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_rfs_down_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_rfs_down_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_rfs_down_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_handle_rfs_down_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_make_rfs_down_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_rfs_down_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cngx_https_is_http_get_rfs_add(const CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_rfs_add_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_rfs_add_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_rfs_add_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_rfs_add_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_rfs_add_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_handle_rfs_add_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_make_rfs_add_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_rfs_add_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cngx_https_is_http_get_rfs_del(const CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_rfs_del_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_rfs_del_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_rfs_del_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_rfs_del_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_rfs_del_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_handle_rfs_del_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_make_rfs_del_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_rfs_del_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cngx_https_is_http_get_rfs_list(const CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_rfs_list_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_rfs_list_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_rfs_list_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_rfs_list_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_rfs_list_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_handle_rfs_list_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_make_rfs_list_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_rfs_list_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cngx_https_is_http_get_paracfg(const CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_paracfg_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_paracfg_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_paracfg_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_paracfg_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_paracfg_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_handle_paracfg_request(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_make_paracfg_response(CHTTP_NODE *chttp_node);
+EC_BOOL cngx_https_commit_paracfg_response(CHTTP_NODE *chttp_node);
 
 #endif /*_CNGX_HTTPS_H*/
 

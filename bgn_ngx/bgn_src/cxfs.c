@@ -10237,8 +10237,8 @@ EC_BOOL cxfs_wait_file_owner_wakeup (const UINT32 cxfs_md_id, const UINT32 store
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
     uri = CHTTP_REQ_URI(&chttp_req);
-    cstring_append_str(uri, (uint8_t *)CXFSHTTP_REST_API_NAME"/cond_wakeup");
     cstring_append_cstr(uri, path);
+    cstring_append_str(uri, (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=cond_wakeup");
 
     dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_wait_file_owner_wakeup: req uri '%.*s' done\n",
                 (uint32_t)CSTRING_LEN(uri), CSTRING_STR(uri));
@@ -10435,8 +10435,8 @@ EC_BOOL cxfs_wait_file_owner_cancel (const UINT32 cxfs_md_id, const UINT32 store
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
     uri = CHTTP_REQ_URI(&chttp_req);
-    cstring_append_str(uri, (uint8_t *)CXFSHTTP_REST_API_NAME"/cond_terminate");
     cstring_append_cstr(uri, path);
+    cstring_append_str(uri, (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=cond_terminate");
 
     dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_wait_file_owner_cancel: req uri '%.*s' done\n",
                 (uint32_t)CSTRING_LEN(uri), CSTRING_STR(uri));

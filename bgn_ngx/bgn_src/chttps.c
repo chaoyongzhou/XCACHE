@@ -316,6 +316,7 @@ STATIC_CAST static int __chttps_on_headers_complete(http_parser_t* http_parser, 
     {
         chttp_parse_host(chttp_node);
         chttp_parse_uri(chttp_node);
+        chttp_parse_args(chttp_node);
     }
 
     chttp_parse_content_length(chttp_node);

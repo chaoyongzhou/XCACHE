@@ -7982,7 +7982,7 @@ RETURN VALUE
 
 ***********************************************************************************************************************/
 
-    while(1) /*enabled for ctrans on Dec 07, 2020*/
+    while(0) /*enabled for ctrans, disabled for cxfs*/
     {
         pid_t     pid;
         int      *sync_status;

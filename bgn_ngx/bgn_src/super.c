@@ -7673,8 +7673,8 @@ EC_BOOL super_http_store(const UINT32 super_md_id, const UINT32 tcid, const UINT
 
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
     {
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CXFSHTTP_REST_API_NAME"/update");
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=update");
     }
 
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");
@@ -8037,8 +8037,8 @@ EC_BOOL super_unlock_notify(const UINT32 super_md_id, const UINT32 store_srv_ipa
 
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
     {
-        cstring_append_str(uri, (uint8_t *)CXFSHTTP_REST_API_NAME"/unlock_notify_req");
         cstring_append_cstr(uri, path);
+        cstring_append_str(uri, (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=unlock_notify_req");
     }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_unlock_notify: req uri '%.*s' done\n",
@@ -8112,8 +8112,8 @@ STATIC_CAST static EC_BOOL __super_unlock_over_http(const UINT32 super_md_id, co
 
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
     {
-        cstring_append_str(uri, (uint8_t *)CXFSHTTP_REST_API_NAME"/unlock_req");
         cstring_append_cstr(uri, path);
+        cstring_append_str(uri, (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=unlock_req");
     }
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_unlock_over_http: req uri '%.*s'\n",
@@ -8226,8 +8226,8 @@ STATIC_CAST static EC_BOOL __super_wait_data_e(const UINT32 super_md_id, const U
 
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
     {
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CXFSHTTP_REST_API_NAME"/file_wait");
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=file_wait");
     }
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
@@ -8327,8 +8327,8 @@ STATIC_CAST static EC_BOOL __super_read_data_e(const UINT32 super_md_id, const U
 
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
     {
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CXFSHTTP_REST_API_NAME"/getsmf");
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=getsmf");
     }
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
@@ -8500,8 +8500,8 @@ STATIC_CAST static EC_BOOL __super_wait_data(const UINT32 super_md_id, const UIN
 
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
     {
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CXFSHTTP_REST_API_NAME"/file_wait");
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=file_wait");
     }
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
@@ -8599,8 +8599,8 @@ STATIC_CAST static EC_BOOL __super_read_data(const UINT32 super_md_id, const UIN
 
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
     {
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)CXFSHTTP_REST_API_NAME"/getsmf");
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=getsmf");
     }
 
     chttp_req_add_header(&chttp_req, (const char *)"Host", (char *)"127.0.0.1");
@@ -8768,8 +8768,8 @@ EC_BOOL super_renew_header(const UINT32 super_md_id, const UINT32 store_srv_tcid
 
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
     {
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CXFSHTTP_REST_API_NAME"/renew_header");
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=renew_header");
     }
 
     chttp_req_add_header(&chttp_req_t, (const char *)"Connection", (char *)"Keep-Alive");
@@ -8847,8 +8847,8 @@ EC_BOOL super_renew_headers(const UINT32 super_md_id, const UINT32 store_srv_tci
 
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
     {
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CXFSHTTP_REST_API_NAME"/renew_header");
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=renew_header");
     }
 
     chttp_req_add_header(&chttp_req_t, (const char *)"Connection", (char *)"Keep-Alive");
@@ -8948,8 +8948,8 @@ EC_BOOL super_file_notify(const UINT32 super_md_id, const UINT32 store_srv_tcid,
 
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
     {
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CXFSHTTP_REST_API_NAME"/file_notify");
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=file_notify");
     }
 
     chttp_req_add_header(&chttp_req_t, (const char *)"Connection", (char *)"Keep-Alive");
@@ -9019,8 +9019,8 @@ EC_BOOL super_delete_dir(const UINT32 super_md_id, const UINT32 store_srv_tcid, 
 
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
     {
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CXFSHTTP_REST_API_NAME"/ddir");
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=ddir");
     }
 
     chttp_req_add_header(&chttp_req_t, (const char *)"Connection", (char *)"Keep-Alive");
@@ -9090,8 +9090,8 @@ EC_BOOL super_delete_file(const UINT32 super_md_id, const UINT32 store_srv_tcid,
 
     if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
     {
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)CXFSHTTP_REST_API_NAME"/dsmf");
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
+        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=dsmf");
     }
 
     chttp_req_add_header(&chttp_req_t, (const char *)"Connection", (char *)"Keep-Alive");

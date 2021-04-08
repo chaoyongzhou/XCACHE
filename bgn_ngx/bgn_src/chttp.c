@@ -328,6 +328,7 @@ STATIC_CAST static int __chttp_on_headers_complete(http_parser_t* http_parser, c
     {
         chttp_parse_host(chttp_node);
         chttp_parse_uri(chttp_node);
+        chttp_parse_args(chttp_node);
     }
     chttp_parse_content_length(chttp_node);
 #if 1
@@ -1805,7 +1806,9 @@ EC_BOOL chttp_node_init(CHTTP_NODE *chttp_node, const UINT32 type)
         cbuffer_init(CHTTP_NODE_HOST(chttp_node), 0);
         cbuffer_init(CHTTP_NODE_URI(chttp_node) , 0);
         cbuffer_init(CHTTP_NODE_EXPIRES(chttp_node) , 0);
+        cbuffer_init(CHTTP_NODE_ARGS(chttp_node) , 0);
 
+        cstrkv_mgr_init(CHTTP_NODE_ARG_KVS(chttp_node));
         cstrkv_mgr_init(CHTTP_NODE_HEADER_IN_KVS(chttp_node));
         cstrkv_mgr_init(CHTTP_NODE_HEADER_OUT_KVS(chttp_node));
 
@@ -1912,7 +1915,9 @@ EC_BOOL chttp_node_clean(CHTTP_NODE *chttp_node)
         cbuffer_clean(CHTTP_NODE_HOST(chttp_node));
         cbuffer_clean(CHTTP_NODE_URI(chttp_node));
         cbuffer_clean(CHTTP_NODE_EXPIRES(chttp_node));
+        cbuffer_clean(CHTTP_NODE_ARGS(chttp_node));
 
+        cstrkv_mgr_clean(CHTTP_NODE_ARG_KVS(chttp_node));
         cstrkv_mgr_clean(CHTTP_NODE_HEADER_IN_KVS(chttp_node));
         cstrkv_mgr_clean(CHTTP_NODE_HEADER_OUT_KVS(chttp_node));
 
@@ -2029,6 +2034,40 @@ EC_BOOL chttp_node_free(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
+const CHTTP_API *chttp_node_find_api(const CHTTP_NODE *chttp_node, const CHTTP_API *chttp_api_list, const uint32_t chttp_api_num, const uint32_t method)
+{
+    const char      *k;
+    char            *v;
+    uint32_t         vlen;
+    uint32_t         chttp_api_idx;
+
+    k = (const char *)"op";
+    v = chttp_node_get_arg(chttp_node, k);
+    if(NULL_PTR == v)
+    {
+        return (NULL_PTR);
+    }
+
+    vlen = strlen(v);
+
+    for(chttp_api_idx = 0; chttp_api_idx < chttp_api_num; chttp_api_idx ++)
+    {
+        const CHTTP_API   *chttp_api;
+
+        chttp_api = chttp_api_list + chttp_api_idx;
+
+        if(method == CHTTP_API_METHOD(chttp_api)
+        && vlen == CHTTP_API_LEN(chttp_api)
+        && 0 == STRCASECMP(v, CHTTP_API_NAME(chttp_api))
+        && NULL_PTR != CHTTP_API_COMMIT(chttp_api))
+        {
+            return (chttp_api);
+        }
+    }
+
+    return (NULL_PTR);
+}
+
 uint32_t chttp_node_chunk_size(CHTTP_NODE *chttp_node)
 {
     if(NULL_PTR != chttp_node
@@ -2104,7 +2143,9 @@ EC_BOOL chttp_node_clear(CHTTP_NODE *chttp_node)
         cbuffer_clean(CHTTP_NODE_HOST(chttp_node));
         cbuffer_clean(CHTTP_NODE_URI(chttp_node));
         cbuffer_clean(CHTTP_NODE_EXPIRES(chttp_node));
+        cbuffer_clean(CHTTP_NODE_ARGS(chttp_node));
 
+        cstrkv_mgr_clean(CHTTP_NODE_ARG_KVS(chttp_node));
         cstrkv_mgr_clean(CHTTP_NODE_HEADER_IN_KVS(chttp_node));
         cstrkv_mgr_clean(CHTTP_NODE_HEADER_OUT_KVS(chttp_node));
 
@@ -2268,6 +2309,12 @@ void chttp_node_print(LOG *log, const CHTTP_NODE *chttp_node)
 
     sys_log(log, "chttp_node_print:uri : \n");
     cbuffer_print_str(log, CHTTP_NODE_URI(chttp_node));
+
+    sys_log(log, "chttp_node_print:args : \n");
+    cbuffer_print_str(log, CHTTP_NODE_ARGS(chttp_node));
+
+    sys_log(log, "chttp_node_print:arg kvs: \n");
+    cstrkv_mgr_print(log, CHTTP_NODE_ARG_KVS(chttp_node));
 
     sys_log(log, "chttp_node_print:header_in kvs: \n");
     cstrkv_mgr_print(log, CHTTP_NODE_HEADER_IN_KVS(chttp_node));
@@ -3725,6 +3772,16 @@ void chttp_node_print_header(LOG *log, const CHTTP_NODE *chttp_node)
     return;
 }
 
+EC_BOOL chttp_node_has_arg(const CHTTP_NODE *chttp_node, const char *k)
+{
+    return cstrkv_mgr_exist_key(CHTTP_NODE_ARG_KVS(chttp_node), k);
+}
+
+char *chttp_node_get_arg(const CHTTP_NODE *chttp_node, const char *k)
+{
+    return cstrkv_mgr_get_val_str(CHTTP_NODE_ARG_KVS(chttp_node), k);
+}
+
 EC_BOOL chttp_node_check_http_cache_control(CHTTP_NODE *chttp_node)
 {
     char     *v;
@@ -4192,9 +4249,12 @@ EC_BOOL chttp_parse_uri(CHTTP_NODE *chttp_node)
     CBUFFER       *host_cbuffer;
     CBUFFER       *uri_cbuffer;
 
-    uint8_t       *uri_str;
     uint32_t       uri_len;
     uint32_t       skip_len;
+
+    uint8_t       *uri_start;
+    uint8_t       *uri_end;
+    uint8_t       *uri_cur;
 
     url_cbuffer  = CHTTP_NODE_URL(chttp_node);
     host_cbuffer = CHTTP_NODE_HOST(chttp_node);
@@ -4202,18 +4262,166 @@ EC_BOOL chttp_parse_uri(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == cbuffer_cmp_bytes(url_cbuffer, 0, CONST_UINT8_STR_AND_LEN("http://")))
     {
-        cbuffer_clone(url_cbuffer, uri_cbuffer);
+        uri_start = CBUFFER_DATA(url_cbuffer);
+        uri_len   = CBUFFER_USED(url_cbuffer);
+    }
+    else
+    {
+        skip_len  = sizeof("http://") - 1 + CBUFFER_USED(host_cbuffer);
+        uri_start = CBUFFER_DATA(url_cbuffer) + skip_len;
+        uri_len   = CBUFFER_USED(url_cbuffer) - skip_len;
+    }
+
+    uri_end = uri_start + uri_len;
+
+    for(uri_cur = uri_start; uri_cur < uri_end && '?' != (*uri_cur); uri_cur ++)
+    {
+        /*do nothing*/
+    }
+
+    uri_len = (uint32_t)(uri_cur - uri_start);
+
+    if(EC_FALSE == cbuffer_set(uri_cbuffer, uri_start, uri_len))
+    {
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_parse_uri: "
+                                              "set uri %.*s failed\n",
+                                              uri_len, (char *)uri_start);
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_uri: "
+                                          "set uri '%.*s'\n",
+                                          uri_len, (char *)uri_start);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL chttp_parse_args(CHTTP_NODE *chttp_node)
+{
+    CBUFFER       *url_cbuffer;
+    CBUFFER       *args_cbuffer;
+
+    uint32_t       url_len;
+    uint32_t       args_len;
+
+    uint8_t       *url_str;
+    uint8_t       *args_str;
+
+    CSTRKV_MGR    *arg_kvs;
+
+    uint8_t       *k;
+    uint8_t       *v;
+
+    uint32_t       klen;
+    uint32_t       vlen;
+
+    url_cbuffer  = CHTTP_NODE_URL(chttp_node);
+    args_cbuffer = CHTTP_NODE_ARGS(chttp_node);
+
+    url_str = CBUFFER_DATA(url_cbuffer);
+    url_len = CBUFFER_USED(url_cbuffer);
+
+    for(args_str = url_str; args_str < url_str + url_len && '?' != (*args_str); args_str ++)
+    {
+        /*do nothing*/
+    }
+
+    if('?' != (*args_str))
+    {
+        /*no args*/
         return (EC_TRUE);
     }
 
-    skip_len = sizeof("http://") - 1 + CBUFFER_USED(host_cbuffer);
-    uri_str  = CBUFFER_DATA(url_cbuffer) + skip_len;
-    uri_len  = CBUFFER_USED(url_cbuffer) - skip_len;
+    args_str ++;
 
-    if(EC_FALSE == cbuffer_set(uri_cbuffer, uri_str, uri_len))
+    args_len = (uint32_t)(url_str + url_len - args_str);
+
+    if(EC_FALSE == cbuffer_set(args_cbuffer, args_str, args_len))
     {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_parse_uri: set uri %.*s failed\n", uri_len, uri_str);
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_parse_args: "
+                                              "set args %.*s failed\n",
+                                              args_len, (char *)args_str);
         return (EC_FALSE);
+    }
+
+    /*split into kvs*/
+    arg_kvs = CHTTP_NODE_ARG_KVS(chttp_node);
+    k       = args_str;
+    klen    = 0;
+    v       = NULL_PTR;
+    vlen    = 0;
+    while(k + klen < args_str + args_len)
+    {
+        if('=' != k[ klen ])
+        {
+            klen ++;
+            continue;
+        }
+
+        v    = k + klen + 1;
+        vlen = 0;
+        while(v + vlen < args_str + args_len)
+        {
+            if('&' == v[ vlen ])
+            {
+                break;
+            }
+
+            vlen ++;
+        }
+
+        if(vlen > 0)
+        {
+            if(EC_FALSE == cstrkv_mgr_add_kv_chars(arg_kvs, (char *)k, klen, (char *)v, vlen))
+            {
+                dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_parse_args: "
+                                                      "set arg '%.*s'='%.*s' failed\n",
+                                                      klen, (char *)k,
+                                                      vlen, (char *)v);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_args: "
+                                                  "set arg '%.*s'='%.*s'\n",
+                                                  klen, (char *)k,
+                                                  vlen, (char *)v);
+        }
+        else
+        {
+            if(EC_FALSE == cstrkv_mgr_add_kv_chars(arg_kvs, (char *)k, klen, NULL_PTR, 0))
+            {
+                dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_parse_args: "
+                                                      "set arg '%.*s'='' failed\n",
+                                                      klen, (char *)k);
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_args: "
+                                                  "set arg '%.*s'=''\n",
+                                                  klen, (char *)k);
+        }
+
+        k    = v + vlen + 1; /*skip '&'*/
+        klen = 0;
+
+        v    = NULL_PTR;
+        vlen = 0;
+    }
+
+    /*special arg, exampel: xxx?op*/
+    if(k + klen == args_str + args_len
+    && NULL_PTR != k && 0 < klen
+    && NULL_PTR == v && 0 == vlen)
+    {
+        if(EC_FALSE == cstrkv_mgr_add_kv_chars(arg_kvs, (char *)k, klen, NULL_PTR, 0))
+        {
+            dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_parse_args: "
+                                                  "set arg '%.*s'='' failed\n",
+                                                  klen, (char *)k);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_parse_args: "
+                                              "set arg '%.*s'=''\n",
+                                              klen, (char *)k);
     }
 
     return (EC_TRUE);
@@ -5316,72 +5524,41 @@ CHTTP_NODE *chttp_defer_request_queue_peek()
 
 EC_BOOL chttp_defer_request_commit(CHTTP_NODE *chttp_node)
 {
-    CBUFFER       *uri_cbuffer;
-    EC_BOOL        ret;
-
     CHTTP_REST    *chttp_rest;
-    const char    *rest_name;
+    char          *rest_name;
     uint32_t       rest_len;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_defer_request_commit: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    rest_name = (char *)CBUFFER_DATA(uri_cbuffer);
-    if('/' != rest_name[ 0 ])
+    /*mod | rest*/
+    rest_name = chttp_node_get_arg(chttp_node, (const char *)"mod");
+    if(NULL_PTR == rest_name)
     {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_defer_request_commit: invalid url '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
+        rest_name = chttp_node_get_arg(chttp_node, (const char *)"rest");
+    }
+
+    if(NULL_PTR == rest_name)
+    {
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_defer_request_commit: "
+                                              "no arg 'mod' or 'rest'\n");
         return (EC_FALSE);
     }
-
-    for(rest_len = 1; rest_len < CBUFFER_USED(uri_cbuffer); rest_len ++)
-    {
-        if('/' == rest_name[ rest_len ])
-        {
-            break;
-        }
-    }
-
-    if('/' != rest_name[ rest_len ])
-    {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_defer_request_commit: invalid rest '%.*s' [len %d]\n",
-                            rest_len, rest_name, rest_len);
-        return (EC_FALSE);
-    }
+    rest_len = (uint32_t)strlen(rest_name);
 
     chttp_rest = chttp_rest_list_find(rest_name, rest_len);
     if(NULL_PTR == chttp_rest)
     {
-        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_defer_request_commit: not support rest '%.*s' [len %d]\n",
-                            rest_len, rest_name, rest_len);
+        dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_defer_request_commit: "
+                                              "not support rest '%.*s' [len %d]\n",
+                                              rest_len, rest_name, rest_len);
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_defer_request_commit: found rest %p of ('%.*s', %p)\n",
-                    chttp_rest,
-                    CHTTP_REST_LEN(chttp_rest),CHTTP_REST_NAME(chttp_rest),
-                    CHTTP_REST_COMMIT(chttp_rest));
+    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_defer_request_commit: "
+                                          "found rest %p of ('%.*s', %p)\n",
+                                          chttp_rest,
+                                          CHTTP_REST_LEN(chttp_rest),CHTTP_REST_NAME(chttp_rest),
+                                          CHTTP_REST_COMMIT(chttp_rest));
 
-    /*shift out rest tag*/
-    cbuffer_left_shift_out(uri_cbuffer, NULL_PTR, rest_len);
-    dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_defer_request_commit: after left shift out rest tag, uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    ret = CHTTP_REST_COMMIT(chttp_rest)(chttp_node);
-    if(EC_BUSY == ret)
-    {
-        cbuffer_left_shift_in(uri_cbuffer, (uint8_t *)CHTTP_REST_NAME(chttp_rest), (uint32_t)CHTTP_REST_LEN(chttp_rest));
-    }
-
-    return (ret);
+    return CHTTP_REST_COMMIT(chttp_rest)(chttp_node);
 }
 
 EC_BOOL chttp_defer_request_queue_launch(CHTTP_NODE_COMMIT_REQUEST chttp_node_commit_request)

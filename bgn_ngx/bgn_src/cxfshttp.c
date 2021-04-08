@@ -101,6 +101,55 @@ extern "C"{
 
 static EC_BOOL g_cxfshttp_log_init = EC_FALSE;
 
+static const CHTTP_API g_cxfshttp_api_list[] = {
+    {CONST_STR_AND_LEN("getsmf")            , CHTTP_METHOD_GET  , cxfshttp_commit_getsmf_request},
+    {CONST_STR_AND_LEN("dsmf")              , CHTTP_METHOD_GET  , cxfshttp_commit_dsmf_request},
+    {CONST_STR_AND_LEN("ddir")              , CHTTP_METHOD_GET  , cxfshttp_commit_ddir_request},
+    {CONST_STR_AND_LEN("sexpire")           , CHTTP_METHOD_GET  , cxfshttp_commit_sexpire_request},
+    {CONST_STR_AND_LEN("lock_req")          , CHTTP_METHOD_GET  , cxfshttp_commit_lock_req_request},
+    {CONST_STR_AND_LEN("unlock_req")        , CHTTP_METHOD_GET  , cxfshttp_commit_unlock_req_request},
+    {CONST_STR_AND_LEN("unlock_notify_req") , CHTTP_METHOD_GET  , cxfshttp_commit_unlock_notify_req_request},
+    {CONST_STR_AND_LEN("recycle")           , CHTTP_METHOD_GET  , cxfshttp_commit_recycle_request},
+
+    {CONST_STR_AND_LEN("flush")             , CHTTP_METHOD_GET  , cxfshttp_commit_flush_request},
+    {CONST_STR_AND_LEN("retire")            , CHTTP_METHOD_GET  , cxfshttp_commit_retire_request},
+    {CONST_STR_AND_LEN("setreadonly")       , CHTTP_METHOD_GET  , cxfshttp_commit_setreadonly_request},
+    {CONST_STR_AND_LEN("unsetreadonly")     , CHTTP_METHOD_GET  , cxfshttp_commit_unsetreadonly_request},
+    {CONST_STR_AND_LEN("isreadonly")        , CHTTP_METHOD_GET  , cxfshttp_commit_isreadonly_request},
+    {CONST_STR_AND_LEN("sync")              , CHTTP_METHOD_GET  , cxfshttp_commit_sync_request},
+    {CONST_STR_AND_LEN("replayop")          , CHTTP_METHOD_GET  , cxfshttp_commit_replayop_request},
+    {CONST_STR_AND_LEN("breathe")           , CHTTP_METHOD_GET  , cxfshttp_commit_breathe_request},
+
+    {CONST_STR_AND_LEN("logrotate")         , CHTTP_METHOD_GET  , cxfshttp_commit_logrotate_request},
+    {CONST_STR_AND_LEN("actsyscfg")         , CHTTP_METHOD_GET  , cxfshttp_commit_actsyscfg_request},
+    {CONST_STR_AND_LEN("qtree")             , CHTTP_METHOD_GET  , cxfshttp_commit_qtree_request},
+    {CONST_STR_AND_LEN("status_np")         , CHTTP_METHOD_GET  , cxfshttp_commit_statusnp_request},
+    {CONST_STR_AND_LEN("status_dn")         , CHTTP_METHOD_GET  , cxfshttp_commit_statusdn_request},
+    {CONST_STR_AND_LEN("stat")              , CHTTP_METHOD_GET  , cxfshttp_commit_stat_request},
+    {CONST_STR_AND_LEN("paracfg")           , CHTTP_METHOD_GET  , cxfshttp_commit_paracfg_request},
+
+    {CONST_STR_AND_LEN("file_notify")       , CHTTP_METHOD_GET  , cxfshttp_commit_file_notify_request},
+    {CONST_STR_AND_LEN("file_terminate")    , CHTTP_METHOD_GET  , cxfshttp_commit_file_terminate_request},
+    {CONST_STR_AND_LEN("cond_wakeup")       , CHTTP_METHOD_GET  , cxfshttp_commit_cond_wakeup_request},
+    {CONST_STR_AND_LEN("cond_terminate")    , CHTTP_METHOD_GET  , cxfshttp_commit_cond_terminate_request},
+    {CONST_STR_AND_LEN("renew_header")      , CHTTP_METHOD_GET  , cxfshttp_commit_renew_header_request},
+    {CONST_STR_AND_LEN("locked_file_retire"), CHTTP_METHOD_GET  , cxfshttp_commit_locked_file_retire_request},
+    {CONST_STR_AND_LEN("wait_file_retire")  , CHTTP_METHOD_GET  , cxfshttp_commit_wait_file_retire_request},
+    {CONST_STR_AND_LEN("activate")          , CHTTP_METHOD_GET  , cxfshttp_commit_activate_ngx_request},
+    {CONST_STR_AND_LEN("deactivate")        , CHTTP_METHOD_GET  , cxfshttp_commit_deactivate_ngx_request},
+
+    {CONST_STR_AND_LEN("setsmf")            , CHTTP_METHOD_POST , cxfshttp_commit_setsmf_request},
+    {CONST_STR_AND_LEN("mexpire")           , CHTTP_METHOD_POST , cxfshttp_commit_mexpire_request},
+    {CONST_STR_AND_LEN("mdsmf")             , CHTTP_METHOD_POST , cxfshttp_commit_mdsmf_request},
+    {CONST_STR_AND_LEN("mddir")             , CHTTP_METHOD_POST , cxfshttp_commit_mddir_request},
+    {CONST_STR_AND_LEN("update")            , CHTTP_METHOD_POST , cxfshttp_commit_update_request},
+    {CONST_STR_AND_LEN("renew")             , CHTTP_METHOD_POST , cxfshttp_commit_renew_request},
+
+    {CONST_STR_AND_LEN("meta")              , CHTTP_METHOD_HEAD , cxfshttp_commit_meta_request},
+};
+
+static const uint32_t   g_cxfshttp_api_num = sizeof(g_cxfshttp_api_list)/sizeof(g_cxfshttp_api_list[0]);
+
 EC_BOOL cxfshttp_log_start()
 {
     TASK_BRD        *task_brd;
@@ -222,225 +271,136 @@ EC_BOOL cxfshttp_commit_request(CHTTP_NODE *chttp_node)
 
 EC_BOOL cxfshttp_commit_http_head(CHTTP_NODE *chttp_node)
 {
-    EC_BOOL ret;
+    const CHTTP_API       *chttp_api;
+    EC_BOOL                ret;
 
     CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record xfs beg to handle time*/
 
-    if(EC_TRUE == cxfshttp_is_http_head_getsmf(chttp_node))
+    chttp_api = chttp_node_find_api(chttp_node,
+                                    (const CHTTP_API *)g_cxfshttp_api_list,
+                                    g_cxfshttp_api_num,
+                                    CHTTP_METHOD_HEAD);
+    if(NULL_PTR == chttp_api)
     {
-        ret = cxfshttp_commit_getsmf_head_request(chttp_node);
-    }
-    else
-    {
-        CBUFFER *uri_cbuffer;
+        CBUFFER               *url_cbuffer;
 
-        uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_http_head: invalid uri %.*s\n", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_http_head: "
+                                                 "no api for '%.*s'\n",
+                                                 CBUFFER_USED(CHTTP_NODE_ARGS(chttp_node)),
+                                                 CBUFFER_DATA(CHTTP_NODE_ARGS(chttp_node)));
 
+        url_cbuffer   = CHTTP_NODE_URL(chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_http_head: "
+                                                 "invalid uri %.*s\n",
+                                                 CBUFFER_USED(url_cbuffer),
+                                                 CBUFFER_DATA(url_cbuffer));
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_NOT_ACCEPTABLE);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_commit_http_head: invalid url %.*s", CBUFFER_USED(url_cbuffer), CBUFFER_DATA(url_cbuffer));
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
         ret = EC_FALSE;
+
+        return cxfshttp_commit_end(chttp_node, ret);
     }
 
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_http_head: "
+                                             "api: method %d, name %s\n",
+                                             CHTTP_API_METHOD(chttp_api),
+                                             CHTTP_API_NAME(chttp_api));
+
+    ret = CHTTP_API_COMMIT(chttp_api)(chttp_node);
     return cxfshttp_commit_end(chttp_node, ret);
 }
 
 EC_BOOL cxfshttp_commit_http_post(CHTTP_NODE *chttp_node)
 {
-    EC_BOOL ret;
+    const CHTTP_API       *chttp_api;
+    EC_BOOL                ret;
 
     CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record xfs beg to handle time*/
 
-    if(EC_TRUE == cxfshttp_is_http_post_setsmf(chttp_node))
+    chttp_api = chttp_node_find_api(chttp_node,
+                                    (const CHTTP_API *)g_cxfshttp_api_list,
+                                    g_cxfshttp_api_num,
+                                    CHTTP_METHOD_POST);
+    if(NULL_PTR == chttp_api)
     {
-        ret = cxfshttp_commit_setsmf_post_request(chttp_node);
-    }
-    else if(EC_TRUE == cxfshttp_is_http_post_mexpire(chttp_node))
-    {
-        ret = cxfshttp_commit_mexpire_post_request(chttp_node);
-    }
-    else if(EC_TRUE == cxfshttp_is_http_post_mdsmf(chttp_node))
-    {
-        ret = cxfshttp_commit_mdsmf_post_request(chttp_node);
-    }
-    else if(EC_TRUE == cxfshttp_is_http_post_mddir(chttp_node))
-    {
-        ret = cxfshttp_commit_mddir_post_request(chttp_node);
-    }
-    else if(EC_TRUE == cxfshttp_is_http_post_update(chttp_node))
-    {
-        ret = cxfshttp_commit_update_post_request(chttp_node);
-    }
-    else if(EC_TRUE == cxfshttp_is_http_post_renew(chttp_node))
-    {
-        ret = cxfshttp_commit_renew_post_request(chttp_node);
-    }
-    else
-    {
-        CBUFFER *uri_cbuffer;
+        CBUFFER               *url_cbuffer;
 
-        uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_http_post: invalid uri %.*s\n", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_http_post: "
+                                                 "no api for '%.*s'\n",
+                                                 CBUFFER_USED(CHTTP_NODE_ARGS(chttp_node)),
+                                                 CBUFFER_DATA(CHTTP_NODE_ARGS(chttp_node)));
 
+        url_cbuffer   = CHTTP_NODE_URL(chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_http_post: "
+                                                 "invalid uri %.*s\n",
+                                                 CBUFFER_USED(url_cbuffer),
+                                                 CBUFFER_DATA(url_cbuffer));
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_NOT_ACCEPTABLE);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_commit_http_post: invalid url %.*s", CBUFFER_USED(url_cbuffer), CBUFFER_DATA(url_cbuffer));
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
         ret = EC_FALSE;
+
+        return cxfshttp_commit_end(chttp_node, ret);
     }
 
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_http_post: "
+                                             "api: method %d, name %s\n",
+                                             CHTTP_API_METHOD(chttp_api),
+                                             CHTTP_API_NAME(chttp_api));
+
+    ret = CHTTP_API_COMMIT(chttp_api)(chttp_node);
     return cxfshttp_commit_end(chttp_node, ret);
 }
 
 EC_BOOL cxfshttp_commit_http_get(CHTTP_NODE *chttp_node)
 {
-    EC_BOOL ret;
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_http_get: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(CHTTP_NODE_URI(chttp_node)),
-                        CBUFFER_DATA(CHTTP_NODE_URI(chttp_node)),
-                        CBUFFER_USED(CHTTP_NODE_URI(chttp_node)));
+    const CHTTP_API       *chttp_api;
+    EC_BOOL                ret;
 
     CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record xfs beg to handle time*/
 
-    if(EC_TRUE == cxfshttp_is_http_get_getsmf(chttp_node))
+    chttp_api = chttp_node_find_api(chttp_node,
+                                    (const CHTTP_API *)g_cxfshttp_api_list,
+                                    g_cxfshttp_api_num,
+                                    CHTTP_METHOD_GET);
+    if(NULL_PTR == chttp_api)
     {
-        ret = cxfshttp_commit_getsmf_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_dsmf(chttp_node))
-    {
-        ret = cxfshttp_commit_dsmf_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_ddir(chttp_node))
-    {
-        ret = cxfshttp_commit_ddir_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_sexpire(chttp_node))
-    {
-        ret = cxfshttp_commit_sexpire_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_lock_req(chttp_node))
-    {
-        ret = cxfshttp_commit_lock_req_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_unlock_req(chttp_node))
-    {
-        ret = cxfshttp_commit_unlock_req_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_unlock_notify_req(chttp_node))
-    {
-        ret = cxfshttp_commit_unlock_notify_req_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_recycle(chttp_node))
-    {
-        ret = cxfshttp_commit_recycle_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_flush(chttp_node))
-    {
-        ret = cxfshttp_commit_flush_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_retire(chttp_node))
-    {
-        ret = cxfshttp_commit_retire_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_setreadonly(chttp_node))
-    {
-        ret = cxfshttp_commit_setreadonly_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_unsetreadonly(chttp_node))
-    {
-        ret = cxfshttp_commit_unsetreadonly_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_isreadonly(chttp_node))
-    {
-        ret = cxfshttp_commit_isreadonly_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_sync(chttp_node))
-    {
-        ret = cxfshttp_commit_sync_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_replayop(chttp_node))
-    {
-        ret = cxfshttp_commit_replayop_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_breathe(chttp_node))
-    {
-        ret = cxfshttp_commit_breathe_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_logrotate(chttp_node))
-    {
-        ret = cxfshttp_commit_logrotate_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_actsyscfg(chttp_node))
-    {
-        ret = cxfshttp_commit_actsyscfg_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_qtree(chttp_node))
-    {
-        ret = cxfshttp_commit_qtree_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_statusnp(chttp_node))
-    {
-        ret = cxfshttp_commit_statusnp_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_statusdn(chttp_node))
-    {
-        ret = cxfshttp_commit_statusdn_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_stat(chttp_node))
-    {
-        ret = cxfshttp_commit_stat_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_paracfg(chttp_node))
-    {
-        ret = cxfshttp_commit_paracfg_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_file_notify(chttp_node))
-    {
-        ret = cxfshttp_commit_file_notify_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_file_terminate(chttp_node))
-    {
-        ret = cxfshttp_commit_file_terminate_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_cond_wakeup(chttp_node))
-    {
-        ret = cxfshttp_commit_cond_wakeup_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_cond_terminate(chttp_node))
-    {
-        ret = cxfshttp_commit_cond_terminate_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_renew_header(chttp_node))
-    {
-        ret = cxfshttp_commit_renew_header_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_locked_file_retire(chttp_node))
-    {
-        ret = cxfshttp_commit_locked_file_retire_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_wait_file_retire(chttp_node))
-    {
-        ret = cxfshttp_commit_wait_file_retire_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_activate_ngx(chttp_node))
-    {
-        ret = cxfshttp_commit_activate_ngx_get_request(chttp_node);
-    }
-    else if (EC_TRUE == cxfshttp_is_http_get_deactivate_ngx(chttp_node))
-    {
-        ret = cxfshttp_commit_deactivate_ngx_get_request(chttp_node);
-    }
-    else
-    {
-        CBUFFER *uri_cbuffer;
+        CBUFFER               *url_cbuffer;
 
-        uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_http_get: invalid uri %.*s\n",
-                            CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_http_get: "
+                                                 "no api for '%.*s'\n",
+                                                 CBUFFER_USED(CHTTP_NODE_ARGS(chttp_node)),
+                                                 CBUFFER_DATA(CHTTP_NODE_ARGS(chttp_node)));
+
+        url_cbuffer   = CHTTP_NODE_URL(chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_http_get: "
+                                                 "invalid url %.*s\n",
+                                                 CBUFFER_USED(url_cbuffer),
+                                                 CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_NOT_ACCEPTABLE);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_commit_http_get: invalid uri %.*s", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_commit_http_get: invalid url %.*s", CBUFFER_USED(url_cbuffer), CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
         ret = EC_FALSE;
+
+        return cxfshttp_commit_end(chttp_node, ret);
     }
 
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_http_get: "
+                                             "api: method %d, name %s\n",
+                                             CHTTP_API_METHOD(chttp_api),
+                                             CHTTP_API_NAME(chttp_api));
+
+    ret = CHTTP_API_COMMIT(chttp_api)(chttp_node);
     return cxfshttp_commit_end(chttp_node, ret);
 }
 
@@ -560,69 +520,33 @@ EC_BOOL cxfshttp_commit_response(CHTTP_NODE *chttp_node)
 }
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: getsmf ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_getsmf_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/getsmf/") < uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/getsmf/")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_getsmf(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_getsmf: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_getsmf_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_getsmf_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_getsmf_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_getsmf_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_getsmf_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_getsmf_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_getsmf_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_getsmf_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_getsmf_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_getsmf_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_getsmf_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_getsmf_get_response(chttp_node);
+    ret = cxfshttp_commit_getsmf_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_getsmf_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_getsmf_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_getsmf_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_getsmf_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -639,13 +563,13 @@ EC_BOOL cxfshttp_handle_getsmf_get_request(CHTTP_NODE *chttp_node)
 
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
-    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/getsmf");
-    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/getsmf");
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
     cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0005);
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_getsmf_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_getsmf_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -655,19 +579,19 @@ EC_BOOL cxfshttp_handle_getsmf_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_getsmf_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_getsmf_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_getsmf_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_getsmf_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_getsmf_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_getsmf_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_getsmf_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_getsmf_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_getsmf_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_getsmf_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
@@ -699,12 +623,12 @@ EC_BOOL cxfshttp_handle_getsmf_get_request(CHTTP_NODE *chttp_node)
 
         if(EC_FALSE == cxfs_read_e(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, &offset, max_len, content_cbytes))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_getsmf_get_request: cxfs read %s with offset %u, size %u failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_getsmf_request: cxfs read %s with offset %u, size %u failed\n",
                                 (char *)cstring_get_str(&path_cstr), store_offset, store_size);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_getsmf_get_request: cxfs read %s with offset %u, size %u failed", (char *)cstring_get_str(&path_cstr), store_offset, store_size);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_getsmf_request: cxfs read %s with offset %u, size %u failed", (char *)cstring_get_str(&path_cstr), store_offset, store_size);
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
@@ -714,12 +638,12 @@ EC_BOOL cxfshttp_handle_getsmf_get_request(CHTTP_NODE *chttp_node)
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_getsmf_get_request: cxfs read %s with offset %u, size %u done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_getsmf_request: cxfs read %s with offset %u, size %u done\n",
                             (char *)cstring_get_str(&path_cstr), store_offset, store_size);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_getsmf_get_request: cxfs read %s with offset %u, size %u done", (char *)cstring_get_str(&path_cstr), store_offset, store_size);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_getsmf_request: cxfs read %s with offset %u, size %u done", (char *)cstring_get_str(&path_cstr), store_offset, store_size);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -730,12 +654,12 @@ EC_BOOL cxfshttp_handle_getsmf_get_request(CHTTP_NODE *chttp_node)
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == cxfs_read(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_getsmf_get_request: cxfs read %s failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_getsmf_request: cxfs read %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_getsmf_get_request: cxfs read %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_getsmf_request: cxfs read %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
@@ -745,12 +669,12 @@ EC_BOOL cxfshttp_handle_getsmf_get_request(CHTTP_NODE *chttp_node)
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_getsmf_get_request: cxfs read %s done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_getsmf_request: cxfs read %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_getsmf_get_request: cxfs read %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_getsmf_request: cxfs read %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -760,7 +684,7 @@ EC_BOOL cxfshttp_handle_getsmf_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_getsmf_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_getsmf_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
@@ -775,15 +699,15 @@ EC_BOOL cxfshttp_make_getsmf_get_response(CHTTP_NODE *chttp_node)
         uint32_t       cache_len;
 
         uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
-        cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/getsmf");
-        cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/getsmf");
+        cache_key = CBUFFER_DATA(uri_cbuffer);
+        cache_len = CBUFFER_USED(uri_cbuffer);
 
-        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_getsmf_get_response: path %.*s\n", cache_len, cache_key);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_getsmf_response: path %.*s\n", cache_len, cache_key);
     }
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_getsmf_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_getsmf_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -791,14 +715,14 @@ EC_BOOL cxfshttp_make_getsmf_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_getsmf_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_getsmf_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_getsmf_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_getsmf_response: make header end failed\n");
         return (EC_FALSE);
     }
 
@@ -808,7 +732,7 @@ EC_BOOL cxfshttp_make_getsmf_get_response(CHTTP_NODE *chttp_node)
                                               (uint32_t )CBYTES_LEN(content_cbytes),
                                               (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_getsmf_get_response: make body with len %d failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_getsmf_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
@@ -817,14 +741,14 @@ EC_BOOL cxfshttp_make_getsmf_get_response(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_getsmf_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_getsmf_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_getsmf_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_getsmf_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -833,62 +757,26 @@ EC_BOOL cxfshttp_commit_getsmf_get_response(CHTTP_NODE *chttp_node)
 #endif
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: lock_req ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_lock_req_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/lock_req/") < uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/lock_req/")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_lock_req(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_lock_req: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_lock_req_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_lock_req_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_lock_req_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_lock_req_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_lock_req_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_lock_req_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_lock_req_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_lock_req_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_lock_req_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_lock_req_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_lock_req_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_lock_req_get_response(chttp_node);
+    ret = cxfshttp_commit_lock_req_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_lock_req_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_lock_req_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -936,7 +824,7 @@ STATIC_CAST static UINT32 __cxfshttp_convert_expires_str_to_nseconds(const char 
     safe_free(str, LOC_CXFSHTTP_0008);
     return ((UINT32)0);
 }
-EC_BOOL cxfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_lock_req_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -954,15 +842,15 @@ EC_BOOL cxfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
 
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
-    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/lock_req");
-    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/lock_req");
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
     cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0009);
 
     cstring_init(&token_cstr, NULL_PTR);
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_lock_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_lock_req_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -972,19 +860,19 @@ EC_BOOL cxfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_lock_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_lock_req_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_lock_req_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_lock_req_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_lock_req_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_lock_req_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_lock_req_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_lock_req_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_lock_req_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_lock_req_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
@@ -995,7 +883,7 @@ EC_BOOL cxfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    if(EC_TRUE == __cxfshttp_uri_is_lock_req_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
@@ -1007,13 +895,13 @@ EC_BOOL cxfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
         expires_nsec = __cxfshttp_convert_expires_str_to_nseconds(expires_str);
         locked_flag  = EC_FALSE;
 
-        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_lock_req_get_request: header Expires %s => %ld\n",
+        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_lock_req_request: header Expires %s => %ld\n",
                                 expires_str, expires_nsec);
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == cxfs_file_lock(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, expires_nsec, &token_cstr, &locked_flag))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "error:cxfshttp_handle_lock_req_get_request: cxfs lock %s failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "error:cxfshttp_handle_lock_req_request: cxfs lock %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             if(EC_TRUE == locked_flag)/*flag was set*/
@@ -1023,7 +911,7 @@ EC_BOOL cxfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_lock_req_get_request: cxfs lock %s failed", (char *)cstring_get_str(&path_cstr));
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_lock_req_request: cxfs lock %s failed", (char *)cstring_get_str(&path_cstr));
             }
             else /*flag was not set which means some error happen*/
             {
@@ -1031,7 +919,7 @@ EC_BOOL cxfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_lock_req_get_request: cxfs lock %s failed", (char *)cstring_get_str(&path_cstr));
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_lock_req_request: cxfs lock %s failed", (char *)cstring_get_str(&path_cstr));
             }
 
             cstring_clean(&path_cstr);
@@ -1039,12 +927,12 @@ EC_BOOL cxfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_lock_req_get_request: cxfs lock %s done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_lock_req_request: cxfs lock %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_lock_req_get_request: cxfs lock %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_lock_req_request: cxfs lock %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -1059,7 +947,7 @@ EC_BOOL cxfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_lock_req_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_lock_req_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint8_t       *token_buf;
@@ -1077,15 +965,15 @@ EC_BOOL cxfshttp_make_lock_req_get_response(CHTTP_NODE *chttp_node)
         uint32_t       cache_len;
 
         uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
-        cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/lock_req");
-        cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/lock_req");
+        cache_key = CBUFFER_DATA(uri_cbuffer);
+        cache_len = CBUFFER_USED(uri_cbuffer);
 
-        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_lock_req_get_response: path %.*s\n", cache_len, cache_key);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_lock_req_response: path %.*s\n", cache_len, cache_key);
     }
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_lock_req_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_lock_req_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -1093,34 +981,34 @@ EC_BOOL cxfshttp_make_lock_req_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_lock_req_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_lock_req_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_token(chttp_node, token_buf, token_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_lock_req_get_response: make response header token failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_lock_req_response: make response header token failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_lock_req_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_lock_req_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_lock_req_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_lock_req_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_lock_req_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_lock_req_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -1130,69 +1018,33 @@ EC_BOOL cxfshttp_commit_lock_req_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: unlock_req ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_unlock_req_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/unlock_req/") < uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/unlock_req/")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_unlock_req(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_unlock_req: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_unlock_req_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_unlock_req_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_unlock_req_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_unlock_req_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_unlock_req_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unlock_req_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unlock_req_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_unlock_req_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_unlock_req_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unlock_req_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unlock_req_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_unlock_req_get_response(chttp_node);
+    ret = cxfshttp_commit_unlock_req_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unlock_req_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unlock_req_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_unlock_req_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_unlock_req_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -1207,13 +1059,13 @@ EC_BOOL cxfshttp_handle_unlock_req_get_request(CHTTP_NODE *chttp_node)
 
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
-    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/unlock_req");
-    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/unlock_req");
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
     cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0010);
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_unlock_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_unlock_req_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -1223,19 +1075,19 @@ EC_BOOL cxfshttp_handle_unlock_req_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unlock_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unlock_req_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unlock_req_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unlock_req_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unlock_req_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unlock_req_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unlock_req_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unlock_req_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_unlock_req_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_unlock_req_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
@@ -1245,7 +1097,7 @@ EC_BOOL cxfshttp_handle_unlock_req_get_request(CHTTP_NODE *chttp_node)
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    if(EC_TRUE == __cxfshttp_uri_is_unlock_req_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
@@ -1257,12 +1109,12 @@ EC_BOOL cxfshttp_handle_unlock_req_get_request(CHTTP_NODE *chttp_node)
         if(NULL_PTR == auth_token_header)
         {
             dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT,
-                            "error:cxfshttp_handle_unlock_req_get_request: cxfs unlock %s failed due to header 'auth-token' absence\n",
+                            "error:cxfshttp_handle_unlock_req_request: cxfs unlock %s failed due to header 'auth-token' absence\n",
                             (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_unlock_req_get_request: cxfs unlock %s failed due to header 'auth-token' absence", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_unlock_req_request: cxfs unlock %s failed due to header 'auth-token' absence", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
@@ -1275,12 +1127,12 @@ EC_BOOL cxfshttp_handle_unlock_req_get_request(CHTTP_NODE *chttp_node)
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == cxfs_file_unlock(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, &token_cstr))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_unlock_req_get_request: cxfs unlock %s failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_unlock_req_request: cxfs unlock %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_unlock_req_get_request: cxfs unlock %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_unlock_req_request: cxfs unlock %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
@@ -1288,12 +1140,12 @@ EC_BOOL cxfshttp_handle_unlock_req_get_request(CHTTP_NODE *chttp_node)
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_unlock_req_get_request: cxfs unlock %s done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_unlock_req_request: cxfs unlock %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_unlock_req_get_request: cxfs unlock %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_unlock_req_request: cxfs unlock %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -1303,7 +1155,7 @@ EC_BOOL cxfshttp_handle_unlock_req_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_unlock_req_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_unlock_req_response(CHTTP_NODE *chttp_node)
 {
     if(do_log(SEC_0194_CXFSHTTP, 9))
     {
@@ -1312,15 +1164,15 @@ EC_BOOL cxfshttp_make_unlock_req_get_response(CHTTP_NODE *chttp_node)
         uint32_t       cache_len;
 
         uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
-        cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/unlock_req");
-        cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/unlock_req");
+        cache_key = CBUFFER_DATA(uri_cbuffer);
+        cache_len = CBUFFER_USED(uri_cbuffer);
 
-        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_unlock_req_get_response: path %.*s\n", cache_len, cache_key);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_unlock_req_response: path %.*s\n", cache_len, cache_key);
     }
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unlock_req_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unlock_req_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -1328,28 +1180,28 @@ EC_BOOL cxfshttp_make_unlock_req_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unlock_req_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unlock_req_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unlock_req_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unlock_req_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_unlock_req_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_unlock_req_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unlock_req_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unlock_req_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -1359,69 +1211,33 @@ EC_BOOL cxfshttp_commit_unlock_req_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: unlock_notify_req ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_unlock_notify_req_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/unlock_notify_req/") < uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/unlock_notify_req/")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_unlock_notify_req(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_unlock_notify_req: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_unlock_notify_req_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_unlock_notify_req_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_unlock_notify_req_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_unlock_notify_req_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_unlock_notify_req_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unlock_notify_req_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unlock_notify_req_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_unlock_notify_req_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_unlock_notify_req_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unlock_notify_req_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unlock_notify_req_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_unlock_notify_req_get_response(chttp_node);
+    ret = cxfshttp_commit_unlock_notify_req_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unlock_notify_req_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unlock_notify_req_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_unlock_notify_req_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_unlock_notify_req_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -1436,13 +1252,13 @@ EC_BOOL cxfshttp_handle_unlock_notify_req_get_request(CHTTP_NODE *chttp_node)
 
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
-    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/unlock_notify_req");
-    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/unlock_notify_req");
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
     cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0011);
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_unlock_notify_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_unlock_notify_req_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -1452,19 +1268,19 @@ EC_BOOL cxfshttp_handle_unlock_notify_req_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unlock_notify_req_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unlock_notify_req_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unlock_notify_req_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unlock_notify_req_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unlock_notify_req_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unlock_notify_req_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unlock_notify_req_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unlock_notify_req_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_unlock_notify_req_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_unlock_notify_req_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
@@ -1474,19 +1290,19 @@ EC_BOOL cxfshttp_handle_unlock_notify_req_get_request(CHTTP_NODE *chttp_node)
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    if(EC_TRUE == __cxfshttp_uri_is_unlock_notify_req_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == cxfs_file_unlock_notify(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_unlock_notify_req_get_request: cxfs unlock_notify %s failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_unlock_notify_req_request: cxfs unlock_notify %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_unlock_notify_req_get_request: cxfs unlock_notify %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_unlock_notify_req_request: cxfs unlock_notify %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
@@ -1494,12 +1310,12 @@ EC_BOOL cxfshttp_handle_unlock_notify_req_get_request(CHTTP_NODE *chttp_node)
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_unlock_notify_req_get_request: cxfs unlock_notify %s done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_unlock_notify_req_request: cxfs unlock_notify %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_unlock_notify_req_get_request: cxfs unlock_notify %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_unlock_notify_req_request: cxfs unlock_notify %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -1509,7 +1325,7 @@ EC_BOOL cxfshttp_handle_unlock_notify_req_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_unlock_notify_req_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_unlock_notify_req_response(CHTTP_NODE *chttp_node)
 {
     if(do_log(SEC_0194_CXFSHTTP, 9))
     {
@@ -1518,15 +1334,15 @@ EC_BOOL cxfshttp_make_unlock_notify_req_get_response(CHTTP_NODE *chttp_node)
         uint32_t       cache_len;
 
         uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
-        cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/unlock_notify_req");
-        cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/unlock_notify_req");
+        cache_key = CBUFFER_DATA(uri_cbuffer);
+        cache_len = CBUFFER_USED(uri_cbuffer);
 
-        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_unlock_notify_req_get_response: path %.*s\n", cache_len, cache_key);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_unlock_notify_req_response: path %.*s\n", cache_len, cache_key);
     }
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unlock_notify_req_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unlock_notify_req_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -1534,28 +1350,28 @@ EC_BOOL cxfshttp_make_unlock_notify_req_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unlock_notify_req_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unlock_notify_req_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unlock_notify_req_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unlock_notify_req_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_unlock_notify_req_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_unlock_notify_req_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unlock_notify_req_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unlock_notify_req_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -1566,82 +1382,36 @@ EC_BOOL cxfshttp_commit_unlock_notify_req_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: recycle ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_recycle_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/recycle") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/recycle")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_recycle(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_recycle: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_recycle_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_recycle_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_recycle_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_recycle_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_recycle_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_recycle_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_recycle_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_recycle_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_recycle_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_recycle_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_recycle_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_recycle_get_response(chttp_node);
+    ret = cxfshttp_commit_recycle_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_recycle_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_recycle_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_recycle_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_recycle_request(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
-    CBUFFER       *uri_cbuffer;
-
-    //uint8_t       *cache_key;
-    //uint32_t       cache_len;
-
     UINT32         req_body_chunk_num;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/recycle");
-    //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/recycle");
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -1651,17 +1421,17 @@ EC_BOOL cxfshttp_handle_recycle_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_recycle_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_recycle_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_recycle_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_recycle_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_recycle_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_recycle_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_recycle_get_request: bad request");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_recycle_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
@@ -1670,7 +1440,7 @@ EC_BOOL cxfshttp_handle_recycle_get_request(CHTTP_NODE *chttp_node)
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    if(EC_TRUE == __cxfshttp_uri_is_recycle_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
         char  *max_num_per_np_str;
@@ -1686,18 +1456,18 @@ EC_BOOL cxfshttp_handle_recycle_get_request(CHTTP_NODE *chttp_node)
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == cxfs_recycle(CSOCKET_CNODE_MODI(csocket_cnode), max_num_per_np, &complete_num))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_recycle_get_request: cxfs recycle failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_recycle_request: cxfs recycle failed\n");
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_recycle_get_request: cxfs recycle failed");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_recycle_request: cxfs recycle failed");
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_recycle_get_request: cxfs recycle done\n");
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_recycle_request: cxfs recycle done\n");
 
         /*prepare response header*/
         recycle_result_len = snprintf((char *)recycle_result, sizeof(recycle_result), "recycle-completion:%ld\r\n", complete_num);
@@ -1705,7 +1475,7 @@ EC_BOOL cxfshttp_handle_recycle_get_request(CHTTP_NODE *chttp_node)
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_recycle_get_request: cxfs recycle done");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_recycle_request: cxfs recycle done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -1713,7 +1483,7 @@ EC_BOOL cxfshttp_handle_recycle_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_recycle_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_recycle_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint8_t       *recycle_result_buf;
@@ -1726,7 +1496,7 @@ EC_BOOL cxfshttp_make_recycle_get_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_recycle_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_recycle_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -1734,34 +1504,34 @@ EC_BOOL cxfshttp_make_recycle_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_recycle_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_recycle_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_recycle(chttp_node, recycle_result_buf, recycle_result_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_recycle_get_response: make response header recycle failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_recycle_response: make response header recycle failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_recycle_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_recycle_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_recycle_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_recycle_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_recycle_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_recycle_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -1771,81 +1541,35 @@ EC_BOOL cxfshttp_commit_recycle_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: flush ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_flush_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/flush") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/flush")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_flush(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_flush: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_flush_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_flush_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_flush_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_flush_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_flush_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_flush_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_flush_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_flush_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_flush_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_flush_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_flush_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_flush_get_response(chttp_node);
+    ret = cxfshttp_commit_flush_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_flush_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_flush_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_flush_request(CHTTP_NODE *chttp_node)
 {
-    CBUFFER       *uri_cbuffer;
-
-    //uint8_t       *cache_key;
-    //uint32_t       cache_len;
-
     UINT32         req_body_chunk_num;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/flush");
-    //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/flush");
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -1855,43 +1579,43 @@ EC_BOOL cxfshttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_flush_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_flush_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_flush_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_flush_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_flush_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_flush_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_flush_get_request: bad request");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_flush_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
-    if(EC_TRUE == __cxfshttp_uri_is_flush_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == cxfs_flush(CSOCKET_CNODE_MODI(csocket_cnode)))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_flush_get_request: cxfs flush failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_flush_request: cxfs flush failed\n");
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_flush_get_request: cxfs flush failed");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_flush_request: cxfs flush failed");
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_flush_get_request: cxfs flush done\n");
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_flush_request: cxfs flush done\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_flush_get_request: cxfs flush done");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_flush_request: cxfs flush done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -1899,11 +1623,11 @@ EC_BOOL cxfshttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_flush_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_flush_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_flush_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_flush_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -1911,28 +1635,28 @@ EC_BOOL cxfshttp_make_flush_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_flush_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_flush_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_flush_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_flush_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_flush_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_flush_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_flush_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_flush_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -1942,69 +1666,34 @@ EC_BOOL cxfshttp_commit_flush_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: retire ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_retire_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
 
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/retire") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/retire")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_retire(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_retire: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_retire_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_retire_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_retire_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_retire_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_retire_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_retire_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_retire_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_retire_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_retire_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_retire_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_retire_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_retire_get_response(chttp_node);
+    ret = cxfshttp_commit_retire_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_retire_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_retire_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_retire_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_retire_request(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
 
@@ -2012,7 +1701,7 @@ EC_BOOL cxfshttp_handle_retire_get_request(CHTTP_NODE *chttp_node)
 
     char          *retire_files_str;
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_retire_get_request\n");
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_retire_request\n");
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -2022,17 +1711,17 @@ EC_BOOL cxfshttp_handle_retire_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_retire_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_retire_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_retire_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_retire_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_retire_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_retire_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_retire_get_request: bad request");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_retire_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
@@ -2044,11 +1733,11 @@ EC_BOOL cxfshttp_handle_retire_get_request(CHTTP_NODE *chttp_node)
     retire_files_str   = chttp_node_get_header(chttp_node, (const char *)"retire-files");
     if(NULL_PTR == retire_files_str) /*invalid retire request*/
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_retire_get_request: http header 'retire-files' absence\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_retire_request: http header 'retire-files' absence\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_retire_get_request: http header 'retire-files' absence");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_retire_request: http header 'retire-files' absence");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
@@ -2070,12 +1759,12 @@ EC_BOOL cxfshttp_handle_retire_get_request(CHTTP_NODE *chttp_node)
 
         if(EC_FALSE == cxfs_retire(CSOCKET_CNODE_MODI(csocket_cnode), retire_files, &complete_num))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_retire_get_request: cxfs retire with expect retire num %ld failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_retire_request: cxfs retire with expect retire num %ld failed\n",
                                 retire_files);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_retire_get_request: cxfs retire with expect retire num %ld failed", retire_files);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_retire_request: cxfs retire with expect retire num %ld failed", retire_files);
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
             return (EC_TRUE);
@@ -2085,12 +1774,12 @@ EC_BOOL cxfshttp_handle_retire_get_request(CHTTP_NODE *chttp_node)
         retire_result_len = snprintf((char *)retire_result, sizeof(retire_result), "retire-completion:%ld\r\n", complete_num);
         cbytes_set(content_cbytes, retire_result, retire_result_len);
 
-        dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_retire_get_request: cxfs retire with expect retire %ld, complete %ld done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_retire_request: cxfs retire with expect retire %ld, complete %ld done\n",
                             retire_files, complete_num);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_retire_get_request: cxfs retire with expect retire %ld, complete %ld done", retire_files, complete_num);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_retire_request: cxfs retire with expect retire %ld, complete %ld done", retire_files, complete_num);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -2098,7 +1787,7 @@ EC_BOOL cxfshttp_handle_retire_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_retire_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_retire_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint8_t       *retire_result_buf;
@@ -2111,7 +1800,7 @@ EC_BOOL cxfshttp_make_retire_get_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_retire_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_retire_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -2119,34 +1808,34 @@ EC_BOOL cxfshttp_make_retire_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_retire_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_retire_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_retire(chttp_node, retire_result_buf, retire_result_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_retire_get_response: make response header retire failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_retire_response: make response header retire failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_retire_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_retire_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_retire_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_retire_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_retire_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_retire_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -2156,81 +1845,35 @@ EC_BOOL cxfshttp_commit_retire_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: setreadonly ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_setreadonly_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/setreadonly") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/setreadonly")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_setreadonly(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_setreadonly: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_setreadonly_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_setreadonly_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_setreadonly_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_setreadonly_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_setreadonly_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setreadonly_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setreadonly_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_setreadonly_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_setreadonly_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setreadonly_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setreadonly_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_setreadonly_get_response(chttp_node);
+    ret = cxfshttp_commit_setreadonly_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setreadonly_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setreadonly_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_setreadonly_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_setreadonly_request(CHTTP_NODE *chttp_node)
 {
-    CBUFFER       *uri_cbuffer;
-
-    //uint8_t       *cache_key;
-    //uint32_t       cache_len;
-
     UINT32         req_body_chunk_num;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/setreadonly");
-    //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setreadonly");
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -2240,43 +1883,43 @@ EC_BOOL cxfshttp_handle_setreadonly_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setreadonly_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setreadonly_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setreadonly_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setreadonly_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setreadonly_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setreadonly_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_setreadonly_get_request: bad request");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_setreadonly_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
-    if(EC_TRUE == __cxfshttp_uri_is_setreadonly_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == cxfs_set_read_only(CSOCKET_CNODE_MODI(csocket_cnode)))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_setreadonly_get_request: cxfs setreadonly failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_setreadonly_request: cxfs setreadonly failed\n");
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_setreadonly_get_request: cxfs setreadonly failed");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_setreadonly_request: cxfs setreadonly failed");
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_setreadonly_get_request: cxfs setreadonly done\n");
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_setreadonly_request: cxfs setreadonly done\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_setreadonly_get_request: cxfs setreadonly done");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_setreadonly_request: cxfs setreadonly done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -2284,11 +1927,11 @@ EC_BOOL cxfshttp_handle_setreadonly_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_setreadonly_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_setreadonly_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_setreadonly_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_setreadonly_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -2296,28 +1939,28 @@ EC_BOOL cxfshttp_make_setreadonly_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_setreadonly_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_setreadonly_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_setreadonly_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_setreadonly_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_setreadonly_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_setreadonly_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setreadonly_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setreadonly_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -2327,81 +1970,35 @@ EC_BOOL cxfshttp_commit_setreadonly_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: unsetreadonly ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_unsetreadonly_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/unsetreadonly") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/unsetreadonly")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_unsetreadonly(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_unsetreadonly: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_unsetreadonly_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_unsetreadonly_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_unsetreadonly_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_unsetreadonly_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_unsetreadonly_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unsetreadonly_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unsetreadonly_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_unsetreadonly_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_unsetreadonly_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unsetreadonly_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unsetreadonly_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_unsetreadonly_get_response(chttp_node);
+    ret = cxfshttp_commit_unsetreadonly_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unsetreadonly_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unsetreadonly_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_unsetreadonly_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_unsetreadonly_request(CHTTP_NODE *chttp_node)
 {
-    CBUFFER       *uri_cbuffer;
-
-    //uint8_t       *cache_key;
-    //uint32_t       cache_len;
-
     UINT32         req_body_chunk_num;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/unsetreadonly");
-    //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/unsetreadonly");
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -2411,43 +2008,43 @@ EC_BOOL cxfshttp_handle_unsetreadonly_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unsetreadonly_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unsetreadonly_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unsetreadonly_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unsetreadonly_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unsetreadonly_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_unsetreadonly_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_unsetreadonly_get_request: bad request");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_unsetreadonly_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
-    if(EC_TRUE == __cxfshttp_uri_is_unsetreadonly_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == cxfs_unset_read_only(CSOCKET_CNODE_MODI(csocket_cnode)))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_unsetreadonly_get_request: cxfs unsetreadonly failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_unsetreadonly_request: cxfs unsetreadonly failed\n");
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_unsetreadonly_get_request: cxfs unsetreadonly failed");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_unsetreadonly_request: cxfs unsetreadonly failed");
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_unsetreadonly_get_request: cxfs unsetreadonly done\n");
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_unsetreadonly_request: cxfs unsetreadonly done\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_unsetreadonly_get_request: cxfs unsetreadonly done");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_unsetreadonly_request: cxfs unsetreadonly done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -2455,11 +2052,11 @@ EC_BOOL cxfshttp_handle_unsetreadonly_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_unsetreadonly_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_unsetreadonly_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unsetreadonly_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unsetreadonly_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -2467,28 +2064,28 @@ EC_BOOL cxfshttp_make_unsetreadonly_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unsetreadonly_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unsetreadonly_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unsetreadonly_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_unsetreadonly_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_unsetreadonly_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_unsetreadonly_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unsetreadonly_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_unsetreadonly_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -2498,83 +2095,37 @@ EC_BOOL cxfshttp_commit_unsetreadonly_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: isreadonly ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_isreadonly_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/isreadonly") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/isreadonly")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_isreadonly(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_isreadonly: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_isreadonly_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_isreadonly_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_isreadonly_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_isreadonly_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_isreadonly_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_isreadonly_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_isreadonly_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_isreadonly_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_isreadonly_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_isreadonly_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_isreadonly_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_isreadonly_get_response(chttp_node);
+    ret = cxfshttp_commit_isreadonly_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_isreadonly_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_isreadonly_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_isreadonly_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_isreadonly_request(CHTTP_NODE *chttp_node)
 {
-    CBUFFER       *uri_cbuffer;
-
-    //uint8_t       *cache_key;
-    //uint32_t       cache_len;
-
     CBYTES        *content_cbytes;
 
     UINT32         req_body_chunk_num;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/isreadonly");
-    //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/isreadonly");
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -2584,17 +2135,17 @@ EC_BOOL cxfshttp_handle_isreadonly_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_isreadonly_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_isreadonly_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_isreadonly_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_isreadonly_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_isreadonly_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_isreadonly_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_isreadonly_get_request: bad request");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_isreadonly_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
@@ -2603,17 +2154,17 @@ EC_BOOL cxfshttp_handle_isreadonly_get_request(CHTTP_NODE *chttp_node)
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    if(EC_TRUE == __cxfshttp_uri_is_isreadonly_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == cxfs_is_read_only(CSOCKET_CNODE_MODI(csocket_cnode)))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_isreadonly_get_request: cxfs is not read-only\n");
+            dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_isreadonly_request: cxfs is not read-only\n");
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_isreadonly_get_request: cxfs is not read-only");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_isreadonly_request: cxfs is not read-only");
 
             cbytes_append(content_cbytes, (const UINT8 *)"read-only:false", sizeof("read-only:false") - 1);
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -2621,10 +2172,10 @@ EC_BOOL cxfshttp_handle_isreadonly_get_request(CHTTP_NODE *chttp_node)
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_isreadonly_get_request: cxfs is read-only\n");
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_isreadonly_request: cxfs is read-only\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_isreadonly_get_request: cxfs is read-only");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_isreadonly_request: cxfs is read-only");
 
         cbytes_append(content_cbytes, (const UINT8 *)"read-only:true", sizeof("read-only:true") - 1);
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -2633,7 +2184,7 @@ EC_BOOL cxfshttp_handle_isreadonly_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_isreadonly_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_isreadonly_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
@@ -2643,7 +2194,7 @@ EC_BOOL cxfshttp_make_isreadonly_get_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_isreadonly_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_isreadonly_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -2651,14 +2202,14 @@ EC_BOOL cxfshttp_make_isreadonly_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_isreadonly_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_isreadonly_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_isreadonly_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_isreadonly_response: make header end failed\n");
         return (EC_FALSE);
     }
 
@@ -2668,7 +2219,7 @@ EC_BOOL cxfshttp_make_isreadonly_get_response(CHTTP_NODE *chttp_node)
                                               (uint32_t )CBYTES_LEN(content_cbytes),
                                               (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_isreadonly_get_response: make body with len %d failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_isreadonly_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
@@ -2677,14 +2228,14 @@ EC_BOOL cxfshttp_make_isreadonly_get_response(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_isreadonly_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_isreadonly_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_isreadonly_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_isreadonly_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -2694,81 +2245,35 @@ EC_BOOL cxfshttp_commit_isreadonly_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: sync ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_sync_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/sync") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/sync")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_sync(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_sync: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_sync_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_sync_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_sync_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_sync_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_sync_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sync_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sync_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_sync_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_sync_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sync_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sync_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_sync_get_response(chttp_node);
+    ret = cxfshttp_commit_sync_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sync_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sync_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_sync_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_sync_request(CHTTP_NODE *chttp_node)
 {
-    CBUFFER       *uri_cbuffer;
-
-    //uint8_t       *cache_key;
-    //uint32_t       cache_len;
-
     UINT32         req_body_chunk_num;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/sync");
-    //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/sync");
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -2778,43 +2283,43 @@ EC_BOOL cxfshttp_handle_sync_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_sync_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_sync_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_sync_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_sync_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_sync_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_sync_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_sync_get_request: bad request");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_sync_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
-    if(EC_TRUE == __cxfshttp_uri_is_sync_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == cxfs_sync(CSOCKET_CNODE_MODI(csocket_cnode)))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_sync_get_request: cxfs sync failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_sync_request: cxfs sync failed\n");
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_sync_get_request: cxfs sync failed");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_sync_request: cxfs sync failed");
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_sync_get_request: cxfs sync succ\n");
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_sync_request: cxfs sync succ\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_sync_get_request: cxfs sync succ");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_sync_request: cxfs sync succ");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -2822,11 +2327,11 @@ EC_BOOL cxfshttp_handle_sync_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_sync_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_sync_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, 0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_sync_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_sync_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -2834,28 +2339,28 @@ EC_BOOL cxfshttp_make_sync_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_sync_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_sync_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_sync_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_sync_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_sync_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_sync_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sync_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sync_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -2865,81 +2370,35 @@ EC_BOOL cxfshttp_commit_sync_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: replayop ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_replayop_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/replayop") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/replayop")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_replayop(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_replayop: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_replayop_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_replayop_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_replayop_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_replayop_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_replayop_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_replayop_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_replayop_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_replayop_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_replayop_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_replayop_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_replayop_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_replayop_get_response(chttp_node);
+    ret = cxfshttp_commit_replayop_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_replayop_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_replayop_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_replayop_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_replayop_request(CHTTP_NODE *chttp_node)
 {
-    CBUFFER       *uri_cbuffer;
-
-    //uint8_t       *cache_key;
-    //uint32_t       cache_len;
-
     UINT32         req_body_chunk_num;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/replayop");
-    //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/replayop");
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -2949,43 +2408,43 @@ EC_BOOL cxfshttp_handle_replayop_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_replayop_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_replayop_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_replayop_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_replayop_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_replayop_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_replayop_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_replayop_get_request: bad request");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_replayop_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
-    if(EC_TRUE == __cxfshttp_uri_is_replayop_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == cxfs_replay_op(CSOCKET_CNODE_MODI(csocket_cnode)))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_replayop_get_request: cxfs replayop failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_replayop_request: cxfs replayop failed\n");
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_replayop_get_request: cxfs replayop failed");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_replayop_request: cxfs replayop failed");
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_replayop_get_request: cxfs replayop succ\n");
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_replayop_request: cxfs replayop succ\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_replayop_get_request: cxfs replayop succ");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_replayop_request: cxfs replayop succ");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -2993,11 +2452,11 @@ EC_BOOL cxfshttp_handle_replayop_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_replayop_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_replayop_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, 0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_replayop_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_replayop_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -3005,28 +2464,28 @@ EC_BOOL cxfshttp_make_replayop_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_replayop_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_replayop_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_replayop_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_replayop_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_replayop_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_replayop_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_replayop_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_replayop_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -3037,75 +2496,39 @@ EC_BOOL cxfshttp_commit_replayop_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: breathe ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_breathe_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/breathe") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/breathe")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_breathe(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_breathe: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_breathe_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_breathe_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_breathe_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_breathe_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_breathe_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_breathe_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_breathe_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_breathe_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_breathe_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_breathe_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_breathe_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_breathe_get_response(chttp_node);
+    ret = cxfshttp_commit_breathe_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_breathe_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_breathe_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_breathe_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_breathe_request(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
 
     UINT32         req_body_chunk_num;
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_breathe_get_request\n");
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_breathe_request\n");
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -3115,17 +2538,17 @@ EC_BOOL cxfshttp_handle_breathe_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_breathe_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_breathe_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_breathe_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_breathe_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_breathe_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_breathe_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_breathe_get_request: bad request");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_breathe_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
@@ -3142,11 +2565,11 @@ EC_BOOL cxfshttp_handle_breathe_get_request(CHTTP_NODE *chttp_node)
 
         breathing_static_mem();
 
-        dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_breathe_get_request: memory breathing done\n");
+        dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_breathe_request: memory breathing done\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_breathe_get_request: memory breathing done");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_breathe_request: memory breathing done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -3154,11 +2577,11 @@ EC_BOOL cxfshttp_handle_breathe_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_breathe_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_breathe_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_breathe_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_breathe_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -3166,28 +2589,28 @@ EC_BOOL cxfshttp_make_breathe_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_breathe_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_breathe_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_breathe_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_breathe_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_breathe_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_breathe_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_breathe_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_breathe_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -3197,64 +2620,28 @@ EC_BOOL cxfshttp_commit_breathe_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: POST, FILE OPERATOR: setsmf ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_setsmf_post_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/setsmf/") < uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/setsmf/")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_post_setsmf(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_post_setsmf: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_setsmf_post_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_setsmf_post_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_setsmf_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_setsmf_post_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_setsmf_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setsmf_post_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setsmf_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_setsmf_post_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_setsmf_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setsmf_post_request: make 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setsmf_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_setsmf_post_request: make 'SET' response done\n");
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_setsmf_request: make response done\n");
 
-    ret = cxfshttp_commit_setsmf_post_response(chttp_node);
+    ret = cxfshttp_commit_setsmf_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setsmf_post_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setsmf_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -3262,7 +2649,7 @@ EC_BOOL cxfshttp_commit_setsmf_post_request(CHTTP_NODE *chttp_node)
 }
 
 
-EC_BOOL cxfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_setsmf_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -3284,32 +2671,35 @@ EC_BOOL cxfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setsmf_post_request: path %.*s, invalid content length %"PRId64"\n",
-                                                 (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf")),
-                                                 CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/setsmf"),
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setsmf_request: path %.*s, invalid content length %"PRId64"\n",
+                                                 (uint32_t)(CBUFFER_USED(uri_cbuffer)),
+                                                 CBUFFER_DATA(uri_cbuffer),
                                                  content_len);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setsmf_post_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setsmf_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setsmf_post_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setsmf_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_setsmf_post_request: path %.*s, invalid content length %"PRId64, (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf")),(char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/setsmf")),content_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_setsmf_request: path %.*s, invalid content length %"PRId64,
+                                                (uint32_t)(CBUFFER_USED(uri_cbuffer)),
+                                                (char *)(CBUFFER_DATA(uri_cbuffer)),
+                                                content_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
-    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/setsmf");
-    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf");
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
     cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0012);
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_setsmf_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_setsmf_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
     body_len = chttp_node_recv_len(chttp_node);
     /*CXFSHTTP_ASSERT((uint64_t)0x100000000 > body_len);*//*not consider this scenario yet*/
@@ -3319,19 +2709,19 @@ EC_BOOL cxfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setsmf_post_request: path %s, invalid body length %"PRId64"\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setsmf_request: path %s, invalid body length %"PRId64"\n",
                                                  (char *)cstring_get_str(&path_cstr),
                                                  body_len);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setsmf_post_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setsmf_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setsmf_post_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_setsmf_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_setsmf_post_request: path %s, invalid body length %"PRId64, (char *)cstring_get_str(&path_cstr),body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_setsmf_request: path %s, invalid body length %"PRId64, (char *)cstring_get_str(&path_cstr),body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
@@ -3341,10 +2731,10 @@ EC_BOOL cxfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
 
     if(content_len > body_len)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "warn:cxfshttp_handle_setsmf_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
+        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "warn:cxfshttp_handle_setsmf_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:cxfshttp_handle_setsmf_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:cxfshttp_handle_setsmf_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
 
@@ -3355,10 +2745,10 @@ EC_BOOL cxfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
     content_cbytes = cbytes_new(0);
     if(NULL_PTR == content_cbytes)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_setsmf_post_request: new cbytes without buff failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_setsmf_request: new cbytes without buff failed\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_setsmf_post_request: new cbytes without buff failed");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_setsmf_request: new cbytes without buff failed");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
         cstring_clean(&path_cstr);
@@ -3367,12 +2757,12 @@ EC_BOOL cxfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_node_recv_export_to_cbytes(chttp_node, content_cbytes, (UINT32)body_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_setsmf_post_request: export body with len %ld to cbytes failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_setsmf_request: export body with len %ld to cbytes failed\n",
                             (UINT32)body_len);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_setsmf_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_setsmf_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
@@ -3384,7 +2774,7 @@ EC_BOOL cxfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
     /*clean body chunks*/
     chttp_node_recv_clean(chttp_node);
 
-    if(EC_TRUE == __cxfshttp_uri_is_setsmf_post_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
@@ -3392,12 +2782,12 @@ EC_BOOL cxfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
 #if 1
         if(EC_FALSE == cxfs_write(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_setsmf_post_request: cxfs write %s failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_setsmf_request: cxfs write %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_setsmf_post_request: cxfs write %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_setsmf_request: cxfs write %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
@@ -3405,17 +2795,17 @@ EC_BOOL cxfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
             cbytes_free(content_cbytes);
             return (EC_TRUE);
         }
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_setsmf_post_request: cxfs write %s done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_setsmf_request: cxfs write %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "POST", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_setsmf_post_request: cxfs write %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_setsmf_request: cxfs write %s done", (char *)cstring_get_str(&path_cstr));
 #endif
     }
     else
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_setsmf_post_request: should never reach here!\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_setsmf_request: should never reach here!\n");
         task_brd_default_abort();
     }
 
@@ -3427,11 +2817,11 @@ EC_BOOL cxfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_setsmf_post_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_setsmf_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_setsmf_post_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_setsmf_response: make response header failed\n");
 
         return (EC_FALSE);
     }
@@ -3440,28 +2830,28 @@ EC_BOOL cxfshttp_make_setsmf_post_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_setsmf_post_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_setsmf_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_setsmf_post_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_setsmf_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_setsmf_post_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_setsmf_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setsmf_post_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_setsmf_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -3471,71 +2861,36 @@ EC_BOOL cxfshttp_commit_setsmf_post_response(CHTTP_NODE *chttp_node)
 
 
 #if 1
-/*---------------------------------------- HTTP METHOD: PUT, FILE OPERATOR: getsmf ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_getsmf_head_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/getsmf/") < uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/getsmf/")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_head_getsmf(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_head_getsmf: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_getsmf_head_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-EC_BOOL cxfshttp_commit_getsmf_head_request(CHTTP_NODE *chttp_node)
+/*---------------------------------------- HTTP METHOD: PUT, FILE OPERATOR: meta ----------------------------------------*/
+EC_BOOL cxfshttp_commit_meta_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_getsmf_head_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_meta_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_getsmf_head_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_meta_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_getsmf_head_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_meta_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_getsmf_head_request: make 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_meta_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_getsmf_head_request: make 'SET' response done\n");
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_meta_request: make response done\n");
 
-    ret = cxfshttp_commit_getsmf_head_response(chttp_node);
+    ret = cxfshttp_commit_meta_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_getsmf_head_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_meta_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_getsmf_head_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_meta_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -3548,18 +2903,18 @@ EC_BOOL cxfshttp_handle_getsmf_head_request(CHTTP_NODE *chttp_node)
 
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
-    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/getsmf");
-    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/getsmf");
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
     cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0013);
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_getsmf_head_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_meta_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    if(EC_TRUE == __cxfshttp_uri_is_getsmf_head_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
         uint64_t        file_size;
@@ -3570,24 +2925,24 @@ EC_BOOL cxfshttp_handle_getsmf_head_request(CHTTP_NODE *chttp_node)
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == cxfs_file_size(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, &file_size))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_getsmf_head_request: cxfs get size of %s failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_meta_request: cxfs get size of %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "HEAD", CHTTP_NOT_FOUND);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_getsmf_head_request: cxfs get size of %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_meta_request: cxfs get size of %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
         }
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_getsmf_head_request: cxfs get size of %s done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_meta_request: cxfs get size of %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %"PRId64, "HEAD", CHTTP_OK, file_size);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_getsmf_head_request: cxfs get size of %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_meta_request: cxfs get size of %s done", (char *)cstring_get_str(&path_cstr));
 
         file_size_header_len = snprintf((char *)file_size_header, sizeof(file_size_header),
                                         "file-size:%"PRId64"\r\n", file_size);
@@ -3595,7 +2950,7 @@ EC_BOOL cxfshttp_handle_getsmf_head_request(CHTTP_NODE *chttp_node)
     }
     else
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_getsmf_head_request: should never reach here!\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_meta_request: should never reach here!\n");
         task_brd_default_abort();
     }
 
@@ -3606,7 +2961,7 @@ EC_BOOL cxfshttp_handle_getsmf_head_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_getsmf_head_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_meta_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint8_t       *file_size_buf;
@@ -3619,7 +2974,7 @@ EC_BOOL cxfshttp_make_getsmf_head_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_getsmf_head_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_meta_response: make response header failed\n");
 
         return (EC_FALSE);
     }
@@ -3628,34 +2983,34 @@ EC_BOOL cxfshttp_make_getsmf_head_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_getsmf_head_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_meta_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_data(chttp_node, file_size_buf, file_size_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_getsmf_head_response: make response header file-size failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_meta_response: make response header file-size failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_getsmf_head_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_meta_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_getsmf_head_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_meta_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_getsmf_head_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_meta_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -3665,71 +3020,35 @@ EC_BOOL cxfshttp_commit_getsmf_head_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: POST, FILE OPERATOR: update ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_update_post_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/update/") < uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/update/")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_post_update(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_post_update: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_update_post_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_update_post_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_update_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_update_post_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_update_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_update_post_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_update_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_update_post_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_update_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_update_post_request: make 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_update_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_update_post_request: make 'SET' response done\n");
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_update_request: make response done\n");
 
-    ret = cxfshttp_commit_update_post_response(chttp_node);
+    ret = cxfshttp_commit_update_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_update_post_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_update_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_update_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -3751,34 +3070,34 @@ EC_BOOL cxfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_update_post_request: path %.*s, invalid content length %"PRId64"\n",
-                                                 (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/update")),
-                                                 CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/update"),
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_update_request: path %.*s, invalid content length %"PRId64"\n",
+                                                 (uint32_t)(CBUFFER_USED(uri_cbuffer)),
+                                                 CBUFFER_DATA(uri_cbuffer),
                                                  content_len);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_update_post_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_update_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_update_post_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_update_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_update_post_request: path %.*s, invalid content length %"PRId64,
-                    (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/update")),
-                    (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/update")),content_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_update_request: path %.*s, invalid content length %"PRId64,
+                    (uint32_t)(CBUFFER_USED(uri_cbuffer)),
+                    (char *)(CBUFFER_DATA(uri_cbuffer)),content_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
-    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/update");
-    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/update");
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
     cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0014);
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_update_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_update_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
     body_len = chttp_node_recv_len(chttp_node);
     /*CXFSHTTP_ASSERT((uint64_t)0x100000000 > body_len);*//*not consider this scenario yet*/
@@ -3788,19 +3107,19 @@ EC_BOOL cxfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_update_post_request: path %s, invalid body length %"PRId64"\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_update_request: path %s, invalid body length %"PRId64"\n",
                                                  (char *)cstring_get_str(&path_cstr),
                                                  body_len);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_update_post_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_update_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_update_post_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_update_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_update_post_request: path %s, invalid body length %"PRId64, (char *)cstring_get_str(&path_cstr),body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_update_request: path %s, invalid body length %"PRId64, (char *)cstring_get_str(&path_cstr),body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
@@ -3810,11 +3129,11 @@ EC_BOOL cxfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
 
     if(content_len > body_len)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "warn:cxfshttp_handle_update_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
+        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "warn:cxfshttp_handle_update_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:cxfshttp_handle_update_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:cxfshttp_handle_update_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
 
@@ -3825,10 +3144,10 @@ EC_BOOL cxfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
     content_cbytes = cbytes_new(0);
     if(NULL_PTR == content_cbytes)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_update_post_request: new cbytes without buff failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_update_request: new cbytes without buff failed\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_update_post_request: new cbytes with len zero failed");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_update_request: new cbytes with len zero failed");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
         cstring_clean(&path_cstr);
@@ -3837,12 +3156,12 @@ EC_BOOL cxfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_node_recv_export_to_cbytes(chttp_node, content_cbytes, (UINT32)body_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_update_post_request: export body with len %ld to cbytes failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_update_request: export body with len %ld to cbytes failed\n",
                             (UINT32)body_len);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_update_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_update_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
@@ -3854,7 +3173,7 @@ EC_BOOL cxfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
     /*clean body chunks*/
     chttp_node_recv_clean(chttp_node);
 
-    if(EC_TRUE == __cxfshttp_uri_is_update_post_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
@@ -3862,12 +3181,12 @@ EC_BOOL cxfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
 #if 1
         if(EC_FALSE == cxfs_update(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_update_post_request: cxfs update %s failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_update_request: cxfs update %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_update_post_request: cxfs update %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_update_request: cxfs update %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
@@ -3875,18 +3194,18 @@ EC_BOOL cxfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
             cbytes_free(content_cbytes);
             return (EC_TRUE);
         }
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_update_post_request: cxfs update %s done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_update_request: cxfs update %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "POST", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_update_post_request: cxfs update %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_update_request: cxfs update %s done", (char *)cstring_get_str(&path_cstr));
 #endif
     }
 
     else
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_update_post_request: should never reach here!\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_update_request: should never reach here!\n");
         task_brd_default_abort();
     }
 
@@ -3898,11 +3217,11 @@ EC_BOOL cxfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_update_post_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_update_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_update_post_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_update_response: make response header failed\n");
 
         return (EC_FALSE);
     }
@@ -3911,28 +3230,28 @@ EC_BOOL cxfshttp_make_update_post_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_update_post_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_update_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_update_post_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_update_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_update_post_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_update_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_update_post_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_update_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -3944,71 +3263,35 @@ EC_BOOL cxfshttp_commit_update_post_response(CHTTP_NODE *chttp_node)
 #if 1
 /*---------------------------------------- HTTP METHOD: POST, FILE OPERATOR: renew ----------------------------------------*/
 /*renew expires setting*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_renew_post_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/renew/") < uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/renew/")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_post_renew(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_post_renew: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_renew_post_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_renew_post_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_renew_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_renew_post_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_renew_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_renew_post_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_renew_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_renew_post_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_renew_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_renew_post_request: make 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_renew_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_renew_post_request: make 'SET' response done\n");
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_renew_request: make response done\n");
 
-    ret = cxfshttp_commit_renew_post_response(chttp_node);
+    ret = cxfshttp_commit_renew_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_renew_post_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_renew_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_renew_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -4030,34 +3313,34 @@ EC_BOOL cxfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_post_request: path %.*s, invalid content length %"PRId64"\n",
-                                                 (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew")),
-                                                 CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/renew"),
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_request: path %.*s, invalid content length %"PRId64"\n",
+                                                 (uint32_t)(CBUFFER_USED(uri_cbuffer)),
+                                                 CBUFFER_DATA(uri_cbuffer),
                                                  content_len);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_post_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_post_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_renew_post_request: path %.*s, invalid content length %"PRId64,
-                    (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew")),
-                    (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/renew")),content_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_renew_request: path %.*s, invalid content length %"PRId64,
+                    (uint32_t)(CBUFFER_USED(uri_cbuffer)),
+                    (char *)(CBUFFER_DATA(uri_cbuffer)),content_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
-    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/renew");
-    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew");
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
     cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0015);
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_post_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
     body_len = chttp_node_recv_len(chttp_node);
     /*CXFSHTTP_ASSERT((uint64_t)0x100000000 > body_len);*//*not consider this scenario yet*/
@@ -4067,19 +3350,19 @@ EC_BOOL cxfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_post_request: path %s, invalid body length %"PRId64"\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_request: path %s, invalid body length %"PRId64"\n",
                                                  (char *)cstring_get_str(&path_cstr),
                                                  body_len);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_post_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_post_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_renew_post_request: path %s, invalid body length %"PRId64, (char *)cstring_get_str(&path_cstr),body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_renew_request: path %s, invalid body length %"PRId64, (char *)cstring_get_str(&path_cstr),body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
@@ -4089,10 +3372,10 @@ EC_BOOL cxfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
 
     if(content_len > body_len)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "warn:cxfshttp_handle_renew_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
+        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "warn:cxfshttp_handle_renew_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:cxfshttp_handle_renew_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:cxfshttp_handle_renew_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
 
@@ -4103,10 +3386,10 @@ EC_BOOL cxfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
     content_cbytes = cbytes_new(0);
     if(NULL_PTR == content_cbytes)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_post_request: new cbytes without buff failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_request: new cbytes without buff failed\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_post_request: new cbytes without buff failed");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_request: new cbytes without buff failed");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
         cstring_clean(&path_cstr);
@@ -4115,12 +3398,12 @@ EC_BOOL cxfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_node_recv_export_to_cbytes(chttp_node, content_cbytes, (UINT32)body_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_post_request: export body with len %ld to cbytes failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_request: export body with len %ld to cbytes failed\n",
                             (UINT32)body_len);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
@@ -4132,7 +3415,7 @@ EC_BOOL cxfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
     /*clean body chunks*/
     chttp_node_recv_clean(chttp_node);
 
-    if(EC_TRUE == __cxfshttp_uri_is_renew_post_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
@@ -4140,12 +3423,12 @@ EC_BOOL cxfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
 #if 1
         if(EC_FALSE == cxfs_update(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_post_request: cxfs renew %s failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_request: cxfs renew %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_post_request: cxfs renew %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_request: cxfs renew %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
@@ -4153,17 +3436,17 @@ EC_BOOL cxfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
             cbytes_free(content_cbytes);
             return (EC_TRUE);
         }
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_post_request: cxfs renew %s done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_request: cxfs renew %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "POST", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_renew_post_request: cxfs renew %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_renew_request: cxfs renew %s done", (char *)cstring_get_str(&path_cstr));
 #endif
     }
     else
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_post_request: should never reach here!\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_request: should never reach here!\n");
         task_brd_default_abort();
     }
 
@@ -4175,11 +3458,11 @@ EC_BOOL cxfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_renew_post_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_renew_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_renew_post_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_renew_response: make response header failed\n");
 
         return (EC_FALSE);
     }
@@ -4188,28 +3471,28 @@ EC_BOOL cxfshttp_make_renew_post_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_renew_post_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_renew_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_renew_post_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_renew_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_renew_post_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_renew_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_renew_post_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_renew_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -4220,70 +3503,33 @@ EC_BOOL cxfshttp_commit_renew_post_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: dsmf ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_dsmf_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/dsmf/") < uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/dsmf/")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-/*delete small/regular file*/
-EC_BOOL cxfshttp_is_http_get_dsmf(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_dsmf: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_dsmf_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_dsmf_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_dsmf_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_dsmf_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_dsmf_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_dsmf_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_dsmf_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_dsmf_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_dsmf_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_dsmf_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_dsmf_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_dsmf_get_response(chttp_node);
+    ret = cxfshttp_commit_dsmf_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_dsmf_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_dsmf_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_dsmf_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_dsmf_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -4296,13 +3542,13 @@ EC_BOOL cxfshttp_handle_dsmf_get_request(CHTTP_NODE *chttp_node)
 
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
-    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/dsmf");
-    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/dsmf");
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
     cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0016);
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_dsmf_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_dsmf_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -4312,19 +3558,19 @@ EC_BOOL cxfshttp_handle_dsmf_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_dsmf_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_dsmf_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_dsmf_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_dsmf_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_dsmf_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_dsmf_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_dsmf_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_dsmf_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_dsmf_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_dsmf_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
@@ -4332,7 +3578,7 @@ EC_BOOL cxfshttp_handle_dsmf_get_request(CHTTP_NODE *chttp_node)
         return (EC_TRUE);
     }
 
-    if(EC_TRUE == __cxfshttp_uri_is_dsmf_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
@@ -4340,30 +3586,30 @@ EC_BOOL cxfshttp_handle_dsmf_get_request(CHTTP_NODE *chttp_node)
 #if 1
         if(EC_FALSE == cxfs_delete_file(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_dsmf_get_request: cxfs delete file %s failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_dsmf_request: cxfs delete file %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_dsmf_get_request: cxfs delete file %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_dsmf_request: cxfs delete file %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
         }
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_dsmf_get_request: cxfs delete file %s done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_dsmf_request: cxfs delete file %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_dsmf_get_request: cxfs delete file %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_dsmf_request: cxfs delete file %s done", (char *)cstring_get_str(&path_cstr));
 #endif
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
     else
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_dsmf_get_request: should never reach here!\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_dsmf_request: should never reach here!\n");
         task_brd_default_abort();
     }
 
@@ -4372,11 +3618,11 @@ EC_BOOL cxfshttp_handle_dsmf_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_dsmf_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_dsmf_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_dsmf_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_dsmf_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -4384,28 +3630,28 @@ EC_BOOL cxfshttp_make_dsmf_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_dsmf_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_dsmf_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_dsmf_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_dsmf_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_dsmf_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_dsmf_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_dsmf_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_dsmf_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -4415,70 +3661,33 @@ EC_BOOL cxfshttp_commit_dsmf_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: ddir ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_ddir_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/ddir/") < uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/ddir/")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-/*delete dir*/
-EC_BOOL cxfshttp_is_http_get_ddir(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_ddir: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_ddir_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_ddir_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_ddir_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_ddir_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_ddir_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_ddir_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_ddir_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_ddir_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_ddir_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_ddir_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_ddir_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_ddir_get_response(chttp_node);
+    ret = cxfshttp_commit_ddir_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_ddir_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_ddir_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_ddir_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_ddir_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -4491,13 +3700,13 @@ EC_BOOL cxfshttp_handle_ddir_get_request(CHTTP_NODE *chttp_node)
 
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
-    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/ddir");
-    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/ddir");
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
     cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0017);
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_ddir_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_ddir_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -4507,19 +3716,19 @@ EC_BOOL cxfshttp_handle_ddir_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_ddir_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_ddir_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_ddir_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_ddir_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_ddir_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_ddir_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_ddir_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_ddir_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_ddir_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_ddir_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
@@ -4527,7 +3736,7 @@ EC_BOOL cxfshttp_handle_ddir_get_request(CHTTP_NODE *chttp_node)
         return (EC_TRUE);
     }
 
-    if(EC_TRUE == __cxfshttp_uri_is_ddir_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
@@ -4535,30 +3744,30 @@ EC_BOOL cxfshttp_handle_ddir_get_request(CHTTP_NODE *chttp_node)
 #if 1
         if(EC_FALSE == cxfs_delete_dir(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_ddir_get_request: cxfs delete dir %s failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_ddir_request: cxfs delete dir %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_ddir_get_request: cxfs delete dir %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_ddir_request: cxfs delete dir %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
         }
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_ddir_get_request: cxfs delete dir %s done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_ddir_request: cxfs delete dir %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_ddir_get_request: cxfs delete dir %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_ddir_request: cxfs delete dir %s done", (char *)cstring_get_str(&path_cstr));
 #endif
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
     else
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_ddir_get_request: should never reach here!\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_ddir_request: should never reach here!\n");
         task_brd_default_abort();
     }
 
@@ -4567,11 +3776,11 @@ EC_BOOL cxfshttp_handle_ddir_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_ddir_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_ddir_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_ddir_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_ddir_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -4579,28 +3788,28 @@ EC_BOOL cxfshttp_make_ddir_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_ddir_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_ddir_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_ddir_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_ddir_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_ddir_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_ddir_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_ddir_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_ddir_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -4611,70 +3820,33 @@ EC_BOOL cxfshttp_commit_ddir_get_response(CHTTP_NODE *chttp_node)
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: sexpire ----------------------------------------*/
 /*expire single file*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_sexpire_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/sexpire/") < uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/sexpire/")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-/*expire single file*/
-EC_BOOL cxfshttp_is_http_get_sexpire(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_sexpire: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_sexpire_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_sexpire_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_sexpire_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_sexpire_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_sexpire_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sexpire_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sexpire_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_sexpire_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_sexpire_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sexpire_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sexpire_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_sexpire_get_response(chttp_node);
+    ret = cxfshttp_commit_sexpire_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sexpire_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sexpire_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_sexpire_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_sexpire_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -4687,13 +3859,13 @@ EC_BOOL cxfshttp_handle_sexpire_get_request(CHTTP_NODE *chttp_node)
 
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
-    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/sexpire");
-    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/sexpire");
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
     cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0018);
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_sexpire_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_sexpire_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -4703,19 +3875,19 @@ EC_BOOL cxfshttp_handle_sexpire_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_sexpire_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_sexpire_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_sexpire_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_sexpire_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_sexpire_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_sexpire_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_sexpire_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_sexpire_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_sexpire_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_sexpire_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
@@ -4723,37 +3895,37 @@ EC_BOOL cxfshttp_handle_sexpire_get_request(CHTTP_NODE *chttp_node)
         return (EC_TRUE);
     }
 
-    if(EC_TRUE == __cxfshttp_uri_is_sexpire_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == cxfs_file_expire(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_sexpire_get_request: cxfs exipre file %s failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_sexpire_request: cxfs exipre file %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_sexpire_get_request: cxfs exipre file %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_sexpire_request: cxfs exipre file %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
             cstring_clean(&path_cstr);
             return (EC_TRUE);
         }
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_sexpire_get_request: cxfs exipre file %s done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_sexpire_request: cxfs exipre file %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_sexpire_get_request: cxfs exipre file %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_sexpire_request: cxfs exipre file %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
     else
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_sexpire_get_request: should never reach here!\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_sexpire_request: should never reach here!\n");
         task_brd_default_abort();
     }
 
@@ -4762,11 +3934,11 @@ EC_BOOL cxfshttp_handle_sexpire_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_sexpire_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_sexpire_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_sexpire_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_sexpire_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -4774,28 +3946,28 @@ EC_BOOL cxfshttp_make_sexpire_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_sexpire_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_sexpire_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_sexpire_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_sexpire_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_sexpire_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_sexpire_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sexpire_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_sexpire_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -4806,87 +3978,42 @@ EC_BOOL cxfshttp_commit_sexpire_get_response(CHTTP_NODE *chttp_node)
 #if 1
 /*---------------------------------------- HTTP METHOD: POST, FILE OPERATOR: mexpire ----------------------------------------*/
 /*expire multiple files*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_mexpire_post_op(const CBUFFER *uri_cbuffer)
+EC_BOOL cxfshttp_commit_mexpire_request(CHTTP_NODE *chttp_node)
 {
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/mexpire") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/mexpire")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-/*expire multiple files*/
-EC_BOOL cxfshttp_is_http_post_mexpire(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_post_mexpire: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_mexpire_post_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_mexpire_post_request(CHTTP_NODE *chttp_node)
-{
-    CBUFFER *uri_cbuffer;
     EC_BOOL ret;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_mexpire_post_request: uri %.*s\n", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
-
-
-    if(EC_FALSE == cxfshttp_handle_mexpire_post_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_mexpire_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mexpire_post_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mexpire_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_mexpire_post_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_mexpire_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mexpire_post_request: make 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mexpire_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_mexpire_post_request: make 'SET' response done\n");
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_mexpire_request: make response done\n");
 
-    ret = cxfshttp_commit_mexpire_post_response(chttp_node);
+    ret = cxfshttp_commit_mexpire_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mexpire_post_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mexpire_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_mexpire_request(CHTTP_NODE *chttp_node)
 {
-    CBUFFER       *uri_cbuffer;
-
     CBYTES        *req_content_cbytes;
     CBYTES        *rsp_content_cbytes;
 
     uint64_t       body_len;
     uint64_t       content_len;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
     content_len  = CHTTP_NODE_CONTENT_LENGTH(chttp_node);
     /*CXFSHTTP_ASSERT((uint64_t)0x100000000 > content_len);*//*not consider this scenario yet*/
     if(! ((uint64_t)0x100000000 > content_len))
@@ -4894,18 +4021,18 @@ EC_BOOL cxfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
         CHUNK_MGR *req_body_chunks;
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mexpire_post_request: invalid content length %"PRId64"\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mexpire_request: invalid content length %"PRId64"\n",
                                                  content_len);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mexpire_post_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mexpire_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mexpire_post_request: chunk mgr %p str\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mexpire_request: chunk mgr %p str\n", req_body_chunks);
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_mexpire_post_request: invalid content length %"PRId64, content_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_mexpire_request: invalid content length %"PRId64, content_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
@@ -4918,18 +4045,18 @@ EC_BOOL cxfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
         CHUNK_MGR *req_body_chunks;
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mexpire_post_request: invalid body length %"PRId64"\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mexpire_request: invalid body length %"PRId64"\n",
                                                  body_len);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mexpire_post_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mexpire_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mexpire_post_request: chunk mgr %p str\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mexpire_request: chunk mgr %p str\n", req_body_chunks);
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_mexpire_post_request: invalid body length %"PRId64, body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_mexpire_request: invalid body length %"PRId64, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
@@ -4937,10 +4064,10 @@ EC_BOOL cxfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
 
     if(content_len > body_len)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "warn:cxfshttp_handle_mexpire_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
+        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "warn:cxfshttp_handle_mexpire_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:cxfshttp_handle_mexpire_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:cxfshttp_handle_mexpire_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
 
@@ -4949,10 +4076,10 @@ EC_BOOL cxfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
 
     if(0 == body_len)/*request carry on empty body, nothing to do*/
     {
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "info:cxfshttp_handle_mexpire_post_request: request body is empty\n");
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "info:cxfshttp_handle_mexpire_request: request body is empty\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "POST", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "info:cxfshttp_handle_mexpire_post_request: request body is empty");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "info:cxfshttp_handle_mexpire_request: request body is empty");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
         return (EC_TRUE);
@@ -4961,10 +4088,10 @@ EC_BOOL cxfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
     req_content_cbytes = cbytes_new(0);
     if(NULL_PTR == req_content_cbytes)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mexpire_post_request: new cbytes without buff failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mexpire_request: new cbytes without buff failed\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mexpire_post_request: new cbytes with len zero failed");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mexpire_request: new cbytes with len zero failed");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
         return (EC_TRUE);
@@ -4972,11 +4099,11 @@ EC_BOOL cxfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_node_recv_export_to_cbytes(chttp_node, req_content_cbytes, (UINT32)body_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mexpire_post_request: export body with len %ld to cbytes failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mexpire_request: export body with len %ld to cbytes failed\n",
                             (UINT32)body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mexpire_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mexpire_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
@@ -4987,7 +4114,7 @@ EC_BOOL cxfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
     /*clean body chunks*/
     chttp_node_recv_clean(chttp_node);
 
-    if(EC_TRUE == __cxfshttp_uri_is_mexpire_post_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
         json_object   * files_obj;
@@ -5003,11 +4130,11 @@ EC_BOOL cxfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
         files_obj = json_tokener_parse((const char *)CBYTES_BUF(req_content_cbytes));
         if(NULL_PTR == files_obj)
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mexpire_post_request: bad request %.*s\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mexpire_request: bad request %.*s\n",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mexpire_post_request: bad request %.*s",
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mexpire_request: bad request %.*s",
                             (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -5029,7 +4156,7 @@ EC_BOOL cxfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
             file_obj = json_object_array_get_idx(files_obj, idx);
             if(NULL_PTR == file_obj)
             {
-                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mexpire_post_request: invalid file at %ld\n", idx);
+                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mexpire_request: invalid file at %ld\n", idx);
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("404"));
                 continue;
@@ -5038,7 +4165,7 @@ EC_BOOL cxfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
             path = (char *)json_object_to_json_string_ext(file_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
             if(NULL_PTR == path)
             {
-                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mexpire_post_request: path is null at %ld\n", idx);
+                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mexpire_request: path is null at %ld\n", idx);
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("404"));
                 continue;
@@ -5063,23 +4190,23 @@ EC_BOOL cxfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
 
             if(EC_FALSE == cxfs_file_expire(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
             {
-                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mexpire_post_request: cxfs expire %s failed\n",
+                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mexpire_request: cxfs expire %s failed\n",
                                     (char *)cstring_get_str(&path_cstr));
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "POST", CHTTP_NOT_FOUND);
-                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mexpire_post_request: cxfs expire %s failed", (char *)cstring_get_str(&path_cstr));
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mexpire_request: cxfs expire %s failed", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("404"));
             }
             else
             {
-                dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_mexpire_post_request: cxfs expire %s done\n",
+                dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_mexpire_request: cxfs expire %s done\n",
                                     (char *)cstring_get_str(&path_cstr));
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "POST", CHTTP_OK);
-                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_mexpire_post_request: cxfs expire %s done", (char *)cstring_get_str(&path_cstr));
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_mexpire_request: cxfs expire %s done", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("200"));
             }
@@ -5095,7 +4222,7 @@ EC_BOOL cxfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
     }
     else
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mexpire_post_request: should never reach here!\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mexpire_request: should never reach here!\n");
         task_brd_default_abort();
     }
 
@@ -5106,7 +4233,7 @@ EC_BOOL cxfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_mexpire_post_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_mexpire_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
@@ -5116,7 +4243,7 @@ EC_BOOL cxfshttp_make_mexpire_post_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mexpire_post_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mexpire_response: make response header failed\n");
 
         return (EC_FALSE);
     }
@@ -5125,14 +4252,14 @@ EC_BOOL cxfshttp_make_mexpire_post_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mexpire_post_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mexpire_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mexpire_post_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mexpire_response: make header end failed\n");
         return (EC_FALSE);
     }
 
@@ -5142,7 +4269,7 @@ EC_BOOL cxfshttp_make_mexpire_post_response(CHTTP_NODE *chttp_node)
                                               (uint32_t )CBYTES_LEN(content_cbytes),
                                               (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mexpire_post_response: make body with len %d failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mexpire_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
@@ -5151,14 +4278,14 @@ EC_BOOL cxfshttp_make_mexpire_post_response(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_mexpire_post_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_mexpire_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mexpire_post_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mexpire_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -5169,86 +4296,42 @@ EC_BOOL cxfshttp_commit_mexpire_post_response(CHTTP_NODE *chttp_node)
 #if 1
 /*---------------------------------------- HTTP METHOD: POST, FILE OPERATOR: mdsmf ----------------------------------------*/
 /*delete multiple files*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_mdsmf_post_op(const CBUFFER *uri_cbuffer)
+EC_BOOL cxfshttp_commit_mdsmf_request(CHTTP_NODE *chttp_node)
 {
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/mdsmf") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/mdsmf")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-/*delete multiple files*/
-EC_BOOL cxfshttp_is_http_post_mdsmf(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_post_mdsmf: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_mdsmf_post_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_mdsmf_post_request(CHTTP_NODE *chttp_node)
-{
-    CBUFFER *uri_cbuffer;
     EC_BOOL ret;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_mdsmf_post_request: uri %.*s\n", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
-
-    if(EC_FALSE == cxfshttp_handle_mdsmf_post_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_mdsmf_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mdsmf_post_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mdsmf_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_mdsmf_post_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_mdsmf_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mdsmf_post_request: make 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mdsmf_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_mdsmf_post_request: make 'SET' response done\n");
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_mdsmf_request: make response done\n");
 
-    ret = cxfshttp_commit_mdsmf_post_response(chttp_node);
+    ret = cxfshttp_commit_mdsmf_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mdsmf_post_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mdsmf_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_mdsmf_request(CHTTP_NODE *chttp_node)
 {
-    CBUFFER       *uri_cbuffer;
-
     CBYTES        *req_content_cbytes;
     CBYTES        *rsp_content_cbytes;
 
     uint64_t       body_len;
     uint64_t       content_len;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
     content_len  = CHTTP_NODE_CONTENT_LENGTH(chttp_node);
     /*CXFSHTTP_ASSERT((uint64_t)0x100000000 > content_len);*//*not consider this scenario yet*/
     if(! ((uint64_t)0x100000000 > content_len))
@@ -5256,18 +4339,18 @@ EC_BOOL cxfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
         CHUNK_MGR *req_body_chunks;
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mdsmf_post_request: invalid content length %"PRId64"\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mdsmf_request: invalid content length %"PRId64"\n",
                                                  content_len);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mdsmf_post_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mdsmf_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mdsmf_post_request: chunk mgr %p str\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mdsmf_request: chunk mgr %p str\n", req_body_chunks);
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_mdsmf_post_request: invalid content length %"PRId64, content_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_mdsmf_request: invalid content length %"PRId64, content_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
@@ -5280,18 +4363,18 @@ EC_BOOL cxfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
         CHUNK_MGR *req_body_chunks;
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mdsmf_post_request: invalid body length %"PRId64"\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mdsmf_request: invalid body length %"PRId64"\n",
                                                  body_len);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mdsmf_post_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mdsmf_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mdsmf_post_request: chunk mgr %p str\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mdsmf_request: chunk mgr %p str\n", req_body_chunks);
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_mdsmf_post_request: invalid body length %"PRId64, body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_mdsmf_request: invalid body length %"PRId64, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
@@ -5299,10 +4382,10 @@ EC_BOOL cxfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
 
     if(content_len > body_len)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "warn:cxfshttp_handle_mdsmf_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
+        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "warn:cxfshttp_handle_mdsmf_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:cxfshttp_handle_mdsmf_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:cxfshttp_handle_mdsmf_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
 
@@ -5311,10 +4394,10 @@ EC_BOOL cxfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
 
     if(0 == body_len)/*request carry on empty body, nothing to do*/
     {
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "info:cxfshttp_handle_mdsmf_post_request: request body is empty\n");
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "info:cxfshttp_handle_mdsmf_request: request body is empty\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "POST", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "info:cxfshttp_handle_mdsmf_post_request: request body is empty");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "info:cxfshttp_handle_mdsmf_request: request body is empty");
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
         return (EC_TRUE);
     }
@@ -5322,10 +4405,10 @@ EC_BOOL cxfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
     req_content_cbytes = cbytes_new(0);
     if(NULL_PTR == req_content_cbytes)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mdsmf_post_request: new cbytes without buff failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mdsmf_request: new cbytes without buff failed\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mdsmf_post_request: new cbytes with len zero failed");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mdsmf_request: new cbytes with len zero failed");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
         return (EC_TRUE);
@@ -5333,11 +4416,11 @@ EC_BOOL cxfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_node_recv_export_to_cbytes(chttp_node, req_content_cbytes, (UINT32)body_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mdsmf_post_request: export body with len %ld to cbytes failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mdsmf_request: export body with len %ld to cbytes failed\n",
                             (UINT32)body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mdsmf_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mdsmf_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
@@ -5348,7 +4431,7 @@ EC_BOOL cxfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
     /*clean body chunks*/
     chttp_node_recv_clean(chttp_node);
 
-    if(EC_TRUE == __cxfshttp_uri_is_mdsmf_post_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
         json_object   * files_obj;
@@ -5364,11 +4447,11 @@ EC_BOOL cxfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
         files_obj = json_tokener_parse((const char *)CBYTES_BUF(req_content_cbytes));
         if(NULL_PTR == files_obj)
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mdsmf_post_request: bad request %.*s\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mdsmf_request: bad request %.*s\n",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mdsmf_post_request: bad request %.*s",
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mdsmf_request: bad request %.*s",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -5390,7 +4473,7 @@ EC_BOOL cxfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
             file_obj = json_object_array_get_idx(files_obj, idx);
             if(NULL_PTR == file_obj)
             {
-                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mdsmf_post_request: invalid file at %ld\n", idx);
+                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mdsmf_request: invalid file at %ld\n", idx);
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("404"));
                 continue;
@@ -5399,7 +4482,7 @@ EC_BOOL cxfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
             path = (char *)json_object_to_json_string_ext(file_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
             if(NULL_PTR == path)
             {
-                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mdsmf_post_request: path is null at %ld\n", idx);
+                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mdsmf_request: path is null at %ld\n", idx);
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("404"));
                 continue;
@@ -5423,23 +4506,23 @@ EC_BOOL cxfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
 
             if(EC_FALSE == cxfs_delete_file(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
             {
-                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mdsmf_post_request: cxfs delete %s failed\n",
+                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mdsmf_request: cxfs delete %s failed\n",
                                     (char *)cstring_get_str(&path_cstr));
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "POST", CHTTP_NOT_FOUND);
-                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mdsmf_post_request: cxfs delete %s failed", (char *)cstring_get_str(&path_cstr));
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mdsmf_request: cxfs delete %s failed", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("404"));
             }
             else
             {
-                dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_mdsmf_post_request: cxfs delete %s done\n",
+                dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_mdsmf_request: cxfs delete %s done\n",
                                     (char *)cstring_get_str(&path_cstr));
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "POST", CHTTP_OK);
-                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_mdsmf_post_request: cxfs delete %s done", (char *)cstring_get_str(&path_cstr));
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_mdsmf_request: cxfs delete %s done", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("200"));
             }
@@ -5455,7 +4538,7 @@ EC_BOOL cxfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
     }
     else
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mdsmf_post_request: should never reach here!\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mdsmf_request: should never reach here!\n");
         task_brd_default_abort();
     }
 
@@ -5466,7 +4549,7 @@ EC_BOOL cxfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_mdsmf_post_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_mdsmf_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
@@ -5476,7 +4559,7 @@ EC_BOOL cxfshttp_make_mdsmf_post_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mdsmf_post_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mdsmf_response: make response header failed\n");
 
         return (EC_FALSE);
     }
@@ -5485,14 +4568,14 @@ EC_BOOL cxfshttp_make_mdsmf_post_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mdsmf_post_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mdsmf_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mdsmf_post_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mdsmf_response: make header end failed\n");
         return (EC_FALSE);
     }
 
@@ -5502,7 +4585,7 @@ EC_BOOL cxfshttp_make_mdsmf_post_response(CHTTP_NODE *chttp_node)
                                               (uint32_t )CBYTES_LEN(content_cbytes),
                                               (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mdsmf_post_response: make body with len %d failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mdsmf_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
@@ -5511,14 +4594,14 @@ EC_BOOL cxfshttp_make_mdsmf_post_response(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_mdsmf_post_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_mdsmf_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mdsmf_post_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mdsmf_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -5528,88 +4611,43 @@ EC_BOOL cxfshttp_commit_mdsmf_post_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: POST, FILE OPERATOR: mddir ----------------------------------------*/
-/*delete multiple files*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_mddir_post_op(const CBUFFER *uri_cbuffer)
+/*delete multiple directories*/
+EC_BOOL cxfshttp_commit_mddir_request(CHTTP_NODE *chttp_node)
 {
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/mddir") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/mddir")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-/*delete multiple files*/
-EC_BOOL cxfshttp_is_http_post_mddir(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_post_mddir: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_mddir_post_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_mddir_post_request(CHTTP_NODE *chttp_node)
-{
-    CBUFFER *uri_cbuffer;
     EC_BOOL ret;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_mddir_post_request: uri %.*s\n", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
-
-
-    if(EC_FALSE == cxfshttp_handle_mddir_post_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_mddir_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mddir_post_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mddir_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_mddir_post_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_mddir_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mddir_post_request: make 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mddir_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_mddir_post_request: make 'SET' response done\n");
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_mddir_request: make response done\n");
 
-    ret = cxfshttp_commit_mddir_post_response(chttp_node);
+    ret = cxfshttp_commit_mddir_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mddir_post_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mddir_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_mddir_request(CHTTP_NODE *chttp_node)
 {
-    CBUFFER       *uri_cbuffer;
-
     CBYTES        *req_content_cbytes;
     CBYTES        *rsp_content_cbytes;
 
     uint64_t       body_len;
     uint64_t       content_len;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
     content_len  = CHTTP_NODE_CONTENT_LENGTH(chttp_node);
     /*CXFSHTTP_ASSERT((uint64_t)0x100000000 > content_len);*//*not consider this scenario yet*/
     if(! ((uint64_t)0x100000000 > content_len))
@@ -5617,18 +4655,18 @@ EC_BOOL cxfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
         CHUNK_MGR *req_body_chunks;
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mddir_post_request: invalid content length %"PRId64"\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mddir_request: invalid content length %"PRId64"\n",
                                                  content_len);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mddir_post_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mddir_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mddir_post_request: chunk mgr %p str\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mddir_request: chunk mgr %p str\n", req_body_chunks);
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_mddir_post_request: invalid content length %"PRId64, content_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_mddir_request: invalid content length %"PRId64, content_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
@@ -5641,18 +4679,18 @@ EC_BOOL cxfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
         CHUNK_MGR *req_body_chunks;
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mddir_post_request: invalid body length %"PRId64"\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mddir_request: invalid body length %"PRId64"\n",
                                                  body_len);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mddir_post_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mddir_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mddir_post_request: chunk mgr %p str\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_mddir_request: chunk mgr %p str\n", req_body_chunks);
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_mddir_post_request: invalid body length %"PRId64, body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_mddir_request: invalid body length %"PRId64, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
@@ -5660,10 +4698,10 @@ EC_BOOL cxfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
 
     if(content_len > body_len)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "warn:cxfshttp_handle_mddir_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
+        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "warn:cxfshttp_handle_mddir_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:cxfshttp_handle_mddir_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:cxfshttp_handle_mddir_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
 
@@ -5672,10 +4710,10 @@ EC_BOOL cxfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
 
     if(0 == body_len)/*request carry on empty body, nothing to do*/
     {
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "info:cxfshttp_handle_mddir_post_request: request body is empty\n");
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "info:cxfshttp_handle_mddir_request: request body is empty\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "POST", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "info:cxfshttp_handle_mddir_post_request: request body is empty");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "info:cxfshttp_handle_mddir_request: request body is empty");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
         return (EC_TRUE);
@@ -5684,10 +4722,10 @@ EC_BOOL cxfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
     req_content_cbytes = cbytes_new(0);
     if(NULL_PTR == req_content_cbytes)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mddir_post_request: new cbytes without buff failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mddir_request: new cbytes without buff failed\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mddir_post_request: new cbytes with len zero failed");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mddir_request: new cbytes with len zero failed");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
         return (EC_TRUE);
@@ -5695,11 +4733,11 @@ EC_BOOL cxfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_node_recv_export_to_cbytes(chttp_node, req_content_cbytes, (UINT32)body_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mddir_post_request: export body with len %ld to cbytes failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mddir_request: export body with len %ld to cbytes failed\n",
                             (UINT32)body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mddir_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mddir_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
@@ -5710,7 +4748,7 @@ EC_BOOL cxfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
     /*clean body chunks*/
     chttp_node_recv_clean(chttp_node);
 
-    if(EC_TRUE == __cxfshttp_uri_is_mddir_post_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
         json_object   * files_obj;
@@ -5726,11 +4764,11 @@ EC_BOOL cxfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
         files_obj = json_tokener_parse((const char *)CBYTES_BUF(req_content_cbytes));
         if(NULL_PTR == files_obj)
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mddir_post_request: bad request %.*s\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mddir_request: bad request %.*s\n",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mddir_post_request: bad request %.*s",
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mddir_request: bad request %.*s",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -5752,7 +4790,7 @@ EC_BOOL cxfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
             file_obj = json_object_array_get_idx(files_obj, idx);
             if(NULL_PTR == file_obj)
             {
-                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mddir_post_request: invalid file at %ld\n", idx);
+                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mddir_request: invalid file at %ld\n", idx);
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("404"));
                 continue;
@@ -5761,7 +4799,7 @@ EC_BOOL cxfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
             path = (char *)json_object_to_json_string_ext(file_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
             if(NULL_PTR == path)
             {
-                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mddir_post_request: path is null at %ld\n", idx);
+                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mddir_request: path is null at %ld\n", idx);
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("404"));
                 continue;
@@ -5785,23 +4823,23 @@ EC_BOOL cxfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
 
             if(EC_FALSE == cxfs_delete_dir(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
             {
-                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mddir_post_request: cxfs delete %s failed\n",
+                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mddir_request: cxfs delete %s failed\n",
                                     (char *)cstring_get_str(&path_cstr));
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "POST", CHTTP_NOT_FOUND);
-                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mddir_post_request: cxfs delete %s failed", (char *)cstring_get_str(&path_cstr));
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_mddir_request: cxfs delete %s failed", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("404"));
             }
             else
             {
-                dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_mddir_post_request: cxfs delete %s done\n",
+                dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_mddir_request: cxfs delete %s done\n",
                                     (char *)cstring_get_str(&path_cstr));
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "POST", CHTTP_OK);
-                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_mddir_post_request: cxfs delete %s done", (char *)cstring_get_str(&path_cstr));
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_mddir_request: cxfs delete %s done", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("200"));
             }
@@ -5817,7 +4855,7 @@ EC_BOOL cxfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
     }
     else
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mddir_post_request: should never reach here!\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_mddir_request: should never reach here!\n");
         task_brd_default_abort();
     }
 
@@ -5828,7 +4866,7 @@ EC_BOOL cxfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_mddir_post_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_mddir_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
@@ -5838,7 +4876,7 @@ EC_BOOL cxfshttp_make_mddir_post_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mddir_post_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mddir_response: make response header failed\n");
 
         return (EC_FALSE);
     }
@@ -5847,14 +4885,14 @@ EC_BOOL cxfshttp_make_mddir_post_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mddir_post_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mddir_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mddir_post_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mddir_response: make header end failed\n");
         return (EC_FALSE);
     }
 
@@ -5864,7 +4902,7 @@ EC_BOOL cxfshttp_make_mddir_post_response(CHTTP_NODE *chttp_node)
                                               (uint32_t )CBYTES_LEN(content_cbytes),
                                               (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mddir_post_response: make body with len %d failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mddir_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
@@ -5873,14 +4911,14 @@ EC_BOOL cxfshttp_make_mddir_post_response(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_mddir_post_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_mddir_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mddir_post_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_mddir_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -5890,107 +4928,61 @@ EC_BOOL cxfshttp_commit_mddir_post_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: logrotate ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_logrotate_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/logrotate") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/logrotate")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_logrotate(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_logrotate: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_logrotate_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_logrotate_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_logrotate_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_logrotate_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_logrotate_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_logrotate_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_logrotate_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_logrotate_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_logrotate_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_logrotate_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_logrotate_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_logrotate_get_response(chttp_node);
+    ret = cxfshttp_commit_logrotate_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_logrotate_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_logrotate_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_logrotate_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_logrotate_request(CHTTP_NODE *chttp_node)
 {
-    CBUFFER       *uri_cbuffer;
-
-    //uint8_t       *cache_key;
-    //uint32_t       cache_len;
-
     UINT32         req_body_chunk_num;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/logrotate");
-    //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/logrotate");
-
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
-    /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
+
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_logrotate_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_logrotate_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_logrotate_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_logrotate_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_logrotate_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_logrotate_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_logrotate_get_request: bad request");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_logrotate_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
-    if(EC_TRUE == __cxfshttp_uri_is_logrotate_get_op(uri_cbuffer))
+    if(1)
     {
         UINT32 super_md_id;
 
@@ -6011,22 +5003,22 @@ EC_BOOL cxfshttp_handle_logrotate_get_request(CHTTP_NODE *chttp_node)
 
             if(EC_FALSE == super_rotate_log(super_md_id, log_index))
             {
-                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_logrotate_get_request: log rotate %ld failed\n", log_index);
+                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_logrotate_request: log rotate %ld failed\n", log_index);
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_logrotate_get_request: log rotate %ld failed", log_index);
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_logrotate_request: log rotate %ld failed", log_index);
 
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
                 return (EC_TRUE);
             }
 
-            dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_logrotate_get_request: log rotate %ld done\n", log_index);
+            dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_logrotate_request: log rotate %ld done\n", log_index);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_logrotate_get_request: log rotate %ld done", log_index);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_logrotate_request: log rotate %ld done", log_index);
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
@@ -6037,11 +5029,11 @@ EC_BOOL cxfshttp_handle_logrotate_get_request(CHTTP_NODE *chttp_node)
         log_index_str_t = c_str_dup(log_index_str);
         if(NULL_PTR == log_index_str_t)
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_logrotate_get_request: no memory\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_logrotate_request: no memory\n");
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_logrotate_get_request: no memory");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_logrotate_request: no memory");
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
             return (EC_TRUE);
@@ -6060,11 +5052,11 @@ EC_BOOL cxfshttp_handle_logrotate_get_request(CHTTP_NODE *chttp_node)
 
             if(EC_FALSE == super_rotate_log(super_md_id, log_index))
             {
-                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_logrotate_get_request: log rotate %ld failed\n", log_index);
+                dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_logrotate_request: log rotate %ld failed\n", log_index);
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
                 CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_logrotate_get_request: log rotate %ld failed", log_index);
+                CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_logrotate_request: log rotate %ld failed", log_index);
 
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
@@ -6074,11 +5066,11 @@ EC_BOOL cxfshttp_handle_logrotate_get_request(CHTTP_NODE *chttp_node)
             }
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_logrotate_get_request: log rotate %s done\n", log_index_str);
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_logrotate_request: log rotate %s done\n", log_index_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_logrotate_get_request: log rotate %s done", log_index_str);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_logrotate_request: log rotate %s done", log_index_str);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
@@ -6090,11 +5082,11 @@ EC_BOOL cxfshttp_handle_logrotate_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_logrotate_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_logrotate_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_logrotate_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_logrotate_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -6102,28 +5094,28 @@ EC_BOOL cxfshttp_make_logrotate_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_logrotate_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_logrotate_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_logrotate_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_logrotate_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_logrotate_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_logrotate_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_logrotate_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_logrotate_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -6133,108 +5125,62 @@ EC_BOOL cxfshttp_commit_logrotate_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: actsyscfg ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_actsyscfg_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/actsyscfg") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/actsyscfg")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_actsyscfg(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_actsyscfg: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_actsyscfg_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_actsyscfg_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_actsyscfg_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_actsyscfg_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_actsyscfg_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_actsyscfg_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_actsyscfg_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_actsyscfg_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_actsyscfg_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_actsyscfg_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_actsyscfg_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_actsyscfg_get_response(chttp_node);
+    ret = cxfshttp_commit_actsyscfg_response(chttp_node);
 
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_actsyscfg_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_actsyscfg_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_actsyscfg_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_actsyscfg_request(CHTTP_NODE *chttp_node)
 {
-    CBUFFER       *uri_cbuffer;
-
-    //uint8_t       *cache_key;
-    //uint32_t       cache_len;
-
     UINT32         req_body_chunk_num;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    //cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/actsyscfg");
-    //cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/actsyscfg");
-
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
-    /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
+
     if(!(0 == req_body_chunk_num))
     {
         CHUNK_MGR *req_body_chunks;
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_actsyscfg_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_actsyscfg_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_actsyscfg_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_actsyscfg_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_actsyscfg_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_actsyscfg_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_actsyscfg_get_request: bad request");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_actsyscfg_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
     }
 
-    if(EC_TRUE == __cxfshttp_uri_is_actsyscfg_get_op(uri_cbuffer))
+    if(1)
     {
         UINT32 super_md_id;
 
@@ -6242,11 +5188,11 @@ EC_BOOL cxfshttp_handle_actsyscfg_get_request(CHTTP_NODE *chttp_node)
 
         super_activate_sys_cfg(super_md_id);
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_actsyscfg_get_request done\n");
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_actsyscfg_request done\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_actsyscfg_get_request done");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_actsyscfg_request done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -6254,11 +5200,11 @@ EC_BOOL cxfshttp_handle_actsyscfg_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_actsyscfg_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_actsyscfg_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_actsyscfg_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_actsyscfg_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -6266,28 +5212,28 @@ EC_BOOL cxfshttp_make_actsyscfg_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_actsyscfg_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_actsyscfg_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_actsyscfg_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_actsyscfg_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_actsyscfg_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_actsyscfg_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_actsyscfg_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_actsyscfg_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -6298,70 +5244,34 @@ EC_BOOL cxfshttp_commit_actsyscfg_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: qtree ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_qtree_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/qtree") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/qtree")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_qtree(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_qtree: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_qtree_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_qtree_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_qtree_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_qtree_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_qtree_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_qtree_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_qtree_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_qtree_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_qtree_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_qtree_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_qtree_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_qtree_get_response(chttp_node);
+    ret = cxfshttp_commit_qtree_response(chttp_node);
 
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_qtree_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_qtree_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_qtree_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER     *uri_cbuffer;
 
@@ -6374,13 +5284,13 @@ EC_BOOL cxfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
 
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
-    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/qtree");
-    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/qtree");
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path, NULL_PTR);
     cstring_append_chars(&path, cache_len, cache_key, LOC_CXFSHTTP_0019);
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_qtree_get_request: path %s\n", (char *)cstring_get_str(&path));
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_qtree_request: path %s\n", (char *)cstring_get_str(&path));
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -6390,19 +5300,19 @@ EC_BOOL cxfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_qtree_get_request: path %s\n", (char *)cstring_get_str(&path));
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_qtree_request: path %s\n", (char *)cstring_get_str(&path));
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_qtree_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_qtree_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_qtree_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_qtree_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_qtree_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_qtree_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_qtree_get_request: bad request: path %s", (char *)cstring_get_str(&path));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_qtree_request: bad request: path %s", (char *)cstring_get_str(&path));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
@@ -6411,7 +5321,7 @@ EC_BOOL cxfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
         return (EC_TRUE);
     }
 
-    if(EC_TRUE == __cxfshttp_uri_is_qtree_get_op(uri_cbuffer))
+    if(1)
     {
         UINT32       super_md_id;
 
@@ -6431,11 +5341,11 @@ EC_BOOL cxfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
 
         if(EC_FALSE == cxfs_qlist_tree(super_md_id, &path, path_cstr_vec))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_qtree_get_request failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_qtree_request failed\n");
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_qtree_get_request failed");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_qtree_request failed");
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
@@ -6472,11 +5382,11 @@ EC_BOOL cxfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
         rsp_body_str = json_object_to_json_string_ext(rsp_body_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
         cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str)/* + 1*/);
 
-        dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_qtree_get_request done\n");
+        dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_qtree_request done\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_qtree_get_request done");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_qtree_request done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
@@ -6492,7 +5402,7 @@ EC_BOOL cxfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_qtree_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_qtree_response(CHTTP_NODE *chttp_node)
 {
 
     CBYTES        *content_cbytes;
@@ -6503,7 +5413,7 @@ EC_BOOL cxfshttp_make_qtree_get_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_qtree_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_qtree_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -6511,14 +5421,14 @@ EC_BOOL cxfshttp_make_qtree_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_qtree_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_qtree_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_qtree_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_qtree_response: make header end failed\n");
         return (EC_FALSE);
     }
 
@@ -6528,7 +5438,7 @@ EC_BOOL cxfshttp_make_qtree_get_response(CHTTP_NODE *chttp_node)
                                               (uint32_t )CBYTES_LEN(content_cbytes),
                                               (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mdsmf_post_response: make body with len %d failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mdsmf_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
@@ -6537,14 +5447,14 @@ EC_BOOL cxfshttp_make_qtree_get_response(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_qtree_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_qtree_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_qtree_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_qtree_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -6554,158 +5464,103 @@ EC_BOOL cxfshttp_commit_qtree_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, OPERATOR: statusnp ----------------------------------------*/
-/*delete multiple files*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_statusnp_get_op(const CBUFFER *uri_cbuffer)
+EC_BOOL cxfshttp_commit_statusnp_request(CHTTP_NODE *chttp_node)
 {
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/status_np") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/status_np")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-/*delete multiple files*/
-EC_BOOL cxfshttp_is_http_get_statusnp(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_statusnp: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_statusnp_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_statusnp_get_request(CHTTP_NODE *chttp_node)
-{
-    CBUFFER *uri_cbuffer;
     EC_BOOL ret;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_statusnp_get_request: uri %.*s\n", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
-
-
-    if(EC_FALSE == cxfshttp_handle_statusnp_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_statusnp_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_statusnp_get_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_statusnp_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_statusnp_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_statusnp_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_statusnp_get_request: make 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_statusnp_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_statusnp_get_request: make 'SET' response done\n");
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_statusnp_request: make response done\n");
 
-    ret = cxfshttp_commit_statusnp_get_response(chttp_node);
+    ret = cxfshttp_commit_statusnp_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_statusnp_get_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_statusnp_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_statusnp_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_statusnp_request(CHTTP_NODE *chttp_node)
 {
-    CBUFFER       *uri_cbuffer;
+    CSOCKET_CNODE * csocket_cnode;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+    CXFSNP_MGR    * cxfsnp_mgr;
+    uint32_t        cxfsnp_num;
+    uint32_t        cxfsnp_id;
+
+    json_object   * cxfsnp_mgr_obj;
+    json_object   * cxfsnp_objs;
+
+    CBYTES        * rsp_content_cbytes;
+    const char    * rsp_body_str;
 
     /*clean body chunks*/
     chttp_node_recv_clean(chttp_node);
 
-    if(EC_TRUE == __cxfshttp_uri_is_statusnp_get_op(uri_cbuffer))
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+
+    cxfsnp_mgr = cxfs_get_npp(CSOCKET_CNODE_MODI(csocket_cnode));
+
+    rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    cbytes_clean(rsp_content_cbytes);
+
+    cxfsnp_mgr_obj = json_object_new_object();
+    json_object_add_kv(cxfsnp_mgr_obj, "np_model", c_uint32_t_to_str(CXFSNP_MGR_NP_MODEL(cxfsnp_mgr)));
+    json_object_add_kv(cxfsnp_mgr_obj, "np_num"  , c_uint32_t_to_str(CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr)));
+
+    cxfsnp_objs = json_object_new_array();
+    json_object_add_obj(cxfsnp_mgr_obj, "np", cxfsnp_objs);
+
+    cxfsnp_num = (uint32_t)cvector_size(CXFSNP_MGR_NP_VEC(cxfsnp_mgr));
+    for(cxfsnp_id = 0; cxfsnp_id < cxfsnp_num; cxfsnp_id ++)
     {
-        CSOCKET_CNODE * csocket_cnode;
+        CXFSNP        * cxfsnp;
+        CXFSNP_HEADER * cxfsnp_header;
+        json_object   * cxfsnp_obj;
 
-        CXFSNP_MGR    * cxfsnp_mgr;
-        uint32_t        cxfsnp_num;
-        uint32_t        cxfsnp_id;
-
-        json_object   * cxfsnp_mgr_obj;
-        json_object   * cxfsnp_objs;
-
-        CBYTES        * rsp_content_cbytes;
-        const char    * rsp_body_str;
-
-        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
-
-        cxfsnp_mgr = cxfs_get_npp(CSOCKET_CNODE_MODI(csocket_cnode));
-
-        rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
-        cbytes_clean(rsp_content_cbytes);
-
-        cxfsnp_mgr_obj = json_object_new_object();
-        json_object_add_kv(cxfsnp_mgr_obj, "np_model", c_uint32_t_to_str(CXFSNP_MGR_NP_MODEL(cxfsnp_mgr)));
-        json_object_add_kv(cxfsnp_mgr_obj, "np_num"  , c_uint32_t_to_str(CXFSNP_MGR_NP_MAX_NUM(cxfsnp_mgr)));
-
-        cxfsnp_objs = json_object_new_array();
-        json_object_add_obj(cxfsnp_mgr_obj, "np", cxfsnp_objs);
-
-        cxfsnp_num = (uint32_t)cvector_size(CXFSNP_MGR_NP_VEC(cxfsnp_mgr));
-        for(cxfsnp_id = 0; cxfsnp_id < cxfsnp_num; cxfsnp_id ++)
+        cxfsnp = CXFSNP_MGR_NP(cxfsnp_mgr, cxfsnp_id);
+        if(NULL_PTR == cxfsnp)
         {
-            CXFSNP        * cxfsnp;
-            CXFSNP_HEADER * cxfsnp_header;
-            json_object   * cxfsnp_obj;
+            continue;
+        }
 
-            cxfsnp = CXFSNP_MGR_NP(cxfsnp_mgr, cxfsnp_id);
-            if(NULL_PTR == cxfsnp)
-            {
-                continue;
-            }
+        cxfsnp_header = CXFSNP_HDR(cxfsnp);
 
-            cxfsnp_header = CXFSNP_HDR(cxfsnp);
+        cxfsnp_obj = json_object_new_object();
+        json_object_array_add(cxfsnp_objs, cxfsnp_obj);
 
-            cxfsnp_obj = json_object_new_object();
-            json_object_array_add(cxfsnp_objs, cxfsnp_obj);
+        json_object_add_kv(cxfsnp_obj, "np_id", c_uint32_t_to_str(cxfsnp_id));
 
-            json_object_add_kv(cxfsnp_obj, "np_id", c_uint32_t_to_str(cxfsnp_id));
+        json_object_add_kv(cxfsnp_obj, "file_size"    , c_word_to_str(CXFSNP_FSIZE(cxfsnp)));
+        json_object_add_kv(cxfsnp_obj, "del_size"     , c_uint64_t_to_space_size_str(CXFSNP_DEL_SIZE(cxfsnp)));
+        json_object_add_kv(cxfsnp_obj, "recycle_size" , c_uint64_t_to_space_size_str(CXFSNP_RECYCLE_SIZE(cxfsnp)));
+        json_object_add_kv(cxfsnp_obj, "item_max_num" , c_uint32_t_to_str(CXFSNP_HEADER_ITEMS_MAX_NUM(cxfsnp_header)));
+        json_object_add_kv(cxfsnp_obj, "item_used_num", c_uint32_t_to_str(CXFSNP_HEADER_ITEMS_USED_NUM(cxfsnp_header)));
+     }
 
-            json_object_add_kv(cxfsnp_obj, "file_size"    , c_word_to_str(CXFSNP_FSIZE(cxfsnp)));
-            json_object_add_kv(cxfsnp_obj, "del_size"     , c_uint64_t_to_space_size_str(CXFSNP_DEL_SIZE(cxfsnp)));
-            json_object_add_kv(cxfsnp_obj, "recycle_size" , c_uint64_t_to_space_size_str(CXFSNP_RECYCLE_SIZE(cxfsnp)));
-            json_object_add_kv(cxfsnp_obj, "item_max_num" , c_uint32_t_to_str(CXFSNP_HEADER_ITEMS_MAX_NUM(cxfsnp_header)));
-            json_object_add_kv(cxfsnp_obj, "item_used_num", c_uint32_t_to_str(CXFSNP_HEADER_ITEMS_USED_NUM(cxfsnp_header)));
-         }
+    rsp_body_str = json_object_to_json_string_ext(cxfsnp_mgr_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
+    cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str)/* + 1*/));
 
-        rsp_body_str = json_object_to_json_string_ext(cxfsnp_mgr_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
-        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str)/* + 1*/));
-
-        json_object_put(cxfsnp_mgr_obj);
-    }
-    else
-    {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_statusnp_get_request: should never reach here!\n");
-        task_brd_default_abort();
-    }
+    json_object_put(cxfsnp_mgr_obj);
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_statusnp_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_statusnp_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
@@ -6715,7 +5570,7 @@ EC_BOOL cxfshttp_make_statusnp_get_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_statusnp_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_statusnp_response: make response header failed\n");
 
         return (EC_FALSE);
     }
@@ -6724,14 +5579,14 @@ EC_BOOL cxfshttp_make_statusnp_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_statusnp_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_statusnp_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_statusnp_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_statusnp_response: make header end failed\n");
         return (EC_FALSE);
     }
 
@@ -6741,7 +5596,7 @@ EC_BOOL cxfshttp_make_statusnp_get_response(CHTTP_NODE *chttp_node)
                                               (uint32_t )CBYTES_LEN(content_cbytes),
                                               (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_statusnp_get_response: make body with len %d failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_statusnp_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
@@ -6750,14 +5605,14 @@ EC_BOOL cxfshttp_make_statusnp_get_response(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_statusnp_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_statusnp_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_statusnp_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_statusnp_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -6767,163 +5622,108 @@ EC_BOOL cxfshttp_commit_statusnp_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, OPERATOR: statusdn ----------------------------------------*/
-/*delete multiple files*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_statusdn_get_op(const CBUFFER *uri_cbuffer)
+EC_BOOL cxfshttp_commit_statusdn_request(CHTTP_NODE *chttp_node)
 {
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/status_dn") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/status_dn")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-/*delete multiple files*/
-EC_BOOL cxfshttp_is_http_get_statusdn(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_statusdn: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_statusdn_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_statusdn_get_request(CHTTP_NODE *chttp_node)
-{
-    CBUFFER *uri_cbuffer;
     EC_BOOL ret;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_statusdn_get_request: uri %.*s\n", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
-
-
-    if(EC_FALSE == cxfshttp_handle_statusdn_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_statusdn_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_statusdn_get_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_statusdn_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_statusdn_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_statusdn_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_statusdn_get_request: make 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_statusdn_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_statusdn_get_request: make 'SET' response done\n");
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_commit_statusdn_request: make response done\n");
 
-    ret = cxfshttp_commit_statusdn_get_response(chttp_node);
+    ret = cxfshttp_commit_statusdn_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_statusdn_get_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_statusdn_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_statusdn_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_statusdn_request(CHTTP_NODE *chttp_node)
 {
-    CBUFFER       *uri_cbuffer;
+    CSOCKET_CNODE * csocket_cnode;
 
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+    CXFSDN        * cxfsdn;
+    CXFSPGV       * cxfspgv;
+
+    json_object   * cxfspgv_obj;
+    json_object   * cxfspgd_objs;
+
+    CBYTES        * rsp_content_cbytes;
+    const char    * rsp_body_str;
+
+    uint16_t        disk_no;
 
     /*clean body chunks*/
     chttp_node_recv_clean(chttp_node);
 
-    if(EC_TRUE == __cxfshttp_uri_is_statusdn_get_op(uri_cbuffer))
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+
+    cxfsdn = cxfs_get_dn(CSOCKET_CNODE_MODI(csocket_cnode));
+    cxfspgv   = CXFSDN_CXFSPGV(cxfsdn);
+
+    rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    cbytes_clean(rsp_content_cbytes);
+
+    cxfspgv_obj = json_object_new_object();
+    json_object_add_kv(cxfspgv_obj, "disk_num"         , c_uint32_t_to_str(CXFSPGV_DISK_NUM(cxfspgv)));
+    json_object_add_kv(cxfspgv_obj, "disk_max_num"     , c_uint32_t_to_str(CXFSPGV_DISK_MAX_NUM(cxfspgv)));
+    json_object_add_kv(cxfspgv_obj, "page_max_num"     , c_uint64_t_to_str(CXFSPGV_PAGE_MAX_NUM(cxfspgv)));
+    json_object_add_kv(cxfspgv_obj, "page_used_num"    , c_uint64_t_to_str(CXFSPGV_PAGE_USED_NUM(cxfspgv)));
+    json_object_add_kv(cxfspgv_obj, "actual_used_size" , c_uint64_t_to_str(CXFSPGV_PAGE_ACTUAL_USED_SIZE(cxfspgv)));
+    json_object_add_kv(cxfspgv_obj, "assign_bitmap"    , c_uint16_t_to_bin_str(CXFSPGV_PAGE_MODEL_ASSIGN_BITMAP(cxfspgv)));
+
+    json_object_add_kv(cxfspgv_obj, "page_model"   , CXFSPGB_PAGE_DESC);
+
+    cxfspgd_objs = json_object_new_array();
+    json_object_add_obj(cxfspgv_obj, "disk", cxfspgd_objs);
+
+    for(disk_no = 0; disk_no < CXFSPGV_MAX_DISK_NUM; disk_no ++)
     {
-        CSOCKET_CNODE * csocket_cnode;
+        CXFSPGD          * cxfspgd;
+        json_object   * cxfspgd_obj;
 
-        CXFSDN        * cxfsdn;
-        CXFSPGV       * cxfspgv;
-
-        json_object   * cxfspgv_obj;
-        json_object   * cxfspgd_objs;
-
-        CBYTES        * rsp_content_cbytes;
-        const char    * rsp_body_str;
-
-        uint16_t        disk_no;
-
-        csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
-
-        cxfsdn = cxfs_get_dn(CSOCKET_CNODE_MODI(csocket_cnode));
-        cxfspgv   = CXFSDN_CXFSPGV(cxfsdn);
-
-        rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
-        cbytes_clean(rsp_content_cbytes);
-
-        cxfspgv_obj = json_object_new_object();
-        json_object_add_kv(cxfspgv_obj, "disk_num"         , c_uint32_t_to_str(CXFSPGV_DISK_NUM(cxfspgv)));
-        json_object_add_kv(cxfspgv_obj, "disk_max_num"     , c_uint32_t_to_str(CXFSPGV_DISK_MAX_NUM(cxfspgv)));
-        json_object_add_kv(cxfspgv_obj, "page_max_num"     , c_uint64_t_to_str(CXFSPGV_PAGE_MAX_NUM(cxfspgv)));
-        json_object_add_kv(cxfspgv_obj, "page_used_num"    , c_uint64_t_to_str(CXFSPGV_PAGE_USED_NUM(cxfspgv)));
-        json_object_add_kv(cxfspgv_obj, "actual_used_size" , c_uint64_t_to_str(CXFSPGV_PAGE_ACTUAL_USED_SIZE(cxfspgv)));
-        json_object_add_kv(cxfspgv_obj, "assign_bitmap"    , c_uint16_t_to_bin_str(CXFSPGV_PAGE_MODEL_ASSIGN_BITMAP(cxfspgv)));
-
-        json_object_add_kv(cxfspgv_obj, "page_model"   , CXFSPGB_PAGE_DESC);
-
-        cxfspgd_objs = json_object_new_array();
-        json_object_add_obj(cxfspgv_obj, "disk", cxfspgd_objs);
-
-        for(disk_no = 0; disk_no < CXFSPGV_MAX_DISK_NUM; disk_no ++)
+        cxfspgd = CXFSPGV_DISK_NODE(cxfspgv, disk_no);
+        if(NULL_PTR == cxfspgd)
         {
-            CXFSPGD          * cxfspgd;
-            json_object   * cxfspgd_obj;
-
-            cxfspgd = CXFSPGV_DISK_NODE(cxfspgv, disk_no);
-            if(NULL_PTR == cxfspgd)
-            {
-                continue;
-            }
-
-            cxfspgd_obj = json_object_new_object();
-            json_object_array_add(cxfspgd_objs, cxfspgd_obj);
-
-            json_object_add_kv(cxfspgd_obj, "disk_no", c_uint16_t_to_str(disk_no));
-
-            json_object_add_kv(cxfspgd_obj, "block_num"       , c_uint16_t_to_str(CXFSPGD_PAGE_BLOCK_MAX_NUM(cxfspgd)));
-            json_object_add_kv(cxfspgd_obj, "page_max_num"    , c_uint32_t_to_str(CXFSPGD_PAGE_MAX_NUM(cxfspgd)));
-            json_object_add_kv(cxfspgd_obj, "page_used_num"   , c_uint32_t_to_str(CXFSPGD_PAGE_USED_NUM(cxfspgd)));
-            json_object_add_kv(cxfspgd_obj, "actual_used_size", c_uint64_t_to_str(CXFSPGD_PAGE_ACTUAL_USED_SIZE(cxfspgd)));
-
-            json_object_add_kv(cxfspgd_obj, "assign_bitmap"   , c_uint16_t_to_bin_str(CXFSPGD_PAGE_MODEL_ASSIGN_BITMAP(cxfspgd)));
+            continue;
         }
 
-        rsp_body_str = json_object_to_json_string_ext(cxfspgv_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
-        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str)/* + 1*/));
+        cxfspgd_obj = json_object_new_object();
+        json_object_array_add(cxfspgd_objs, cxfspgd_obj);
 
-        json_object_put(cxfspgv_obj);
+        json_object_add_kv(cxfspgd_obj, "disk_no", c_uint16_t_to_str(disk_no));
+
+        json_object_add_kv(cxfspgd_obj, "block_num"       , c_uint16_t_to_str(CXFSPGD_PAGE_BLOCK_MAX_NUM(cxfspgd)));
+        json_object_add_kv(cxfspgd_obj, "page_max_num"    , c_uint32_t_to_str(CXFSPGD_PAGE_MAX_NUM(cxfspgd)));
+        json_object_add_kv(cxfspgd_obj, "page_used_num"   , c_uint32_t_to_str(CXFSPGD_PAGE_USED_NUM(cxfspgd)));
+        json_object_add_kv(cxfspgd_obj, "actual_used_size", c_uint64_t_to_str(CXFSPGD_PAGE_ACTUAL_USED_SIZE(cxfspgd)));
+
+        json_object_add_kv(cxfspgd_obj, "assign_bitmap"   , c_uint16_t_to_bin_str(CXFSPGD_PAGE_MODEL_ASSIGN_BITMAP(cxfspgd)));
     }
-    else
-    {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_statusdn_get_request: should never reach here!\n");
-        task_brd_default_abort();
-    }
+
+    rsp_body_str = json_object_to_json_string_ext(cxfspgv_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
+    cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, (UINT32)(strlen(rsp_body_str)/* + 1*/));
+
+    json_object_put(cxfspgv_obj);
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_statusdn_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_statusdn_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
@@ -6933,7 +5733,7 @@ EC_BOOL cxfshttp_make_statusdn_get_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_statusdn_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_statusdn_response: make response header failed\n");
 
         return (EC_FALSE);
     }
@@ -6942,14 +5742,14 @@ EC_BOOL cxfshttp_make_statusdn_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_statusdn_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_statusdn_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_statusdn_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_statusdn_response: make header end failed\n");
         return (EC_FALSE);
     }
 
@@ -6959,7 +5759,7 @@ EC_BOOL cxfshttp_make_statusdn_get_response(CHTTP_NODE *chttp_node)
                                               (uint32_t )CBYTES_LEN(content_cbytes),
                                               (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_statusdn_get_response: make body with len %d failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_statusdn_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
@@ -6968,14 +5768,14 @@ EC_BOOL cxfshttp_make_statusdn_get_response(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_statusdn_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_statusdn_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_statusdn_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_statusdn_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -6986,69 +5786,33 @@ EC_BOOL cxfshttp_commit_statusdn_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: file_notify ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_file_notify_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/file_notify/") < uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/file_notify/")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_file_notify(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_file_notify: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_file_notify_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_file_notify_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_file_notify_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_file_notify_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_file_notify_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_file_notify_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_file_notify_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_file_notify_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_file_notify_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_file_notify_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_file_notify_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_file_notify_get_response(chttp_node);
+    ret = cxfshttp_commit_file_notify_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_file_notify_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_file_notify_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_file_notify_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_file_notify_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -7063,13 +5827,13 @@ EC_BOOL cxfshttp_handle_file_notify_get_request(CHTTP_NODE *chttp_node)
 
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
-    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/file_notify");
-    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_notify");
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
     cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0024);
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_file_notify_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_file_notify_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -7079,19 +5843,19 @@ EC_BOOL cxfshttp_handle_file_notify_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_file_notify_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_file_notify_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_file_notify_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_file_notify_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_file_notify_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_file_notify_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_file_notify_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_file_notify_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_file_notify_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_file_notify_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
@@ -7101,19 +5865,19 @@ EC_BOOL cxfshttp_handle_file_notify_get_request(CHTTP_NODE *chttp_node)
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    if(EC_TRUE == __cxfshttp_uri_is_file_notify_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == cxfs_file_notify(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_file_notify_get_request: cxfs notify %s failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_file_notify_request: cxfs notify %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_file_notify_get_request: cxfs notify %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_file_notify_request: cxfs notify %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
@@ -7123,12 +5887,12 @@ EC_BOOL cxfshttp_handle_file_notify_get_request(CHTTP_NODE *chttp_node)
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_file_notify_get_request: cxfs notify %s done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_file_notify_request: cxfs notify %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_file_notify_get_request: cxfs notify %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_file_notify_request: cxfs notify %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -7138,7 +5902,7 @@ EC_BOOL cxfshttp_handle_file_notify_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_file_notify_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_file_notify_response(CHTTP_NODE *chttp_node)
 {
     if(do_log(SEC_0194_CXFSHTTP, 9))
     {
@@ -7147,15 +5911,15 @@ EC_BOOL cxfshttp_make_file_notify_get_response(CHTTP_NODE *chttp_node)
         uint32_t       cache_len;
 
         uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
-        cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/file_notify");
-        cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_notify");
+        cache_key = CBUFFER_DATA(uri_cbuffer);
+        cache_len = CBUFFER_USED(uri_cbuffer);
 
-        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_file_notify_get_response: path %.*s\n", cache_len, cache_key);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_file_notify_response: path %.*s\n", cache_len, cache_key);
     }
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_file_notify_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_file_notify_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -7163,28 +5927,28 @@ EC_BOOL cxfshttp_make_file_notify_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_file_notify_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_file_notify_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_file_notify_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_file_notify_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_file_notify_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_file_notify_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_file_notify_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_file_notify_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -7194,69 +5958,33 @@ EC_BOOL cxfshttp_commit_file_notify_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: file_terminate ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_file_terminate_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/file_terminate/") < uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/file_terminate/")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_file_terminate(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_file_terminate: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_file_terminate_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_file_terminate_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_file_terminate_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_file_terminate_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_file_terminate_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_file_terminate_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_file_terminate_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_file_terminate_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_file_terminate_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_file_terminate_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_file_terminate_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_file_terminate_get_response(chttp_node);
+    ret = cxfshttp_commit_file_terminate_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_file_terminate_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_file_terminate_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_file_terminate_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_file_terminate_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -7271,13 +5999,13 @@ EC_BOOL cxfshttp_handle_file_terminate_get_request(CHTTP_NODE *chttp_node)
 
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
-    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/file_terminate");
-    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_terminate");
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
     cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0025);
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_file_terminate_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_file_terminate_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -7287,19 +6015,19 @@ EC_BOOL cxfshttp_handle_file_terminate_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_file_terminate_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_file_terminate_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_file_terminate_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_file_terminate_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_file_terminate_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_file_terminate_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_file_terminate_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_file_terminate_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_file_terminate_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_file_terminate_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
@@ -7309,19 +6037,19 @@ EC_BOOL cxfshttp_handle_file_terminate_get_request(CHTTP_NODE *chttp_node)
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    if(EC_TRUE == __cxfshttp_uri_is_file_terminate_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == cxfs_file_terminate(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_file_terminate_get_request: cxfs terminate %s failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_file_terminate_request: cxfs terminate %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_file_terminate_get_request: cxfs terminate %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_file_terminate_request: cxfs terminate %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
 
@@ -7331,12 +6059,12 @@ EC_BOOL cxfshttp_handle_file_terminate_get_request(CHTTP_NODE *chttp_node)
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_file_terminate_get_request: cxfs terminate %s done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_file_terminate_request: cxfs terminate %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_file_terminate_get_request: cxfs terminate %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_file_terminate_request: cxfs terminate %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -7346,7 +6074,7 @@ EC_BOOL cxfshttp_handle_file_terminate_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_file_terminate_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_file_terminate_response(CHTTP_NODE *chttp_node)
 {
     if(do_log(SEC_0194_CXFSHTTP, 9))
     {
@@ -7355,15 +6083,15 @@ EC_BOOL cxfshttp_make_file_terminate_get_response(CHTTP_NODE *chttp_node)
         uint32_t       cache_len;
 
         uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
-        cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/file_terminate");
-        cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/file_terminate");
+        cache_key = CBUFFER_DATA(uri_cbuffer);
+        cache_len = CBUFFER_USED(uri_cbuffer);
 
-        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_file_terminate_get_response: path %.*s\n", cache_len, cache_key);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_file_terminate_response: path %.*s\n", cache_len, cache_key);
     }
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_file_terminate_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_file_terminate_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -7371,28 +6099,28 @@ EC_BOOL cxfshttp_make_file_terminate_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_file_terminate_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_file_terminate_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_file_terminate_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_file_terminate_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_file_terminate_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_file_terminate_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_file_terminate_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_file_terminate_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -7403,69 +6131,33 @@ EC_BOOL cxfshttp_commit_file_terminate_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: cond_wakeup ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_cond_wakeup_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/cond_wakeup/") < uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/cond_wakeup/")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_cond_wakeup(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_cond_wakeup: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_cond_wakeup_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_cond_wakeup_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_cond_wakeup_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_cond_wakeup_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_cond_wakeup_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_cond_wakeup_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_cond_wakeup_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_cond_wakeup_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_cond_wakeup_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_cond_wakeup_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_cond_wakeup_get_response(chttp_node);
+    ret = cxfshttp_commit_cond_wakeup_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_cond_wakeup_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_cond_wakeup_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_cond_wakeup_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -7480,13 +6172,13 @@ EC_BOOL cxfshttp_handle_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
 
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
-    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/cond_wakeup");
-    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/cond_wakeup");
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
     cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0026);
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_cond_wakeup_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_cond_wakeup_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -7496,19 +6188,19 @@ EC_BOOL cxfshttp_handle_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_cond_wakeup_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_cond_wakeup_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_cond_wakeup_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_cond_wakeup_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_cond_wakeup_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_cond_wakeup_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_cond_wakeup_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_cond_wakeup_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_cond_wakeup_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_cond_wakeup_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
@@ -7518,7 +6210,7 @@ EC_BOOL cxfshttp_handle_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    if(EC_TRUE == __cxfshttp_uri_is_cond_wakeup_get_op(uri_cbuffer))
+    if(1)
     {
         //CSOCKET_CNODE * csocket_cnode;
         UINT32 tag;
@@ -7528,12 +6220,12 @@ EC_BOOL cxfshttp_handle_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
         //csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == super_cond_wakeup(/*CSOCKET_CNODE_MODI(csocket_cnode)*/0, tag, &path_cstr))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_cond_wakeup_get_request: cond wakeup %s failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_cond_wakeup_request: cond wakeup %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_cond_wakeup_get_request: cond wakeup %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_cond_wakeup_request: cond wakeup %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
@@ -7543,12 +6235,12 @@ EC_BOOL cxfshttp_handle_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_cond_wakeup_get_request: cond wakeup %s done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_cond_wakeup_request: cond wakeup %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_cond_wakeup_get_request: cond wakeup %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_cond_wakeup_request: cond wakeup %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -7558,7 +6250,7 @@ EC_BOOL cxfshttp_handle_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_cond_wakeup_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_cond_wakeup_response(CHTTP_NODE *chttp_node)
 {
     if(do_log(SEC_0194_CXFSHTTP, 9))
     {
@@ -7567,15 +6259,15 @@ EC_BOOL cxfshttp_make_cond_wakeup_get_response(CHTTP_NODE *chttp_node)
         uint32_t       cache_len;
 
         uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
-        cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/cond_wakeup");
-        cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/cond_wakeup");
+        cache_key = CBUFFER_DATA(uri_cbuffer);
+        cache_len = CBUFFER_USED(uri_cbuffer);
 
-        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_cond_wakeup_get_response: path %.*s\n", cache_len, cache_key);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_cond_wakeup_response: path %.*s\n", cache_len, cache_key);
     }
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_cond_wakeup_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_cond_wakeup_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -7583,28 +6275,28 @@ EC_BOOL cxfshttp_make_cond_wakeup_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_cond_wakeup_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_cond_wakeup_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_cond_wakeup_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_cond_wakeup_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_cond_wakeup_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_cond_wakeup_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_cond_wakeup_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_cond_wakeup_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -7614,69 +6306,33 @@ EC_BOOL cxfshttp_commit_cond_wakeup_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: cond_terminate ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_cond_terminate_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/cond_terminate/") < uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/cond_terminate/")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_cond_terminate(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_cond_terminate: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_cond_terminate_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_cond_terminate_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_cond_terminate_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_cond_terminate_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_cond_terminate_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_cond_terminate_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_cond_terminate_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_cond_terminate_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_cond_terminate_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_cond_terminate_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_cond_terminate_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_cond_terminate_get_response(chttp_node);
+    ret = cxfshttp_commit_cond_terminate_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_cond_terminate_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_cond_terminate_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_cond_terminate_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_cond_terminate_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -7691,13 +6347,13 @@ EC_BOOL cxfshttp_handle_cond_terminate_get_request(CHTTP_NODE *chttp_node)
 
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
-    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/cond_terminate");
-    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/cond_terminate");
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
     cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0027);
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_cond_terminate_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_cond_terminate_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -7707,19 +6363,19 @@ EC_BOOL cxfshttp_handle_cond_terminate_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_cond_terminate_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_cond_terminate_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_cond_terminate_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_cond_terminate_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_cond_terminate_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_cond_terminate_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_cond_terminate_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_cond_terminate_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_cond_terminate_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_cond_terminate_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
@@ -7729,7 +6385,7 @@ EC_BOOL cxfshttp_handle_cond_terminate_get_request(CHTTP_NODE *chttp_node)
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    if(EC_TRUE == __cxfshttp_uri_is_cond_terminate_get_op(uri_cbuffer))
+    if(1)
     {
         //CSOCKET_CNODE * csocket_cnode;
         UINT32 tag;
@@ -7739,12 +6395,12 @@ EC_BOOL cxfshttp_handle_cond_terminate_get_request(CHTTP_NODE *chttp_node)
         //csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == super_cond_terminate(/*CSOCKET_CNODE_MODI(csocket_cnode)*/0, tag, &path_cstr))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_cond_terminate_get_request: cond terminate %s failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_cond_terminate_request: cond terminate %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_cond_terminate_get_request: cond terminate %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_cond_terminate_request: cond terminate %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
@@ -7754,12 +6410,12 @@ EC_BOOL cxfshttp_handle_cond_terminate_get_request(CHTTP_NODE *chttp_node)
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_cond_terminate_get_request: cond terminate %s done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_cond_terminate_request: cond terminate %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_cond_terminate_get_request: cond terminate %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_cond_terminate_request: cond terminate %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -7769,7 +6425,7 @@ EC_BOOL cxfshttp_handle_cond_terminate_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_cond_terminate_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_cond_terminate_response(CHTTP_NODE *chttp_node)
 {
     if(do_log(SEC_0194_CXFSHTTP, 9))
     {
@@ -7778,15 +6434,15 @@ EC_BOOL cxfshttp_make_cond_terminate_get_response(CHTTP_NODE *chttp_node)
         uint32_t       cache_len;
 
         uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
-        cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/cond_terminate");
-        cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/cond_terminate");
+        cache_key = CBUFFER_DATA(uri_cbuffer);
+        cache_len = CBUFFER_USED(uri_cbuffer);
 
-        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_cond_terminate_get_response: path %.*s\n", cache_len, cache_key);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_cond_terminate_response: path %.*s\n", cache_len, cache_key);
     }
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_cond_terminate_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_cond_terminate_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -7794,28 +6450,28 @@ EC_BOOL cxfshttp_make_cond_terminate_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_cond_terminate_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_cond_terminate_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_cond_terminate_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_cond_terminate_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_cond_terminate_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_cond_terminate_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_cond_terminate_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_cond_terminate_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -7825,69 +6481,33 @@ EC_BOOL cxfshttp_commit_cond_terminate_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: renew_header ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_renew_header_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/renew_header/") < uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/renew_header/")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_renew_header(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_renew_header: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_renew_header_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_renew_header_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_renew_header_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_renew_header_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_renew_header_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_renew_header_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_renew_header_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_renew_header_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_renew_header_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_renew_header_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_renew_header_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_renew_header_get_response(chttp_node);
+    ret = cxfshttp_commit_renew_header_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_renew_header_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_renew_header_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_renew_header_request(CHTTP_NODE *chttp_node)
 {
     CBUFFER       *uri_cbuffer;
 
@@ -7908,13 +6528,13 @@ EC_BOOL cxfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
 
     uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
-    cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/renew_header");
-    cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew_header");
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
     cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0028);
 
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_header_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_header_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -7924,19 +6544,19 @@ EC_BOOL cxfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_header_get_request: path %s\n", (char *)cstring_get_str(&path_cstr));
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_header_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_header_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_header_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_header_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_header_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_header_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_renew_header_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_renew_header_get_request: path %s", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: cxfshttp_handle_renew_header_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         cstring_clean(&path_cstr);
@@ -7960,12 +6580,12 @@ EC_BOOL cxfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
         renew_key  = chttp_node_get_header(chttp_node, (const char *)"renew-key");
         if(NULL_PTR == renew_key)
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_header_get_request: cxfs renew %s failed due to 'renew-key' absence\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_header_request: cxfs renew %s failed due to 'renew-key' absence\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_header_get_request: cxfs renew %s failed due to 'renew-key' absence", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_header_request: cxfs renew %s failed due to 'renew-key' absence", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
@@ -7977,16 +6597,16 @@ EC_BOOL cxfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
         if(NULL_PTR == renew_val)
         {
 #if 1
-            dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_header_get_request: cxfs renew %s would remove header ['%s'] due to 'renew-val' absence\n",
+            dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_header_request: cxfs renew %s would remove header ['%s'] due to 'renew-val' absence\n",
                                 (char *)cstring_get_str(&path_cstr), renew_key);
 #endif
 #if 0
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_header_get_request: cxfs renew %s failed due to 'renew-val' absence\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_header_request: cxfs renew %s failed due to 'renew-val' absence\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_header_get_request: cxfs renew %s failed due to 'renew-val' absence", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_header_request: cxfs renew %s failed due to 'renew-val' absence", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
@@ -8000,12 +6620,12 @@ EC_BOOL cxfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
 
         if(EC_FALSE == cxfs_renew_http_header(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, &renew_key_cstr, &renew_val_cstr))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_header_get_request: cxfs renew %s failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_header_request: cxfs renew %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_header_get_request: cxfs renew %s failed", (char *)cstring_get_str(&path_cstr));
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_header_request: cxfs renew %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
@@ -8013,12 +6633,12 @@ EC_BOOL cxfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_header_get_request: cxfs renew %s done\n",
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_header_request: cxfs renew %s done\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_renew_header_get_request: cxfs renew %s done", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_renew_header_request: cxfs renew %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
         cstring_clean(&path_cstr);
@@ -8028,12 +6648,12 @@ EC_BOOL cxfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
     cstrkv_mgr = cstrkv_mgr_new();
     if(NULL_PTR == cstrkv_mgr)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_header_get_request: cxfs renew %s failed due to new cstrkv_mgr failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_header_request: cxfs renew %s failed due to new cstrkv_mgr failed\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_header_get_request: cxfs renew %s failed due to new cstrkv_mgr failed",
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_header_request: cxfs renew %s failed due to new cstrkv_mgr failed",
                 (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -8057,12 +6677,12 @@ EC_BOOL cxfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
         renew_key  = chttp_node_get_header(chttp_node, (const char *)renew_key_tag);
         if(NULL_PTR == renew_key)
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_header_get_request: cxfs renew %s failed due to '%s' absence\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_header_request: cxfs renew %s failed due to '%s' absence\n",
                                 (char *)cstring_get_str(&path_cstr), (char *)renew_key_tag);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_header_get_request: cxfs renew %s failed due to '%s' absence",
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_header_request: cxfs renew %s failed due to '%s' absence",
                     (char *)cstring_get_str(&path_cstr), (char *)renew_key_tag);
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
@@ -8076,16 +6696,16 @@ EC_BOOL cxfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
         if(NULL_PTR == renew_val)
         {
 #if 1
-            dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_header_get_request: cxfs renew %s would remove header ['%s'] due to '%s' absence\n",
+            dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_header_request: cxfs renew %s would remove header ['%s'] due to '%s' absence\n",
                                 (char *)cstring_get_str(&path_cstr), renew_key, (char *)renew_val_tag);
 #endif
 #if 0
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_header_get_request: cxfs renew %s failed due to '%s' absence\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_header_request: cxfs renew %s failed due to '%s' absence\n",
                                 (char *)cstring_get_str(&path_cstr), (char *)renew_val_tag);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_header_get_request: cxfs renew %s failed due to '%s' absence",
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_header_request: cxfs renew %s failed due to '%s' absence",
                     (char *)cstring_get_str(&path_cstr), (char *)renew_val_tag);
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
@@ -8098,12 +6718,12 @@ EC_BOOL cxfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
 
         if(EC_FALSE == cstrkv_mgr_add_kv_str(cstrkv_mgr, renew_key, renew_val))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_header_get_request: cxfs renew %s failed due to add '%s:%s' failed\n",
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_header_request: cxfs renew %s failed due to add '%s:%s' failed\n",
                                 (char *)cstring_get_str(&path_cstr), renew_key, renew_val);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_header_get_request: cxfs renew %s failed due to add '%s:%s' failed",
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_header_request: cxfs renew %s failed due to add '%s:%s' failed",
                     (char *)cstring_get_str(&path_cstr), renew_key, renew_val);
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -8116,12 +6736,12 @@ EC_BOOL cxfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == cxfs_renew_http_headers(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, cstrkv_mgr))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_header_get_request: cxfs renew %s failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_renew_header_request: cxfs renew %s failed\n",
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_header_get_request: cxfs renew %s failed", (char *)cstring_get_str(&path_cstr));
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_renew_header_request: cxfs renew %s failed", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
@@ -8130,12 +6750,12 @@ EC_BOOL cxfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_header_get_request: cxfs renew %s done\n",
+    dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_header_request: cxfs renew %s done\n",
                         (char *)cstring_get_str(&path_cstr));
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
     CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_renew_header_get_request: cxfs renew %s done", (char *)cstring_get_str(&path_cstr));
+    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_renew_header_request: cxfs renew %s done", (char *)cstring_get_str(&path_cstr));
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
@@ -8145,7 +6765,7 @@ EC_BOOL cxfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_renew_header_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_renew_header_response(CHTTP_NODE *chttp_node)
 {
     if(do_log(SEC_0194_CXFSHTTP, 9))
     {
@@ -8154,15 +6774,15 @@ EC_BOOL cxfshttp_make_renew_header_get_response(CHTTP_NODE *chttp_node)
         uint32_t       cache_len;
 
         uri_cbuffer    = CHTTP_NODE_URI(chttp_node);
-        cache_key = CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/renew_header");
-        cache_len = CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew_header");
+        cache_key = CBUFFER_DATA(uri_cbuffer);
+        cache_len = CBUFFER_USED(uri_cbuffer);
 
-        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_renew_header_get_response: path %.*s\n", cache_len, cache_key);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfshttp_make_renew_header_response: path %.*s\n", cache_len, cache_key);
     }
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_renew_header_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_renew_header_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -8170,28 +6790,28 @@ EC_BOOL cxfshttp_make_renew_header_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_renew_header_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_renew_header_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_renew_header_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_renew_header_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_renew_header_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_renew_header_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_renew_header_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_renew_header_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -8201,77 +6821,37 @@ EC_BOOL cxfshttp_commit_renew_header_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: locked_file_retire ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_locked_file_retire_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/locked_file_retire") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/locked_file_retire")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_locked_file_retire(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_locked_file_retire: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_locked_file_retire_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_locked_file_retire_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_locked_file_retire_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_locked_file_retire_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_locked_file_retire_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_locked_file_retire_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_locked_file_retire_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_locked_file_retire_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_locked_file_retire_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_locked_file_retire_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_locked_file_retire_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_locked_file_retire_get_response(chttp_node);
+    ret = cxfshttp_commit_locked_file_retire_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_locked_file_retire_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_locked_file_retire_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_locked_file_retire_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_locked_file_retire_request(CHTTP_NODE *chttp_node)
 {
-    CBUFFER       *uri_cbuffer;
-
     UINT32         req_body_chunk_num;
 
     CBYTES        *content_cbytes;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -8281,17 +6861,17 @@ EC_BOOL cxfshttp_handle_locked_file_retire_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_locked_file_retire_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_locked_file_retire_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_locked_file_retire_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_locked_file_retire_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_locked_file_retire_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_locked_file_retire_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_locked_file_retire_get_request");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_locked_file_retire_request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
@@ -8300,7 +6880,7 @@ EC_BOOL cxfshttp_handle_locked_file_retire_get_request(CHTTP_NODE *chttp_node)
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    if(EC_TRUE == __cxfshttp_uri_is_locked_file_retire_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
@@ -8312,7 +6892,7 @@ EC_BOOL cxfshttp_handle_locked_file_retire_get_request(CHTTP_NODE *chttp_node)
         retire_max_num     = c_str_to_word(retire_max_num_str);
         retire_num         = 0;
 
-        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_locked_file_retire_get_request: header retire-max-num %s => %ld\n",
+        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_locked_file_retire_request: header retire-max-num %s => %ld\n",
                                 retire_max_num_str, retire_max_num);
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
@@ -8322,16 +6902,16 @@ EC_BOOL cxfshttp_handle_locked_file_retire_get_request(CHTTP_NODE *chttp_node)
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_locked_file_retire_get_request failed");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_locked_file_retire_request failed");
 
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_locked_file_retire_get_request: complete %ld\n", retire_num);
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_locked_file_retire_request: complete %ld\n", retire_num);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_locked_file_retire_get_request: complete %ld", retire_num);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_locked_file_retire_request: complete %ld", retire_num);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
@@ -8342,11 +6922,11 @@ EC_BOOL cxfshttp_handle_locked_file_retire_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_locked_file_retire_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_locked_file_retire_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_locked_file_retire_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_locked_file_retire_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -8354,34 +6934,34 @@ EC_BOOL cxfshttp_make_locked_file_retire_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_locked_file_retire_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_locked_file_retire_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_locked_file_retire_get_response: make header kvs failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_locked_file_retire_response: make header kvs failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_locked_file_retire_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_locked_file_retire_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_locked_file_retire_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_locked_file_retire_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_locked_file_retire_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_locked_file_retire_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -8391,77 +6971,37 @@ EC_BOOL cxfshttp_commit_locked_file_retire_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: wait_file_retire ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_wait_file_retire_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/wait_file_retire") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/wait_file_retire")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_wait_file_retire(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_wait_file_retire: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_wait_file_retire_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_wait_file_retire_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_wait_file_retire_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_wait_file_retire_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_wait_file_retire_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_wait_file_retire_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_wait_file_retire_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_wait_file_retire_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_wait_file_retire_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_wait_file_retire_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_wait_file_retire_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_wait_file_retire_get_response(chttp_node);
+    ret = cxfshttp_commit_wait_file_retire_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_wait_file_retire_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_wait_file_retire_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_wait_file_retire_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_wait_file_retire_request(CHTTP_NODE *chttp_node)
 {
-    CBUFFER       *uri_cbuffer;
-
     UINT32         req_body_chunk_num;
 
     CBYTES        *content_cbytes;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -8471,17 +7011,17 @@ EC_BOOL cxfshttp_handle_wait_file_retire_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_wait_file_retire_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_wait_file_retire_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_wait_file_retire_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_wait_file_retire_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_wait_file_retire_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_wait_file_retire_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_wait_file_retire_get_request");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_wait_file_retire_request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
@@ -8490,7 +7030,7 @@ EC_BOOL cxfshttp_handle_wait_file_retire_get_request(CHTTP_NODE *chttp_node)
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    if(EC_TRUE == __cxfshttp_uri_is_wait_file_retire_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
@@ -8502,7 +7042,7 @@ EC_BOOL cxfshttp_handle_wait_file_retire_get_request(CHTTP_NODE *chttp_node)
         retire_max_num     = c_str_to_word(retire_max_num_str);
         retire_num         = 0;
 
-        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_wait_file_retire_get_request: header retire-max-num %s => %ld\n",
+        dbg_log(SEC_0194_CXFSHTTP, 1)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_wait_file_retire_request: header retire-max-num %s => %ld\n",
                                 retire_max_num_str, retire_max_num);
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
@@ -8512,16 +7052,16 @@ EC_BOOL cxfshttp_handle_wait_file_retire_get_request(CHTTP_NODE *chttp_node)
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_wait_file_retire_get_request failed");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_wait_file_retire_request failed");
 
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_wait_file_retire_get_request: complete %ld\n", retire_num);
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_wait_file_retire_request: complete %ld\n", retire_num);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_wait_file_retire_get_request: complete %ld", retire_num);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_wait_file_retire_request: complete %ld", retire_num);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
@@ -8532,11 +7072,11 @@ EC_BOOL cxfshttp_handle_wait_file_retire_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_wait_file_retire_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_wait_file_retire_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_wait_file_retire_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_wait_file_retire_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -8544,34 +7084,34 @@ EC_BOOL cxfshttp_make_wait_file_retire_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_wait_file_retire_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_wait_file_retire_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_wait_file_retire_get_response: make header kvs failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_wait_file_retire_response: make header kvs failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_wait_file_retire_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_wait_file_retire_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_wait_file_retire_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_wait_file_retire_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_wait_file_retire_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_wait_file_retire_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -8582,69 +7122,33 @@ EC_BOOL cxfshttp_commit_wait_file_retire_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: stat ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_stat_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/stat") == uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/stat")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_stat(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_stat: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_stat_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_stat_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_stat_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_stat_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_stat_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_stat_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_stat_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_stat_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_stat_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_stat_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_stat_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_stat_get_response(chttp_node);
+    ret = cxfshttp_commit_stat_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_stat_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_stat_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_stat_request(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE *csocket_cnode;
     CBYTES        *rsp_content_cbytes;
@@ -9123,18 +7627,18 @@ EC_BOOL cxfshttp_handle_stat_get_request(CHTTP_NODE *chttp_node)
 
     json_object_put(cxfs_obj);
 
-    dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_stat_get_request: done\n");
+    dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_stat_request: done\n");
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
     CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(rsp_content_cbytes));
-    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_stat_get_request: done");
+    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_stat_request: done");
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_stat_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_stat_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
@@ -9144,7 +7648,7 @@ EC_BOOL cxfshttp_make_stat_get_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_stat_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_stat_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -9152,14 +7656,14 @@ EC_BOOL cxfshttp_make_stat_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_stat_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_stat_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_stat_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_stat_response: make header end failed\n");
         return (EC_FALSE);
     }
 
@@ -9169,7 +7673,7 @@ EC_BOOL cxfshttp_make_stat_get_response(CHTTP_NODE *chttp_node)
                                               (uint32_t )CBYTES_LEN(content_cbytes),
                                               (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_stat_get_response: make body with len %d failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_stat_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
@@ -9178,14 +7682,14 @@ EC_BOOL cxfshttp_make_stat_get_response(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_stat_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_stat_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_stat_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_stat_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -9195,76 +7699,37 @@ EC_BOOL cxfshttp_commit_stat_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: activate_ngx ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_activate_ngx_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/activate") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/activate")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_activate_ngx(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_activate_ngx: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_activate_ngx_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_activate_ngx_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_activate_ngx_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_activate_ngx_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_activate_ngx_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_activate_ngx_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_activate_ngx_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_activate_ngx_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_activate_ngx_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_activate_ngx_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_activate_ngx_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_activate_ngx_get_response(chttp_node);
+    ret = cxfshttp_commit_activate_ngx_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_activate_ngx_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_activate_ngx_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_activate_ngx_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_activate_ngx_request(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
-    CBUFFER       *uri_cbuffer;
 
     UINT32         req_body_chunk_num;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -9274,17 +7739,17 @@ EC_BOOL cxfshttp_handle_activate_ngx_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_activate_ngx_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_activate_ngx_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_activate_ngx_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_activate_ngx_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_activate_ngx_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_activate_ngx_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_activate_ngx_get_request: bad request");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_activate_ngx_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
@@ -9293,29 +7758,29 @@ EC_BOOL cxfshttp_handle_activate_ngx_get_request(CHTTP_NODE *chttp_node)
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    if(EC_TRUE == __cxfshttp_uri_is_activate_ngx_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == cxfs_activate_ngx(CSOCKET_CNODE_MODI(csocket_cnode)))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_activate_ngx_get_request: cxfs activate_ngx failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_activate_ngx_request: cxfs activate_ngx failed\n");
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_activate_ngx_get_request: cxfs activate_ngx failed");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_activate_ngx_request: cxfs activate_ngx failed");
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_activate_ngx_get_request: cxfs activate_ngx done\n");
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_activate_ngx_request: cxfs activate_ngx done\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_activate_ngx_get_request: cxfs activate_ngx done");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_activate_ngx_request: cxfs activate_ngx done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -9323,11 +7788,11 @@ EC_BOOL cxfshttp_handle_activate_ngx_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_activate_ngx_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_activate_ngx_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_activate_ngx_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_activate_ngx_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -9335,28 +7800,28 @@ EC_BOOL cxfshttp_make_activate_ngx_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_activate_ngx_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_activate_ngx_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_activate_ngx_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_activate_ngx_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_activate_ngx_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_activate_ngx_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_activate_ngx_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_activate_ngx_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -9366,76 +7831,37 @@ EC_BOOL cxfshttp_commit_activate_ngx_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: deactivate_ngx ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_deactivate_ngx_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/deactivate") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/deactivate")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_deactivate_ngx(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_deactivate_ngx: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_deactivate_ngx_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_deactivate_ngx_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_deactivate_ngx_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_deactivate_ngx_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_deactivate_ngx_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_deactivate_ngx_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_deactivate_ngx_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_deactivate_ngx_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_deactivate_ngx_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_deactivate_ngx_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_deactivate_ngx_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_deactivate_ngx_get_response(chttp_node);
+    ret = cxfshttp_commit_deactivate_ngx_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_deactivate_ngx_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_deactivate_ngx_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_deactivate_ngx_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_deactivate_ngx_request(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
-    CBUFFER       *uri_cbuffer;
 
     UINT32         req_body_chunk_num;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
 
     req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
     /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
@@ -9445,17 +7871,17 @@ EC_BOOL cxfshttp_handle_deactivate_ngx_get_request(CHTTP_NODE *chttp_node)
 
         req_body_chunks = chttp_node_recv_chunks(chttp_node);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_deactivate_ngx_get_request: chunk num %ld\n", req_body_chunk_num);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_deactivate_ngx_request: chunk num %ld\n", req_body_chunk_num);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_deactivate_ngx_get_request: chunk mgr %p info\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_deactivate_ngx_request: chunk mgr %p info\n", req_body_chunks);
         chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
 
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_deactivate_ngx_get_request: chunk mgr %p chars\n", req_body_chunks);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_deactivate_ngx_request: chunk mgr %p chars\n", req_body_chunks);
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_deactivate_ngx_get_request: bad request");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_deactivate_ngx_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
         return (EC_TRUE);
@@ -9464,29 +7890,29 @@ EC_BOOL cxfshttp_handle_deactivate_ngx_get_request(CHTTP_NODE *chttp_node)
     content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
     cbytes_clean(content_cbytes);
 
-    if(EC_TRUE == __cxfshttp_uri_is_deactivate_ngx_get_op(uri_cbuffer))
+    if(1)
     {
         CSOCKET_CNODE * csocket_cnode;
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
         if(EC_FALSE == cxfs_deactivate_ngx(CSOCKET_CNODE_MODI(csocket_cnode)))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_deactivate_ngx_get_request: cxfs deactivate_ngx failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_deactivate_ngx_request: cxfs deactivate_ngx failed\n");
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
             CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_deactivate_ngx_get_request: cxfs deactivate_ngx failed");
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_deactivate_ngx_request: cxfs deactivate_ngx failed");
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_deactivate_ngx_get_request: cxfs deactivate_ngx done\n");
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_deactivate_ngx_request: cxfs deactivate_ngx done\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_deactivate_ngx_get_request: cxfs deactivate_ngx done");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_deactivate_ngx_request: cxfs deactivate_ngx done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -9494,11 +7920,11 @@ EC_BOOL cxfshttp_handle_deactivate_ngx_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_deactivate_ngx_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_deactivate_ngx_response(CHTTP_NODE *chttp_node)
 {
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, (uint64_t)0))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_deactivate_ngx_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_deactivate_ngx_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -9506,28 +7932,28 @@ EC_BOOL cxfshttp_make_deactivate_ngx_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_deactivate_ngx_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_deactivate_ngx_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_deactivate_ngx_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_deactivate_ngx_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_deactivate_ngx_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_deactivate_ngx_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_deactivate_ngx_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_deactivate_ngx_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -9537,69 +7963,33 @@ EC_BOOL cxfshttp_commit_deactivate_ngx_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: paracfg ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfshttp_uri_is_paracfg_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/paracfg") == uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/paracfg")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_is_http_get_paracfg(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_is_http_get_paracfg: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cxfshttp_uri_is_paracfg_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfshttp_commit_paracfg_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_paracfg_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cxfshttp_handle_paracfg_get_request(chttp_node))
+    if(EC_FALSE == cxfshttp_handle_paracfg_request(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_paracfg_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_paracfg_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cxfshttp_make_paracfg_get_response(chttp_node))
+    if(EC_FALSE == cxfshttp_make_paracfg_response(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_paracfg_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_paracfg_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cxfshttp_commit_paracfg_get_response(chttp_node);
+    ret = cxfshttp_commit_paracfg_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_paracfg_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_paracfg_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cxfshttp_handle_paracfg_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_handle_paracfg_request(CHTTP_NODE *chttp_node)
 {
     CBYTES        *rsp_content_cbytes;
     const char    *rsp_body_str;
@@ -9626,11 +8016,11 @@ EC_BOOL cxfshttp_handle_paracfg_get_request(CHTTP_NODE *chttp_node)
 
         json_object_put(cparacfg_obj);
 
-        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_paracfg_get_request: done\n");
+        dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_paracfg_request: done\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
         CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(rsp_content_cbytes));
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_paracfg_get_request: done");
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_paracfg_request: done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
     }
@@ -9638,7 +8028,7 @@ EC_BOOL cxfshttp_handle_paracfg_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_make_paracfg_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_make_paracfg_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
@@ -9648,7 +8038,7 @@ EC_BOOL cxfshttp_make_paracfg_get_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_paracfg_get_response: make response header failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_paracfg_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -9656,14 +8046,14 @@ EC_BOOL cxfshttp_make_paracfg_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_paracfg_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_paracfg_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_paracfg_get_response: make header end failed\n");
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_paracfg_response: make header end failed\n");
         return (EC_FALSE);
     }
 
@@ -9673,7 +8063,7 @@ EC_BOOL cxfshttp_make_paracfg_get_response(CHTTP_NODE *chttp_node)
                                               (uint32_t )CBYTES_LEN(content_cbytes),
                                               (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_paracfg_get_response: make body with len %d failed\n",
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_paracfg_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
@@ -9682,14 +8072,14 @@ EC_BOOL cxfshttp_make_paracfg_get_response(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfshttp_commit_paracfg_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cxfshttp_commit_paracfg_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_paracfg_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_paracfg_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 

@@ -461,6 +461,8 @@ typedef struct _CHTTP_NODE
     CBUFFER                   host;  /*string*/
     CBUFFER                   uri;   /*string*/
     CBUFFER                   expires;/*optional header in response*/
+    CBUFFER                   args;
+    CSTRKV_MGR                arg_kvs;
     CSTRKV_MGR                header_in_kvs;
     CSTRKV_MGR                header_out_kvs;
 
@@ -551,6 +553,8 @@ typedef struct _CHTTP_NODE
 #define CHTTP_NODE_HOST(chttp_node)                        (&((chttp_node)->host))
 #define CHTTP_NODE_URI(chttp_node)                         (&((chttp_node)->uri))
 #define CHTTP_NODE_EXPIRES(chttp_node)                     (&((chttp_node)->expires))
+#define CHTTP_NODE_ARGS(chttp_node)                        (&((chttp_node)->args))
+#define CHTTP_NODE_ARG_KVS(chttp_node)                     (&((chttp_node)->arg_kvs))
 #define CHTTP_NODE_HEADER_IN_KVS(chttp_node)               (&((chttp_node)->header_in_kvs))
 #define CHTTP_NODE_HEADER_OUT_KVS(chttp_node)              (&((chttp_node)->header_out_kvs))
 
@@ -953,58 +957,87 @@ typedef struct
 #define CHTTP_REST_LEN(chttp_rest)        ((chttp_rest)->len)
 #define CHTTP_REST_COMMIT(chttp_rest)     ((chttp_rest)->commit)
 
+typedef struct
+{
+    const char      *name;           /*api op name string*/
+    uint32_t         len;            /*api op name length*/
+    uint32_t         method;
+    EC_BOOL (*commit)(CHTTP_NODE *); /*api handler*/
+}CHTTP_API;
+
+#define CHTTP_API_NAME(chttp_api)         ((chttp_api)->name)
+#define CHTTP_API_LEN(chttp_api)          ((chttp_api)->len)
+#define CHTTP_API_METHOD(chttp_api)       ((chttp_api)->method)
+#define CHTTP_API_COMMIT(chttp_api)       ((chttp_api)->commit)
+
+#define CHTTP_STATUS_NONE                          ((uint32_t)   0)
+#define CHTTP_CONTINUE                             ((uint32_t) 100)
+#define CHTTP_SWITCHING_PROTOCOLS                  ((uint32_t) 101)
+#define CHTTP_PROCESSING                           ((uint32_t) 102)   /* RFC2518 section 10.1 */
+#define CHTTP_OK                                   ((uint32_t) 200)
+#define CHTTP_CREATED                              ((uint32_t) 201)
+#define CHTTP_ACCEPTED                             ((uint32_t) 202)
+#define CHTTP_NON_AUTHORITATIVE_INFORMATION        ((uint32_t) 203)
+#define CHTTP_NO_CONTENT                           ((uint32_t) 204)
+#define CHTTP_RESET_CONTENT                        ((uint32_t) 205)
+#define CHTTP_PARTIAL_CONTENT                      ((uint32_t) 206)
+#define CHTTP_MULTI_STATUS                         ((uint32_t) 207)    /* RFC2518 section 10.2 */
+#define CHTTP_MULTIPLE_CHOICES                     ((uint32_t) 300)
+#define CHTTP_MOVED_PERMANENTLY                    ((uint32_t) 301)
+#define CHTTP_MOVED_TEMPORARILY                    ((uint32_t) 302)
+#define CHTTP_SEE_OTHER                            ((uint32_t) 303)
+#define CHTTP_NOT_MODIFIED                         ((uint32_t) 304)
+#define CHTTP_USE_PROXY                            ((uint32_t) 305)
+#define CHTTP_TEMPORARY_REDIRECT                   ((uint32_t) 307)
+#define CHTTP_BAD_REQUEST                          ((uint32_t) 400)
+#define CHTTP_UNAUTHORIZED                         ((uint32_t) 401)
+#define CHTTP_PAYMENT_REQUIRED                     ((uint32_t) 402)
+#define CHTTP_FORBIDDEN                            ((uint32_t) 403)
+#define CHTTP_NOT_FOUND                            ((uint32_t) 404)
+#define CHTTP_METHOD_NOT_ALLOWED                   ((uint32_t) 405)
+#define CHTTP_NOT_ACCEPTABLE                       ((uint32_t) 406)
+#define CHTTP_PROXY_AUTHENTICATION_REQUIRED        ((uint32_t) 407)
+#define CHTTP_REQUEST_TIMEOUT                      ((uint32_t) 408)
+#define CHTTP_CONFLICT                             ((uint32_t) 409)
+#define CHTTP_GONE                                 ((uint32_t) 410)
+#define CHTTP_LENGTH_REQUIRED                      ((uint32_t) 411)
+#define CHTTP_PRECONDITION_FAILED                  ((uint32_t) 412)
+#define CHTTP_REQUEST_ENTITY_TOO_LARGE             ((uint32_t) 413)
+#define CHTTP_REQUEST_URI_TOO_LONG                 ((uint32_t) 414)
+#define CHTTP_UNSUPPORTED_MEDIA_TYPE               ((uint32_t) 415)
+#define CHTTP_REQUESTEDR_RANGE_NOT_SATISFIABLE     ((uint32_t) 416)
+#define CHTTP_EXPECTATION_FAILED                   ((uint32_t) 417)
+#define CHTTP_UNPROCESSABLE_ENTITY                 ((uint32_t) 422)    /* RFC2518 section 10.3 */
+#define CHTTP_LOCKED                               ((uint32_t) 423)    /* RFC2518 section 10.4 */
+#define CHTTP_FAILED_DEPENDENCY                    ((uint32_t) 424)    /* RFC2518 section 10.5 */
+
+#define CHTTP_INTERNAL_SERVER_ERROR                ((uint32_t) 500)
+#define CHTTP_NOT_IMPLEMENTED                      ((uint32_t) 501)
+#define CHTTP_BAD_GATEWAY                          ((uint32_t) 502)
+#define CHTTP_SERVICE_UNAVAILABLE                  ((uint32_t) 503)
+#define CHTTP_GATEWAY_TIMEOUT                      ((uint32_t) 504)
+#define CHTTP_VERSION_NOT_SUPPORTED                ((uint32_t) 505)
+#define CHTTP_INSUFFICIENT_STORAGE                 ((uint32_t) 507)   /* RFC2518 section 10.6 */
+#define CHTTP_INVALID_HEADER                       ((uint32_t) 600)   /* Squid header parsing error */
+#define CHTTP_HEADER_TOO_LARGE                     ((uint32_t) 601)   /* Header too large to process */
 
 
-#define    CHTTP_STATUS_NONE                          ((uint32_t)   0)
-#define    CHTTP_CONTINUE                             ((uint32_t) 100)
-#define    CHTTP_SWITCHING_PROTOCOLS                  ((uint32_t) 101)
-#define    CHTTP_PROCESSING                           ((uint32_t) 102)   /* RFC2518 section 10.1 */
-#define    CHTTP_OK                                   ((uint32_t) 200)
-#define    CHTTP_CREATED                              ((uint32_t) 201)
-#define    CHTTP_ACCEPTED                             ((uint32_t) 202)
-#define    CHTTP_NON_AUTHORITATIVE_INFORMATION        ((uint32_t) 203)
-#define    CHTTP_NO_CONTENT                           ((uint32_t) 204)
-#define    CHTTP_RESET_CONTENT                        ((uint32_t) 205)
-#define    CHTTP_PARTIAL_CONTENT                      ((uint32_t) 206)
-#define    CHTTP_MULTI_STATUS                         ((uint32_t) 207)    /* RFC2518 section 10.2 */
-#define    CHTTP_MULTIPLE_CHOICES                     ((uint32_t) 300)
-#define    CHTTP_MOVED_PERMANENTLY                    ((uint32_t) 301)
-#define    CHTTP_MOVED_TEMPORARILY                    ((uint32_t) 302)
-#define    CHTTP_SEE_OTHER                            ((uint32_t) 303)
-#define    CHTTP_NOT_MODIFIED                         ((uint32_t) 304)
-#define    CHTTP_USE_PROXY                            ((uint32_t) 305)
-#define    CHTTP_TEMPORARY_REDIRECT                   ((uint32_t) 307)
-#define    CHTTP_BAD_REQUEST                          ((uint32_t) 400)
-#define    CHTTP_UNAUTHORIZED                         ((uint32_t) 401)
-#define    CHTTP_PAYMENT_REQUIRED                     ((uint32_t) 402)
-#define    CHTTP_FORBIDDEN                            ((uint32_t) 403)
-#define    CHTTP_NOT_FOUND                            ((uint32_t) 404)
-#define    CHTTP_METHOD_NOT_ALLOWED                   ((uint32_t) 405)
-#define    CHTTP_NOT_ACCEPTABLE                       ((uint32_t) 406)
-#define    CHTTP_PROXY_AUTHENTICATION_REQUIRED        ((uint32_t) 407)
-#define    CHTTP_REQUEST_TIMEOUT                      ((uint32_t) 408)
-#define    CHTTP_CONFLICT                             ((uint32_t) 409)
-#define    CHTTP_GONE                                 ((uint32_t) 410)
-#define    CHTTP_LENGTH_REQUIRED                      ((uint32_t) 411)
-#define    CHTTP_PRECONDITION_FAILED                  ((uint32_t) 412)
-#define    CHTTP_REQUEST_ENTITY_TOO_LARGE             ((uint32_t) 413)
-#define    CHTTP_REQUEST_URI_TOO_LONG                 ((uint32_t) 414)
-#define    CHTTP_UNSUPPORTED_MEDIA_TYPE               ((uint32_t) 415)
-#define    CHTTP_REQUESTEDR_RANGE_NOT_SATISFIABLE     ((uint32_t) 416)
-#define    CHTTP_EXPECTATION_FAILED                   ((uint32_t) 417)
-#define    CHTTP_UNPROCESSABLE_ENTITY                 ((uint32_t) 422)    /* RFC2518 section 10.3 */
-#define    CHTTP_LOCKED                               ((uint32_t) 423)    /* RFC2518 section 10.4 */
-#define    CHTTP_FAILED_DEPENDENCY                    ((uint32_t) 424)    /* RFC2518 section 10.5 */
-
-#define    CHTTP_INTERNAL_SERVER_ERROR                ((uint32_t) 500)
-#define    CHTTP_NOT_IMPLEMENTED                      ((uint32_t) 501)
-#define    CHTTP_BAD_GATEWAY                          ((uint32_t) 502)
-#define    CHTTP_SERVICE_UNAVAILABLE                  ((uint32_t) 503)
-#define    CHTTP_GATEWAY_TIMEOUT                      ((uint32_t) 504)
-#define    CHTTP_VERSION_NOT_SUPPORTED                ((uint32_t) 505)
-#define    CHTTP_INSUFFICIENT_STORAGE                 ((uint32_t) 507)   /* RFC2518 section 10.6 */
-#define    CHTTP_INVALID_HEADER                       ((uint32_t) 600)   /* Squid header parsing error */
-#define    CHTTP_HEADER_TOO_LARGE                     ((uint32_t) 601)   /* Header too large to process */
+#define CHTTP_METHOD_UNKNOWN                       ((uint32_t)0x0001)
+#define CHTTP_METHOD_GET                           ((uint32_t)0x0002)
+#define CHTTP_METHOD_HEAD                          ((uint32_t)0x0004)
+#define CHTTP_METHOD_POST                          ((uint32_t)0x0008)
+#define CHTTP_METHOD_PUT                           ((uint32_t)0x0010)
+#define CHTTP_METHOD_DELETE                        ((uint32_t)0x0020)
+#define CHTTP_METHOD_MKCOL                         ((uint32_t)0x0040)
+#define CHTTP_METHOD_COPY                          ((uint32_t)0x0080)
+#define CHTTP_METHOD_MOVE                          ((uint32_t)0x0100)
+#define CHTTP_METHOD_OPTIONS                       ((uint32_t)0x0200)
+#define CHTTP_METHOD_PROPFIND                      ((uint32_t)0x0400)
+#define CHTTP_METHOD_PROPPATCH                     ((uint32_t)0x0800)
+#define CHTTP_METHOD_LOCK                          ((uint32_t)0x1000)
+#define CHTTP_METHOD_UNLOCK                        ((uint32_t)0x2000)
+#define CHTTP_METHOD_PATCH                         ((uint32_t)0x4000)
+#define CHTTP_METHOD_TRACE                         ((uint32_t)0x8000)
 
 #endif /*_CHTTP_INC*/
 
