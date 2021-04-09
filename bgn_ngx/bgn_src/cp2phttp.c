@@ -104,6 +104,21 @@ extern "C"{
 
 static EC_BOOL g_cp2phttp_log_init = EC_FALSE;
 
+static const CHTTP_API g_cp2phttp_api_list[] = {
+    {CONST_STR_AND_LEN("push")            , CHTTP_METHOD_GET  , cp2phttp_commit_push_request},
+    {CONST_STR_AND_LEN("flush")           , CHTTP_METHOD_GET  , cp2phttp_commit_flush_request},
+    {CONST_STR_AND_LEN("online")          , CHTTP_METHOD_GET  , cp2phttp_commit_online_request},
+    {CONST_STR_AND_LEN("offline")         , CHTTP_METHOD_GET  , cp2phttp_commit_offline_request},
+    {CONST_STR_AND_LEN("upper")           , CHTTP_METHOD_GET  , cp2phttp_commit_upper_request},
+    {CONST_STR_AND_LEN("edge")            , CHTTP_METHOD_GET  , cp2phttp_commit_edge_request},
+    {CONST_STR_AND_LEN("refresh")         , CHTTP_METHOD_GET  , cp2phttp_commit_refresh_request},
+
+    {CONST_STR_AND_LEN("upload")          , CHTTP_METHOD_POST , cp2phttp_commit_upload_request},
+};
+
+static const uint32_t   g_cp2phttp_api_num = sizeof(g_cp2phttp_api_list)/sizeof(g_cp2phttp_api_list[0]);
+
+
 EC_BOOL cp2phttp_log_start()
 {
     TASK_BRD        *task_brd;
@@ -296,124 +311,181 @@ EC_BOOL cp2phttp_commit_request(CHTTP_NODE *chttp_node)
 
 EC_BOOL cp2phttp_commit_http_head(CHTTP_NODE *chttp_node)
 {
-    EC_BOOL ret;
+    const CHTTP_API       *chttp_api;
+    EC_BOOL                ret;
 
-    CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record p2p beg to handle time*/
+    CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record xfs beg to handle time*/
 
-    if(1)
+    chttp_api = chttp_node_find_api(chttp_node,
+                                    (const CHTTP_API *)g_cp2phttp_api_list,
+                                    g_cp2phttp_api_num,
+                                    CHTTP_METHOD_HEAD);
+    if(NULL_PTR == chttp_api)
     {
-        CBUFFER *uri_cbuffer;
+        CBUFFER               *url_cbuffer;
 
-        uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_http_head: invalid uri %.*s\n", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_http_head: "
+                                                 "no api for '%.*s'\n",
+                                                 CBUFFER_USED(CHTTP_NODE_ARGS(chttp_node)),
+                                                 CBUFFER_DATA(CHTTP_NODE_ARGS(chttp_node)));
 
+        url_cbuffer   = CHTTP_NODE_URL(chttp_node);
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_http_head: "
+                                                 "invalid uri %.*s\n",
+                                                 CBUFFER_USED(url_cbuffer),
+                                                 CBUFFER_DATA(url_cbuffer));
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CP2P_ERR %u --", CHTTP_NOT_ACCEPTABLE);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_commit_http_head: invalid url %.*s", CBUFFER_USED(url_cbuffer), CBUFFER_DATA(url_cbuffer));
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
         ret = EC_FALSE;
+
+        return cp2phttp_commit_end(chttp_node, ret);
     }
 
+    dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_commit_http_head: "
+                                             "api: method %d, name %s\n",
+                                             CHTTP_API_METHOD(chttp_api),
+                                             CHTTP_API_NAME(chttp_api));
+
+    ret = CHTTP_API_COMMIT(chttp_api)(chttp_node);
     return cp2phttp_commit_end(chttp_node, ret);
 }
 
 EC_BOOL cp2phttp_commit_http_post(CHTTP_NODE *chttp_node)
 {
-    EC_BOOL ret;
+    const CHTTP_API       *chttp_api;
+    EC_BOOL                ret;
 
-    CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record p2p beg to handle time*/
+    CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record xfs beg to handle time*/
 
-    if(EC_TRUE == cp2phttp_is_http_post_upload(chttp_node))
+    chttp_api = chttp_node_find_api(chttp_node,
+                                    (const CHTTP_API *)g_cp2phttp_api_list,
+                                    g_cp2phttp_api_num,
+                                    CHTTP_METHOD_POST);
+    if(NULL_PTR == chttp_api)
     {
-        ret = cp2phttp_commit_upload_post_request(chttp_node);
-    }
-    else
-    {
-        CBUFFER *uri_cbuffer;
+        CBUFFER               *url_cbuffer;
 
-        uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_http_post: invalid uri %.*s\n", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_http_post: "
+                                                 "no api for '%.*s'\n",
+                                                 CBUFFER_USED(CHTTP_NODE_ARGS(chttp_node)),
+                                                 CBUFFER_DATA(CHTTP_NODE_ARGS(chttp_node)));
 
+        url_cbuffer   = CHTTP_NODE_URL(chttp_node);
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_http_post: "
+                                                 "invalid uri %.*s\n",
+                                                 CBUFFER_USED(url_cbuffer),
+                                                 CBUFFER_DATA(url_cbuffer));
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CP2P_ERR %u --", CHTTP_NOT_ACCEPTABLE);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_commit_http_post: invalid url %.*s", CBUFFER_USED(url_cbuffer), CBUFFER_DATA(url_cbuffer));
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
         ret = EC_FALSE;
+
+        return cp2phttp_commit_end(chttp_node, ret);
     }
 
+    dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_commit_http_post: "
+                                             "api: method %d, name %s\n",
+                                             CHTTP_API_METHOD(chttp_api),
+                                             CHTTP_API_NAME(chttp_api));
+
+    ret = CHTTP_API_COMMIT(chttp_api)(chttp_node);
     return cp2phttp_commit_end(chttp_node, ret);
 }
 
 EC_BOOL cp2phttp_commit_http_put(CHTTP_NODE *chttp_node)
 {
-    EC_BOOL ret;
+    const CHTTP_API       *chttp_api;
+    EC_BOOL                ret;
 
-    CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record p2p beg to handle time*/
+    CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record xfs beg to handle time*/
 
-    if(EC_TRUE == cp2phttp_is_http_put_upload(chttp_node))
+    chttp_api = chttp_node_find_api(chttp_node,
+                                    (const CHTTP_API *)g_cp2phttp_api_list,
+                                    g_cp2phttp_api_num,
+                                    CHTTP_METHOD_POST);
+    if(NULL_PTR == chttp_api)
     {
-        ret = cp2phttp_commit_upload_put_request(chttp_node);
-    }
-    else
-    {
-        CBUFFER *uri_cbuffer;
+        CBUFFER               *url_cbuffer;
 
-        uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_http_put: invalid uri %.*s\n", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_http_put: "
+                                                 "no api for '%.*s'\n",
+                                                 CBUFFER_USED(CHTTP_NODE_ARGS(chttp_node)),
+                                                 CBUFFER_DATA(CHTTP_NODE_ARGS(chttp_node)));
 
+        url_cbuffer   = CHTTP_NODE_URL(chttp_node);
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_http_put: "
+                                                 "invalid uri %.*s\n",
+                                                 CBUFFER_USED(url_cbuffer),
+                                                 CBUFFER_DATA(url_cbuffer));
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CP2P_ERR %u --", CHTTP_NOT_ACCEPTABLE);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_commit_http_post: invalid url %.*s", CBUFFER_USED(url_cbuffer), CBUFFER_DATA(url_cbuffer));
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
         ret = EC_FALSE;
+
+        return cp2phttp_commit_end(chttp_node, ret);
     }
 
+    dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_commit_http_put: "
+                                             "api: method %d, name %s\n",
+                                             CHTTP_API_METHOD(chttp_api),
+                                             CHTTP_API_NAME(chttp_api));
+
+    ret = CHTTP_API_COMMIT(chttp_api)(chttp_node);
     return cp2phttp_commit_end(chttp_node, ret);
 }
 
 EC_BOOL cp2phttp_commit_http_get(CHTTP_NODE *chttp_node)
 {
-    EC_BOOL ret;
+    const CHTTP_API       *chttp_api;
+    EC_BOOL                ret;
 
-    dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_commit_http_get: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(CHTTP_NODE_URI(chttp_node)),
-                        CBUFFER_DATA(CHTTP_NODE_URI(chttp_node)),
-                        CBUFFER_USED(CHTTP_NODE_URI(chttp_node)));
+    CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record xfs beg to handle time*/
 
-    CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record p2p beg to handle time*/
+    chttp_api = chttp_node_find_api(chttp_node,
+                                    (const CHTTP_API *)g_cp2phttp_api_list,
+                                    g_cp2phttp_api_num,
+                                    CHTTP_METHOD_GET);
+    if(NULL_PTR == chttp_api)
+    {
+        CBUFFER               *url_cbuffer;
 
-    if(EC_TRUE == cp2phttp_is_http_get_push(chttp_node))
-    {
-        ret = cp2phttp_commit_push_get_request(chttp_node);
-    }
-    else if(EC_TRUE == cp2phttp_is_http_get_flush(chttp_node))
-    {
-        ret = cp2phttp_commit_flush_get_request(chttp_node);
-    }
-    else if(EC_TRUE == cp2phttp_is_http_get_online(chttp_node))
-    {
-        ret = cp2phttp_commit_online_get_request(chttp_node);
-    }
-    else if(EC_TRUE == cp2phttp_is_http_get_offline(chttp_node))
-    {
-        ret = cp2phttp_commit_offline_get_request(chttp_node);
-    }
-    else if(EC_TRUE == cp2phttp_is_http_get_upper(chttp_node))
-    {
-        ret = cp2phttp_commit_upper_get_request(chttp_node);
-    }
-    else if(EC_TRUE == cp2phttp_is_http_get_edge(chttp_node))
-    {
-        ret = cp2phttp_commit_edge_get_request(chttp_node);
-    }
-    else if(EC_TRUE == cp2phttp_is_http_get_refresh(chttp_node))
-    {
-        ret = cp2phttp_commit_refresh_get_request(chttp_node);
-    }
-    else
-    {
-        CBUFFER *uri_cbuffer;
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_http_get: "
+                                                 "no api for '%.*s'\n",
+                                                 CBUFFER_USED(CHTTP_NODE_ARGS(chttp_node)),
+                                                 CBUFFER_DATA(CHTTP_NODE_ARGS(chttp_node)));
 
-        uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_http_get: invalid uri %.*s\n",
-                            CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
+        url_cbuffer   = CHTTP_NODE_URL(chttp_node);
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_http_get: "
+                                                 "invalid url %.*s\n",
+                                                 CBUFFER_USED(url_cbuffer),
+                                                 CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_ERR %s %u --", "GET", CHTTP_NOT_ACCEPTABLE);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_commit_http_get: invalid uri %.*s", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CP2P_ERR %u --", CHTTP_NOT_ACCEPTABLE);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_commit_http_get: invalid url %.*s", CBUFFER_USED(url_cbuffer), CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
         ret = EC_FALSE;
+
+        return cp2phttp_commit_end(chttp_node, ret);
     }
 
+    dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_commit_http_get: "
+                                             "api: method %d, name %s\n",
+                                             CHTTP_API_METHOD(chttp_api),
+                                             CHTTP_API_NAME(chttp_api));
+
+    ret = CHTTP_API_COMMIT(chttp_api)(chttp_node);
     return cp2phttp_commit_end(chttp_node, ret);
 }
 
@@ -534,69 +606,33 @@ EC_BOOL cp2phttp_commit_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: POST, FILE OPERATOR: upload ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cp2phttp_uri_is_upload_post_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/upload") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/upload")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_is_http_post_upload(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_is_http_post_upload: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cp2phttp_uri_is_upload_post_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_commit_upload_post_request(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_commit_upload_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cp2phttp_handle_upload_post_request(chttp_node))
+    if(EC_FALSE == cp2phttp_handle_upload_request(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upload_post_request: handle 'POST' request failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upload_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cp2phttp_make_upload_post_response(chttp_node))
+    if(EC_FALSE == cp2phttp_make_upload_response(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upload_post_request: make 'POST' response failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upload_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cp2phttp_commit_upload_post_response(chttp_node);
+    ret = cp2phttp_commit_upload_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upload_post_request: commit 'POST' response failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upload_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cp2phttp_handle_upload_post_request(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_handle_upload_request(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE      * csocket_cnode;
 
@@ -619,10 +655,10 @@ EC_BOOL cp2phttp_handle_upload_post_request(CHTTP_NODE *chttp_node)
 
     if(content_len > body_len)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 1)(LOGSTDOUT, "warn:cp2phttp_handle_upload_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
+        dbg_log(SEC_0068_CP2PHTTP, 1)(LOGSTDOUT, "warn:cp2phttp_handle_upload_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:cp2phttp_handle_upload_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CP2P_ERR %u --", CHTTP_PARTIAL_CONTENT);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:cp2phttp_handle_upload_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
 
@@ -633,11 +669,11 @@ EC_BOOL cp2phttp_handle_upload_post_request(CHTTP_NODE *chttp_node)
     service_str = chttp_node_get_header(chttp_node, (const char *)"service");
     if(NULL_PTR == service_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_post_request: no service in header\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_request: no service in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_post_request: no service in header");
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_request: no service in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
@@ -648,11 +684,11 @@ EC_BOOL cp2phttp_handle_upload_post_request(CHTTP_NODE *chttp_node)
     des_fname_str = chttp_node_get_header(chttp_node, (const char *)"des_fname");
     if(NULL_PTR == des_fname_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_post_request: no des_fname in header\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_request: no des_fname in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_post_request: no des_fname in header");
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_request: no des_fname in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
@@ -660,13 +696,13 @@ EC_BOOL cp2phttp_handle_upload_post_request(CHTTP_NODE *chttp_node)
     }
     if('/' != (*des_fname_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_post_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_request: "
                                                  "invalid src_fname '%s' in header\n",
                                                  des_fname_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_post_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_request: "
                                                   "invalid src_fname '%s' in header",
                                                   des_fname_str);
 
@@ -679,11 +715,11 @@ EC_BOOL cp2phttp_handle_upload_post_request(CHTTP_NODE *chttp_node)
     des_tcid_str = chttp_node_get_header(chttp_node, (const char *)"des_tcid");
     if(NULL_PTR == des_tcid_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_post_request: no des_tcid in header\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_request: no des_tcid in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_post_request: no des_tcid in header");
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_request: no des_tcid in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
@@ -691,13 +727,13 @@ EC_BOOL cp2phttp_handle_upload_post_request(CHTTP_NODE *chttp_node)
     }
     if(EC_FALSE == c_ipv4_is_ok(des_tcid_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_post_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_request: "
                                                  "invalid des_tcid '%s' in header\n",
                                                  des_tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_post_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_request: "
                                                   "invalid des_tcid '%s' in header",
                                                   des_tcid_str);
 
@@ -712,10 +748,10 @@ EC_BOOL cp2phttp_handle_upload_post_request(CHTTP_NODE *chttp_node)
     src_file_content = cbytes_new(0);
     if(NULL_PTR == src_file_content)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_post_request: new cbytes without buff failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_request: new cbytes without buff failed\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_post_request: new cbytes without buff failed");
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CP2P_ERR %u --", CHTTP_INSUFFICIENT_STORAGE);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_request: new cbytes without buff failed");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
         return (EC_TRUE);
@@ -723,12 +759,12 @@ EC_BOOL cp2phttp_handle_upload_post_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_node_recv_export_to_cbytes(chttp_node, src_file_content, (UINT32)body_len))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_post_request: export body with len %ld to cbytes failed\n",
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_request: export body with len %ld to cbytes failed\n",
                             (UINT32)body_len);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CP2P_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
@@ -769,13 +805,13 @@ EC_BOOL cp2phttp_handle_upload_post_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_post_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_request: "
                                                  "upload service '%s', file '%s' on tcid '%s' failed\n",
                                                  service_str, des_fname_str, des_tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_post_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_FORBIDDEN);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_request: "
                                                   "upload service '%s', file '%s' on tcid '%s' failed",
                                                   service_str, des_fname_str, des_tcid_str);
 
@@ -784,13 +820,13 @@ EC_BOOL cp2phttp_handle_upload_post_request(CHTTP_NODE *chttp_node)
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0068_CP2PHTTP, 5)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_upload_post_request: "
+    dbg_log(SEC_0068_CP2PHTTP, 5)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_upload_request: "
                                              "upload service '%s', file '%s' on tcid '%s' done\n",
                                              service_str, des_fname_str, des_tcid_str);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %s %u %ld", "POST", CHTTP_OK, (UINT32)body_len);
-    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_upload_post_request: "
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %u %ld", CHTTP_OK, (UINT32)body_len);
+    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_upload_request: "
                                               "upload service '%s', file '%s' on tcid '%s' done",
                                               service_str, des_fname_str, des_tcid_str);
 
@@ -799,7 +835,7 @@ EC_BOOL cp2phttp_handle_upload_post_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cp2phttp_make_upload_post_response(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_make_upload_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
@@ -809,7 +845,7 @@ EC_BOOL cp2phttp_make_upload_post_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upload_post_response: make response header failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upload_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -817,354 +853,34 @@ EC_BOOL cp2phttp_make_upload_post_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upload_post_response: make response header keepalive failed\n");
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upload_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upload_post_response: make header kvs failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upload_response: make header kvs failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upload_post_response: make header end failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upload_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cp2phttp_commit_upload_post_response(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_commit_upload_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upload_post_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
-        return (EC_FALSE);
-    }
-
-    return cp2phttp_commit_response(chttp_node);
-}
-#endif
-
-#if 1
-/*---------------------------------------- HTTP METHOD: POST, FILE OPERATOR: upload ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cp2phttp_uri_is_upload_put_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/upload") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/upload")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_is_http_put_upload(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_is_http_put_upload: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cp2phttp_uri_is_upload_put_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_commit_upload_put_request(CHTTP_NODE *chttp_node)
-{
-    EC_BOOL ret;
-
-    if(EC_FALSE == cp2phttp_handle_upload_put_request(chttp_node))
-    {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upload_put_request: handle 'POST' request failed\n");
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == cp2phttp_make_upload_put_response(chttp_node))
-    {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upload_put_request: make 'POST' response failed\n");
-        return (EC_FALSE);
-    }
-
-    ret = cp2phttp_commit_upload_put_response(chttp_node);
-    if(EC_FALSE == ret)
-    {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upload_put_request: commit 'POST' response failed\n");
-        return (EC_FALSE);
-    }
-
-    return (ret);
-}
-
-EC_BOOL cp2phttp_handle_upload_put_request(CHTTP_NODE *chttp_node)
-{
-    CSOCKET_CNODE      * csocket_cnode;
-
-    char               * service_str;
-    char               * des_fname_str;
-    char               * des_tcid_str;
-
-    CSTRING              service_cstr;
-    UINT32               des_tcid;
-    CSTRING              des_fname_cstr;
-
-    CBYTES             * src_file_content;
-    uint64_t             body_len;
-    uint64_t             content_len;
-
-    EC_BOOL              ret;
-
-    content_len  = CHTTP_NODE_CONTENT_LENGTH(chttp_node);
-    body_len     = chttp_node_recv_len(chttp_node);
-
-    if(content_len > body_len)
-    {
-        dbg_log(SEC_0068_CP2PHTTP, 1)(LOGSTDOUT, "warn:cp2phttp_handle_upload_put_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
-        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:cp2phttp_handle_upload_put_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
-
-        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
-
-        return (EC_TRUE);
-    }
-
-    /*service*/
-    service_str = chttp_node_get_header(chttp_node, (const char *)"service");
-    if(NULL_PTR == service_str)
-    {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_put_request: no service in header\n");
-
-        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_put_request: no service in header");
-
-        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-
-        return (EC_TRUE);
-    }
-
-    /*des_fname*/
-    des_fname_str = chttp_node_get_header(chttp_node, (const char *)"des_fname");
-    if(NULL_PTR == des_fname_str)
-    {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_put_request: no des_fname in header\n");
-
-        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_put_request: no des_fname in header");
-
-        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-
-        return (EC_TRUE);
-    }
-    if('/' != (*des_fname_str))
-    {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_put_request: "
-                                                 "invalid src_fname '%s' in header\n",
-                                                 des_fname_str);
-
-        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_put_request: "
-                                                  "invalid src_fname '%s' in header",
-                                                  des_fname_str);
-
-        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-
-        return (EC_TRUE);
-    }
-
-    /*des_tcid*/
-    des_tcid_str = chttp_node_get_header(chttp_node, (const char *)"des_tcid");
-    if(NULL_PTR == des_tcid_str)
-    {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_put_request: no des_tcid in header\n");
-
-        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "POST", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_put_request: no des_tcid in header");
-
-        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-
-        return (EC_TRUE);
-    }
-    if(EC_FALSE == c_ipv4_is_ok(des_tcid_str))
-    {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_put_request: "
-                                                 "invalid des_tcid '%s' in header\n",
-                                                 des_tcid_str);
-
-        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_put_request: "
-                                                  "invalid des_tcid '%s' in header",
-                                                  des_tcid_str);
-
-        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
-
-        return (EC_TRUE);
-    }
-    des_tcid = c_ipv4_to_word(des_tcid_str);
-
-    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
-
-    src_file_content = cbytes_new(0);
-    if(NULL_PTR == src_file_content)
-    {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_put_request: new cbytes without buff failed\n");
-        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_put_request: new cbytes without buff failed");
-
-        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
-        return (EC_TRUE);
-    }
-
-    if(EC_FALSE == chttp_node_recv_export_to_cbytes(chttp_node, src_file_content, (UINT32)body_len))
-    {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_put_request: export body with len %ld to cbytes failed\n",
-                            (UINT32)body_len);
-
-        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_put_request: export body with len %ld to cbytes failed", (UINT32)body_len);
-
-        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
-
-        cbytes_free(src_file_content);
-        return (EC_TRUE);
-    }
-
-    /*clean body chunks*/
-    chttp_node_recv_clean(chttp_node);
-
-    cstring_init(&service_cstr, (const UINT8 *)service_str);
-    cstring_init(&des_fname_cstr, (const UINT8 *)des_fname_str);
-
-    if(CMPI_LOCAL_TCID == des_tcid)
-    {
-        ret = cp2p_file_upload(CSOCKET_CNODE_MODI(csocket_cnode), src_file_content, &service_cstr, &des_fname_cstr);
-    }
-    else
-    {
-        MOD_NODE        recv_mod_node;
-
-        MOD_NODE_TCID(&recv_mod_node) = des_tcid;
-        MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
-        MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-        MOD_NODE_MODI(&recv_mod_node) = 0;
-
-        ret = EC_FALSE;
-
-        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-                 &recv_mod_node,
-                 &ret,
-                 FI_cp2p_file_upload, CMPI_ERROR_MODI, src_file_content, &service_cstr, &des_fname_cstr);
-    }
-
-    cbytes_free(src_file_content);
-    cstring_clean(&service_cstr);
-    cstring_clean(&des_fname_cstr);
-
-    if(EC_FALSE == ret)
-    {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upload_put_request: "
-                                                 "upload service '%s', file '%s' on tcid '%s' failed\n",
-                                                 service_str, des_fname_str, des_tcid_str);
-
-        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upload_put_request: "
-                                                  "upload service '%s', file '%s' on tcid '%s' failed",
-                                                  service_str, des_fname_str, des_tcid_str);
-
-        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
-
-        return (EC_TRUE);
-    }
-
-    dbg_log(SEC_0068_CP2PHTTP, 5)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_upload_put_request: "
-                                             "upload service '%s', file '%s' on tcid '%s' done\n",
-                                             service_str, des_fname_str, des_tcid_str);
-
-    CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %s %u %ld", "POST", CHTTP_OK, (UINT32)body_len);
-    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_upload_put_request: "
-                                              "upload service '%s', file '%s' on tcid '%s' done",
-                                              service_str, des_fname_str, des_tcid_str);
-
-    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cp2phttp_make_upload_put_response(CHTTP_NODE *chttp_node)
-{
-    CBYTES        *content_cbytes;
-    uint64_t       content_len;
-
-    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
-    content_len    = CBYTES_LEN(content_cbytes);
-
-    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
-    {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upload_put_response: make response header failed\n");
-        return (EC_FALSE);
-    }
-
-    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
-    {
-        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
-        {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upload_put_response: make response header keepalive failed\n");
-            return (EC_FALSE);
-        }
-    }
-
-    if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
-    {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upload_put_response: make header kvs failed\n");
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
-    {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upload_put_response: make header end failed\n");
-        return (EC_FALSE);
-    }
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cp2phttp_commit_upload_put_response(CHTTP_NODE *chttp_node)
-{
-    CSOCKET_CNODE * csocket_cnode;
-
-    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
-    if(NULL_PTR == csocket_cnode)
-    {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upload_put_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upload_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -1175,69 +891,33 @@ EC_BOOL cp2phttp_commit_upload_put_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: push ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cp2phttp_uri_is_push_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/push") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/push")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_is_http_get_push(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_is_http_get_push: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cp2phttp_uri_is_push_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_commit_push_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_commit_push_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cp2phttp_handle_push_get_request(chttp_node))
+    if(EC_FALSE == cp2phttp_handle_push_request(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_push_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_push_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cp2phttp_make_push_get_response(chttp_node))
+    if(EC_FALSE == cp2phttp_make_push_response(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_push_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_push_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cp2phttp_commit_push_get_response(chttp_node);
+    ret = cp2phttp_commit_push_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_push_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_push_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_handle_push_request(CHTTP_NODE *chttp_node)
 {
     //CSOCKET_CNODE      * csocket_cnode;
 
@@ -1258,12 +938,12 @@ EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node)
     service_str = chttp_node_get_header(chttp_node, (const char *)"service");
     if(NULL_PTR == service_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_request: "
                                                  "no service in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_request: "
                                                   "no service in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1275,12 +955,12 @@ EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node)
     src_fname_str = chttp_node_get_header(chttp_node, (const char *)"src_fname");
     if(NULL_PTR == src_fname_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_request: "
                                                  "no src_fname in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_request: "
                                                   "no src_fname in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1289,13 +969,13 @@ EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node)
     }
     if('/' != (*src_fname_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_request: "
                                                  "invalid src_fname '%s' in header\n",
                                                  src_fname_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_request: "
                                                   "invalid src_fname '%s' in header",
                                                   src_fname_str);
 
@@ -1308,12 +988,12 @@ EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node)
     des_network_str = chttp_node_get_header(chttp_node, (const char *)"des_network");
     if(NULL_PTR == des_network_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_request: "
                                                  "no des_network in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_request: "
                                                   "no des_network in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1322,13 +1002,13 @@ EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node)
     }
     if(EC_FALSE == c_str_is_digit(des_network_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_request: "
                                                  "invalid des_network '%s' in header\n",
                                                  des_network_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_request: "
                                                   "invalid des_network '%s' in header",
                                                   des_network_str);
 
@@ -1341,12 +1021,12 @@ EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node)
     des_tcid_str = chttp_node_get_header(chttp_node, (const char *)"des_tcid");
     if(NULL_PTR == des_tcid_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_request: "
                                                  "no des_tcid in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_request: "
                                                   "no des_tcid in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1355,13 +1035,13 @@ EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node)
     }
     if(EC_FALSE == c_ipv4_is_ok(des_tcid_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_request: "
                                                  "invalid des_tcid '%s' in header\n",
                                                  des_tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_request: "
                                                   "invalid des_tcid '%s' in header",
                                                   des_tcid_str);
 
@@ -1374,12 +1054,12 @@ EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node)
     on_tcid_str = chttp_node_get_header(chttp_node, (const char *)"on_tcid");
     if(NULL_PTR == on_tcid_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_request: "
                                                  "no on_tcid in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_request: "
                                                   "no on_tcid in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1388,13 +1068,13 @@ EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node)
     }
     if(EC_FALSE == c_ipv4_is_ok(on_tcid_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_request: "
                                                  "invalid on_tcid '%s' in header\n",
                                                  on_tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_request: "
                                                   "invalid on_tcid '%s' in header",
                                                   on_tcid_str);
 
@@ -1441,13 +1121,13 @@ EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node)
 
         if(EC_FALSE == ret)
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_get_request: "
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_request: "
                                                      "fsize of service '%s', file '%s' on tcid '%s' failed\n",
                                                      service_str, src_fname_str, on_tcid_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_get_request: "
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_request: "
                                                       "fsize of service '%s', file '%s' on tcid '%s' failed",
                                                       service_str, src_fname_str, on_tcid_str);
 
@@ -1487,13 +1167,13 @@ EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node)
 
         if(EC_FALSE == ret)
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_get_request: "
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_request: "
                                                      "md5sum of service '%s', file '%s' on tcid '%s' failed\n",
                                                      service_str, src_fname_str, on_tcid_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_get_request: "
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_request: "
                                                       "md5sum of service '%s', file '%s' on tcid '%s' failed",
                                                       service_str, src_fname_str, on_tcid_str);
 
@@ -1525,13 +1205,13 @@ EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node)
 
         if(EC_FALSE == ret)
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_get_request: "
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_push_request: "
                                                      "push service '%s', file '%s' to '%s' on tcid '%s' failed\n",
                                                      service_str, src_fname_str, des_tcid_str, on_tcid_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_get_request: "
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_push_request: "
                                                       "push service '%s', file '%s' to '%s' on tcid '%s' failed",
                                                       service_str, src_fname_str, des_tcid_str, on_tcid_str);
 
@@ -1542,13 +1222,13 @@ EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node)
         }
     }
 
-    dbg_log(SEC_0068_CP2PHTTP, 5)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_push_get_request: "
+    dbg_log(SEC_0068_CP2PHTTP, 5)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_push_request: "
                                              "push service '%s', file '%s' to '%s' on tcid '%s' done\n",
                                              service_str, src_fname_str, des_tcid_str, on_tcid_str);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
-    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_push_get_request: "
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %u %ld", CHTTP_OK, (UINT32)0);
+    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_push_request: "
                                               "push service '%s', file '%s' to '%s' on tcid '%s' done",
                                               service_str, src_fname_str, des_tcid_str, on_tcid_str);
 
@@ -1558,7 +1238,7 @@ EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cp2phttp_make_push_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_make_push_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
@@ -1568,7 +1248,7 @@ EC_BOOL cp2phttp_make_push_get_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_push_get_response: make response header failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_push_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -1576,33 +1256,33 @@ EC_BOOL cp2phttp_make_push_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_push_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_push_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_push_get_response: make header kvs failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_push_response: make header kvs failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_push_get_response: make header end failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_push_response: make header end failed\n");
         return (EC_FALSE);
     }
     return (EC_TRUE);
 }
 
-EC_BOOL cp2phttp_commit_push_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_commit_push_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_push_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_push_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -1612,69 +1292,33 @@ EC_BOOL cp2phttp_commit_push_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: flush ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cp2phttp_uri_is_flush_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/flush") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/flush")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_is_http_get_flush(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_is_http_get_flush: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cp2phttp_uri_is_flush_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_commit_flush_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_commit_flush_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cp2phttp_handle_flush_get_request(chttp_node))
+    if(EC_FALSE == cp2phttp_handle_flush_request(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_flush_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_flush_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cp2phttp_make_flush_get_response(chttp_node))
+    if(EC_FALSE == cp2phttp_make_flush_response(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_flush_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_flush_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cp2phttp_commit_flush_get_response(chttp_node);
+    ret = cp2phttp_commit_flush_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_flush_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_flush_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_handle_flush_request(CHTTP_NODE *chttp_node)
 {
     //CSOCKET_CNODE      * csocket_cnode;
 
@@ -1696,12 +1340,12 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
     service_str = chttp_node_get_header(chttp_node, (const char *)"service");
     if(NULL_PTR == service_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_request: "
                                                  "no service in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_request: "
                                                   "no service in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1713,12 +1357,12 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
     src_fname_str = chttp_node_get_header(chttp_node, (const char *)"src_fname");
     if(NULL_PTR == src_fname_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_request: "
                                                  "no src_fname in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_request: "
                                                   "no src_fname in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1727,13 +1371,13 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
     }
     if('/' != (*src_fname_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_request: "
                                                  "invalid src_fname '%s' in header\n",
                                                  src_fname_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_request: "
                                                   "invalid src_fname '%s' in header",
                                                   src_fname_str);
 
@@ -1746,12 +1390,12 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
     des_fname_str = chttp_node_get_header(chttp_node, (const char *)"des_fname");
     if(NULL_PTR == des_fname_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_request: "
                                                  "no des_fname in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_request: "
                                                   "no des_fname in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1760,13 +1404,13 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
     }
     if('/' != (*des_fname_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_request: "
                                                  "invalid des_fname '%s' in header\n",
                                                  des_fname_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_request: "
                                                   "invalid des_fname '%s' in header",
                                                   des_fname_str);
 
@@ -1779,12 +1423,12 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
     des_network_str = chttp_node_get_header(chttp_node, (const char *)"des_network");
     if(NULL_PTR == des_network_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_request: "
                                                  "no des_network in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_request: "
                                                   "no des_network in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1793,13 +1437,13 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
     }
     if(EC_FALSE == c_str_is_digit(des_network_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_request: "
                                                  "invalid des_network '%s' in header\n",
                                                  des_network_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_request: "
                                                   "invalid des_network '%s' in header",
                                                   des_network_str);
 
@@ -1812,12 +1456,12 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
     des_tcid_str = chttp_node_get_header(chttp_node, (const char *)"des_tcid");
     if(NULL_PTR == des_tcid_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_request: "
                                                  "no des_tcid in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_request: "
                                                   "no des_tcid in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1826,13 +1470,13 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
     }
     if(EC_FALSE == c_ipv4_is_ok(des_tcid_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_request: "
                                                  "invalid des_tcid '%s' in header\n",
                                                  des_tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_request: "
                                                   "invalid des_tcid '%s' in header",
                                                   des_tcid_str);
 
@@ -1845,12 +1489,12 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
     on_tcid_str = chttp_node_get_header(chttp_node, (const char *)"on_tcid");
     if(NULL_PTR == on_tcid_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_request: "
                                                  "no on_tcid in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_request: "
                                                   "no on_tcid in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1859,13 +1503,13 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
     }
     if(EC_FALSE == c_ipv4_is_ok(on_tcid_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_request: "
                                                  "invalid on_tcid '%s' in header\n",
                                                  on_tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_request: "
                                                   "invalid on_tcid '%s' in header",
                                                   on_tcid_str);
 
@@ -1913,13 +1557,13 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
 
         if(EC_FALSE == ret)
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_get_request: "
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_request: "
                                                      "fsize of service '%s', file '%s' on tcid '%s' failed\n",
                                                      service_str, src_fname_str, on_tcid_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_get_request: "
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_request: "
                                                       "fsize of service '%s', file '%s' on tcid '%s' failed",
                                                       service_str, src_fname_str, on_tcid_str);
 
@@ -1959,13 +1603,13 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
 
         if(EC_FALSE == ret)
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_get_request: "
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_request: "
                                                      "md5sum of service '%s', file '%s' on tcid '%s' failed\n",
                                                      service_str, src_fname_str, on_tcid_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_get_request: "
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_request: "
                                                       "md5sum of service '%s', file '%s' on tcid '%s' failed",
                                                       service_str, src_fname_str, on_tcid_str);
 
@@ -1997,13 +1641,13 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
 
         if(EC_FALSE == ret)
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_get_request: "
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_flush_request: "
                                                      "flush service '%s', file '%s' to '%s' on tcid '%s' failed\n",
                                                      service_str, src_fname_str, des_tcid_str, on_tcid_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_get_request: "
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_flush_request: "
                                                       "flush service '%s', file '%s' to '%s' on tcid '%s' failed",
                                                       service_str, src_fname_str, des_tcid_str, on_tcid_str);
 
@@ -2014,13 +1658,13 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
         }
     }
 
-    dbg_log(SEC_0068_CP2PHTTP, 5)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_flush_get_request: "
+    dbg_log(SEC_0068_CP2PHTTP, 5)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_flush_request: "
                                              "flush service '%s', file '%s' to '%s' on tcid '%s' done\n",
                                              service_str, src_fname_str, des_tcid_str, on_tcid_str);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
-    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_flush_get_request: "
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %u %ld", CHTTP_OK, (UINT32)0);
+    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_flush_request: "
                                               "flush service '%s', file '%s' to '%s' on tcid '%s' done",
                                               service_str, src_fname_str, des_tcid_str, on_tcid_str);
 
@@ -2030,7 +1674,7 @@ EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cp2phttp_make_flush_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_make_flush_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
@@ -2040,7 +1684,7 @@ EC_BOOL cp2phttp_make_flush_get_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_flush_get_response: make response header failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_flush_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -2048,33 +1692,33 @@ EC_BOOL cp2phttp_make_flush_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_flush_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_flush_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_flush_get_response: make header kvs failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_flush_response: make header kvs failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_flush_get_response: make header end failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_flush_response: make header end failed\n");
         return (EC_FALSE);
     }
     return (EC_TRUE);
 }
 
-EC_BOOL cp2phttp_commit_flush_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_commit_flush_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_flush_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_flush_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -2084,69 +1728,33 @@ EC_BOOL cp2phttp_commit_flush_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: online ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cp2phttp_uri_is_online_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/online") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/online")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_is_http_get_online(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_is_http_get_online: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cp2phttp_uri_is_online_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_commit_online_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_commit_online_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cp2phttp_handle_online_get_request(chttp_node))
+    if(EC_FALSE == cp2phttp_handle_online_request(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_online_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_online_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cp2phttp_make_online_get_response(chttp_node))
+    if(EC_FALSE == cp2phttp_make_online_response(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_online_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_online_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cp2phttp_commit_online_get_response(chttp_node);
+    ret = cp2phttp_commit_online_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_online_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_online_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cp2phttp_handle_online_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_handle_online_request(CHTTP_NODE *chttp_node)
 {
 //    CSOCKET_CNODE * csocket_cnode;
 
@@ -2162,12 +1770,12 @@ EC_BOOL cp2phttp_handle_online_get_request(CHTTP_NODE *chttp_node)
     service_name_str = chttp_node_get_header(chttp_node, (const char *)"service");
     if(NULL_PTR == service_name_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_online_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_online_request: "
                                                  "no service in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_online_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_online_request: "
                                                   "no service in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2180,12 +1788,12 @@ EC_BOOL cp2phttp_handle_online_get_request(CHTTP_NODE *chttp_node)
     network_str = chttp_node_get_header(chttp_node, (const char *)"network");
     if(NULL_PTR == network_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_online_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_online_request: "
                                                  "no network in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_online_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_online_request: "
                                                   "no network in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2194,13 +1802,13 @@ EC_BOOL cp2phttp_handle_online_get_request(CHTTP_NODE *chttp_node)
     }
     if(EC_FALSE == c_str_is_digit(network_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_online_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_online_request: "
                                                  "invalid network '%s' in header\n",
                                                  network_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_online_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_online_request: "
                                                   "invalid network '%s' in header",
                                                   network_str);
 
@@ -2213,12 +1821,12 @@ EC_BOOL cp2phttp_handle_online_get_request(CHTTP_NODE *chttp_node)
     tcid_str = chttp_node_get_header(chttp_node, (const char *)"tcid");
     if(NULL_PTR == tcid_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_online_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_online_request: "
                                                  "no tcid in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_online_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_online_request: "
                                                   "no tcid in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2227,13 +1835,13 @@ EC_BOOL cp2phttp_handle_online_get_request(CHTTP_NODE *chttp_node)
     }
     if(EC_FALSE == c_ipv4_is_ok(tcid_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_online_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_online_request: "
                                                  "invalid tcid '%s' in header\n",
                                                  tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_online_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_online_request: "
                                                   "invalid tcid '%s' in header",
                                                   tcid_str);
 
@@ -2253,8 +1861,8 @@ EC_BOOL cp2phttp_handle_online_get_request(CHTTP_NODE *chttp_node)
              FI_ctdns_online, CMPI_ERROR_MODI, c_str_to_word(network_str), c_ipv4_to_word(tcid_str), &service_name);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
-    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_online_get_request: "
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %u %ld", CHTTP_OK, (UINT32)0);
+    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_online_request: "
                                               "network %s, tcid '%s', service '%s', report online",
                                               network_str,
                                               tcid_str,
@@ -2264,7 +1872,7 @@ EC_BOOL cp2phttp_handle_online_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cp2phttp_make_online_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_make_online_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
@@ -2274,7 +1882,7 @@ EC_BOOL cp2phttp_make_online_get_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_online_get_response: make response header failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_online_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -2282,34 +1890,34 @@ EC_BOOL cp2phttp_make_online_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_online_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_online_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_online_get_response: make header kvs failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_online_response: make header kvs failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_online_get_response: make header end failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_online_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cp2phttp_commit_online_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_commit_online_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_online_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_online_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -2319,69 +1927,33 @@ EC_BOOL cp2phttp_commit_online_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: offline ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cp2phttp_uri_is_offline_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/offline") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/offline")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_is_http_get_offline(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_is_http_get_offline: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cp2phttp_uri_is_offline_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_commit_offline_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_commit_offline_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cp2phttp_handle_offline_get_request(chttp_node))
+    if(EC_FALSE == cp2phttp_handle_offline_request(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_offline_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_offline_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cp2phttp_make_offline_get_response(chttp_node))
+    if(EC_FALSE == cp2phttp_make_offline_response(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_offline_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_offline_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cp2phttp_commit_offline_get_response(chttp_node);
+    ret = cp2phttp_commit_offline_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_offline_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_offline_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cp2phttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_handle_offline_request(CHTTP_NODE *chttp_node)
 {
 //    CSOCKET_CNODE * csocket_cnode;
 
@@ -2397,12 +1969,12 @@ EC_BOOL cp2phttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
     service_name_str = chttp_node_get_header(chttp_node, (const char *)"service");
     if(NULL_PTR == service_name_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_offline_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_offline_request: "
                                                  "no service in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_offline_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_offline_request: "
                                                   "no service in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2415,12 +1987,12 @@ EC_BOOL cp2phttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
     network_str = chttp_node_get_header(chttp_node, (const char *)"network");
     if(NULL_PTR == network_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_offline_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_offline_request: "
                                                  "no network in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_offline_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_offline_request: "
                                                   "no network in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2429,13 +2001,13 @@ EC_BOOL cp2phttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
     }
     if(EC_FALSE == c_str_is_digit(network_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_offline_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_offline_request: "
                                                  "invalid network '%s' in header\n",
                                                  network_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_offline_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_offline_request: "
                                                   "invalid network '%s' in header",
                                                   network_str);
 
@@ -2448,12 +2020,12 @@ EC_BOOL cp2phttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
     tcid_str = chttp_node_get_header(chttp_node, (const char *)"tcid");
     if(NULL_PTR == tcid_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_offline_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_offline_request: "
                                                  "no tcid in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_offline_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_offline_request: "
                                                   "no tcid in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2462,13 +2034,13 @@ EC_BOOL cp2phttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
     }
     if(EC_FALSE == c_ipv4_is_ok(tcid_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_offline_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_offline_request: "
                                                  "invalid tcid '%s' in header\n",
                                                  tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_offline_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_offline_request: "
                                                   "invalid tcid '%s' in header",
                                                   tcid_str);
 
@@ -2488,8 +2060,8 @@ EC_BOOL cp2phttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
              FI_ctdns_offline, CMPI_ERROR_MODI, c_str_to_word(network_str), c_ipv4_to_word(tcid_str), &service_name);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
-    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_offline_get_request: "
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %u %ld", CHTTP_OK, (UINT32)0);
+    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_offline_request: "
                                               "network %s, tcid '%s', service '%s', report offline",
                                               network_str,
                                               tcid_str,
@@ -2499,7 +2071,7 @@ EC_BOOL cp2phttp_handle_offline_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cp2phttp_make_offline_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_make_offline_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
@@ -2509,7 +2081,7 @@ EC_BOOL cp2phttp_make_offline_get_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_offline_get_response: make response header failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_offline_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -2517,34 +2089,34 @@ EC_BOOL cp2phttp_make_offline_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_offline_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_offline_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_offline_get_response: make header kvs failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_offline_response: make header kvs failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_offline_get_response: make header end failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_offline_response: make header end failed\n");
         return (EC_FALSE);
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL cp2phttp_commit_offline_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_commit_offline_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_offline_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_offline_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -2554,69 +2126,33 @@ EC_BOOL cp2phttp_commit_offline_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: upper ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cp2phttp_uri_is_upper_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/upper") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/upper")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_is_http_get_upper(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_is_http_get_upper: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cp2phttp_uri_is_upper_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_commit_upper_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_commit_upper_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cp2phttp_handle_upper_get_request(chttp_node))
+    if(EC_FALSE == cp2phttp_handle_upper_request(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upper_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upper_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cp2phttp_make_upper_get_response(chttp_node))
+    if(EC_FALSE == cp2phttp_make_upper_response(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upper_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upper_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cp2phttp_commit_upper_get_response(chttp_node);
+    ret = cp2phttp_commit_upper_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upper_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upper_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cp2phttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_handle_upper_request(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE      * csocket_cnode;
 
@@ -2634,12 +2170,12 @@ EC_BOOL cp2phttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
     service_str = chttp_node_get_header(chttp_node, (const char *)"service");
     if(NULL_PTR == service_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upper_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upper_request: "
                                                  "no service in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upper_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upper_request: "
                                                   "no service in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2652,13 +2188,13 @@ EC_BOOL cp2phttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
     on_tcid_str = chttp_node_get_header(chttp_node, (const char *)"on_tcid");
     if(NULL_PTR != on_tcid_str && EC_FALSE == c_ipv4_is_ok(on_tcid_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upper_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upper_request: "
                                                  "invalid on_tcid '%s' in header\n",
                                                  on_tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upper_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upper_request: "
                                                   "invalid on_tcid '%s' in header",
                                                   on_tcid_str);
 
@@ -2681,11 +2217,11 @@ EC_BOOL cp2phttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
     ctdnssv_node_mgr = ctdnssv_node_mgr_new();
     if(NULL_PTR == ctdnssv_node_mgr)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upper_get_request: no memory\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upper_request: no memory\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upper_get_request: no memory");
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upper_request: no memory");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
@@ -2699,13 +2235,13 @@ EC_BOOL cp2phttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
         if(EC_FALSE == ctdns_finger_upper_service(CSOCKET_CNODE_MODI(csocket_cnode), &service_cstr,
                                  max_num, ctdnssv_node_mgr))
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upper_get_request: "
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upper_request: "
                                                      "finger upper nodes of service '%s' failed\n",
                                                      service_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upper_get_request: "
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upper_request: "
                                                       "finger upper nodes of service '%s' failed",
                                                       service_str);
 
@@ -2716,13 +2252,13 @@ EC_BOOL cp2phttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
         }
 
 
-        dbg_log(SEC_0068_CP2PHTTP, 5)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_upper_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 5)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_upper_request: "
                                                  "finger upper nodes of service '%s' done\n",
                                                  service_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_upper_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %u %ld", CHTTP_OK, (UINT32)0);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_upper_request: "
                                                   "finger upper nodes of service '%s' done",
                                                   service_str);
 
@@ -2746,13 +2282,13 @@ EC_BOOL cp2phttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
 
         if(EC_FALSE == ret)
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upper_get_request: "
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_upper_request: "
                                                      "finger upper nodes of service '%s' on tcid '%s' failed\n",
                                                      service_str, on_tcid_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upper_get_request: "
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_upper_request: "
                                                       "finger upper nodes of service '%s' on tcid '%s' failed",
                                                       service_str, on_tcid_str);
 
@@ -2762,13 +2298,13 @@ EC_BOOL cp2phttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0068_CP2PHTTP, 5)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_upper_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 5)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_upper_request: "
                                                   "finger upper nodes of service '%s' on tcid '%s' done\n",
                                                   service_str, on_tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_upper_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %u %ld", CHTTP_OK, (UINT32)0);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_upper_request: "
                                                   "finger upper nodes of service '%s'on tcid '%s' done",
                                                   service_str, on_tcid_str);
 
@@ -2816,14 +2352,14 @@ EC_BOOL cp2phttp_handle_upper_get_request(CHTTP_NODE *chttp_node)
         /* free json obj */
         json_object_put(rsp_body_obj);
 
-        dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_upper_get_request done\n");
+        dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_upper_request done\n");
     }
 
     ctdnssv_node_mgr_free(ctdnssv_node_mgr);
     return (EC_TRUE);
 }
 
-EC_BOOL cp2phttp_make_upper_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_make_upper_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
@@ -2833,7 +2369,7 @@ EC_BOOL cp2phttp_make_upper_get_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upper_get_response: make response header failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upper_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -2841,20 +2377,20 @@ EC_BOOL cp2phttp_make_upper_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upper_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upper_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upper_get_response: make header kvs failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upper_response: make header kvs failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upper_get_response: make header end failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upper_response: make header end failed\n");
         return (EC_FALSE);
     }
 
@@ -2864,7 +2400,7 @@ EC_BOOL cp2phttp_make_upper_get_response(CHTTP_NODE *chttp_node)
                                               (uint32_t )CBYTES_LEN(content_cbytes),
                                               (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upper_get_response: make body with len %d failed\n",
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_upper_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
@@ -2873,14 +2409,14 @@ EC_BOOL cp2phttp_make_upper_get_response(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cp2phttp_commit_upper_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_commit_upper_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upper_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_upper_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -2890,69 +2426,33 @@ EC_BOOL cp2phttp_commit_upper_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: edge ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cp2phttp_uri_is_edge_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/edge") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/edge")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_is_http_get_edge(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_is_http_get_edge: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cp2phttp_uri_is_edge_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_commit_edge_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_commit_edge_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cp2phttp_handle_edge_get_request(chttp_node))
+    if(EC_FALSE == cp2phttp_handle_edge_request(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_edge_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_edge_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cp2phttp_make_edge_get_response(chttp_node))
+    if(EC_FALSE == cp2phttp_make_edge_response(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_edge_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_edge_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cp2phttp_commit_edge_get_response(chttp_node);
+    ret = cp2phttp_commit_edge_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_edge_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_edge_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cp2phttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_handle_edge_request(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE      * csocket_cnode;
 
@@ -2970,12 +2470,12 @@ EC_BOOL cp2phttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
     service_str = chttp_node_get_header(chttp_node, (const char *)"service");
     if(NULL_PTR == service_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_edge_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_edge_request: "
                                                  "no service in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_edge_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_edge_request: "
                                                   "no service in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2988,13 +2488,13 @@ EC_BOOL cp2phttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
     on_tcid_str = chttp_node_get_header(chttp_node, (const char *)"on_tcid");
     if(NULL_PTR != on_tcid_str && EC_FALSE == c_ipv4_is_ok(on_tcid_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_edge_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_edge_request: "
                                                  "invalid on_tcid '%s' in header\n",
                                                  on_tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_edge_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_edge_request: "
                                                   "invalid on_tcid '%s' in header",
                                                   on_tcid_str);
 
@@ -3017,11 +2517,11 @@ EC_BOOL cp2phttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
     ctdnssv_node_mgr = ctdnssv_node_mgr_new();
     if(NULL_PTR == ctdnssv_node_mgr)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_edge_get_request: no memory\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_edge_request: no memory\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_edge_get_request: no memory");
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_edge_request: no memory");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
@@ -3035,13 +2535,13 @@ EC_BOOL cp2phttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
         if(EC_FALSE == ctdns_finger_edge_service(CSOCKET_CNODE_MODI(csocket_cnode), &service_cstr,
                                  max_num, ctdnssv_node_mgr))
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_edge_get_request: "
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_edge_request: "
                                                       "finger edge nodes of service '%s' failed\n",
                                                       service_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_edge_get_request: "
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_edge_request: "
                                                       "finger edge nodes of service '%s' failed",
                                                       service_str);
 
@@ -3052,13 +2552,13 @@ EC_BOOL cp2phttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
         }
 
 
-        dbg_log(SEC_0068_CP2PHTTP, 5)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_edge_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 5)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_edge_request: "
                                                   "finger edge nodes of service '%s' done\n",
                                                   service_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_edge_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %u %ld", CHTTP_OK, (UINT32)0);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_edge_request: "
                                                   "finger edge nodes of service '%s' done",
                                                   service_str);
 
@@ -3082,13 +2582,13 @@ EC_BOOL cp2phttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
 
         if(EC_FALSE == ret)
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_edge_get_request: "
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_edge_request: "
                                                       "finger edge nodes of service '%s' on tcid '%s' failed\n",
                                                       service_str, on_tcid_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_edge_get_request: "
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_edge_request: "
                                                       "finger edge nodes of service '%s' on tcid '%s' failed",
                                                       service_str, on_tcid_str);
 
@@ -3098,13 +2598,13 @@ EC_BOOL cp2phttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0068_CP2PHTTP, 5)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_edge_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 5)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_edge_request: "
                                                   "finger edge nodes of service '%s' on tcid '%s' done\n",
                                                   service_str, on_tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_edge_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %u %ld", CHTTP_OK, (UINT32)0);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_edge_request: "
                                                   "finger edge nodes of service '%s'on tcid '%s' done",
                                                   service_str, on_tcid_str);
 
@@ -3152,14 +2652,14 @@ EC_BOOL cp2phttp_handle_edge_get_request(CHTTP_NODE *chttp_node)
         /* free json obj */
         json_object_put(rsp_body_obj);
 
-        dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_edge_get_request done\n");
+        dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_edge_request done\n");
     }
 
     ctdnssv_node_mgr_free(ctdnssv_node_mgr);
     return (EC_TRUE);
 }
 
-EC_BOOL cp2phttp_make_edge_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_make_edge_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
@@ -3169,7 +2669,7 @@ EC_BOOL cp2phttp_make_edge_get_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_edge_get_response: make response header failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_edge_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -3177,20 +2677,20 @@ EC_BOOL cp2phttp_make_edge_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_edge_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_edge_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_edge_get_response: make header kvs failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_edge_response: make header kvs failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_edge_get_response: make header end failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_edge_response: make header end failed\n");
         return (EC_FALSE);
     }
 
@@ -3200,7 +2700,7 @@ EC_BOOL cp2phttp_make_edge_get_response(CHTTP_NODE *chttp_node)
                                               (uint32_t )CBYTES_LEN(content_cbytes),
                                               (uint32_t )CBYTES_ALIGNED(content_cbytes)))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_edge_get_response: make body with len %d failed\n",
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_edge_response: make body with len %d failed\n",
                            (uint32_t)CBYTES_LEN(content_cbytes));
         return (EC_FALSE);
     }
@@ -3209,14 +2709,14 @@ EC_BOOL cp2phttp_make_edge_get_response(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cp2phttp_commit_edge_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_commit_edge_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_edge_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_edge_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 
@@ -3226,69 +2726,33 @@ EC_BOOL cp2phttp_commit_edge_get_response(CHTTP_NODE *chttp_node)
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: refresh ----------------------------------------*/
-STATIC_CAST static EC_BOOL __cp2phttp_uri_is_refresh_get_op(const CBUFFER *uri_cbuffer)
-{
-    const uint8_t *uri_str;
-    uint32_t       uri_len;
-
-    uri_str      = CBUFFER_DATA(uri_cbuffer);
-    uri_len      = CBUFFER_USED(uri_cbuffer);
-
-    if(CONST_STR_LEN("/refresh") <= uri_len
-    && EC_TRUE == c_memcmp(uri_str, CONST_UINT8_STR_AND_LEN("/refresh")))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_is_http_get_refresh(const CHTTP_NODE *chttp_node)
-{
-    const CBUFFER *uri_cbuffer;
-
-    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
-
-    dbg_log(SEC_0068_CP2PHTTP, 9)(LOGSTDOUT, "[DEBUG] cp2phttp_is_http_get_refresh: uri: '%.*s' [len %d]\n",
-                        CBUFFER_USED(uri_cbuffer),
-                        CBUFFER_DATA(uri_cbuffer),
-                        CBUFFER_USED(uri_cbuffer));
-
-    if(EC_TRUE == __cp2phttp_uri_is_refresh_get_op(uri_cbuffer))
-    {
-        return (EC_TRUE);
-    }
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cp2phttp_commit_refresh_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_commit_refresh_request(CHTTP_NODE *chttp_node)
 {
     EC_BOOL ret;
 
-    if(EC_FALSE == cp2phttp_handle_refresh_get_request(chttp_node))
+    if(EC_FALSE == cp2phttp_handle_refresh_request(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_refresh_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_refresh_request: handle request failed\n");
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == cp2phttp_make_refresh_get_response(chttp_node))
+    if(EC_FALSE == cp2phttp_make_refresh_response(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_refresh_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_refresh_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    ret = cp2phttp_commit_refresh_get_response(chttp_node);
+    ret = cp2phttp_commit_refresh_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_refresh_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_refresh_request: commit response failed\n");
         return (EC_FALSE);
     }
 
     return (ret);
 }
 
-EC_BOOL cp2phttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_handle_refresh_request(CHTTP_NODE *chttp_node)
 {
     //CSOCKET_CNODE      * csocket_cnode;
 
@@ -3311,12 +2775,12 @@ EC_BOOL cp2phttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
     service_str = chttp_node_get_header(chttp_node, (const char *)"service");
     if(NULL_PTR == service_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_request: "
                                                  "no service in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_request: "
                                                   "no service in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -3329,12 +2793,12 @@ EC_BOOL cp2phttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
     path_str = chttp_node_get_header(chttp_node, (const char *)"path");
     if(NULL_PTR == path_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_request: "
                                                  "no path in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_request: "
                                                   "no path in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -3343,13 +2807,13 @@ EC_BOOL cp2phttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
     }
     if('/' != (*path_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_request: "
                                                  "invalid path '%s' in header\n",
                                                  path_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_request: "
                                                   "no path '%s' in header",
                                                   path_str);
 
@@ -3363,12 +2827,12 @@ EC_BOOL cp2phttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
     des_network_str = chttp_node_get_header(chttp_node, (const char *)"des_network");
     if(NULL_PTR == des_network_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_request: "
                                                  "no des_network in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_request: "
                                                   "no des_network in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -3377,13 +2841,13 @@ EC_BOOL cp2phttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
     }
     if(EC_FALSE == c_str_is_digit(des_network_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_request: "
                                                  "invalid des_network '%s' in header\n",
                                                  des_network_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_request: "
                                                   "invalid des_network '%s' in header",
                                                   des_network_str);
 
@@ -3396,12 +2860,12 @@ EC_BOOL cp2phttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
     des_tcid_str = chttp_node_get_header(chttp_node, (const char *)"des_tcid");
     if(NULL_PTR == des_tcid_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_request: "
                                                  "no des_tcid in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_request: "
                                                   "no des_tcid in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -3410,13 +2874,13 @@ EC_BOOL cp2phttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
     }
     if(EC_FALSE == c_ipv4_is_ok(des_tcid_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_request: "
                                                  "invalid des_tcid '%s' in header\n",
                                                  des_tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_request: "
                                                   "invalid des_tcid '%s' in header",
                                                   des_tcid_str);
 
@@ -3429,12 +2893,12 @@ EC_BOOL cp2phttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
     on_tcid_str = chttp_node_get_header(chttp_node, (const char *)"on_tcid");
     if(NULL_PTR == on_tcid_str)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_request: "
                                                  "no on_tcid in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_request: "
                                                   "no on_tcid in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -3443,13 +2907,13 @@ EC_BOOL cp2phttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
     }
     if(EC_FALSE == c_ipv4_is_ok(on_tcid_str))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_get_request: "
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_request: "
                                                  "invalid on_tcid '%s' in header\n",
                                                  on_tcid_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_get_request: "
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_request: "
                                                   "invalid on_tcid '%s' in header",
                                                   on_tcid_str);
 
@@ -3482,13 +2946,13 @@ EC_BOOL cp2phttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
 
         if(EC_FALSE == ret)
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_get_request: "
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_handle_refresh_request: "
                                                      "refresh service '%s', path '%s' to '%s' on tcid '%s' failed\n",
                                                      service_str, path_str, des_tcid_str, on_tcid_str);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
-            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_get_request: "
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_FAIL %u --", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cp2phttp_handle_refresh_request: "
                                                       "refresh service '%s', path '%s' to '%s' on tcid '%s' failed",
                                                       service_str, path_str, des_tcid_str, on_tcid_str);
 
@@ -3498,13 +2962,13 @@ EC_BOOL cp2phttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
         }
     }
 
-    dbg_log(SEC_0068_CP2PHTTP, 5)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_refresh_get_request: "
+    dbg_log(SEC_0068_CP2PHTTP, 5)(LOGSTDOUT, "[DEBUG] cp2phttp_handle_refresh_request: "
                                              "refresh service '%s', file '%s' to '%s' on tcid '%s' done\n",
                                              service_str, path_str, des_tcid_str, on_tcid_str);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
-    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_refresh_get_request: "
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "P2P_SUCC %u %ld", CHTTP_OK, (UINT32)0);
+    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cp2phttp_handle_refresh_request: "
                                               "refresh service '%s', file '%s' to '%s' on tcid '%s' done",
                                               service_str, path_str, des_tcid_str, on_tcid_str);
 
@@ -3513,7 +2977,7 @@ EC_BOOL cp2phttp_handle_refresh_get_request(CHTTP_NODE *chttp_node)
     return (EC_TRUE);
 }
 
-EC_BOOL cp2phttp_make_refresh_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_make_refresh_response(CHTTP_NODE *chttp_node)
 {
     CBYTES        *content_cbytes;
     uint64_t       content_len;
@@ -3523,7 +2987,7 @@ EC_BOOL cp2phttp_make_refresh_get_response(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_refresh_get_response: make response header failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_refresh_response: make response header failed\n");
         return (EC_FALSE);
     }
 
@@ -3531,33 +2995,33 @@ EC_BOOL cp2phttp_make_refresh_get_response(CHTTP_NODE *chttp_node)
     {
         if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
         {
-            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_refresh_get_response: make response header keepalive failed\n");
+            dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_refresh_response: make response header keepalive failed\n");
             return (EC_FALSE);
         }
     }
 
     if(EC_FALSE == chttp_make_response_header_kvs(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_refresh_get_response: make header kvs failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_refresh_response: make header kvs failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == chttp_make_response_header_end(chttp_node))
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_refresh_get_response: make header end failed\n");
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_make_refresh_response: make header end failed\n");
         return (EC_FALSE);
     }
     return (EC_TRUE);
 }
 
-EC_BOOL cp2phttp_commit_refresh_get_response(CHTTP_NODE *chttp_node)
+EC_BOOL cp2phttp_commit_refresh_response(CHTTP_NODE *chttp_node)
 {
     CSOCKET_CNODE * csocket_cnode;
 
     csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
     if(NULL_PTR == csocket_cnode)
     {
-        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_refresh_get_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        dbg_log(SEC_0068_CP2PHTTP, 0)(LOGSTDOUT, "error:cp2phttp_commit_refresh_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 

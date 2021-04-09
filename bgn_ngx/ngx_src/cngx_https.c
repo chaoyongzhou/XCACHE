@@ -321,7 +321,7 @@ EC_BOOL cngx_https_commit_http_head(CHTTP_NODE *chttp_node)
                                                    CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_NOT_ACCEPTABLE);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_NOT_ACCEPTABLE);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_commit_http_head: invalid url %.*s", CBUFFER_USED(url_cbuffer), CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
@@ -366,7 +366,7 @@ EC_BOOL cngx_https_commit_http_post(CHTTP_NODE *chttp_node)
                                                    CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_NOT_ACCEPTABLE);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_NOT_ACCEPTABLE);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_commit_http_post: invalid url %.*s", CBUFFER_USED(url_cbuffer), CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
@@ -411,7 +411,7 @@ EC_BOOL cngx_https_commit_http_get(CHTTP_NODE *chttp_node)
                                                    CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_NOT_ACCEPTABLE);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_NOT_ACCEPTABLE);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_commit_http_get: invalid url %.*s", CBUFFER_USED(url_cbuffer), CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
@@ -602,7 +602,7 @@ EC_BOOL cngx_https_handle_breathe_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_breathe_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -623,7 +623,7 @@ EC_BOOL cngx_https_handle_breathe_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0056_CNGX_HTTPS, 9)(LOGSTDOUT, "[DEBUG] cngx_https_handle_breathe_request: memory breathing done\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_breathe_request: memory breathing done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -723,7 +723,7 @@ EC_BOOL cngx_https_handle_logrotate_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_logrotate_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -754,7 +754,7 @@ EC_BOOL cngx_https_handle_logrotate_request(CHTTP_NODE *chttp_node)
                 dbg_log(SEC_0056_CNGX_HTTPS, 0)(LOGSTDOUT, "error:cngx_https_handle_logrotate_request: log rotate %ld failed\n", log_index);
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_logrotate_request: log rotate %ld failed", log_index);
 
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -765,7 +765,7 @@ EC_BOOL cngx_https_handle_logrotate_request(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0056_CNGX_HTTPS, 5)(LOGSTDOUT, "[DEBUG] cngx_https_handle_logrotate_request: log rotate %ld done\n", log_index);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %u --", CHTTP_OK);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_logrotate_request: log rotate %ld done", log_index);
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -780,7 +780,7 @@ EC_BOOL cngx_https_handle_logrotate_request(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0056_CNGX_HTTPS, 0)(LOGSTDOUT, "error:cngx_https_handle_logrotate_request: no memory\n");
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_logrotate_request: no memory");
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -803,7 +803,7 @@ EC_BOOL cngx_https_handle_logrotate_request(CHTTP_NODE *chttp_node)
                 dbg_log(SEC_0056_CNGX_HTTPS, 0)(LOGSTDOUT, "error:cngx_https_handle_logrotate_request: log rotate %ld failed\n", log_index);
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_logrotate_request: log rotate %ld failed", log_index);
 
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -817,7 +817,7 @@ EC_BOOL cngx_https_handle_logrotate_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0056_CNGX_HTTPS, 5)(LOGSTDOUT, "[DEBUG] cngx_https_handle_logrotate_request: log rotate %s done\n", log_index_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_logrotate_request: log rotate %s done", log_index_str);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -921,7 +921,7 @@ EC_BOOL cngx_https_handle_actsyscfg_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_actsyscfg_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -939,7 +939,7 @@ EC_BOOL cngx_https_handle_actsyscfg_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0056_CNGX_HTTPS, 5)(LOGSTDOUT, "[DEBUG] cngx_https_handle_actsyscfg_request done\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_actsyscfg_request done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1040,7 +1040,7 @@ EC_BOOL cngx_https_handle_xfs_up_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_xfs_up_request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1062,7 +1062,7 @@ EC_BOOL cngx_https_handle_xfs_up_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %u --", CHTTP_NOT_IMPLEMENTED);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_xfs_up_request: no cmon start");
 
             return (EC_TRUE);
@@ -1081,7 +1081,7 @@ EC_BOOL cngx_https_handle_xfs_up_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %u --", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_xfs_up_request: invalid xfs-tcid '%s'", v);
 
                 cmon_node_clean(&cmon_node);
@@ -1101,7 +1101,7 @@ EC_BOOL cngx_https_handle_xfs_up_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %u --", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_xfs_up_request: invalid xfs-ip '%s'", v);
 
                 cmon_node_clean(&cmon_node);
@@ -1134,7 +1134,7 @@ EC_BOOL cngx_https_handle_xfs_up_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_xfs_up_request: set up xfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
             cmon_node_clean(&cmon_node);
@@ -1142,7 +1142,7 @@ EC_BOOL cngx_https_handle_xfs_up_request(CHTTP_NODE *chttp_node)
         }
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_xfs_up_request: set up xfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1245,7 +1245,7 @@ EC_BOOL cngx_https_handle_xfs_down_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_xfs_down_request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1267,7 +1267,7 @@ EC_BOOL cngx_https_handle_xfs_down_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %u --", CHTTP_NOT_IMPLEMENTED);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_xfs_down_request: no cmon start");
 
             return (EC_TRUE);
@@ -1286,7 +1286,7 @@ EC_BOOL cngx_https_handle_xfs_down_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %u --", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_xfs_down_request: invalid xfs-tcid '%s'", v);
 
                 cmon_node_clean(&cmon_node);
@@ -1306,7 +1306,7 @@ EC_BOOL cngx_https_handle_xfs_down_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %u --", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_xfs_down_request: invalid xfs-ip '%s'", v);
 
                 cmon_node_clean(&cmon_node);
@@ -1339,7 +1339,7 @@ EC_BOOL cngx_https_handle_xfs_down_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_xfs_down_request: set down xfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
             cmon_node_clean(&cmon_node);
@@ -1347,7 +1347,7 @@ EC_BOOL cngx_https_handle_xfs_down_request(CHTTP_NODE *chttp_node)
         }
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_xfs_down_request: set down xfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1450,7 +1450,7 @@ EC_BOOL cngx_https_handle_xfs_add_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_xfs_add_request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1472,7 +1472,7 @@ EC_BOOL cngx_https_handle_xfs_add_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %u --", CHTTP_NOT_IMPLEMENTED);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_xfs_add_request: no cmon start");
 
             return (EC_TRUE);
@@ -1491,7 +1491,7 @@ EC_BOOL cngx_https_handle_xfs_add_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %u --", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_xfs_add_request: invalid xfs-tcid '%s'", v);
 
                 cmon_node_clean(&cmon_node);
@@ -1511,7 +1511,7 @@ EC_BOOL cngx_https_handle_xfs_add_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %u --", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_xfs_add_request: invalid xfs-ip '%s'", v);
 
                 cmon_node_clean(&cmon_node);
@@ -1544,7 +1544,7 @@ EC_BOOL cngx_https_handle_xfs_add_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_xfs_add_request: add xfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
             cmon_node_clean(&cmon_node);
@@ -1552,7 +1552,7 @@ EC_BOOL cngx_https_handle_xfs_add_request(CHTTP_NODE *chttp_node)
         }
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_xfs_add_request: add xfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1655,7 +1655,7 @@ EC_BOOL cngx_https_handle_xfs_del_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_xfs_del_request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1677,7 +1677,7 @@ EC_BOOL cngx_https_handle_xfs_del_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %u --", CHTTP_NOT_IMPLEMENTED);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_xfs_del_request: no cmon start");
 
             return (EC_TRUE);
@@ -1695,7 +1695,7 @@ EC_BOOL cngx_https_handle_xfs_del_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %u --", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_xfs_del_request: invalid xfs-tcid '%s'", v);
 
                 cmon_node_clean(&cmon_node);
@@ -1715,7 +1715,7 @@ EC_BOOL cngx_https_handle_xfs_del_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %u --", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_xfs_del_request: invalid xfs-ip '%s'", v);
 
                 cmon_node_clean(&cmon_node);
@@ -1748,7 +1748,7 @@ EC_BOOL cngx_https_handle_xfs_del_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_xfs_del_request: del xfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
             cmon_node_clean(&cmon_node);
@@ -1756,7 +1756,7 @@ EC_BOOL cngx_https_handle_xfs_del_request(CHTTP_NODE *chttp_node)
         }
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_xfs_del_request: del xfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1859,7 +1859,7 @@ EC_BOOL cngx_https_handle_xfs_list_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_xfs_list_request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1880,7 +1880,7 @@ EC_BOOL cngx_https_handle_xfs_list_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_FAIL %u --", CHTTP_NOT_IMPLEMENTED);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_xfs_list_request: no cmon start");
 
             return (EC_TRUE);
@@ -1894,7 +1894,7 @@ EC_BOOL cngx_https_handle_xfs_list_request(CHTTP_NODE *chttp_node)
         cstring_unset(&cxfs_list_cstr);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFSMON_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_xfs_list_request: list xfs done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -2013,7 +2013,7 @@ EC_BOOL cngx_https_handle_rfs_up_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_rfs_up_request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2035,7 +2035,7 @@ EC_BOOL cngx_https_handle_rfs_up_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %u --", CHTTP_NOT_IMPLEMENTED);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_rfs_up_request: no cmon start");
 
             return (EC_TRUE);
@@ -2054,7 +2054,7 @@ EC_BOOL cngx_https_handle_rfs_up_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %u --", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_rfs_up_request: invalid rfs-tcid '%s'", v);
 
                 cmon_node_clean(&cmon_node);
@@ -2074,7 +2074,7 @@ EC_BOOL cngx_https_handle_rfs_up_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %u --", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_rfs_up_request: invalid rfs-ip '%s'", v);
 
                 cmon_node_clean(&cmon_node);
@@ -2107,7 +2107,7 @@ EC_BOOL cngx_https_handle_rfs_up_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_rfs_up_request: set up rfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
             cmon_node_clean(&cmon_node);
@@ -2115,7 +2115,7 @@ EC_BOOL cngx_https_handle_rfs_up_request(CHTTP_NODE *chttp_node)
         }
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_rfs_up_request: set up rfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -2218,7 +2218,7 @@ EC_BOOL cngx_https_handle_rfs_down_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_rfs_down_request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2240,7 +2240,7 @@ EC_BOOL cngx_https_handle_rfs_down_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %u --", CHTTP_NOT_IMPLEMENTED);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_rfs_down_request: no cmon start");
 
             return (EC_TRUE);
@@ -2259,7 +2259,7 @@ EC_BOOL cngx_https_handle_rfs_down_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %u --", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_rfs_down_request: invalid rfs-tcid '%s'", v);
 
                 cmon_node_clean(&cmon_node);
@@ -2279,7 +2279,7 @@ EC_BOOL cngx_https_handle_rfs_down_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %u --", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_rfs_down_request: invalid rfs-ip '%s'", v);
 
                 cmon_node_clean(&cmon_node);
@@ -2312,7 +2312,7 @@ EC_BOOL cngx_https_handle_rfs_down_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_rfs_down_request: set down rfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
             cmon_node_clean(&cmon_node);
@@ -2320,7 +2320,7 @@ EC_BOOL cngx_https_handle_rfs_down_request(CHTTP_NODE *chttp_node)
         }
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_rfs_down_request: set down rfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -2423,7 +2423,7 @@ EC_BOOL cngx_https_handle_rfs_add_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_rfs_add_request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2445,7 +2445,7 @@ EC_BOOL cngx_https_handle_rfs_add_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %u --", CHTTP_NOT_IMPLEMENTED);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_rfs_add_request: no cmon start");
 
             return (EC_TRUE);
@@ -2464,7 +2464,7 @@ EC_BOOL cngx_https_handle_rfs_add_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %u --", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_rfs_add_request: invalid rfs-tcid '%s'", v);
 
                 cmon_node_clean(&cmon_node);
@@ -2484,7 +2484,7 @@ EC_BOOL cngx_https_handle_rfs_add_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %u --", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_rfs_add_request: invalid rfs-ip '%s'", v);
 
                 cmon_node_clean(&cmon_node);
@@ -2517,7 +2517,7 @@ EC_BOOL cngx_https_handle_rfs_add_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_rfs_add_request: add rfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
             cmon_node_clean(&cmon_node);
@@ -2525,7 +2525,7 @@ EC_BOOL cngx_https_handle_rfs_add_request(CHTTP_NODE *chttp_node)
         }
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_rfs_add_request: add rfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -2628,7 +2628,7 @@ EC_BOOL cngx_https_handle_rfs_del_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_rfs_del_request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2650,7 +2650,7 @@ EC_BOOL cngx_https_handle_rfs_del_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %u --", CHTTP_NOT_IMPLEMENTED);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_rfs_del_request: no cmon start");
 
             return (EC_TRUE);
@@ -2668,7 +2668,7 @@ EC_BOOL cngx_https_handle_rfs_del_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %u --", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_rfs_del_request: invalid rfs-tcid '%s'", v);
 
                 cmon_node_clean(&cmon_node);
@@ -2688,7 +2688,7 @@ EC_BOOL cngx_https_handle_rfs_del_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %u --", CHTTP_BAD_REQUEST);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_rfs_del_request: invalid rfs-ip '%s'", v);
 
                 cmon_node_clean(&cmon_node);
@@ -2721,7 +2721,7 @@ EC_BOOL cngx_https_handle_rfs_del_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_rfs_del_request: del rfs %s failed", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
             cmon_node_clean(&cmon_node);
@@ -2729,7 +2729,7 @@ EC_BOOL cngx_https_handle_rfs_del_request(CHTTP_NODE *chttp_node)
         }
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_rfs_del_request: del rfs %s done", c_word_to_ipv4(CMON_NODE_TCID(&cmon_node)));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -2832,7 +2832,7 @@ EC_BOOL cngx_https_handle_rfs_list_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_rfs_list_request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2853,7 +2853,7 @@ EC_BOOL cngx_https_handle_rfs_list_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_IMPLEMENTED;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %s %u --", "GET", CHTTP_NOT_IMPLEMENTED);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_FAIL %u --", CHTTP_NOT_IMPLEMENTED);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cngx_https_handle_rfs_list_request: no cmon start");
 
             return (EC_TRUE);
@@ -2867,7 +2867,7 @@ EC_BOOL cngx_https_handle_rfs_list_request(CHTTP_NODE *chttp_node)
         cstring_unset(&crfs_list_cstr);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFSMON_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_rfs_list_request: list rfs done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -2993,7 +2993,7 @@ EC_BOOL cngx_https_handle_paracfg_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0056_CNGX_HTTPS, 5)(LOGSTDOUT, "[DEBUG] cngx_https_handle_paracfg_request: done\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(rsp_content_cbytes));
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %u %ld", CHTTP_OK, CBYTES_LEN(rsp_content_cbytes));
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cngx_https_handle_paracfg_request: done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;

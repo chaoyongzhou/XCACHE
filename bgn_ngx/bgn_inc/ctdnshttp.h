@@ -29,7 +29,7 @@ extern "C"{
 
 #define CTDNSHTTP_SOCKET_TIMEOUT_NSEC      CONN_TIMEOUT_NSEC
 
-#define CTDNSHTTP_REST_API_NAME            "/tdns"
+#define CTDNSHTTP_REST_API_NAME            "tdns"
 
 #define CTDNSHTTP_HOST_DEFAULT             "y.pooapp.net"
 #define CTDNSBGN_PORT_DEFAULT              "788"
@@ -47,92 +47,71 @@ EC_BOOL ctdnshttp_commit_http_head(CHTTP_NODE *chttp_node);
 
 EC_BOOL ctdnshttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result);
 EC_BOOL ctdnshttp_commit_response(CHTTP_NODE *chttp_node);
-/**
-    interface name rule:
-    ctdnshttp_is_http_[get|post|put|head|delete]_<op>
-    ctdnshttp_commit_<op>_[get|post|put|head|delete]_request
-    ctdnshttp_handle_<op>_[get|post|put|head|delete]_request
-    ctdnshttp_make_<op>_[get|post|put|head|delete]_response
-    ctdnshttp_commit_<op>_[get|post|put|head|delete]_response
-**/
 
-EC_BOOL ctdnshttp_is_http_get_gettcid(const CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_gettcid_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_handle_gettcid_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_make_gettcid_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_gettcid_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_gettcid_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_gettcid_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_gettcid_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_gettcid_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL ctdnshttp_is_http_get_settcid(const CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_settcid_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_handle_settcid_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_make_settcid_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_settcid_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_settcid_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_settcid_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_settcid_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_settcid_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL ctdnshttp_is_http_get_deltcid(const CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_deltcid_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_handle_deltcid_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_make_deltcid_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_deltcid_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_deltcid_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_deltcid_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_deltcid_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_deltcid_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL ctdnshttp_is_http_get_configtcid(const CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_configtcid_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_handle_configtcid_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_make_configtcid_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_configtcid_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_configtcid_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_configtcid_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_configtcid_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_configtcid_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL ctdnshttp_is_http_get_reservetcid(const CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_reservetcid_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_handle_reservetcid_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_make_reservetcid_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_reservetcid_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_reservetcid_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_reservetcid_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_reservetcid_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_reservetcid_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL ctdnshttp_is_http_get_releasetcid(const CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_releasetcid_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_handle_releasetcid_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_make_releasetcid_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_releasetcid_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_releasetcid_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_releasetcid_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_releasetcid_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_releasetcid_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL ctdnshttp_is_http_get_flush(const CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_flush_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_handle_flush_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_make_flush_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_flush_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_flush_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_flush_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_flush_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_flush_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL ctdnshttp_is_http_get_ping(const CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_ping_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_handle_ping_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_make_ping_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_ping_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_ping_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_ping_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_ping_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_ping_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL ctdnshttp_is_http_get_online(const CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_online_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_handle_online_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_make_online_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_online_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_online_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_online_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_online_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_online_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL ctdnshttp_is_http_get_offline(const CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_offline_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_handle_offline_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_make_offline_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_offline_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_offline_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_offline_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_offline_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_offline_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL ctdnshttp_is_http_get_upper(const CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_upper_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_handle_upper_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_make_upper_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_upper_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_upper_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_upper_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_upper_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_upper_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL ctdnshttp_is_http_get_edge(const CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_edge_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_handle_edge_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_make_edge_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_edge_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_edge_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_edge_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_edge_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_edge_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL ctdnshttp_is_http_get_refresh(const CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_refresh_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_handle_refresh_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_make_refresh_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_refresh_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_refresh_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_handle_refresh_request(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_make_refresh_response(CHTTP_NODE *chttp_node);
+EC_BOOL ctdnshttp_commit_refresh_response(CHTTP_NODE *chttp_node);
 
 #endif /*_CTDNSHTTP_H*/
 

@@ -6815,7 +6815,7 @@ EC_BOOL c_tdns_resolve(const UINT32 tcid, UINT32 *ipv4, UINT32 *port)
     chttp_req_set_server(&chttp_req, (const char *)CTDNSHTTP_SERVER_DEFAULT);
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
-    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)(CTDNSHTTP_REST_API_NAME"/get"));
+    cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)("?mod="CTDNSHTTP_REST_API_NAME"&op=get"));
 
     chttp_req_add_header(&chttp_req, (const char *)"tcid", (char *)c_word_to_ipv4(tcid));
     chttp_req_add_header(&chttp_req, (const char *)"Connection", (char *)"Keep-Alive");

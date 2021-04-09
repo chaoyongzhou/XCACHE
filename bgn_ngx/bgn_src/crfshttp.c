@@ -449,7 +449,7 @@ EC_BOOL crfshttp_commit_http_get(CHTTP_NODE *chttp_node)
                             CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_NOT_ACCEPTABLE);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_NOT_ACCEPTABLE);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_commit_http_get: invalid uri %.*s", CBUFFER_USED(uri_cbuffer), CBUFFER_DATA(uri_cbuffer));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
@@ -617,20 +617,20 @@ EC_BOOL crfshttp_commit_getsmf_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_getsmf_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_getsmf_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_getsmf_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_getsmf_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_getsmf_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_getsmf_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_getsmf_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_getsmf_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_getsmf_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -681,7 +681,7 @@ EC_BOOL crfshttp_handle_getsmf_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_getsmf_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -718,7 +718,7 @@ EC_BOOL crfshttp_handle_getsmf_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr), store_offset, store_size);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_getsmf_get_request: crfs read %s with offset %u, size %u failed", (char *)cstring_get_str(&path_cstr), store_offset, store_size);
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
@@ -733,7 +733,7 @@ EC_BOOL crfshttp_handle_getsmf_get_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr), store_offset, store_size);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u %ld", CHTTP_OK, CBYTES_LEN(content_cbytes));
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_getsmf_get_request: crfs read %s with offset %u, size %u done", (char *)cstring_get_str(&path_cstr), store_offset, store_size);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -749,7 +749,7 @@ EC_BOOL crfshttp_handle_getsmf_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_getsmf_get_request: crfs read %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
@@ -764,7 +764,7 @@ EC_BOOL crfshttp_handle_getsmf_get_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u %ld", CHTTP_OK, CBYTES_LEN(content_cbytes));
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_getsmf_get_request: crfs read %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -890,20 +890,20 @@ EC_BOOL crfshttp_commit_lock_req_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_lock_req_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_lock_req_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_lock_req_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_lock_req_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_lock_req_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_lock_req_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_lock_req_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_lock_req_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_lock_req_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -998,7 +998,7 @@ EC_BOOL crfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_lock_req_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1037,7 +1037,7 @@ EC_BOOL crfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_FORBIDDEN);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_lock_req_get_request: crfs lock %s failed", (char *)cstring_get_str(&path_cstr));
             }
             else /*flag was not set which means some error happen*/
@@ -1045,7 +1045,7 @@ EC_BOOL crfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_INTERNAL_SERVER_ERROR);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_lock_req_get_request: crfs lock %s failed", (char *)cstring_get_str(&path_cstr));
             }
 
@@ -1058,7 +1058,7 @@ EC_BOOL crfshttp_handle_lock_req_get_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_lock_req_get_request: crfs lock %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1187,20 +1187,20 @@ EC_BOOL crfshttp_commit_unlock_req_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_unlock_req_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_unlock_req_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_unlock_req_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_unlock_req_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_unlock_req_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_unlock_req_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_unlock_req_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_unlock_req_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_unlock_req_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -1249,7 +1249,7 @@ EC_BOOL crfshttp_handle_unlock_req_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_unlock_req_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1276,7 +1276,7 @@ EC_BOOL crfshttp_handle_unlock_req_get_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_unlock_req_get_request: crfs unlock %s failed due to header 'auth-token' absence", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1294,7 +1294,7 @@ EC_BOOL crfshttp_handle_unlock_req_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_unlock_req_get_request: crfs unlock %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
@@ -1307,7 +1307,7 @@ EC_BOOL crfshttp_handle_unlock_req_get_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_unlock_req_get_request: crfs unlock %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1416,20 +1416,20 @@ EC_BOOL crfshttp_commit_unlock_notify_req_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_unlock_notify_req_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_unlock_notify_req_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_unlock_notify_req_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_unlock_notify_req_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_unlock_notify_req_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_unlock_notify_req_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_unlock_notify_req_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_unlock_notify_req_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_unlock_notify_req_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -1478,7 +1478,7 @@ EC_BOOL crfshttp_handle_unlock_notify_req_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_unlock_notify_req_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1500,7 +1500,7 @@ EC_BOOL crfshttp_handle_unlock_notify_req_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_unlock_notify_req_get_request: crfs unlock_notify %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
@@ -1513,7 +1513,7 @@ EC_BOOL crfshttp_handle_unlock_notify_req_get_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_unlock_notify_req_get_request: crfs unlock_notify %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1623,20 +1623,20 @@ EC_BOOL crfshttp_commit_recycle_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_recycle_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_recycle_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_recycle_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_recycle_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_recycle_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_recycle_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_recycle_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_recycle_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_recycle_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -1675,7 +1675,7 @@ EC_BOOL crfshttp_handle_recycle_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_recycle_get_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1704,7 +1704,7 @@ EC_BOOL crfshttp_handle_recycle_get_request(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_recycle_get_request: crfs recycle failed\n");
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_recycle_get_request: crfs recycle failed");
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -1719,7 +1719,7 @@ EC_BOOL crfshttp_handle_recycle_get_request(CHTTP_NODE *chttp_node)
         cbytes_set(content_cbytes, recycle_result, recycle_result_len);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_recycle_get_request: crfs recycle done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1828,20 +1828,20 @@ EC_BOOL crfshttp_commit_flush_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_flush_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_flush_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_flush_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_flush_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_flush_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_flush_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_flush_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_flush_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_flush_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -1879,7 +1879,7 @@ EC_BOOL crfshttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_flush_get_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -1895,7 +1895,7 @@ EC_BOOL crfshttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
         {
             dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_flush_get_request: crfs flush failed\n");
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_INTERNAL_SERVER_ERROR);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_flush_get_request: crfs flush failed");
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -1905,7 +1905,7 @@ EC_BOOL crfshttp_handle_flush_get_request(CHTTP_NODE *chttp_node)
 
         dbg_log(SEC_0049_CRFSHTTP, 5)(LOGSTDOUT, "[DEBUG] crfshttp_handle_flush_get_request: crfs flush done\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_flush_get_request: crfs flush done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1999,20 +1999,20 @@ EC_BOOL crfshttp_commit_retire_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_retire_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_retire_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_retire_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_retire_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_retire_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_retire_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_retire_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_retire_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_retire_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -2046,7 +2046,7 @@ EC_BOOL crfshttp_handle_retire_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_retire_get_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2062,7 +2062,7 @@ EC_BOOL crfshttp_handle_retire_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_retire_get_request: http header 'retire-files' absence\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_retire_get_request: http header 'retire-files' absence");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2089,7 +2089,7 @@ EC_BOOL crfshttp_handle_retire_get_request(CHTTP_NODE *chttp_node)
                                 retire_files);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_INTERNAL_SERVER_ERROR);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_retire_get_request: crfs retire with expect retire num %ld failed", retire_files);
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -2104,7 +2104,7 @@ EC_BOOL crfshttp_handle_retire_get_request(CHTTP_NODE *chttp_node)
                             retire_files, complete_num);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_retire_get_request: crfs retire with expect retire %ld, complete %ld done", retire_files, complete_num);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -2213,20 +2213,20 @@ EC_BOOL crfshttp_commit_breathe_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_breathe_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_breathe_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_breathe_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_breathe_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_breathe_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_breathe_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_breathe_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_breathe_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_breathe_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -2258,7 +2258,7 @@ EC_BOOL crfshttp_handle_breathe_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_breathe_get_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2279,7 +2279,7 @@ EC_BOOL crfshttp_handle_breathe_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_handle_breathe_get_request: memory breathing done\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_breathe_get_request: memory breathing done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -2373,22 +2373,22 @@ EC_BOOL crfshttp_commit_setsmf_post_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_setsmf_post_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_setsmf_post_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_setsmf_post_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_setsmf_post_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_setsmf_post_request: make 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_setsmf_post_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_setsmf_post_request: make 'SET' response done\n");
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_setsmf_post_request: make response done\n");
 
     ret = crfshttp_commit_setsmf_post_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_setsmf_post_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_setsmf_post_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -2430,7 +2430,7 @@ EC_BOOL crfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_setsmf_post_request: path %.*s, invalid content length %"PRId64, (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/setsmf")),(char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/setsmf")),content_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2464,7 +2464,7 @@ EC_BOOL crfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_setsmf_post_request: path %s, invalid body length %"PRId64, (char *)cstring_get_str(&path_cstr),body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2477,7 +2477,7 @@ EC_BOOL crfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "warn:crfshttp_handle_setsmf_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_PARTIAL_CONTENT);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:crfshttp_handle_setsmf_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
@@ -2491,7 +2491,7 @@ EC_BOOL crfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_setsmf_post_request: new cbytes without buff failed\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_INSUFFICIENT_STORAGE);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_setsmf_post_request: new cbytes without buff failed");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
@@ -2505,7 +2505,7 @@ EC_BOOL crfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
                             (UINT32)body_len);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_setsmf_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -2530,7 +2530,7 @@ EC_BOOL crfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_setsmf_post_request: crfs write %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
@@ -2543,7 +2543,7 @@ EC_BOOL crfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "POST", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u %ld", CHTTP_OK, CBYTES_LEN(content_cbytes));
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_setsmf_post_request: crfs write %s done", (char *)cstring_get_str(&path_cstr));
 #endif
 #if 0
@@ -2553,7 +2553,7 @@ EC_BOOL crfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_setsmf_post_request: crfs write %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
@@ -2566,7 +2566,7 @@ EC_BOOL crfshttp_handle_setsmf_post_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "POST", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u %ld", CHTTP_OK, CBYTES_LEN(content_cbytes));
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_setsmf_post_request: crfs write %s done", (char *)cstring_get_str(&path_cstr));
 #endif
     }
@@ -2670,22 +2670,22 @@ EC_BOOL crfshttp_commit_getsmf_head_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_getsmf_head_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_getsmf_head_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_getsmf_head_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_getsmf_head_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_getsmf_head_request: make 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_getsmf_head_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_getsmf_head_request: make 'SET' response done\n");
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_getsmf_head_request: make response done\n");
 
     ret = crfshttp_commit_getsmf_head_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_getsmf_head_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_getsmf_head_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -2731,7 +2731,7 @@ EC_BOOL crfshttp_handle_getsmf_head_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "HEAD", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_getsmf_head_request: crfs get size of %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
@@ -2743,7 +2743,7 @@ EC_BOOL crfshttp_handle_getsmf_head_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %"PRId64, "HEAD", CHTTP_OK, file_size);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u %"PRId64, CHTTP_OK, file_size);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_getsmf_head_request: crfs get size of %s done", (char *)cstring_get_str(&path_cstr));
 
         file_size_header_len = snprintf((char *)file_size_header, sizeof(file_size_header),
@@ -2864,22 +2864,22 @@ EC_BOOL crfshttp_commit_update_post_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_update_post_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_update_post_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_update_post_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_update_post_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_update_post_request: make 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_update_post_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_update_post_request: make 'SET' response done\n");
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_update_post_request: make response done\n");
 
     ret = crfshttp_commit_update_post_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_update_post_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_update_post_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -2920,7 +2920,7 @@ EC_BOOL crfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_update_post_request: path %.*s, invalid content length %"PRId64,
                     (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/update")),
                     (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/update")),content_len);
@@ -2956,7 +2956,7 @@ EC_BOOL crfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_update_post_request: path %s, invalid body length %"PRId64, (char *)cstring_get_str(&path_cstr),body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -2970,7 +2970,7 @@ EC_BOOL crfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "warn:crfshttp_handle_update_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_PARTIAL_CONTENT);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:crfshttp_handle_update_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
@@ -2984,7 +2984,7 @@ EC_BOOL crfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_update_post_request: new cbytes without buff failed\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_INSUFFICIENT_STORAGE);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_update_post_request: new cbytes with len zero failed");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
@@ -2998,7 +2998,7 @@ EC_BOOL crfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
                             (UINT32)body_len);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_update_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -3023,7 +3023,7 @@ EC_BOOL crfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_update_post_request: crfs update %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
@@ -3036,7 +3036,7 @@ EC_BOOL crfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "POST", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u %ld", CHTTP_OK, CBYTES_LEN(content_cbytes));
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_update_post_request: crfs update %s done", (char *)cstring_get_str(&path_cstr));
 #endif
 #if 0
@@ -3046,7 +3046,7 @@ EC_BOOL crfshttp_handle_update_post_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_update_post_request: crfs update %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
@@ -3160,22 +3160,22 @@ EC_BOOL crfshttp_commit_renew_post_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_renew_post_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_renew_post_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_renew_post_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_renew_post_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_renew_post_request: make 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_renew_post_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_renew_post_request: make 'SET' response done\n");
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_renew_post_request: make response done\n");
 
     ret = crfshttp_commit_renew_post_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_renew_post_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_renew_post_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -3216,7 +3216,7 @@ EC_BOOL crfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_renew_post_request: path %.*s, invalid content length %"PRId64,
                     (uint32_t)(CBUFFER_USED(uri_cbuffer) - CONST_STR_LEN("/renew")),
                     (char *)(CBUFFER_DATA(uri_cbuffer) + CONST_STR_LEN("/renew")),content_len);
@@ -3252,7 +3252,7 @@ EC_BOOL crfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_renew_post_request: path %s, invalid body length %"PRId64, (char *)cstring_get_str(&path_cstr),body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -3265,7 +3265,7 @@ EC_BOOL crfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "warn:crfshttp_handle_renew_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_PARTIAL_CONTENT);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:crfshttp_handle_renew_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
@@ -3279,7 +3279,7 @@ EC_BOOL crfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_renew_post_request: new cbytes without buff failed\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_INSUFFICIENT_STORAGE);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_renew_post_request: new cbytes without buff failed");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
@@ -3293,7 +3293,7 @@ EC_BOOL crfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
                             (UINT32)body_len);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_renew_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -3318,7 +3318,7 @@ EC_BOOL crfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "POST", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_renew_post_request: crfs renew %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
@@ -3331,7 +3331,7 @@ EC_BOOL crfshttp_handle_renew_post_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_renew_post_request: crfs renew %s done", (char *)cstring_get_str(&path_cstr));
 #endif
     }
@@ -3437,20 +3437,20 @@ EC_BOOL crfshttp_commit_dsmf_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_dsmf_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_dsmf_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_dsmf_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_dsmf_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_dsmf_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_dsmf_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_dsmf_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_dsmf_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_dsmf_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -3497,7 +3497,7 @@ EC_BOOL crfshttp_handle_dsmf_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_dsmf_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -3518,7 +3518,7 @@ EC_BOOL crfshttp_handle_dsmf_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_dsmf_get_request: crfs delete file %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
@@ -3530,7 +3530,7 @@ EC_BOOL crfshttp_handle_dsmf_get_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_dsmf_get_request: crfs delete file %s done", (char *)cstring_get_str(&path_cstr));
 #endif
 #if 0
@@ -3540,7 +3540,7 @@ EC_BOOL crfshttp_handle_dsmf_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_dsmf_get_request: crfs delete file %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
@@ -3648,20 +3648,20 @@ EC_BOOL crfshttp_commit_ddir_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_ddir_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_ddir_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_ddir_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_ddir_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_ddir_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_ddir_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_ddir_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_ddir_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_ddir_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -3708,7 +3708,7 @@ EC_BOOL crfshttp_handle_ddir_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_ddir_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -3729,7 +3729,7 @@ EC_BOOL crfshttp_handle_ddir_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_ddir_get_request: crfs delete dir %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
@@ -3741,7 +3741,7 @@ EC_BOOL crfshttp_handle_ddir_get_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_ddir_get_request: crfs delete dir %s done", (char *)cstring_get_str(&path_cstr));
 #endif
 #if 0
@@ -3751,7 +3751,7 @@ EC_BOOL crfshttp_handle_ddir_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_ddir_get_request: crfs delete dir %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
@@ -3860,20 +3860,20 @@ EC_BOOL crfshttp_commit_sexpire_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_sexpire_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_sexpire_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_sexpire_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_sexpire_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_sexpire_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_sexpire_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_sexpire_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_sexpire_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_sexpire_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -3920,7 +3920,7 @@ EC_BOOL crfshttp_handle_sexpire_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_sexpire_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -3940,7 +3940,7 @@ EC_BOOL crfshttp_handle_sexpire_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_sexpire_get_request: crfs exipre file %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
@@ -3952,7 +3952,7 @@ EC_BOOL crfshttp_handle_sexpire_get_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_sexpire_get_request: crfs exipre file %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -4060,22 +4060,22 @@ EC_BOOL crfshttp_commit_mexpire_post_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_mexpire_post_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mexpire_post_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mexpire_post_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_mexpire_post_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mexpire_post_request: make 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mexpire_post_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_mexpire_post_request: make 'SET' response done\n");
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_mexpire_post_request: make response done\n");
 
     ret = crfshttp_commit_mexpire_post_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mexpire_post_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mexpire_post_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -4110,7 +4110,7 @@ EC_BOOL crfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_mexpire_post_request: invalid content length %"PRId64, content_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -4134,7 +4134,7 @@ EC_BOOL crfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_mexpire_post_request: invalid body length %"PRId64, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -4145,7 +4145,7 @@ EC_BOOL crfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "warn:crfshttp_handle_mexpire_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_PARTIAL_CONTENT);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:crfshttp_handle_mexpire_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
@@ -4157,7 +4157,7 @@ EC_BOOL crfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0049_CRFSHTTP, 5)(LOGSTDOUT, "info:crfshttp_handle_mexpire_post_request: request body is empty\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "info:crfshttp_handle_mexpire_post_request: request body is empty");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -4169,7 +4169,7 @@ EC_BOOL crfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_mexpire_post_request: new cbytes without buff failed\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_INSUFFICIENT_STORAGE);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mexpire_post_request: new cbytes with len zero failed");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
@@ -4181,7 +4181,7 @@ EC_BOOL crfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_mexpire_post_request: export body with len %ld to cbytes failed\n",
                             (UINT32)body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mexpire_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -4212,7 +4212,7 @@ EC_BOOL crfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_mexpire_post_request: bad request %.*s\n",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mexpire_post_request: bad request %.*s",
                             (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
@@ -4273,7 +4273,7 @@ EC_BOOL crfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
                                     (char *)cstring_get_str(&path_cstr));
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "POST", CHTTP_NOT_FOUND);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_NOT_FOUND);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mexpire_post_request: crfs expire %s failed", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("404"));
@@ -4284,7 +4284,7 @@ EC_BOOL crfshttp_handle_mexpire_post_request(CHTTP_NODE *chttp_node)
                                     (char *)cstring_get_str(&path_cstr));
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_mexpire_post_request: crfs expire %s done", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("200"));
@@ -4422,22 +4422,22 @@ EC_BOOL crfshttp_commit_mdsmf_post_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_mdsmf_post_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mdsmf_post_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mdsmf_post_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_mdsmf_post_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mdsmf_post_request: make 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mdsmf_post_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_mdsmf_post_request: make 'SET' response done\n");
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_mdsmf_post_request: make response done\n");
 
     ret = crfshttp_commit_mdsmf_post_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mdsmf_post_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mdsmf_post_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -4472,7 +4472,7 @@ EC_BOOL crfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_mdsmf_post_request: invalid content length %"PRId64, content_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -4496,7 +4496,7 @@ EC_BOOL crfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_mdsmf_post_request: invalid body length %"PRId64, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -4507,7 +4507,7 @@ EC_BOOL crfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "warn:crfshttp_handle_mdsmf_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_PARTIAL_CONTENT);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:crfshttp_handle_mdsmf_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
@@ -4519,7 +4519,7 @@ EC_BOOL crfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0049_CRFSHTTP, 5)(LOGSTDOUT, "info:crfshttp_handle_mdsmf_post_request: request body is empty\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "info:crfshttp_handle_mdsmf_post_request: request body is empty");
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
         return (EC_TRUE);
@@ -4530,7 +4530,7 @@ EC_BOOL crfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_mdsmf_post_request: new cbytes without buff failed\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_INSUFFICIENT_STORAGE);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mdsmf_post_request: new cbytes with len zero failed");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
@@ -4542,7 +4542,7 @@ EC_BOOL crfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_mdsmf_post_request: export body with len %ld to cbytes failed\n",
                             (UINT32)body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mdsmf_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -4573,7 +4573,7 @@ EC_BOOL crfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_mdsmf_post_request: bad request %.*s\n",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mdsmf_post_request: bad request %.*s",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
@@ -4633,7 +4633,7 @@ EC_BOOL crfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
                                     (char *)cstring_get_str(&path_cstr));
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "POST", CHTTP_NOT_FOUND);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_NOT_FOUND);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mdsmf_post_request: crfs delete %s failed", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("404"));
@@ -4644,7 +4644,7 @@ EC_BOOL crfshttp_handle_mdsmf_post_request(CHTTP_NODE *chttp_node)
                                     (char *)cstring_get_str(&path_cstr));
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_mdsmf_post_request: crfs delete %s done", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("200"));
@@ -4783,22 +4783,22 @@ EC_BOOL crfshttp_commit_mddir_post_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_mddir_post_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mddir_post_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mddir_post_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_mddir_post_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mddir_post_request: make 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mddir_post_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_mddir_post_request: make 'SET' response done\n");
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_mddir_post_request: make response done\n");
 
     ret = crfshttp_commit_mddir_post_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mddir_post_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_mddir_post_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -4833,7 +4833,7 @@ EC_BOOL crfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_mddir_post_request: invalid content length %"PRId64, content_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -4857,7 +4857,7 @@ EC_BOOL crfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_str(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_mddir_post_request: invalid body length %"PRId64, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -4868,7 +4868,7 @@ EC_BOOL crfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0049_CRFSHTTP, 1)(LOGSTDOUT, "warn:crfshttp_handle_mddir_post_request: content_len %"PRId64" > body_len %"PRId64"\n", content_len, body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_PARTIAL_CONTENT);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_PARTIAL_CONTENT);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "warn:crfshttp_handle_mddir_post_request: content_len %"PRId64" > body_len %"PRId64, content_len, body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_PARTIAL_CONTENT;
@@ -4880,7 +4880,7 @@ EC_BOOL crfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0049_CRFSHTTP, 5)(LOGSTDOUT, "info:crfshttp_handle_mddir_post_request: request body is empty\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "info:crfshttp_handle_mddir_post_request: request body is empty");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -4892,7 +4892,7 @@ EC_BOOL crfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
     {
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_mddir_post_request: new cbytes without buff failed\n");
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INSUFFICIENT_STORAGE);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_INSUFFICIENT_STORAGE);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mddir_post_request: new cbytes with len zero failed");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INSUFFICIENT_STORAGE;
@@ -4904,7 +4904,7 @@ EC_BOOL crfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_mddir_post_request: export body with len %ld to cbytes failed\n",
                             (UINT32)body_len);
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mddir_post_request: export body with len %ld to cbytes failed", (UINT32)body_len);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -4935,7 +4935,7 @@ EC_BOOL crfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_mddir_post_request: bad request %.*s\n",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "POST", CHTTP_BAD_REQUEST);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mddir_post_request: bad request %.*s",
                                     (uint32_t)CBYTES_LEN(req_content_cbytes), (char *)CBYTES_BUF(req_content_cbytes));
 
@@ -4995,7 +4995,7 @@ EC_BOOL crfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
                                     (char *)cstring_get_str(&path_cstr));
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "POST", CHTTP_NOT_FOUND);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_NOT_FOUND);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_mddir_post_request: crfs delete %s failed", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("404"));
@@ -5006,7 +5006,7 @@ EC_BOOL crfshttp_handle_mddir_post_request(CHTTP_NODE *chttp_node)
                                     (char *)cstring_get_str(&path_cstr));
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "POST", CHTTP_OK);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_mddir_post_request: crfs delete %s done", (char *)cstring_get_str(&path_cstr));
 
                 json_object_array_add(rsp_body_obj, json_object_new_string("200"));
@@ -5138,20 +5138,20 @@ EC_BOOL crfshttp_commit_logrotate_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_logrotate_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_logrotate_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_logrotate_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_logrotate_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_logrotate_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_logrotate_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_logrotate_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_logrotate_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_logrotate_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -5189,7 +5189,7 @@ EC_BOOL crfshttp_handle_logrotate_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_logrotate_get_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -5220,7 +5220,7 @@ EC_BOOL crfshttp_handle_logrotate_get_request(CHTTP_NODE *chttp_node)
                 dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_logrotate_get_request: log rotate %ld failed\n", log_index);
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_logrotate_get_request: log rotate %ld failed", log_index);
 
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -5231,7 +5231,7 @@ EC_BOOL crfshttp_handle_logrotate_get_request(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0049_CRFSHTTP, 5)(LOGSTDOUT, "[DEBUG] crfshttp_handle_logrotate_get_request: log rotate %ld done\n", log_index);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_logrotate_get_request: log rotate %ld done", log_index);
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -5246,7 +5246,7 @@ EC_BOOL crfshttp_handle_logrotate_get_request(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_logrotate_get_request: no memory\n");
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_logrotate_get_request: no memory");
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -5269,7 +5269,7 @@ EC_BOOL crfshttp_handle_logrotate_get_request(CHTTP_NODE *chttp_node)
                 dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_logrotate_get_request: log rotate %ld failed\n", log_index);
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_logrotate_get_request: log rotate %ld failed", log_index);
 
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -5283,7 +5283,7 @@ EC_BOOL crfshttp_handle_logrotate_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0049_CRFSHTTP, 5)(LOGSTDOUT, "[DEBUG] crfshttp_handle_logrotate_get_request: log rotate %s done\n", log_index_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_logrotate_get_request: log rotate %s done", log_index_str);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -5381,13 +5381,13 @@ EC_BOOL crfshttp_commit_actsyscfg_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_actsyscfg_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_actsyscfg_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_actsyscfg_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_actsyscfg_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_actsyscfg_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_actsyscfg_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
@@ -5395,7 +5395,7 @@ EC_BOOL crfshttp_commit_actsyscfg_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_actsyscfg_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_actsyscfg_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -5433,7 +5433,7 @@ EC_BOOL crfshttp_handle_actsyscfg_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_actsyscfg_get_request: bad request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -5451,7 +5451,7 @@ EC_BOOL crfshttp_handle_actsyscfg_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0049_CRFSHTTP, 5)(LOGSTDOUT, "[DEBUG] crfshttp_handle_actsyscfg_get_request done\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_actsyscfg_get_request done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -5546,13 +5546,13 @@ EC_BOOL crfshttp_commit_qtree_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_qtree_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_qtree_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_qtree_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_qtree_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_qtree_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_qtree_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
@@ -5560,7 +5560,7 @@ EC_BOOL crfshttp_commit_qtree_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_qtree_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_qtree_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -5607,7 +5607,7 @@ EC_BOOL crfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_qtree_get_request: bad request: path %s", (char *)cstring_get_str(&path));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -5640,7 +5640,7 @@ EC_BOOL crfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_handle_qtree_get_request failed\n");
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_qtree_get_request failed");
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -5681,7 +5681,7 @@ EC_BOOL crfshttp_handle_qtree_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_handle_qtree_get_request done\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_qtree_get_request done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -5809,22 +5809,22 @@ EC_BOOL crfshttp_commit_statusnp_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_statusnp_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusnp_get_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusnp_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_statusnp_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusnp_get_request: make 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusnp_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_statusnp_get_request: make 'SET' response done\n");
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_statusnp_get_request: make response done\n");
 
     ret = crfshttp_commit_statusnp_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusnp_get_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusnp_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -6022,22 +6022,22 @@ EC_BOOL crfshttp_commit_statusdn_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_statusdn_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusdn_get_request: handle 'SET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusdn_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_statusdn_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusdn_get_request: make 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusdn_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_statusdn_get_request: make 'SET' response done\n");
+    dbg_log(SEC_0049_CRFSHTTP, 9)(LOGSTDOUT, "[DEBUG] crfshttp_commit_statusdn_get_request: make response done\n");
 
     ret = crfshttp_commit_statusdn_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusdn_get_request: commit 'SET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_statusdn_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -6250,20 +6250,20 @@ EC_BOOL crfshttp_commit_file_notify_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_file_notify_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_file_notify_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_file_notify_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_file_notify_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_file_notify_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_file_notify_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_file_notify_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_file_notify_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_file_notify_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -6312,7 +6312,7 @@ EC_BOOL crfshttp_handle_file_notify_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_file_notify_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -6334,7 +6334,7 @@ EC_BOOL crfshttp_handle_file_notify_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_file_notify_get_request: crfs notify %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
@@ -6349,7 +6349,7 @@ EC_BOOL crfshttp_handle_file_notify_get_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u %ld", CHTTP_OK, CBYTES_LEN(content_cbytes));
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_file_notify_get_request: crfs notify %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -6458,20 +6458,20 @@ EC_BOOL crfshttp_commit_file_terminate_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_file_terminate_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_file_terminate_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_file_terminate_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_file_terminate_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_file_terminate_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_file_terminate_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_file_terminate_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_file_terminate_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_file_terminate_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -6520,7 +6520,7 @@ EC_BOOL crfshttp_handle_file_terminate_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_file_terminate_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -6542,7 +6542,7 @@ EC_BOOL crfshttp_handle_file_terminate_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_NOT_FOUND);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_file_terminate_get_request: crfs terminate %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
@@ -6557,7 +6557,7 @@ EC_BOOL crfshttp_handle_file_terminate_get_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u %ld", CHTTP_OK, CBYTES_LEN(content_cbytes));
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_file_terminate_get_request: crfs terminate %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -6667,20 +6667,20 @@ EC_BOOL crfshttp_commit_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_cond_wakeup_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_cond_wakeup_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_cond_wakeup_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_cond_wakeup_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_cond_wakeup_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_cond_wakeup_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_cond_wakeup_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_cond_wakeup_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_cond_wakeup_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -6729,7 +6729,7 @@ EC_BOOL crfshttp_handle_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_cond_wakeup_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -6754,7 +6754,7 @@ EC_BOOL crfshttp_handle_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_INTERNAL_SERVER_ERROR);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_cond_wakeup_get_request: cond wakeup %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -6769,7 +6769,7 @@ EC_BOOL crfshttp_handle_cond_wakeup_get_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u %ld", CHTTP_OK, CBYTES_LEN(content_cbytes));
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_cond_wakeup_get_request: cond wakeup %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -6878,20 +6878,20 @@ EC_BOOL crfshttp_commit_cond_terminate_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_cond_terminate_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_cond_terminate_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_cond_terminate_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_cond_terminate_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_cond_terminate_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_cond_terminate_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_cond_terminate_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_cond_terminate_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_cond_terminate_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -6940,7 +6940,7 @@ EC_BOOL crfshttp_handle_cond_terminate_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_cond_terminate_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -6965,7 +6965,7 @@ EC_BOOL crfshttp_handle_cond_terminate_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_INTERNAL_SERVER_ERROR);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_cond_terminate_get_request: cond terminate %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -6980,7 +6980,7 @@ EC_BOOL crfshttp_handle_cond_terminate_get_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(content_cbytes));
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u %ld", CHTTP_OK, CBYTES_LEN(content_cbytes));
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_cond_terminate_get_request: cond terminate %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -7089,20 +7089,20 @@ EC_BOOL crfshttp_commit_renew_header_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_renew_header_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_renew_header_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_renew_header_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_renew_header_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_renew_header_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_renew_header_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_renew_header_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_renew_header_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_renew_header_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -7157,7 +7157,7 @@ EC_BOOL crfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error: crfshttp_handle_renew_header_get_request: path %s", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -7186,7 +7186,7 @@ EC_BOOL crfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_renew_header_get_request: crfs renew %s failed due to 'renew-key' absence", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
@@ -7207,7 +7207,7 @@ EC_BOOL crfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_renew_header_get_request: crfs renew %s failed due to 'renew-val' absence", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
@@ -7226,7 +7226,7 @@ EC_BOOL crfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_renew_header_get_request: crfs renew %s failed", (char *)cstring_get_str(&path_cstr));
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
@@ -7239,7 +7239,7 @@ EC_BOOL crfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_renew_header_get_request: crfs renew %s done", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -7254,7 +7254,7 @@ EC_BOOL crfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_INTERNAL_SERVER_ERROR);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_renew_header_get_request: crfs renew %s failed due to new cstrkv_mgr failed",
                 (char *)cstring_get_str(&path_cstr));
 
@@ -7283,7 +7283,7 @@ EC_BOOL crfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr), (char *)renew_key_tag);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_renew_header_get_request: crfs renew %s failed due to '%s' absence",
                     (char *)cstring_get_str(&path_cstr), (char *)renew_key_tag);
 
@@ -7306,7 +7306,7 @@ EC_BOOL crfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr), (char *)renew_val_tag);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_renew_header_get_request: crfs renew %s failed due to '%s' absence",
                     (char *)cstring_get_str(&path_cstr), (char *)renew_val_tag);
 
@@ -7324,7 +7324,7 @@ EC_BOOL crfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
                                 (char *)cstring_get_str(&path_cstr), renew_key, renew_val);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_INTERNAL_SERVER_ERROR);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_renew_header_get_request: crfs renew %s failed due to add '%s:%s' failed",
                     (char *)cstring_get_str(&path_cstr), renew_key, renew_val);
 
@@ -7342,7 +7342,7 @@ EC_BOOL crfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
                             (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_FORBIDDEN);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_renew_header_get_request: crfs renew %s failed", (char *)cstring_get_str(&path_cstr));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
@@ -7356,7 +7356,7 @@ EC_BOOL crfshttp_handle_renew_header_get_request(CHTTP_NODE *chttp_node)
                         (char *)cstring_get_str(&path_cstr));
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_renew_header_get_request: crfs renew %s done", (char *)cstring_get_str(&path_cstr));
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -7465,20 +7465,20 @@ EC_BOOL crfshttp_commit_locked_file_retire_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_locked_file_retire_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_locked_file_retire_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_locked_file_retire_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_locked_file_retire_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_locked_file_retire_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_locked_file_retire_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_locked_file_retire_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_locked_file_retire_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_locked_file_retire_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -7512,7 +7512,7 @@ EC_BOOL crfshttp_handle_locked_file_retire_get_request(CHTTP_NODE *chttp_node)
         chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_locked_file_retire_get_request");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -7543,7 +7543,7 @@ EC_BOOL crfshttp_handle_locked_file_retire_get_request(CHTTP_NODE *chttp_node)
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %s %u --", "GET", CHTTP_FORBIDDEN);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_FAIL %u --", CHTTP_FORBIDDEN);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttp_handle_locked_file_retire_get_request failed");
 
             return (EC_TRUE);
@@ -7552,7 +7552,7 @@ EC_BOOL crfshttp_handle_locked_file_retire_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0049_CRFSHTTP, 5)(LOGSTDOUT, "[DEBUG] crfshttp_handle_locked_file_retire_get_request: complete %ld\n", retire_num);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_locked_file_retire_get_request: complete %ld", retire_num);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -7655,20 +7655,20 @@ EC_BOOL crfshttp_commit_paracfg_get_request(CHTTP_NODE *chttp_node)
 
     if(EC_FALSE == crfshttp_handle_paracfg_get_request(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_paracfg_get_request: handle 'GET' request failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_paracfg_get_request: handle request failed\n");
         return (EC_FALSE);
     }
 
     if(EC_FALSE == crfshttp_make_paracfg_get_response(chttp_node))
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_paracfg_get_request: make 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_paracfg_get_request: make response failed\n");
         return (EC_FALSE);
     }
 
     ret = crfshttp_commit_paracfg_get_response(chttp_node);
     if(EC_FALSE == ret)
     {
-        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_paracfg_get_request: commit 'GET' response failed\n");
+        dbg_log(SEC_0049_CRFSHTTP, 0)(LOGSTDOUT, "error:crfshttp_commit_paracfg_get_request: commit response failed\n");
         return (EC_FALSE);
     }
 
@@ -7705,7 +7705,7 @@ EC_BOOL crfshttp_handle_paracfg_get_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0049_CRFSHTTP, 5)(LOGSTDOUT, "[DEBUG] crfshttp_handle_paracfg_get_request: done\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(rsp_content_cbytes));
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_SUCC %u %ld", CHTTP_OK, CBYTES_LEN(rsp_content_cbytes));
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] crfshttp_handle_paracfg_get_request: done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;

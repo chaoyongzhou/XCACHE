@@ -308,7 +308,7 @@ EC_BOOL cdetecthttp_commit_http_head(CHTTP_NODE *chttp_node)
                                                     CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_NOT_ACCEPTABLE);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_ERR %u --", CHTTP_NOT_ACCEPTABLE);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_commit_http_head: invalid url %.*s", CBUFFER_USED(url_cbuffer), CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
@@ -353,7 +353,7 @@ EC_BOOL cdetecthttp_commit_http_post(CHTTP_NODE *chttp_node)
                                                     CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_NOT_ACCEPTABLE);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_ERR %u --", CHTTP_NOT_ACCEPTABLE);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_commit_http_post: invalid url %.*s", CBUFFER_USED(url_cbuffer), CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
@@ -398,7 +398,7 @@ EC_BOOL cdetecthttp_commit_http_get(CHTTP_NODE *chttp_node)
                                                     CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_NOT_ACCEPTABLE);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_ERR %u --", CHTTP_NOT_ACCEPTABLE);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_commit_http_get: invalid url %.*s", CBUFFER_USED(url_cbuffer), CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
@@ -574,7 +574,7 @@ EC_BOOL cdetecthttp_handle_resolvedns_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_handle_resolvedns_request: no domain in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_FAIL %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_resolvedns_request: no domain in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -591,7 +591,7 @@ EC_BOOL cdetecthttp_handle_resolvedns_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_handle_resolvedns_request: not found domain '%s'\n", domain_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_FAIL %u --", CHTTP_NOT_FOUND);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_resolvedns_request: not found domain '%s'", domain_str);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
@@ -603,7 +603,7 @@ EC_BOOL cdetecthttp_handle_resolvedns_request(CHTTP_NODE *chttp_node)
     dbg_log(SEC_0045_CDETECTHTTP, 5)(LOGSTDOUT, "[DEBUG] cdetecthttp_handle_resolvedns_request: get domain '%s' done\n", domain_str);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_SUCC %u %ld", CHTTP_OK, (UINT32)0);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cdetecthttp_handle_resolvedns_request: get domain '%s' done", domain_str);
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -709,7 +709,7 @@ EC_BOOL cdetecthttp_handle_startdomain_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_handle_startdomain_request: no domain in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_FAIL %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_startdomain_request: no domain in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -725,7 +725,7 @@ EC_BOOL cdetecthttp_handle_startdomain_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_handle_startdomain_request: not found domain '%s'\n", domain_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_FAIL %u --", CHTTP_NOT_FOUND);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_startdomain_request: not found domain '%s'", domain_str);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
@@ -737,7 +737,7 @@ EC_BOOL cdetecthttp_handle_startdomain_request(CHTTP_NODE *chttp_node)
     dbg_log(SEC_0045_CDETECTHTTP, 5)(LOGSTDOUT, "[DEBUG] cdetecthttp_handle_startdomain_request: start domain '%s' done\n", domain_str);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_SUCC %u %ld", CHTTP_OK, (UINT32)0);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cdetecthttp_handle_startdomain_request: start domain '%s' done", domain_str);
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -843,7 +843,7 @@ EC_BOOL cdetecthttp_handle_stopdomain_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_handle_stopdomain_request: no domain in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_FAIL %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_stopdomain_request: no domain in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -859,7 +859,7 @@ EC_BOOL cdetecthttp_handle_stopdomain_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_handle_stopdomain_request: not found domain '%s'\n", domain_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_FAIL %s %u --", "GET", CHTTP_NOT_FOUND);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_FAIL %u --", CHTTP_NOT_FOUND);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_stopdomain_request: not found domain '%s'", domain_str);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_FOUND;
@@ -871,7 +871,7 @@ EC_BOOL cdetecthttp_handle_stopdomain_request(CHTTP_NODE *chttp_node)
     dbg_log(SEC_0045_CDETECTHTTP, 5)(LOGSTDOUT, "[DEBUG] cdetecthttp_handle_stopdomain_request: stop domain '%s' done\n", domain_str);
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_SUCC %u %ld", CHTTP_OK, (UINT32)0);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cdetecthttp_handle_stopdomain_request: stop domain '%s' done", domain_str);
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -976,7 +976,7 @@ EC_BOOL cdetecthttp_handle_process_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_handle_process_request: no domain in header\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_FAIL %s %u --", "GET", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_FAIL %u --", CHTTP_BAD_REQUEST);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_process_request: no domain in header");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
@@ -993,7 +993,7 @@ EC_BOOL cdetecthttp_handle_process_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_handle_process_request: internal issue\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_FAIL %u --", CHTTP_INTERNAL_SERVER_ERROR);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_process_request: internal issue");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -1005,7 +1005,7 @@ EC_BOOL cdetecthttp_handle_process_request(CHTTP_NODE *chttp_node)
     dbg_log(SEC_0045_CDETECTHTTP, 5)(LOGSTDOUT, "[DEBUG] cdetecthttp_handle_process_request: process done\n");
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_SUCC %u %ld", CHTTP_OK, (UINT32)0);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cdetecthttp_handle_process_request: process done");
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1105,7 +1105,7 @@ EC_BOOL cdetecthttp_handle_reload_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_handle_reload_request: internal issue\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_FAIL %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_FAIL %u --", CHTTP_INTERNAL_SERVER_ERROR);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_reload_request: internal issue");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -1117,7 +1117,7 @@ EC_BOOL cdetecthttp_handle_reload_request(CHTTP_NODE *chttp_node)
     dbg_log(SEC_0045_CDETECTHTTP, 5)(LOGSTDOUT, "[DEBUG] cdetecthttp_handle_reload_request: reload done\n");
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_SUCC %u %ld", CHTTP_OK, (UINT32)0);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cdetecthttp_handle_reload_request: reload done");
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1218,7 +1218,7 @@ EC_BOOL cdetecthttp_handle_status_request(CHTTP_NODE *chttp_node)
     dbg_log(SEC_0045_CDETECTHTTP, 5)(LOGSTDOUT, "[DEBUG] cdetecthttp_handle_status_request: status done\n");
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_SUCC %u %ld", CHTTP_OK, (UINT32)0);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cdetecthttp_handle_status_request: status done");
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1322,7 +1322,7 @@ EC_BOOL cdetecthttp_handle_choice_request(CHTTP_NODE *chttp_node)
     dbg_log(SEC_0045_CDETECTHTTP, 5)(LOGSTDOUT, "[DEBUG] cdetecthttp_handle_choice_request: choice done\n");
 
     CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_SUCC %s %u %ld", "GET", CHTTP_OK, (UINT32)0);
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_SUCC %u %ld", CHTTP_OK, (UINT32)0);
     CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cdetecthttp_handle_choice_request: choice done");
 
     CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1441,7 +1441,7 @@ EC_BOOL cdetecthttp_handle_logrotate_request(CHTTP_NODE *chttp_node)
                 dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_handle_logrotate_request: log rotate %ld failed\n", log_index);
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_logrotate_request: log rotate %ld failed", log_index);
 
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -1452,7 +1452,7 @@ EC_BOOL cdetecthttp_handle_logrotate_request(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0045_CDETECTHTTP, 5)(LOGSTDOUT, "[DEBUG] cdetecthttp_handle_logrotate_request: log rotate %ld done\n", log_index);
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_SUCC %u --", CHTTP_OK);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cdetecthttp_handle_logrotate_request: log rotate %ld done", log_index);
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1467,7 +1467,7 @@ EC_BOOL cdetecthttp_handle_logrotate_request(CHTTP_NODE *chttp_node)
             dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_handle_logrotate_request: no memory\n");
 
             CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
             CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_logrotate_request: no memory");
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -1490,7 +1490,7 @@ EC_BOOL cdetecthttp_handle_logrotate_request(CHTTP_NODE *chttp_node)
                 dbg_log(SEC_0045_CDETECTHTTP, 0)(LOGSTDOUT, "error:cdetecthttp_handle_logrotate_request: log rotate %ld failed\n", log_index);
 
                 CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %s %u --", "GET", CHTTP_INTERNAL_SERVER_ERROR);
+                CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
                 CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cdetecthttp_handle_logrotate_request: log rotate %ld failed", log_index);
 
                 CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
@@ -1504,7 +1504,7 @@ EC_BOOL cdetecthttp_handle_logrotate_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 5)(LOGSTDOUT, "[DEBUG] cdetecthttp_handle_logrotate_request: log rotate %s done\n", log_index_str);
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cdetecthttp_handle_logrotate_request: log rotate %s done", log_index_str);
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1600,7 +1600,7 @@ EC_BOOL cdetecthttp_handle_actsyscfg_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 5)(LOGSTDOUT, "[DEBUG] cdetecthttp_handle_actsyscfg_request done\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cdetecthttp_handle_actsyscfg_request done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1692,7 +1692,7 @@ EC_BOOL cdetecthttp_handle_breathe_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 9)(LOGSTDOUT, "[DEBUG] cdetecthttp_handle_breathe_request: memory breathing done\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "DETECT_SUCC %s %u --", "GET", CHTTP_OK);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_SUCC %u --", CHTTP_OK);
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cdetecthttp_handle_breathe_request: memory breathing done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
@@ -1800,7 +1800,7 @@ EC_BOOL cdetecthttp_handle_paracfg_request(CHTTP_NODE *chttp_node)
         dbg_log(SEC_0045_CDETECTHTTP, 5)(LOGSTDOUT, "[DEBUG] cdetecthttp_handle_paracfg_request: done\n");
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %s %u %ld", "GET", CHTTP_OK, CBYTES_LEN(rsp_content_cbytes));
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "CDETECT_SUCC %u %ld", CHTTP_OK, CBYTES_LEN(rsp_content_cbytes));
         CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cdetecthttp_handle_paracfg_request: done");
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;

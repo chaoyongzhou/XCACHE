@@ -29,7 +29,7 @@ extern "C"{
 
 #define CP2PHTTP_SOCKET_TIMEOUT_NSEC      CONN_TIMEOUT_NSEC
 
-#define CP2PHTTP_REST_API_NAME            "/p2p"
+#define CP2PHTTP_REST_API_NAME            "p2p"
 
 EC_BOOL cp2phttp_log_start();
 
@@ -41,68 +41,47 @@ EC_BOOL cp2phttp_commit_http_head(CHTTP_NODE *chttp_node);
 
 EC_BOOL cp2phttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result);
 EC_BOOL cp2phttp_commit_response(CHTTP_NODE *chttp_node);
-/**
-    interface name rule:
-    cp2phttp_is_http_[get|post|put|head|delete]_<op>
-    cp2phttp_commit_<op>_[get|post|put|head|delete]_request
-    cp2phttp_handle_<op>_[get|post|put|head|delete]_request
-    cp2phttp_make_<op>_[get|post|put|head|delete]_response
-    cp2phttp_commit_<op>_[get|post|put|head|delete]_response
-**/
 
-EC_BOOL cp2phttp_is_http_post_upload(const CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_upload_post_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_handle_upload_post_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_make_upload_post_response(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_upload_post_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cp2phttp_is_http_put_upload(const CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_upload_put_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_handle_upload_put_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_make_upload_put_response(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_upload_put_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_upload_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_handle_upload_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_make_upload_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_upload_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cp2phttp_is_http_get_push(const CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_push_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_handle_push_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_make_push_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_push_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_push_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_handle_push_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_make_push_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_push_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cp2phttp_is_http_get_flush(const CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_flush_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_handle_flush_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_make_flush_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_flush_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_flush_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_handle_flush_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_make_flush_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_flush_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cp2phttp_is_http_get_online(const CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_online_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_handle_online_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_make_online_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_online_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_online_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_handle_online_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_make_online_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_online_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cp2phttp_is_http_get_offline(const CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_offline_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_handle_offline_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_make_offline_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_offline_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_offline_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_handle_offline_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_make_offline_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_offline_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cp2phttp_is_http_get_upper(const CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_upper_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_handle_upper_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_make_upper_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_upper_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_upper_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_handle_upper_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_make_upper_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_upper_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cp2phttp_is_http_get_edge(const CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_edge_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_handle_edge_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_make_edge_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_edge_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_edge_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_handle_edge_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_make_edge_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_edge_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cp2phttp_is_http_get_refresh(const CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_refresh_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_handle_refresh_get_request(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_make_refresh_get_response(CHTTP_NODE *chttp_node);
-EC_BOOL cp2phttp_commit_refresh_get_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_refresh_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_handle_refresh_request(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_make_refresh_response(CHTTP_NODE *chttp_node);
+EC_BOOL cp2phttp_commit_refresh_response(CHTTP_NODE *chttp_node);
 
 
 #endif /*_CP2PHTTP_H*/
