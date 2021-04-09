@@ -59,6 +59,10 @@ EC_BOOL chttp_store_has_not_cache_rsp_headers(CHTTP_STORE *chttp_store, const CS
 /*---------------------------------------- INTERFACE WITH HTTP STAT  ----------------------------------------*/
 const char *chttp_status_str_get(const uint32_t http_status);
 
+const uint32_t chttp_method_convert(unsigned int method);
+
+const char *chttp_method_str(const uint32_t method);
+
 CHTTP_STAT *chttp_stat_new();
 
 EC_BOOL chttp_stat_init(CHTTP_STAT *chttp_stat);

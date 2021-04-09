@@ -151,6 +151,59 @@ const char *chttp_status_str_get(const uint32_t http_status)
     return ((const char *)"unknown");
 }
 
+/*convert http_parser method to that of chttp*/
+const uint32_t chttp_method_convert(unsigned int method)
+{
+    switch(method)
+    {
+        case HTTP_GET:          return CHTTP_METHOD_GET;
+        case HTTP_HEAD:         return CHTTP_METHOD_HEAD;
+        case HTTP_POST:         return CHTTP_METHOD_POST;
+        case HTTP_PUT:          return CHTTP_METHOD_PUT;
+        case HTTP_DELETE:       return CHTTP_METHOD_DELETE;
+        case HTTP_MKCOL:        return CHTTP_METHOD_MKCOL;
+        case HTTP_COPY:         return CHTTP_METHOD_COPY;
+        case HTTP_MOVE:         return CHTTP_METHOD_MOVE;
+        case HTTP_OPTIONS:      return CHTTP_METHOD_OPTIONS;
+        case HTTP_PROPFIND:     return CHTTP_METHOD_PROPFIND;
+        case HTTP_PROPPATCH:    return CHTTP_METHOD_PROPPATCH;
+        case HTTP_LOCK:         return CHTTP_METHOD_LOCK;
+        case HTTP_UNLOCK:       return CHTTP_METHOD_UNLOCK;
+        case HTTP_PATCH:        return CHTTP_METHOD_PATCH;
+        case HTTP_TRACE:        return CHTTP_METHOD_TRACE;
+        case HTTP_PURGE:        return CHTTP_METHOD_PURGE;
+        default:                break;
+    }
+
+    return (CHTTP_METHOD_UNKNOWN);
+}
+
+const char *chttp_method_str(const uint32_t method)
+{
+    switch(method)
+    {
+        case CHTTP_METHOD_GET:          return ((const char *)"GET");
+        case CHTTP_METHOD_HEAD:         return ((const char *)"HEAD");
+        case CHTTP_METHOD_POST:         return ((const char *)"POST");
+        case CHTTP_METHOD_PUT:          return ((const char *)"PUT");
+        case CHTTP_METHOD_DELETE:       return ((const char *)"DELETE");
+        case CHTTP_METHOD_MKCOL:        return ((const char *)"MKCOL");
+        case CHTTP_METHOD_COPY:         return ((const char *)"COPY");
+        case CHTTP_METHOD_MOVE:         return ((const char *)"MOVE");
+        case CHTTP_METHOD_OPTIONS:      return ((const char *)"OPTIONS");
+        case CHTTP_METHOD_PROPFIND:     return ((const char *)"PROPFIND");
+        case CHTTP_METHOD_PROPPATCH:    return ((const char *)"PROPPATCH");
+        case CHTTP_METHOD_LOCK:         return ((const char *)"LOCK");
+        case CHTTP_METHOD_UNLOCK:       return ((const char *)"UNLOCK");
+        case CHTTP_METHOD_PATCH:        return ((const char *)"PATCH");
+        case CHTTP_METHOD_TRACE:        return ((const char *)"TRACE");
+        case CHTTP_METHOD_PURGE:        return ((const char *)"PURGE");
+        default:                        break;
+    }
+
+    return ((const char *)"UNKNOWN");
+}
+
 /*private interface, not for http parser*/
 STATIC_CAST static EC_BOOL __chttp_on_recv_complete(CHTTP_NODE *chttp_node)
 {

@@ -1021,8 +1021,7 @@ typedef struct
 #define CHTTP_INVALID_HEADER                       ((uint32_t) 600)   /* Squid header parsing error */
 #define CHTTP_HEADER_TOO_LARGE                     ((uint32_t) 601)   /* Header too large to process */
 
-
-#define CHTTP_METHOD_UNKNOWN                       ((uint32_t)0x0001)
+#define CHTTP_METHOD_UNKNOWN                       ((uint32_t)0xFFFF)
 #define CHTTP_METHOD_GET                           ((uint32_t)0x0002)
 #define CHTTP_METHOD_HEAD                          ((uint32_t)0x0004)
 #define CHTTP_METHOD_POST                          ((uint32_t)0x0008)
@@ -1038,6 +1037,8 @@ typedef struct
 #define CHTTP_METHOD_UNLOCK                        ((uint32_t)0x2000)
 #define CHTTP_METHOD_PATCH                         ((uint32_t)0x4000)
 #define CHTTP_METHOD_TRACE                         ((uint32_t)0x8000)
+#define CHTTP_METHOD_PURGE                         ((uint32_t)0x0001)
+
 
 #endif /*_CHTTP_INC*/
 

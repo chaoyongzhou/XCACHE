@@ -34,10 +34,7 @@ extern "C"{
 EC_BOOL cxfshttp_log_start();
 
 EC_BOOL cxfshttp_commit_request(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_http_post(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_http_get(CHTTP_NODE *chttp_node);
-EC_BOOL cxfshttp_commit_http_head(CHTTP_NODE *chttp_node);
-
+EC_BOOL cxfshttp_commit_start(CHTTP_NODE *chttp_node, const UINT32 method);
 EC_BOOL cxfshttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result);
 EC_BOOL cxfshttp_commit_response(CHTTP_NODE *chttp_node);
 

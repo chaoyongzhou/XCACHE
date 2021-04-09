@@ -103,33 +103,33 @@ extern "C"{
 static EC_BOOL g_crfshttps_log_init = EC_FALSE;
 
 static const CHTTP_API g_crfshttps_api_list[] = {
-    {CONST_STR_AND_LEN("lock_req")          , CHTTP_METHOD_GET  , crfshttps_commit_lock_req_request},
-    {CONST_STR_AND_LEN("unlock_req")        , CHTTP_METHOD_GET  , crfshttps_commit_unlock_req_request},
-    {CONST_STR_AND_LEN("unlock_notify_req") , CHTTP_METHOD_GET  , crfshttps_commit_unlock_notify_req_request},
-    {CONST_STR_AND_LEN("breathe")           , CHTTP_METHOD_GET  , crfshttps_commit_breathe_request},
-    {CONST_STR_AND_LEN("retire")            , CHTTP_METHOD_GET  , crfshttps_commit_retire_request},
-    {CONST_STR_AND_LEN("recycle")           , CHTTP_METHOD_GET  , crfshttps_commit_recycle_request},
-    {CONST_STR_AND_LEN("flush")             , CHTTP_METHOD_GET  , crfshttps_commit_flush_request},
-    {CONST_STR_AND_LEN("getsmf")            , CHTTP_METHOD_GET  , crfshttps_commit_getsmf_request},
-    {CONST_STR_AND_LEN("dsmf")              , CHTTP_METHOD_GET  , crfshttps_commit_dsmf_request},
-    {CONST_STR_AND_LEN("ddir")              , CHTTP_METHOD_GET  , crfshttps_commit_ddir_request},
-    {CONST_STR_AND_LEN("sexpire")           , CHTTP_METHOD_GET  , crfshttps_commit_sexpire_request},
+    {CONST_STR_AND_LEN("lock_req")          , CHTTP_METHOD_GET   , crfshttps_commit_lock_req_request},
+    {CONST_STR_AND_LEN("unlock_req")        , CHTTP_METHOD_GET   , crfshttps_commit_unlock_req_request},
+    {CONST_STR_AND_LEN("unlock_notify_req") , CHTTP_METHOD_GET   , crfshttps_commit_unlock_notify_req_request},
+    {CONST_STR_AND_LEN("breathe")           , CHTTP_METHOD_GET   , crfshttps_commit_breathe_request},
+    {CONST_STR_AND_LEN("retire")            , CHTTP_METHOD_GET   , crfshttps_commit_retire_request},
+    {CONST_STR_AND_LEN("recycle")           , CHTTP_METHOD_GET   , crfshttps_commit_recycle_request},
+    {CONST_STR_AND_LEN("flush")             , CHTTP_METHOD_GET   , crfshttps_commit_flush_request},
+    {CONST_STR_AND_LEN("getsmf")            , CHTTP_METHOD_GET   , crfshttps_commit_getsmf_request},
+    {CONST_STR_AND_LEN("dsmf")              , CHTTP_METHOD_DELETE, crfshttps_commit_dsmf_request},
+    {CONST_STR_AND_LEN("ddir")              , CHTTP_METHOD_DELETE, crfshttps_commit_ddir_request},
+    {CONST_STR_AND_LEN("sexpire")           , CHTTP_METHOD_GET   , crfshttps_commit_sexpire_request},
 
-    {CONST_STR_AND_LEN("logrotate")         , CHTTP_METHOD_GET  , crfshttps_commit_logrotate_request},
-    {CONST_STR_AND_LEN("actsyscfg")         , CHTTP_METHOD_GET  , crfshttps_commit_actsyscfg_request},
-    {CONST_STR_AND_LEN("qtree")             , CHTTP_METHOD_GET  , crfshttps_commit_qtree_request},
-    {CONST_STR_AND_LEN("file_notify")       , CHTTP_METHOD_GET  , crfshttps_commit_file_notify_request},
-    {CONST_STR_AND_LEN("cond_wakeup")       , CHTTP_METHOD_GET  , crfshttps_commit_cond_wakeup_request},
-    {CONST_STR_AND_LEN("renew_header")      , CHTTP_METHOD_GET  , crfshttps_commit_renew_header_request},
-    {CONST_STR_AND_LEN("locked_file_retire"), CHTTP_METHOD_GET  , crfshttps_commit_locked_file_retire_request},
-    {CONST_STR_AND_LEN("paracfg")           , CHTTP_METHOD_GET  , crfshttps_commit_paracfg_request},
+    {CONST_STR_AND_LEN("logrotate")         , CHTTP_METHOD_GET   , crfshttps_commit_logrotate_request},
+    {CONST_STR_AND_LEN("actsyscfg")         , CHTTP_METHOD_GET   , crfshttps_commit_actsyscfg_request},
+    {CONST_STR_AND_LEN("qtree")             , CHTTP_METHOD_GET   , crfshttps_commit_qtree_request},
+    {CONST_STR_AND_LEN("file_notify")       , CHTTP_METHOD_GET   , crfshttps_commit_file_notify_request},
+    {CONST_STR_AND_LEN("cond_wakeup")       , CHTTP_METHOD_GET   , crfshttps_commit_cond_wakeup_request},
+    {CONST_STR_AND_LEN("renew_header")      , CHTTP_METHOD_GET   , crfshttps_commit_renew_header_request},
+    {CONST_STR_AND_LEN("locked_file_retire"), CHTTP_METHOD_GET   , crfshttps_commit_locked_file_retire_request},
+    {CONST_STR_AND_LEN("paracfg")           , CHTTP_METHOD_GET   , crfshttps_commit_paracfg_request},
 
-    {CONST_STR_AND_LEN("setsmf")            , CHTTP_METHOD_POST , crfshttps_commit_setsmf_request},
-    {CONST_STR_AND_LEN("update")            , CHTTP_METHOD_POST , crfshttps_commit_update_request},
-    {CONST_STR_AND_LEN("renew")             , CHTTP_METHOD_POST , crfshttps_commit_renew_request},
-    {CONST_STR_AND_LEN("mexpire")           , CHTTP_METHOD_POST , crfshttps_commit_mexpire_request},
-    {CONST_STR_AND_LEN("mdsmf")             , CHTTP_METHOD_POST , crfshttps_commit_mdsmf_request},
-    {CONST_STR_AND_LEN("mddir")             , CHTTP_METHOD_POST , crfshttps_commit_mddir_request},
+    {CONST_STR_AND_LEN("setsmf")            , CHTTP_METHOD_POST  , crfshttps_commit_setsmf_request},
+    {CONST_STR_AND_LEN("update")            , CHTTP_METHOD_POST  , crfshttps_commit_update_request},
+    {CONST_STR_AND_LEN("renew")             , CHTTP_METHOD_POST  , crfshttps_commit_renew_request},
+    {CONST_STR_AND_LEN("mexpire")           , CHTTP_METHOD_POST  , crfshttps_commit_mexpire_request},
+    {CONST_STR_AND_LEN("mdsmf")             , CHTTP_METHOD_POST  , crfshttps_commit_mdsmf_request},
+    {CONST_STR_AND_LEN("mddir")             , CHTTP_METHOD_POST  , crfshttps_commit_mddir_request},
 };
 
 static const uint32_t   g_crfshttps_api_num = sizeof(g_crfshttps_api_list)/sizeof(g_crfshttps_api_list[0]);
@@ -237,102 +237,75 @@ EC_BOOL crfshttps_log_start()
 }
 
 /*---------------------------------------- ENTRY: HTTP COMMIT REQUEST FOR HANDLER  ----------------------------------------*/
+
 EC_BOOL crfshttps_commit_request(CHTTP_NODE *chttp_node)
 {
     http_parser_t *http_parser;
+    uint32_t       method;
 
     http_parser = CHTTP_NODE_PARSER(chttp_node);
 
-    if(HTTP_GET == http_parser->method)
+    method = chttp_method_convert(http_parser->method);
+    if(CHTTP_METHOD_UNKNOWN != method)
     {
         CROUTINE_NODE  *croutine_node;
 
         croutine_node = croutine_pool_load_preempt(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
-                                           (UINT32)crfshttps_commit_http_get, 1, chttp_node);
+                                           (UINT32)crfshttps_commit_start, 2, chttp_node, (UINT32)method);
         if(NULL_PTR == croutine_node)
         {
-            dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_request: cthread load for HTTP_GET failed\n");
+            dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_request: "
+                                                      "no croutine\n");
+
             /*return (EC_BUSY);*/
             return (EC_FALSE); /*note: do not retry to relieve system pressure*/
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSHTTPS_0004);
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSHTTPS_0002);
 
         return (EC_TRUE);
     }
 
-    if(HTTP_POST == http_parser->method)
-    {
-        CROUTINE_NODE  *croutine_node;
-
-        croutine_node = croutine_pool_load_preempt(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
-                                           (UINT32)crfshttps_commit_http_post, 1, chttp_node);
-        if(NULL_PTR == croutine_node)
-        {
-            dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_request: cthread load for HTTP_POST failed\n");
-            /*return (EC_BUSY);*/
-            return (EC_FALSE); /*note: do not retry to relieve system pressure*/
-        }
-        CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
-        CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSHTTPS_0005);
-
-        return (EC_TRUE);
-    }
-
-    if(HTTP_HEAD == http_parser->method)
-    {
-        CROUTINE_NODE  *croutine_node;
-
-        croutine_node = croutine_pool_load_preempt(TASK_REQ_CTHREAD_POOL(task_brd_default_get()),
-                                           (UINT32)crfshttps_commit_http_head, 1, chttp_node);
-        if(NULL_PTR == croutine_node)
-        {
-            dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_request: cthread load for HTTP_HEAD failed\n");
-            /*return (EC_BUSY);*/
-            return (EC_FALSE); /*note: do not retry to relieve system pressure*/
-        }
-        CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
-        CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CRFSHTTPS_0006);
-
-        return (EC_TRUE);
-    }
-
-    dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_request: not support http method %d yet\n", http_parser->method);
+    dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_request: "
+                                              "not support http method %d yet\n",
+                                              http_parser->method);
     return (EC_FALSE);/*note: this chttp_node must be discarded*/
 }
 
-EC_BOOL crfshttps_commit_http_head(CHTTP_NODE *chttp_node)
+EC_BOOL crfshttps_commit_start(CHTTP_NODE *chttp_node, const UINT32 method)
 {
     const CHTTP_API       *chttp_api;
     EC_BOOL                ret;
 
-    CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record xfs beg to handle time*/
+    CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record rfs beg to handle time*/
 
     chttp_api = chttp_node_find_api(chttp_node,
                                     (const CHTTP_API *)g_crfshttps_api_list,
                                     g_crfshttps_api_num,
-                                    CHTTP_METHOD_HEAD);
+                                    (uint32_t)method);
     if(NULL_PTR == chttp_api)
     {
         CBUFFER               *url_cbuffer;
 
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_http_head: "
-                                                  "no api for '%.*s'\n",
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_start: "
+                                                  "no api for %s:'%.*s'\n",
+                                                  chttp_method_str((uint32_t)method),
                                                   CBUFFER_USED(CHTTP_NODE_ARGS(chttp_node)),
                                                   CBUFFER_DATA(CHTTP_NODE_ARGS(chttp_node)));
 
         url_cbuffer   = CHTTP_NODE_URL(chttp_node);
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_http_head: "
-                                                  "invalid uri %.*s\n",
+        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_start: "
+                                                  "invalid request %s:'%.*s'\n",
+                                                  chttp_method_str((uint32_t)method),
                                                   CBUFFER_USED(url_cbuffer),
                                                   CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_NOT_ACCEPTABLE);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_commit_http_head: invalid url %.*s", CBUFFER_USED(url_cbuffer), CBUFFER_DATA(url_cbuffer));
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "RFS_ERR %u --", CHTTP_NOT_ACCEPTABLE);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_commit_start: invalid request %s:'%.*s'",
+                                                  chttp_method_str((uint32_t)method),
+                                                  CBUFFER_USED(url_cbuffer), CBUFFER_DATA(url_cbuffer));
 
         CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
         ret = EC_FALSE;
@@ -340,97 +313,7 @@ EC_BOOL crfshttps_commit_http_head(CHTTP_NODE *chttp_node)
         return crfshttps_commit_end(chttp_node, ret);
     }
 
-    dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_http_head: "
-                                              "api: method %d, name %s\n",
-                                              CHTTP_API_METHOD(chttp_api),
-                                              CHTTP_API_NAME(chttp_api));
-
-    ret = CHTTP_API_COMMIT(chttp_api)(chttp_node);
-    return crfshttps_commit_end(chttp_node, ret);
-}
-
-EC_BOOL crfshttps_commit_http_post(CHTTP_NODE *chttp_node)
-{
-    const CHTTP_API       *chttp_api;
-    EC_BOOL                ret;
-
-    CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record xfs beg to handle time*/
-
-    chttp_api = chttp_node_find_api(chttp_node,
-                                    (const CHTTP_API *)g_crfshttps_api_list,
-                                    g_crfshttps_api_num,
-                                    CHTTP_METHOD_POST);
-    if(NULL_PTR == chttp_api)
-    {
-        CBUFFER               *url_cbuffer;
-
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_http_post: "
-                                                  "no api for '%.*s'\n",
-                                                  CBUFFER_USED(CHTTP_NODE_ARGS(chttp_node)),
-                                                  CBUFFER_DATA(CHTTP_NODE_ARGS(chttp_node)));
-
-        url_cbuffer   = CHTTP_NODE_URL(chttp_node);
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_http_post: "
-                                                  "invalid uri %.*s\n",
-                                                  CBUFFER_USED(url_cbuffer),
-                                                  CBUFFER_DATA(url_cbuffer));
-
-        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_NOT_ACCEPTABLE);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_commit_http_post: invalid url %.*s", CBUFFER_USED(url_cbuffer), CBUFFER_DATA(url_cbuffer));
-
-        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
-        ret = EC_FALSE;
-
-        return crfshttps_commit_end(chttp_node, ret);
-    }
-
-    dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_http_post: "
-                                              "api: method %d, name %s\n",
-                                              CHTTP_API_METHOD(chttp_api),
-                                              CHTTP_API_NAME(chttp_api));
-
-    ret = CHTTP_API_COMMIT(chttp_api)(chttp_node);
-    return crfshttps_commit_end(chttp_node, ret);
-}
-
-EC_BOOL crfshttps_commit_http_get(CHTTP_NODE *chttp_node)
-{
-    const CHTTP_API       *chttp_api;
-    EC_BOOL                ret;
-
-    CHTTP_NODE_LOG_TIME_WHEN_HANDLE(chttp_node);/*record xfs beg to handle time*/
-
-    chttp_api = chttp_node_find_api(chttp_node,
-                                    (const CHTTP_API *)g_crfshttps_api_list,
-                                    g_crfshttps_api_num,
-                                    CHTTP_METHOD_GET);
-    if(NULL_PTR == chttp_api)
-    {
-        CBUFFER               *url_cbuffer;
-
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_http_get: "
-                                                  "no api for '%.*s'\n",
-                                                  CBUFFER_USED(CHTTP_NODE_ARGS(chttp_node)),
-                                                  CBUFFER_DATA(CHTTP_NODE_ARGS(chttp_node)));
-
-        url_cbuffer   = CHTTP_NODE_URL(chttp_node);
-        dbg_log(SEC_0158_CRFSHTTPS, 0)(LOGSTDOUT, "error:crfshttps_commit_http_get: "
-                                                  "invalid url %.*s\n",
-                                                  CBUFFER_USED(url_cbuffer),
-                                                  CBUFFER_DATA(url_cbuffer));
-
-        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
-        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_NOT_ACCEPTABLE);
-        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:crfshttps_commit_http_get: invalid url %.*s", CBUFFER_USED(url_cbuffer), CBUFFER_DATA(url_cbuffer));
-
-        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_NOT_ACCEPTABLE;
-        ret = EC_FALSE;
-
-        return crfshttps_commit_end(chttp_node, ret);
-    }
-
-    dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_http_get: "
+    dbg_log(SEC_0158_CRFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] crfshttps_commit_start: "
                                               "api: method %d, name %s\n",
                                               CHTTP_API_METHOD(chttp_api),
                                               CHTTP_API_NAME(chttp_api));

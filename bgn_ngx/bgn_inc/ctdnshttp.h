@@ -41,10 +41,7 @@ extern "C"{
 EC_BOOL ctdnshttp_log_start();
 
 EC_BOOL ctdnshttp_commit_request(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_http_post(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_http_get(CHTTP_NODE *chttp_node);
-EC_BOOL ctdnshttp_commit_http_head(CHTTP_NODE *chttp_node);
-
+EC_BOOL ctdnshttp_commit_start(CHTTP_NODE *chttp_node, const UINT32 method);
 EC_BOOL ctdnshttp_commit_end(CHTTP_NODE *chttp_node, EC_BOOL result);
 EC_BOOL ctdnshttp_commit_response(CHTTP_NODE *chttp_node);
 
