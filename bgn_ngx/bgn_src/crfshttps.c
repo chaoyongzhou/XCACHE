@@ -113,23 +113,23 @@ static const CHTTP_API g_crfshttps_api_list[] = {
     {CONST_STR_AND_LEN("getsmf")            , CHTTP_METHOD_GET   , crfshttps_commit_getsmf_request},
     {CONST_STR_AND_LEN("dsmf")              , CHTTP_METHOD_DELETE, crfshttps_commit_dsmf_request},
     {CONST_STR_AND_LEN("ddir")              , CHTTP_METHOD_DELETE, crfshttps_commit_ddir_request},
-    {CONST_STR_AND_LEN("sexpire")           , CHTTP_METHOD_GET   , crfshttps_commit_sexpire_request},
+    {CONST_STR_AND_LEN("sexpire")           , CHTTP_METHOD_PATCH , crfshttps_commit_sexpire_request},
 
     {CONST_STR_AND_LEN("logrotate")         , CHTTP_METHOD_GET   , crfshttps_commit_logrotate_request},
     {CONST_STR_AND_LEN("actsyscfg")         , CHTTP_METHOD_GET   , crfshttps_commit_actsyscfg_request},
     {CONST_STR_AND_LEN("qtree")             , CHTTP_METHOD_GET   , crfshttps_commit_qtree_request},
     {CONST_STR_AND_LEN("file_notify")       , CHTTP_METHOD_GET   , crfshttps_commit_file_notify_request},
     {CONST_STR_AND_LEN("cond_wakeup")       , CHTTP_METHOD_GET   , crfshttps_commit_cond_wakeup_request},
-    {CONST_STR_AND_LEN("renew_header")      , CHTTP_METHOD_GET   , crfshttps_commit_renew_header_request},
+    {CONST_STR_AND_LEN("renew_header")      , CHTTP_METHOD_PUT   , crfshttps_commit_renew_header_request},
     {CONST_STR_AND_LEN("locked_file_retire"), CHTTP_METHOD_GET   , crfshttps_commit_locked_file_retire_request},
     {CONST_STR_AND_LEN("paracfg")           , CHTTP_METHOD_GET   , crfshttps_commit_paracfg_request},
 
     {CONST_STR_AND_LEN("setsmf")            , CHTTP_METHOD_POST  , crfshttps_commit_setsmf_request},
-    {CONST_STR_AND_LEN("update")            , CHTTP_METHOD_POST  , crfshttps_commit_update_request},
-    {CONST_STR_AND_LEN("renew")             , CHTTP_METHOD_POST  , crfshttps_commit_renew_request},
-    {CONST_STR_AND_LEN("mexpire")           , CHTTP_METHOD_POST  , crfshttps_commit_mexpire_request},
-    {CONST_STR_AND_LEN("mdsmf")             , CHTTP_METHOD_POST  , crfshttps_commit_mdsmf_request},
-    {CONST_STR_AND_LEN("mddir")             , CHTTP_METHOD_POST  , crfshttps_commit_mddir_request},
+    {CONST_STR_AND_LEN("update")            , CHTTP_METHOD_PUT   , crfshttps_commit_update_request},
+    {CONST_STR_AND_LEN("renew")             , CHTTP_METHOD_PUT   , crfshttps_commit_renew_request},
+    {CONST_STR_AND_LEN("mexpire")           , CHTTP_METHOD_PATCH , crfshttps_commit_mexpire_request},
+    {CONST_STR_AND_LEN("mdsmf")             , CHTTP_METHOD_DELETE, crfshttps_commit_mdsmf_request},
+    {CONST_STR_AND_LEN("mddir")             , CHTTP_METHOD_DELETE, crfshttps_commit_mddir_request},
 };
 
 static const uint32_t   g_crfshttps_api_num = sizeof(g_crfshttps_api_list)/sizeof(g_crfshttps_api_list[0]);

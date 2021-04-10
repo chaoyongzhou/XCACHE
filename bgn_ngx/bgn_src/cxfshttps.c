@@ -107,7 +107,7 @@ static const CHTTP_API g_cxfshttps_api_list[] = {
     {CONST_STR_AND_LEN("getsmf")            , CHTTP_METHOD_GET   , cxfshttps_commit_getsmf_request},
     {CONST_STR_AND_LEN("dsmf")              , CHTTP_METHOD_DELETE, cxfshttps_commit_dsmf_request},
     {CONST_STR_AND_LEN("ddir")              , CHTTP_METHOD_DELETE, cxfshttps_commit_ddir_request},
-    {CONST_STR_AND_LEN("sexpire")           , CHTTP_METHOD_GET   , cxfshttps_commit_sexpire_request},
+    {CONST_STR_AND_LEN("sexpire")           , CHTTP_METHOD_PATCH , cxfshttps_commit_sexpire_request},
     {CONST_STR_AND_LEN("lock_req")          , CHTTP_METHOD_GET   , cxfshttps_commit_lock_req_request},
     {CONST_STR_AND_LEN("unlock_req")        , CHTTP_METHOD_GET   , cxfshttps_commit_unlock_req_request},
     {CONST_STR_AND_LEN("unlock_notify_req") , CHTTP_METHOD_GET   , cxfshttps_commit_unlock_notify_req_request},
@@ -125,18 +125,18 @@ static const CHTTP_API g_cxfshttps_api_list[] = {
 
     {CONST_STR_AND_LEN("file_notify")       , CHTTP_METHOD_GET   , cxfshttps_commit_file_notify_request},
     {CONST_STR_AND_LEN("cond_wakeup")       , CHTTP_METHOD_GET   , cxfshttps_commit_cond_wakeup_request},
-    {CONST_STR_AND_LEN("renew_header")      , CHTTP_METHOD_GET   , cxfshttps_commit_renew_header_request},
+    {CONST_STR_AND_LEN("renew_header")      , CHTTP_METHOD_PUT   , cxfshttps_commit_renew_header_request},
     {CONST_STR_AND_LEN("locked_file_retire"), CHTTP_METHOD_GET   , cxfshttps_commit_locked_file_retire_request},
     {CONST_STR_AND_LEN("wait_file_retire")  , CHTTP_METHOD_GET   , cxfshttps_commit_wait_file_retire_request},
     {CONST_STR_AND_LEN("activate")          , CHTTP_METHOD_GET   , cxfshttps_commit_activate_ngx_request},
     {CONST_STR_AND_LEN("deactivate")        , CHTTP_METHOD_GET   , cxfshttps_commit_deactivate_ngx_request},
 
     {CONST_STR_AND_LEN("setsmf")            , CHTTP_METHOD_POST  , cxfshttps_commit_setsmf_request},
-    {CONST_STR_AND_LEN("mexpire")           , CHTTP_METHOD_POST  , cxfshttps_commit_mexpire_request},
-    {CONST_STR_AND_LEN("mdsmf")             , CHTTP_METHOD_POST  , cxfshttps_commit_mdsmf_request},
-    {CONST_STR_AND_LEN("mddir")             , CHTTP_METHOD_POST  , cxfshttps_commit_mddir_request},
-    {CONST_STR_AND_LEN("update")            , CHTTP_METHOD_POST  , cxfshttps_commit_update_request},
-    {CONST_STR_AND_LEN("renew")             , CHTTP_METHOD_POST  , cxfshttps_commit_renew_request},
+    {CONST_STR_AND_LEN("mexpire")           , CHTTP_METHOD_PATCH , cxfshttps_commit_mexpire_request},
+    {CONST_STR_AND_LEN("mdsmf")             , CHTTP_METHOD_DELETE, cxfshttps_commit_mdsmf_request},
+    {CONST_STR_AND_LEN("mddir")             , CHTTP_METHOD_DELETE, cxfshttps_commit_mddir_request},
+    {CONST_STR_AND_LEN("update")            , CHTTP_METHOD_PUT   , cxfshttps_commit_update_request},
+    {CONST_STR_AND_LEN("renew")             , CHTTP_METHOD_PUT   , cxfshttps_commit_renew_request},
 
     {CONST_STR_AND_LEN("meta")              , CHTTP_METHOD_HEAD , cxfshttps_commit_meta_request},
 };
