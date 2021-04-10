@@ -81,31 +81,6 @@ EC_BOOL cngx_https_handle_xfs_list_request(CHTTP_NODE *chttp_node);
 EC_BOOL cngx_https_make_xfs_list_response(CHTTP_NODE *chttp_node);
 EC_BOOL cngx_https_commit_xfs_list_response(CHTTP_NODE *chttp_node);
 
-EC_BOOL cngx_https_commit_rfs_up_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_rfs_up_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_rfs_up_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_rfs_up_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL cngx_https_commit_rfs_down_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_rfs_down_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_rfs_down_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_rfs_down_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL cngx_https_commit_rfs_add_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_rfs_add_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_rfs_add_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_rfs_add_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL cngx_https_commit_rfs_del_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_rfs_del_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_rfs_del_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_rfs_del_response(CHTTP_NODE *chttp_node);
-
-EC_BOOL cngx_https_commit_rfs_list_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_handle_rfs_list_request(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_make_rfs_list_response(CHTTP_NODE *chttp_node);
-EC_BOOL cngx_https_commit_rfs_list_response(CHTTP_NODE *chttp_node);
-
 EC_BOOL cngx_https_commit_paracfg_request(CHTTP_NODE *chttp_node);
 EC_BOOL cngx_https_handle_paracfg_request(CHTTP_NODE *chttp_node);
 EC_BOOL cngx_https_make_paracfg_response(CHTTP_NODE *chttp_node);

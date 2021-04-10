@@ -37,10 +37,6 @@ extern "C"{
 #include "cbtimer.h"
 #include "cmisc.h"
 
-#include "crfsnp.inc"
-#include "crfsnp.h"
-#include "cpgd.h"
-
 #include "task.h"
 #include "csyscfg.inc"
 #include "csyscfg.h"
@@ -233,46 +229,6 @@ STATIC_CAST static EC_BOOL __cxml_parse_tag_switch(xmlNodePtr node, const char *
         xmlFree(attr_val);
 
         return (EC_TRUE);
-    }
-    return (EC_FALSE);
-}
-
-STATIC_CAST static EC_BOOL __cxml_parse_tag_np_model(xmlNodePtr node, const char *tag, uint8_t *np_model)
-{
-    if(xmlHasProp(node, (const xmlChar*)tag))
-    {
-        xmlChar *attr_val;
-        uint8_t  np_model_t;
-
-        attr_val = xmlGetProp(node, (const xmlChar*)tag);
-
-        np_model_t = crfsnp_model_get((const char *)attr_val);
-        if(CRFSNP_ERR_MODEL != np_model_t)
-        {
-            (*np_model) = np_model_t;
-            xmlFree(attr_val);
-            return (EC_TRUE);
-        }
-    }
-    return (EC_FALSE);
-}
-
-STATIC_CAST static EC_BOOL __cxml_parse_tag_dn_model(xmlNodePtr node, const char *tag, uint16_t *pgd_block_num)
-{
-    if(xmlHasProp(node, (const xmlChar*)tag))
-    {
-        xmlChar *attr_val;
-        uint16_t pgd_block_num_t;
-
-        attr_val = xmlGetProp(node, (const xmlChar*)tag);
-
-        pgd_block_num_t = cpgd_model_get((const char *)attr_val);
-        if(CPGD_ERROR_BLOCK_NUM != pgd_block_num_t)
-        {
-            (*pgd_block_num) = pgd_block_num_t;
-            xmlFree(attr_val);
-            return (EC_TRUE);
-        }
     }
     return (EC_FALSE);
 }
@@ -1529,9 +1485,6 @@ EC_BOOL cxml_parse_cparacfg_thread_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     __cxml_parse_tag_uint32(node, (const char *)"taskLiveNsec"             , &(CPARACFG_TASK_LIVE_NSEC(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"taskZombieNsec"           , &(CPARACFG_TASK_ZOMBIE_NSEC(cparacfg)));
 
-    __cxml_parse_tag_switch(node, (const char *)"ngxBgnOverRfsSwitch"      , &(CPARACFG_NGX_BGN_OVER_RFS_SWITCH(cparacfg)));
-    __cxml_parse_tag_switch(node, (const char *)"ngxBgnOverXfsSwitch"      , &(CPARACFG_NGX_BGN_OVER_XFS_SWITCH(cparacfg)));
-
     return (EC_TRUE);
 }
 
@@ -1566,25 +1519,6 @@ EC_BOOL cxml_parse_cparacfg_log_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 {
     __cxml_parse_tag_uint32(node, (const char *)"logMaxRecords", &(CPARACFG_FILE_LOG_MAX_RECORDS(cparacfg)));
     __cxml_parse_tag_log_level_tab(node, (const char *)"logLevel", CPARACFG_LOG_LEVEL_TAB(cparacfg), SEC_NONE_END);
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cxml_parse_cparacfg_rfs_cfg(xmlNodePtr node, CPARACFG *cparacfg)
-{
-    __cxml_parse_tag_uint32(node, (const char *)"rfsNpRetireMaxNum" , &(CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"rfsNpRecycleMaxNum", &(CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM(cparacfg)));
-
-    __cxml_parse_tag_switch(node, (const char *)"rfsNpCacheInMemSwitch", &(CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH(cparacfg)));
-    __cxml_parse_tag_switch(node, (const char *)"rfsDnCacheInMemSwitch", &(CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH(cparacfg)));
-
-    __cxml_parse_tag_switch(node, (const char *)"rfsDnAmdSwitch"        , &(CPARACFG_CRFSDN_CAMD_SWITCH(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"rfsDnAmdSataDiskSize", &(CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"rfsDnAmdMemDiskSize" , &(CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"rfsDnAmdSsdDiskOffset" , &(CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"rfsDnAmdSsdDiskSize" , &(CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE(cparacfg)));
-
-    __cxml_parse_tag_uint32_t(node, (const char *)"httpReqNumPerLoop"  , &(CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)));
 
     return (EC_TRUE);
 }
@@ -1736,11 +1670,6 @@ EC_BOOL cxml_parse_cparacfg_para_cfg(xmlNodePtr node, CPARACFG *cparacfg)
         if(0 == xmlStrcmp(cur->name, (const xmlChar*)"sslConfig"))
         {
             cxml_parse_cparacfg_ssl_cfg(cur, cparacfg);
-            continue;
-        }
-        if(0 == xmlStrcmp(cur->name, (const xmlChar*)"rfsConfig"))
-        {
-            cxml_parse_cparacfg_rfs_cfg(cur, cparacfg);
             continue;
         }
         if(0 == xmlStrcmp(cur->name, (const xmlChar*)"xfsConfig"))

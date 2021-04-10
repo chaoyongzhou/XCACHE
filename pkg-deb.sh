@@ -5,26 +5,6 @@ verbose=${2:-off}
 work_dir=$(pwd)
 bgn_dir=bgn_ngx
 
-make_pkg_rfs()
-{
-   local version
-   local ret
-
-   version=$1
-
-   ln -s ${work_dir}/${bgn_dir}/build/rfs/debian/rfs-pkg-deb.sh .
-
-   sh rfs-pkg-deb.sh rfs ${version} ${bgn_dir} no
-   ret=$?
-
-   [ ! -f rfs-pkg-deb.sh ] || rm -f rfs-pkg-deb.sh
-
-   if [ $ret -ne 0 ]; then
-       echo "error:make rfs pkg failed"
-       exit 1
-   fi
-}
-
 make_pkg_xfs()
 {
    local version
@@ -161,11 +141,6 @@ ver=$(cat VERSION)
 
 echo "pkg: $pkg"
 echo "ver: $ver"
-
-#if [ "$pkg" == "all" -o "$pkg" == "rfs" ]; then
-#    echo "=> rfs"
-#    make_pkg_rfs ${ver}
-#fi
 
 if [ "$pkg" == "all" -o "$pkg" == "xfs" ]; then
     echo "=> xfs"

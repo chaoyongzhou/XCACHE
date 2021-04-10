@@ -247,7 +247,7 @@ EC_BOOL cp2phttp_commit_request(CHTTP_NODE *chttp_node)
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CP2PHTTP_0002);
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CP2PHTTP_0004);
 
         return (EC_TRUE);
     }
@@ -915,14 +915,14 @@ EC_BOOL cp2phttp_handle_push_request(CHTTP_NODE *chttp_node)
     /*fetch file size*/
     if(1)
     {
-        CSTRING    rfs_file_path;
+        CSTRING    xfs_file_path;
         MOD_NODE   recv_mod_node;
         uint64_t   file_size;
 
         EC_BOOL    ret;
 
-        cstring_init(&rfs_file_path, NULL_PTR);
-        cstring_format(&rfs_file_path, "/%s%s",
+        cstring_init(&xfs_file_path, NULL_PTR);
+        cstring_format(&xfs_file_path, "/%s%s",
                         CP2P_FILE_SERVICE_NAME_STR(&cp2p_file),
                         CP2P_FILE_SRC_NAME_STR(&cp2p_file));
 
@@ -935,7 +935,7 @@ EC_BOOL cp2phttp_handle_push_request(CHTTP_NODE *chttp_node)
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &recv_mod_node,
                  &ret,
-                 FI_crfs_file_size, CMPI_ERROR_MODI, &rfs_file_path, &file_size);
+                 FI_cxfs_file_size, CMPI_ERROR_MODI, &xfs_file_path, &file_size);
 
         if(EC_FALSE == ret)
         {
@@ -951,24 +951,24 @@ EC_BOOL cp2phttp_handle_push_request(CHTTP_NODE *chttp_node)
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
-            cstring_clean(&rfs_file_path);
+            cstring_clean(&xfs_file_path);
             cp2p_file_clean(&cp2p_file);
             return (EC_TRUE);
         }
         CP2P_FILE_SRC_SIZE(&cp2p_file) = (UINT32)file_size;
 
-        cstring_clean(&rfs_file_path);
+        cstring_clean(&xfs_file_path);
     }
 
     if(1)
     {
-        CSTRING    rfs_file_path;
+        CSTRING    xfs_file_path;
         MOD_NODE   recv_mod_node;
 
         EC_BOOL    ret;
 
-        cstring_init(&rfs_file_path, NULL_PTR);
-        cstring_format(&rfs_file_path, "/%s%s",
+        cstring_init(&xfs_file_path, NULL_PTR);
+        cstring_format(&xfs_file_path, "/%s%s",
                         CP2P_FILE_SERVICE_NAME_STR(&cp2p_file),
                         CP2P_FILE_SRC_NAME_STR(&cp2p_file));
 
@@ -981,7 +981,7 @@ EC_BOOL cp2phttp_handle_push_request(CHTTP_NODE *chttp_node)
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &recv_mod_node,
                  &ret,
-                 FI_crfs_file_md5sum, CMPI_ERROR_MODI, &rfs_file_path, CP2P_FILE_SRC_MD5(&cp2p_file));
+                 FI_cxfs_file_md5sum, CMPI_ERROR_MODI, &xfs_file_path, CP2P_FILE_SRC_MD5(&cp2p_file));
 
         if(EC_FALSE == ret)
         {
@@ -997,12 +997,12 @@ EC_BOOL cp2phttp_handle_push_request(CHTTP_NODE *chttp_node)
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
-            cstring_clean(&rfs_file_path);
+            cstring_clean(&xfs_file_path);
             cp2p_file_clean(&cp2p_file);
             return (EC_TRUE);
         }
 
-        cstring_clean(&rfs_file_path);
+        cstring_clean(&xfs_file_path);
     }
 
     /*push file*/
@@ -1351,14 +1351,14 @@ EC_BOOL cp2phttp_handle_flush_request(CHTTP_NODE *chttp_node)
     /*fetch file size*/
     if(1)
     {
-        CSTRING    rfs_file_path;
+        CSTRING    xfs_file_path;
         MOD_NODE   recv_mod_node;
         uint64_t   file_size;
 
         EC_BOOL    ret;
 
-        cstring_init(&rfs_file_path, NULL_PTR);
-        cstring_format(&rfs_file_path, "/%s%s",
+        cstring_init(&xfs_file_path, NULL_PTR);
+        cstring_format(&xfs_file_path, "/%s%s",
                         CP2P_FILE_SERVICE_NAME_STR(&cp2p_file),
                         CP2P_FILE_SRC_NAME_STR(&cp2p_file));
 
@@ -1371,7 +1371,7 @@ EC_BOOL cp2phttp_handle_flush_request(CHTTP_NODE *chttp_node)
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &recv_mod_node,
                  &ret,
-                 FI_crfs_file_size, CMPI_ERROR_MODI, &rfs_file_path, &file_size);
+                 FI_cxfs_file_size, CMPI_ERROR_MODI, &xfs_file_path, &file_size);
 
         if(EC_FALSE == ret)
         {
@@ -1387,24 +1387,24 @@ EC_BOOL cp2phttp_handle_flush_request(CHTTP_NODE *chttp_node)
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
-            cstring_clean(&rfs_file_path);
+            cstring_clean(&xfs_file_path);
             cp2p_file_clean(&cp2p_file);
             return (EC_TRUE);
         }
         CP2P_FILE_SRC_SIZE(&cp2p_file) = (UINT32)file_size;
 
-        cstring_clean(&rfs_file_path);
+        cstring_clean(&xfs_file_path);
     }
 
     if(1)
     {
-        CSTRING    rfs_file_path;
+        CSTRING    xfs_file_path;
         MOD_NODE   recv_mod_node;
 
         EC_BOOL    ret;
 
-        cstring_init(&rfs_file_path, NULL_PTR);
-        cstring_format(&rfs_file_path, "/%s%s",
+        cstring_init(&xfs_file_path, NULL_PTR);
+        cstring_format(&xfs_file_path, "/%s%s",
                         CP2P_FILE_SERVICE_NAME_STR(&cp2p_file),
                         CP2P_FILE_SRC_NAME_STR(&cp2p_file));
 
@@ -1417,7 +1417,7 @@ EC_BOOL cp2phttp_handle_flush_request(CHTTP_NODE *chttp_node)
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &recv_mod_node,
                  &ret,
-                 FI_crfs_file_md5sum, CMPI_ERROR_MODI, &rfs_file_path, CP2P_FILE_SRC_MD5(&cp2p_file));
+                 FI_cxfs_file_md5sum, CMPI_ERROR_MODI, &xfs_file_path, CP2P_FILE_SRC_MD5(&cp2p_file));
 
         if(EC_FALSE == ret)
         {
@@ -1433,12 +1433,12 @@ EC_BOOL cp2phttp_handle_flush_request(CHTTP_NODE *chttp_node)
 
             CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_FORBIDDEN;
 
-            cstring_clean(&rfs_file_path);
+            cstring_clean(&xfs_file_path);
             cp2p_file_clean(&cp2p_file);
             return (EC_TRUE);
         }
 
-        cstring_clean(&rfs_file_path);
+        cstring_clean(&xfs_file_path);
     }
 
     /*flush file*/

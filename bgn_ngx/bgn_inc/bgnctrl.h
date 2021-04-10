@@ -15,9 +15,6 @@ extern "C"{
 /*Super Package Debug Switch*/
 #define SUPER_DEBUG_SWITCH SWITCH_OFF
 
-/*CRFS Package Debug Switch*/
-#define CRFS_DEBUG_SWITCH SWITCH_OFF
-
 /*CXFS Package Debug Switch*/
 #define CXFS_DEBUG_SWITCH SWITCH_OFF
 
@@ -47,9 +44,6 @@ extern "C"{
 
 /*CSTORE Package Debug Switch*/
 #define CSTORE_DEBUG_SWITCH SWITCH_OFF
-
-/*CRFSGW Package Debug Switch*/
-#define CRFSGW_DEBUG_SWITCH SWITCH_OFF
 
 /*CFLV Package Debug Switch*/
 #define CFLV_DEBUG_SWITCH SWITCH_OFF

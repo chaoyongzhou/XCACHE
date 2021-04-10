@@ -80,7 +80,6 @@ extern "C"{
 #include "cepoll.h"
 #include "chttp.h"
 #include "chttps.h"
-#include "crfshttp.h"
 #include "cxfshttp.h"
 
 #include "cagent.h"

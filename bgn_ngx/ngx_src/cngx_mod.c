@@ -480,7 +480,7 @@ EC_BOOL cngx_bgn_mod_node_dl_reload(CNGX_BGN_MOD_NODE *cngx_bgn_mod_node,
 CNGX_BGN_MOD_MGR *cngx_bgn_mod_mgr_new()
 {
     CNGX_BGN_MOD_MGR *cngx_bgn_mod_mgr;
-    alloc_static_mem(MM_CNGX_BGN_MOD_MGR, &cngx_bgn_mod_mgr, LOC_CNGX_0082);
+    alloc_static_mem(MM_CNGX_BGN_MOD_MGR, &cngx_bgn_mod_mgr, LOC_CNGX_0080);
     if(NULL_PTR != cngx_bgn_mod_mgr)
     {
         cngx_bgn_mod_mgr_init(cngx_bgn_mod_mgr);
@@ -543,7 +543,7 @@ EC_BOOL cngx_bgn_mod_mgr_free(CNGX_BGN_MOD_MGR *cngx_bgn_mod_mgr)
     if(NULL_PTR != cngx_bgn_mod_mgr)
     {
         cngx_bgn_mod_mgr_clean(cngx_bgn_mod_mgr);
-        free_static_mem(MM_CNGX_BGN_MOD_MGR, cngx_bgn_mod_mgr, LOC_CNGX_0083);
+        free_static_mem(MM_CNGX_BGN_MOD_MGR, cngx_bgn_mod_mgr, LOC_CNGX_0081);
     }
     return (EC_TRUE);
 }

@@ -966,7 +966,7 @@ EC_BOOL __test_case_9x_fetch_path_cstr(const CVECTOR *url_cstr_vec, CVECTOR *pat
 
         dbg_log(SEC_0137_DEMO, 9)(LOGSTDNULL, "[DEBUG] url '%s'\n",
                            (char *)cstring_get_str(url_cstr));
-        path_cstr = cstring_new(cstring_get_str(url_cstr) + strlen("http://") - 1, LOC_DEMO_0006);
+        path_cstr = cstring_new(cstring_get_str(url_cstr) + strlen("http://") - 1, LOC_DEMO_0003);
         ASSERT(NULL_PTR != path_cstr);
         cvector_push(path_cstr_vec, path_cstr);
 
@@ -1088,7 +1088,7 @@ int main_cxfs_ok(int argc, char **argv)
     DEMO_HSXFS_ARG *demo_hsxfs_arg = NULL_PTR;
 
     task_brd_default_init(argc, argv);
-    //c_sleep(3, LOC_DEMO_0007);
+    //c_sleep(3, LOC_DEMO_0004);
     //dbg_log(SEC_0137_DEMO, 9)(LOGSTDOUT, "[DEBUG] main_cxfs: sleep to wait tcp enter established ... shit!\n");
     if(EC_FALSE == task_brd_default_check_validity())
     {
@@ -1269,7 +1269,7 @@ int main_cxfs_ok(int argc, char **argv)
 int main_cxfs(int argc, char **argv)
 {
     task_brd_default_init(argc, argv);
-    //c_sleep(3, LOC_DEMO_0008);
+    //c_sleep(3, LOC_DEMO_0005);
     //dbg_log(SEC_0137_DEMO, 9)(LOGSTDOUT, "[DEBUG] main_cxfs: sleep to wait tcp enter established ... shit!\n");
     if(EC_FALSE == task_brd_default_check_validity())
     {

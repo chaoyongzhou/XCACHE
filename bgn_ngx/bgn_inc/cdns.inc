@@ -132,7 +132,6 @@ typedef struct _CDNS_NODE
     CHUNK                     send_buf; /*io buffer used by dns*/
 
     struct _CSOCKET_CNODE    *csocket_cnode;
-    //CQUEUE_DATA              *cqueue_data; /*crfsdns_node mounted point in request defer queue*/
 
     CDNS_REQ                 *cdns_req;
     CDNS_RSP                 *cdns_rsp;

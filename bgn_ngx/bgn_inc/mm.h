@@ -31,7 +31,7 @@ extern "C"{
 #define     MD_CMON      ((UINT32)  6)
 #define     MD_CLOOPBACK ((UINT32)  7)
 #define     MD_CSESSION  ((UINT32)  8)
-#define     MD_CRFS      ((UINT32)  9)
+#define     MD_0009      ((UINT32)  9) /*-- obsolete --*/
 #define     MD_0010      ((UINT32) 10) /*-- obsolete --*/
 #define     MD_0011      ((UINT32) 11) /*-- obsolete --*/
 #define     MD_CSHELL    ((UINT32) 12)
@@ -40,7 +40,7 @@ extern "C"{
 #define     MD_CSTORE    ((UINT32) 15)
 #define     MD_CVENDOR   ((UINT32) 16)
 #define     MD_CREFRESH  ((UINT32) 17)
-#define     MD_CRFSGW    ((UINT32) 18)
+#define     MD_0018      ((UINT32) 18) /*-- obsolete --*/
 #define     MD_CFLV      ((UINT32) 19)
 #define     MD_CMP4      ((UINT32) 20)
 #define     MD_CTDNS     ((UINT32) 21)
@@ -189,20 +189,20 @@ extern "C"{
 #define                MM_COROUTINE_TASK    ((UINT32)122)
 #define                MM_COROUTINE_NODE    ((UINT32)123)
 #define                MM_COROUTINE_POOL    ((UINT32)124)
-#define                   MM_CRFSDN_NODE    ((UINT32)125)
-#define                        MM_CRFSDN    ((UINT32)126)
-#define                          MM_CPGB    ((UINT32)127)
-#define                          MM_CPGD    ((UINT32)128)
-#define                          MM_CPGV    ((UINT32)129)
+#define                        MM_000125    ((UINT32)125) /*-- obsolete --*/
+#define                        MM_000126    ((UINT32)126) /*-- obsolete --*/
+#define                        MM_000127    ((UINT32)127) /*-- obsolete --*/
+#define                        MM_000128    ((UINT32)128) /*-- obsolete --*/
+#define                        MM_000129    ((UINT32)129) /*-- obsolete --*/
 #define                      MM_CRB_NODE    ((UINT32)130)
 #define                      MM_CRB_TREE    ((UINT32)131)
-#define                  MM_CRFSNP_FNODE    ((UINT32)132)
-#define                  MM_CRFSNP_DNODE    ((UINT32)133)
-#define                   MM_CRFSNP_ITEM    ((UINT32)134)
-#define                        MM_CRFSNP    ((UINT32)135)
-#define                    MM_CRFSNP_MGR    ((UINT32)136)
-#define                    MM_CRFSNP_KEY    ((UINT32)137)
-#define             MM_CRFSDN_CACHE_NODE    ((UINT32)138)
+#define                        MM_000132    ((UINT32)132) /*-- obsolete --*/
+#define                        MM_000133    ((UINT32)133) /*-- obsolete --*/
+#define                        MM_000134    ((UINT32)134) /*-- obsolete --*/
+#define                        MM_000135    ((UINT32)135) /*-- obsolete --*/
+#define                        MM_000136    ((UINT32)136) /*-- obsolete --*/
+#define                        MM_000137    ((UINT32)137) /*-- obsolete --*/
+#define                        MM_000138    ((UINT32)138) /*-- obsolete --*/
 
 #define                  MM_CRBBASE_TREE    ((UINT32)139)
 #define                        MM_000140    ((UINT32)140) /*-- obsolete --*/
@@ -217,7 +217,7 @@ extern "C"{
 #define                        MM_CSTRKV    ((UINT32)146)
 #define                    MM_CSTRKV_MGR    ((UINT32)147)
 #define                       MM_CBUFFER    ((UINT32)148)
-#define                 MM_CRFSHTTP_NODE    ((UINT32)149)
+#define                        MM_000149    ((UINT32)149) /*-- obsolete --*/
 #define                         MM_CHUNK    ((UINT32)150)
 #define                     MM_CHUNK_MGR    ((UINT32)151)
 #define                   MM_CMD5_DIGEST    ((UINT32)152)
@@ -232,7 +232,7 @@ extern "C"{
 #define                        MM_000161    ((UINT32)161) /*-- obsolete --*/
 #define                   MM_CEXPAT_ATTR    ((UINT32)162)
 #define                   MM_CEXPAT_NODE    ((UINT32)163)
-#define              MM_CRFS_LOCKED_FILE    ((UINT32)164)
+#define                        MM_000164    ((UINT32)164) /*-- obsolete --*/
 #define                    MM_CHTTP_NODE    ((UINT32)165)
 #define              MM_TASK_RUNNER_NODE    ((UINT32)166)
 #define                     MM_CHTTP_REQ    ((UINT32)167)
@@ -247,7 +247,7 @@ extern "C"{
 #define             MM_COROUTINE_CLEANER    ((UINT32)176)
 #define                MM_COROUTINE_COND    ((UINT32)177)
 #define                   MM_CHTTP_STORE    ((UINT32)178)
-#define                MM_CRFS_WAIT_FILE    ((UINT32)179)
+#define                        MM_000179    ((UINT32)179) /*-- obsolete --*/
 #define                        MM_CCONNP    ((UINT32)180)
 #define                    MM_CCONNP_MGR    ((UINT32)181)
 #define                        MM_000182    ((UINT32)182) /*-- obsolete --*/
@@ -308,7 +308,7 @@ extern "C"{
 
 #define               MM_CTDNS_SUSV_NODE    ((UINT32)229)
 
-#define                 MM_CRFS_HOT_PATH    ((UINT32)230)
+#define                        MM_000230    ((UINT32)230) /*-- obsolete --*/
 #define         MM_CDETECTN_STATUS_RANGE    ((UINT32)231)
 #define          MM_CDETECTN_DOMAIN_NODE    ((UINT32)232)
 

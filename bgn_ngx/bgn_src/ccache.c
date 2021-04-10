@@ -25,9 +25,6 @@ extern "C"{
 #include "chttp.h"
 #include "chttps.h"
 
-#include "crfshttp.h"
-#include "crfshttps.h"
-
 #include "cxfshttp.h"
 #include "cxfshttps.h"
 
@@ -383,15 +380,7 @@ EC_BOOL ccache_file_wait_and_read(const UINT32 store_srv_tcid, const UINT32 stor
         /*timeout_msec = 60 * 1000;*/
         timeout_msec = TASK_DEFAULT_LIVE * 1000;
 
-        if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
-        {
-            tag = MD_CXFS;
-        }
-
-        if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-        {
-            tag = MD_CRFS;
-        }
+        tag = MD_CXFS;
 
         dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_file_wait_and_read: cond wait '%s' => go\n",
                         (char *)cstring_get_str(file_path));
@@ -469,7 +458,7 @@ EC_BOOL ccache_file_write_over_bgn(const UINT32 store_srv_tcid, const UINT32 sto
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs or xfs*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one xfs*/
 
     dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "[DEBUG] ccache_file_write_over_bgn: p2p: [token %s] file_path '%.*s', data %p [len %ld] => store_srv_tcid %s\n",
                 (char *)cstring_get_str(auth_token),
@@ -480,14 +469,8 @@ EC_BOOL ccache_file_write_over_bgn(const UINT32 store_srv_tcid, const UINT32 sto
 
     s_time_msec = c_get_cur_time_msec();
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-                &recv_mod_node,
-                &ret, FI_crfs_update_with_token, CMPI_ERROR_MODI, file_path, cbytes, auth_token);
-    }
 
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                 &recv_mod_node,
@@ -528,7 +511,7 @@ EC_BOOL ccache_renew_headers_over_bgn(const UINT32 store_srv_tcid, const UINT32 
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs or xfs*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one xfs*/
 
     dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_renew_headers_over_bgn: renew headers of '%.*s' on tcid %s\n",
                     (uint32_t)CSTRING_LEN(file_path), (char *)CSTRING_STR(file_path),
@@ -538,23 +521,7 @@ EC_BOOL ccache_renew_headers_over_bgn(const UINT32 store_srv_tcid, const UINT32 
 
     s_time_msec = c_get_cur_time_msec();
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        if(NULL_PTR != auth_token)
-        {
-            task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-                    &recv_mod_node,
-                    &ret, FI_crfs_renew_http_headers_with_token, CMPI_ERROR_MODI, file_path, cstrkv_mgr, auth_token);
-        }
-        else
-        {
-            task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-                    &recv_mod_node,
-                    &ret, FI_crfs_renew_http_headers, CMPI_ERROR_MODI, file_path, cstrkv_mgr);
-        }
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         if(NULL_PTR != auth_token)
         {
@@ -600,20 +567,13 @@ EC_BOOL ccache_file_notify_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs or xfs*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one xfs*/
 
     dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "[DEBUG] ccache_file_notify_over_bgn: p2p: file_path '%.*s'[NONE] => tcid %s\n",
                 (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
                 c_word_to_ipv4(store_srv_tcid));
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
-                        &recv_mod_node,
-                        NULL_PTR, FI_crfs_file_notify, CMPI_ERROR_MODI, file_path);
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         task_p2p_no_wait(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
                         &recv_mod_node,
@@ -637,7 +597,7 @@ EC_BOOL ccache_file_terminate_over_bgn(const UINT32 store_srv_tcid, const UINT32
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs or xfs*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one xfs*/
 
     dbg_log(SEC_0177_CCACHE, 1)(LOGSTDOUT, "[DEBUG] ccache_file_terminate_over_bgn: p2p: file_path '%.*s'[NONE] => tcid %s\n",
                 (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
@@ -647,14 +607,7 @@ EC_BOOL ccache_file_terminate_over_bgn(const UINT32 store_srv_tcid, const UINT32
 
     s_time_msec = c_get_cur_time_msec();
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-                &recv_mod_node,
-                &ret, FI_crfs_file_terminate, CMPI_ERROR_MODI, file_path);
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                 &recv_mod_node,
@@ -693,21 +646,13 @@ EC_BOOL ccache_file_lock_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*cxfs_md_id = 0*/
 
     ret = EC_FALSE;
 
     s_time_msec = c_get_cur_time_msec();
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-                 &recv_mod_node,
-                 &ret,
-                 FI_crfs_file_lock, CMPI_ERROR_MODI, file_path, expire_nsec, auth_token, locked_already);
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &recv_mod_node,
@@ -764,21 +709,13 @@ EC_BOOL ccache_file_unlock_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*cxfs_md_id = 0*/
 
     ret = EC_FALSE;
 
     s_time_msec = c_get_cur_time_msec();
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-                 &recv_mod_node,
-                 &ret,
-                 FI_crfs_file_unlock, CMPI_ERROR_MODI, file_path, auth_token);
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &recv_mod_node,
@@ -832,7 +769,7 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs or xfs*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one xfs*/
 
     ret = EC_FALSE;
 
@@ -848,14 +785,7 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
 
         s_time_msec = c_get_cur_time_msec();
 
-        if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-        {
-            task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-                &recv_mod_node,
-                &ret, FI_crfs_read_e, CMPI_ERROR_MODI, file_path, &store_offset, store_size, content_cbytes);
-        }
-
-        if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+        if(1)
         {
             task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                 &recv_mod_node,
@@ -890,14 +820,7 @@ EC_BOOL ccache_file_read_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
 
     s_time_msec = c_get_cur_time_msec();
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-            &recv_mod_node,
-            &ret, FI_crfs_read, CMPI_ERROR_MODI, file_path, content_cbytes);
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
             &recv_mod_node,
@@ -942,20 +865,13 @@ EC_BOOL ccache_file_retire_over_bgn(const UINT32 store_srv_tcid, const UINT32 st
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*cxfs_md_id = 0*/
 
     ret = EC_FALSE;
 
     s_time_msec = c_get_cur_time_msec();
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-            &recv_mod_node,
-            &ret, FI_crfs_delete, CMPI_ERROR_MODI, file_path, (UINT32)CRFSNP_ITEM_FILE_IS_REG);
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
             &recv_mod_node,
@@ -1019,21 +935,13 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
         MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
         MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-        MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
+        MOD_NODE_MODI(&recv_mod_node) = 0;/*cxfs_md_id = 0*/
 
         ret = EC_FALSE;
 
         s_time_msec = c_get_cur_time_msec();
 
-        if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-        {
-            task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-                &recv_mod_node,
-                &ret, FI_crfs_file_wait_e, CMPI_ERROR_MODI, &send_mod_node,
-                file_path, &store_offset, store_size, content_length, data_ready);
-        }
-
-        if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+        if(1)
         {
             task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                 &recv_mod_node,
@@ -1084,20 +992,13 @@ EC_BOOL ccache_file_wait_over_bgn(const UINT32 store_srv_tcid, const UINT32 stor
         MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
         MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
         MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-        MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
+        MOD_NODE_MODI(&recv_mod_node) = 0;/*cxfs_md_id = 0*/
 
         ret = EC_FALSE;
 
         s_time_msec = c_get_cur_time_msec();
 
-        if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-        {
-            task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-                &recv_mod_node,
-                &ret, FI_crfs_file_wait, CMPI_ERROR_MODI, &send_mod_node, file_path, content_length, data_ready);
-        }
-
-        if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+        if(1)
         {
             task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                 &recv_mod_node,
@@ -1155,21 +1056,14 @@ EC_BOOL ccache_file_wait_ready_over_bgn(const UINT32 store_srv_tcid, const UINT3
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*cxfs_md_id = 0*/
 
     ret = EC_FALSE;
     data_ready_t = EC_FALSE;
 
     s_time_msec = c_get_cur_time_msec();
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-            &recv_mod_node,
-            &ret, FI_crfs_file_wait_ready, CMPI_ERROR_MODI, &send_mod_node, file_path, &data_ready_t);
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
             &recv_mod_node,
@@ -1229,22 +1123,13 @@ EC_BOOL ccache_wait_http_headers_over_bgn(const UINT32 store_srv_tcid, const UIN
     MOD_NODE_TCID(&recv_mod_node) = store_srv_tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*crfs_md_id = 0 or cxfs_md_id = 0*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*cxfs_md_id = 0*/
 
     ret = EC_FALSE;
 
     s_time_msec = c_get_cur_time_msec();
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-                 &recv_mod_node,
-                 &ret,
-                 FI_crfs_wait_http_headers, CMPI_ERROR_MODI, &send_mod_node,
-                 file_path, cstrkv_mgr, header_ready);
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
                  &recv_mod_node,
@@ -1283,88 +1168,7 @@ EC_BOOL ccache_wait_http_headers_over_bgn(const UINT32 store_srv_tcid, const UIN
 
 EC_BOOL ccache_dir_delete_over_bgn(const CSTRING *file_path)
 {
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        TASK_BRD    *task_brd;
-        TASK_MGR    *task_mgr;
-
-        UINT32       cmon_md_id;
-
-        UINT32       pos;
-        UINT32       num;
-        EC_BOOL      ret;
-
-        uint64_t                     s_time_msec;
-        uint64_t                     e_time_msec;
-
-        task_brd = task_brd_default_get();
-
-        cmon_md_id = TASK_BRD_CMON_ID(task_brd);
-        if(CMPI_ERROR_MODI == cmon_md_id)
-        {
-            dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_dir_delete_over_bgn: no cmon started\n");
-            return (EC_FALSE);
-        }
-
-        cmon_count_nodes(cmon_md_id, &num);
-        if(0 == num)
-        {
-            dbg_log(SEC_0177_CCACHE, 0)(LOGSTDOUT, "error:ccache_dir_delete_over_bgn: store is empty\n");
-            return (EC_FALSE);
-        }
-
-        s_time_msec = c_get_cur_time_msec();
-
-        task_mgr = task_new(NULL_PTR, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
-
-        for(pos = 0; pos < num; pos ++)
-        {
-            CMON_NODE      cmon_node;
-            MOD_NODE       recv_mod_node;
-
-            cmon_node_init(&cmon_node);
-            if(EC_FALSE == cmon_get_node_by_pos(cmon_md_id, pos, &cmon_node))
-            {
-                cmon_node_clean(&cmon_node);
-                continue;
-            }
-
-            if(EC_FALSE == cmon_node_is_up(&cmon_node))
-            {
-                dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_dir_delete_over_bgn: delete '%.*s' skip rfs %s which is not up\n",
-                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path),
-                        c_word_to_ipv4(CMON_NODE_TCID(&cmon_node))
-                        );
-                cmon_node_clean(&cmon_node);
-                continue;
-            }
-
-            MOD_NODE_TCID(&recv_mod_node) = CMON_NODE_TCID(&cmon_node);
-            MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
-            MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-            MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs or xfs*/
-
-            task_p2p_inc(task_mgr, 0, &recv_mod_node,
-                    &ret, FI_crfs_delete_dir, CMPI_ERROR_MODI, file_path);
-
-            cmon_node_clean(&cmon_node);
-        }
-
-        task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
-
-        e_time_msec = c_get_cur_time_msec();
-
-        sys_log(LOGUSER09, "[SUCC] DELETED %ld %s\n",
-                           e_time_msec - s_time_msec,
-                           (char *)cstring_get_str(file_path));
-
-        dbg_log(SEC_0177_CCACHE, 9)(LOGSTDOUT, "[DEBUG] ccache_dir_delete_over_bgn: rfs delete '%.*s' done\n",
-                        (uint32_t)CSTRING_LEN(file_path), CSTRING_STR(file_path));
-
-        return (EC_TRUE);
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         TASK_BRD    *task_brd;
         TASK_MGR    *task_mgr;

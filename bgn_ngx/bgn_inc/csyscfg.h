@@ -134,8 +134,6 @@ void cparacfg_conn_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT3
 
 void cparacfg_ssl_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level);
 
-void cparacfg_rfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level);
-
 void cparacfg_xfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level);
 
 void cparacfg_ngx_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level);

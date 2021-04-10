@@ -111,8 +111,6 @@ EC_BOOL api_cmd_ui_switch_log_all(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_rotate_log(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_rotate_log_all(CMD_PARA_VEC * param);
 
-EC_BOOL api_cmd_ui_do_test(CMD_PARA_VEC * param);
-
 EC_BOOL api_cmd_ui_enable_to_rank_node(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_enable_all_to_rank_node(CMD_PARA_VEC * param);
 
@@ -265,55 +263,6 @@ EC_BOOL api_cmd_ui_status_mcast_udp_server(CMD_PARA_VEC * param);
 #if 1
 EC_BOOL api_cmd_ui_cmon_show_nodes(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cmon_show_nodes_all(CMD_PARA_VEC * param);
-#endif
-
-#if 1
-EC_BOOL api_cmd_ui_crfs_create_npp(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_create_dn(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_add_disk(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_del_disk(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_mount_disk(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_umount_disk(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_open(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_close(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_read(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_write(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_mkdir(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_search(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_count_file_num(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_count_file_size(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_qfile(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_qdir(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_qlist_path_of_np(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_qlist_seg_of_np(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_qlist_path(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_qlist_seg(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_qlist_tree_of_np(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_qlist_tree(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_delete_file(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_delete_dir(CMD_PARA_VEC * param);
-
-/* for deleting root dir / only! */
-EC_BOOL api_cmd_ui_crfs_delete_root_dir(CMD_PARA_VEC * param);
-
-EC_BOOL api_cmd_ui_crfs_delete_path(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_recycle(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_retire(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_flush(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_flush_npp(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_flush_dn(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_show_npp_lru_list(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_show_npp_del_list(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_show_npp(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_show_dn(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_show_cached_np_lru_list(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_show_cached_np_del_list(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_show_cached_np(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_show_specific_np_lru_list(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_show_specific_np_del_list(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_show_specific_np(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_show_locked_files(CMD_PARA_VEC * param);
-EC_BOOL api_cmd_ui_crfs_md5sum(CMD_PARA_VEC * param);
 #endif
 
 #if 1

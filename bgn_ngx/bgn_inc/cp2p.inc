@@ -42,7 +42,7 @@ FUNC_ADDR_NODE g_cp2p_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- UINT32 cp2p_start(const CSTRING * crfs_root_dir, const CSTRING * ctdns_root_dir); -- */
+/* -- UINT32 cp2p_start(const CSTRING * cxfs_root_dir, const CSTRING * ctdns_root_dir); -- */
 /*func module     */     MD_CP2P,
 /*func logic addr */     (UINT32)cp2p_start,
 /*func beg addr   */     0,

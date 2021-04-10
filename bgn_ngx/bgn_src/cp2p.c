@@ -29,7 +29,7 @@ extern "C"{
 #include "crb.h"
 #include "chttp.h"
 #include "chttps.h"
-#include "crfs.h"
+#include "cxfs.h"
 #include "ctdns.h"
 #include "ctdnshttp.h"
 #include "cp2p.h"
@@ -103,12 +103,12 @@ UINT32 cp2p_free_module_static_mem(const UINT32 cp2p_md_id)
 * start CP2P module
 *
 **/
-UINT32 cp2p_start(const CSTRING * crfs_root_dir, const CSTRING * ctdns_root_dir)
+UINT32 cp2p_start(const CSTRING * cxfs_root_dir, const CSTRING * ctdns_root_dir)
 {
     CP2P_MD    *cp2p_md;
     UINT32      cp2p_md_id;
 
-    UINT32      crfs_md_id;
+    UINT32      cxfs_md_id;
     UINT32      ctdns_md_id;
 
     TASK_BRD   *task_brd;
@@ -116,7 +116,7 @@ UINT32 cp2p_start(const CSTRING * crfs_root_dir, const CSTRING * ctdns_root_dir)
     task_brd = task_brd_default_get();
 
     cbc_md_reg(MD_CP2P , 1);
-    cbc_md_reg(MD_CRFS , 1);
+    cbc_md_reg(MD_CXFS , 1);
     cbc_md_reg(MD_CTDNS, 1);
 
     cp2p_md_id = cbc_md_new(MD_CP2P, sizeof(CP2P_MD));
@@ -135,80 +135,58 @@ UINT32 cp2p_start(const CSTRING * crfs_root_dir, const CSTRING * ctdns_root_dir)
     /*TODO:*/
     CP2P_MD_NETWORK_LEVEL(cp2p_md)  = TASK_BRD_NETWORK_LEVEL(task_brd);
     CP2P_MD_NETWORK_TCID(cp2p_md)   = TASK_BRD_TCID(task_brd);
-    CP2P_MD_CRFS_MODI(cp2p_md)      = CMPI_ERROR_MODI;
+    CP2P_MD_CXFS_MODI(cp2p_md)      = CMPI_ERROR_MODI;
     CP2P_MD_CTDNS_MODI(cp2p_md)     = CMPI_ERROR_MODI;
 
     cp2p_md->usedcounter = 1;
 
-    crfs_md_id = crfs_start(crfs_root_dir);
-    if(CMPI_ERROR_MODI == crfs_md_id)
+    cxfs_md_id = cxfs_start(cxfs_root_dir, NULL_PTR);
+    if(CMPI_ERROR_MODI == cxfs_md_id)
     {
-        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: start CRFS failed\n");
+        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: start CXFS failed\n");
         cp2p_end(cp2p_md_id);
         return (CMPI_ERROR_MODI);
     }
-    CP2P_MD_CRFS_MODI(cp2p_md) = crfs_md_id;
+    CP2P_MD_CXFS_MODI(cp2p_md) = cxfs_md_id;
 
-    /* create rfs np and dn */
-    if(EC_FALSE == crfs_is_npp(crfs_md_id))
+    /* create xfs np and dn */
+    if(EC_FALSE == cxfs_is_npp(cxfs_md_id))
     {
-        CSTRING     *crfsnp_db_root_dir;
-        UINT32       crfsnp_max_num;
+        UINT32       cxfsnp_max_num;
 
-        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "[DEBUG] cp2p_start: create rfs npp\n");
+        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "[DEBUG] cp2p_start: create xfs npp\n");
 
-        crfsnp_db_root_dir = cstring_make("%s/rfs%02ld", (char *)cstring_get_str(crfs_root_dir), crfs_md_id);
-        if(NULL_PTR == crfsnp_db_root_dir)
+
+        cxfsnp_max_num = 1;
+        if(EC_FALSE == cxfs_create_npp(cxfs_md_id, CXFSNP_128M_MODEL, cxfsnp_max_num, CHASH_RS_ALGO_ID))
         {
-            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: new crfsnp_db_root_dir failed\n");
+            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: create xfs npp failed\n");
             cp2p_end(cp2p_md_id);
             return (CMPI_ERROR_MODI);
         }
-
-        crfsnp_max_num = 1;
-        if(EC_FALSE == crfs_create_npp(crfs_md_id, CRFSNP_128M_MODEL, crfsnp_max_num,
-                                       CHASH_RS_ALGO_ID, crfsnp_db_root_dir))
-        {
-            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: create rfs npp failed\n");
-            cstring_free(crfsnp_db_root_dir);
-            cp2p_end(cp2p_md_id);
-            return (CMPI_ERROR_MODI);
-        }
-        cstring_free(crfsnp_db_root_dir);
     }
 
-    if(EC_FALSE == crfs_is_dn(crfs_md_id))
+    if(EC_FALSE == cxfs_is_dn(cxfs_md_id))
     {
-        CSTRING     *crfsdn_db_root_dir;
-        UINT32       crfs_disk_no;
+        UINT32       cxfs_disk_no;
 
-        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "[DEBUG] cp2p_start: create rfs dn\n");
+        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "[DEBUG] cp2p_start: create xfs dn\n");
 
-        crfsdn_db_root_dir = cstring_make("%s/rfs%02ld", (char *)cstring_get_str(crfs_root_dir), crfs_md_id);
-        if(NULL_PTR == crfsdn_db_root_dir)
+        if(EC_FALSE == cxfs_create_dn(cxfs_md_id))
         {
-            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: new crfsdn_db_root_dir failed\n");
+            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: create xfs dn failed\n");
             cp2p_end(cp2p_md_id);
             return (CMPI_ERROR_MODI);
         }
 
-        if(EC_FALSE == crfs_create_dn(crfs_md_id, crfsdn_db_root_dir))
+        cxfs_disk_no = 0;
+        if(EC_FALSE == cxfs_add_disk(cxfs_md_id, cxfs_disk_no))
         {
-            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: create rfs dn failed\n");
-            cstring_free(crfsdn_db_root_dir);
+            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: add xfs disk failed\n");
             cp2p_end(cp2p_md_id);
             return (CMPI_ERROR_MODI);
         }
-        cstring_free(crfsdn_db_root_dir);
-
-        crfs_disk_no = 0;
-        if(EC_FALSE == crfs_add_disk(crfs_md_id, crfs_disk_no))
-        {
-            dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_start: add rfs disk failed\n");
-            cp2p_end(cp2p_md_id);
-            return (CMPI_ERROR_MODI);
-        }
-        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "[DEBUG] cp2p_start: create rfs dn done\n");
+        dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "[DEBUG] cp2p_start: create xfs dn done\n");
     }
 
     ctdns_md_id = ctdns_start(ctdns_root_dir);
@@ -325,10 +303,10 @@ void cp2p_end(const UINT32 cp2p_md_id)
     /* free module : */
     //cp2p_free_module_static_mem(cp2p_md_id);
 
-    if(CMPI_ERROR_MODI != CP2P_MD_CRFS_MODI(cp2p_md))
+    if(CMPI_ERROR_MODI != CP2P_MD_CXFS_MODI(cp2p_md))
     {
-        crfs_end(CP2P_MD_CRFS_MODI(cp2p_md));
-        CP2P_MD_CRFS_MODI(cp2p_md)  = CMPI_ERROR_MODI;
+        cxfs_end(CP2P_MD_CXFS_MODI(cp2p_md));
+        CP2P_MD_CXFS_MODI(cp2p_md)  = CMPI_ERROR_MODI;
     }
 
     if(CMPI_ERROR_MODI != CP2P_MD_CTDNS_MODI(cp2p_md))
@@ -640,7 +618,7 @@ EC_BOOL cp2p_file_exists(const UINT32 cp2p_md_id, const CP2P_FILE *cp2p_file)
 
     cmd5_digest_init(&cmd5_digest);
 
-    if(EC_FALSE == crfs_is_file(CP2P_MD_CRFS_MODI(cp2p_md), file_path))
+    if(EC_FALSE == cxfs_is_file(CP2P_MD_CXFS_MODI(cp2p_md), file_path))
     {
         dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_file_exists: "
                                              "file '%s' not exist\n",
@@ -649,7 +627,7 @@ EC_BOOL cp2p_file_exists(const UINT32 cp2p_md_id, const CP2P_FILE *cp2p_file)
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfs_file_size(CP2P_MD_CRFS_MODI(cp2p_md), file_path, &file_size))
+    if(EC_FALSE == cxfs_file_size(CP2P_MD_CXFS_MODI(cp2p_md), file_path, &file_size))
     {
         dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_file_exists: "
                                              "get size of '%s' failed\n",
@@ -667,7 +645,7 @@ EC_BOOL cp2p_file_exists(const UINT32 cp2p_md_id, const CP2P_FILE *cp2p_file)
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfs_file_md5sum(CP2P_MD_CRFS_MODI(cp2p_md), file_path, &cmd5_digest))
+    if(EC_FALSE == cxfs_file_md5sum(CP2P_MD_CXFS_MODI(cp2p_md), file_path, &cmd5_digest))
     {
         dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_file_exists: "
                                              "get md5 of '%s' failed\n",
@@ -1117,7 +1095,7 @@ EC_BOOL cp2p_file_download(const UINT32 cp2p_md_id, const UINT32 src_tcid, const
     }
 
     dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_file_download: "
-                                         "download '%s' from RFS tcid %s\n",
+                                         "download '%s' from XFS tcid %s\n",
                                          (char *)cstring_get_str(file_path),
                                          c_word_to_ipv4(src_tcid));
 
@@ -1129,12 +1107,12 @@ EC_BOOL cp2p_file_download(const UINT32 cp2p_md_id, const UINT32 src_tcid, const
     ret = EC_FALSE;
     task_p2p(cp2p_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &recv_mod_node,
-             &ret, FI_crfs_read, CMPI_ERROR_MODI, file_path, file_content);
+             &ret, FI_cxfs_read, CMPI_ERROR_MODI, file_path, file_content);
 
     if(EC_FALSE == ret)
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_download: "
-                                             "download '%s' from RFS tcid %s failed\n",
+                                             "download '%s' from XFS tcid %s failed\n",
                                              (char *)cstring_get_str(file_path),
                                              c_word_to_ipv4(src_tcid));
         cstring_free(file_path);
@@ -1143,7 +1121,7 @@ EC_BOOL cp2p_file_download(const UINT32 cp2p_md_id, const UINT32 src_tcid, const
     }
 
     dbg_log(SEC_0059_CP2P, 9)(LOGSTDOUT, "[DEBUG] cp2p_file_download: "
-                                         "download '%s' from RFS tcid %s done\n",
+                                         "download '%s' from XFS tcid %s done\n",
                                          (char *)cstring_get_str(file_path),
                                          c_word_to_ipv4(src_tcid));
 
@@ -1160,7 +1138,7 @@ EC_BOOL cp2p_file_download(const UINT32 cp2p_md_id, const UINT32 src_tcid, const
     }
 
     /*store to storage*/
-    if(EC_FALSE == crfs_update(CP2P_MD_CRFS_MODI(cp2p_md), file_path, file_content))
+    if(EC_FALSE == cxfs_update(CP2P_MD_CXFS_MODI(cp2p_md), file_path, file_content))
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_download: "
                                              "write '%s' to storage failed\n",
@@ -1404,8 +1382,8 @@ EC_BOOL cp2p_file_dump(const UINT32 cp2p_md_id, const CP2P_FILE *cp2p_file)
 
     const CSTRING    *des_file_path;
 
-    CSTRING          *rfs_file_path;
-    CBYTES           *rfs_file_content;
+    CSTRING          *xfs_file_path;
+    CBYTES           *xfs_file_content;
 
     UINT32            des_offset;
     int               des_fd;
@@ -1425,35 +1403,35 @@ EC_BOOL cp2p_file_dump(const UINT32 cp2p_md_id, const CP2P_FILE *cp2p_file)
 
     des_file_path = CP2P_FILE_DES_NAME(cp2p_file);
 
-    rfs_file_path = __cp2p_file_name_gen(CP2P_FILE_SERVICE_NAME(cp2p_file), CP2P_FILE_SRC_NAME(cp2p_file));
-    if(NULL_PTR == rfs_file_path)
+    xfs_file_path = __cp2p_file_name_gen(CP2P_FILE_SERVICE_NAME(cp2p_file), CP2P_FILE_SRC_NAME(cp2p_file));
+    if(NULL_PTR == xfs_file_path)
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_dump: "
                                              "gen download file name failed\n");
         return (EC_FALSE);
     }
 
-    rfs_file_content = cbytes_new(0);
-    if(NULL_PTR == rfs_file_content)
+    xfs_file_content = cbytes_new(0);
+    if(NULL_PTR == xfs_file_content)
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_dump: "
                                              "new cbytes failed\n");
-        cstring_free(rfs_file_path);
+        cstring_free(xfs_file_path);
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfs_read(CP2P_MD_CRFS_MODI(cp2p_md), rfs_file_path, rfs_file_content))
+    if(EC_FALSE == cxfs_read(CP2P_MD_CXFS_MODI(cp2p_md), xfs_file_path, xfs_file_content))
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_dump: "
                                              "read '%s' from storage failed\n",
-                                             (char *)cstring_get_str(rfs_file_path));
+                                             (char *)cstring_get_str(xfs_file_path));
 
-        cstring_free(rfs_file_path);
-        cbytes_free(rfs_file_content);
+        cstring_free(xfs_file_path);
+        cbytes_free(xfs_file_content);
         return (EC_FALSE);
     }
 
-    cstring_free(rfs_file_path);
+    cstring_free(xfs_file_path);
 
     /*store to local disk*/
     des_fd = c_file_open((char *)cstring_get_str(des_file_path), O_RDWR | O_CREAT, 0666);
@@ -1462,36 +1440,36 @@ EC_BOOL cp2p_file_dump(const UINT32 cp2p_md_id, const CP2P_FILE *cp2p_file)
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_dump: "
                                              "open file '%s' to write failed\n",
                                              (char *)cstring_get_str(des_file_path));
-        cbytes_free(rfs_file_content);
+        cbytes_free(xfs_file_content);
         return (EC_FALSE);
     }
 
     des_offset = 0;
-    if(EC_FALSE == c_file_flush(des_fd, &des_offset, CBYTES_LEN(rfs_file_content), CBYTES_BUF(rfs_file_content)))
+    if(EC_FALSE == c_file_flush(des_fd, &des_offset, CBYTES_LEN(xfs_file_content), CBYTES_BUF(xfs_file_content)))
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_dump: "
                                              "flush %ld bytes to file '%s' failed\n",
-                                             CBYTES_LEN(rfs_file_content),
+                                             CBYTES_LEN(xfs_file_content),
                                              (char *)cstring_get_str(des_file_path));
         c_file_close(des_fd);
-        cbytes_free(rfs_file_content);
+        cbytes_free(xfs_file_content);
         return (EC_FALSE);
     }
 
-    if(des_offset != CBYTES_LEN(rfs_file_content))
+    if(des_offset != CBYTES_LEN(xfs_file_content))
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_dump: "
                                              "flush %ld bytes to file '%s' failed due to offset = %ld \n",
-                                             CBYTES_LEN(rfs_file_content),
+                                             CBYTES_LEN(xfs_file_content),
                                              (char *)cstring_get_str(des_file_path),
                                              des_offset);
         c_file_close(des_fd);
-        cbytes_free(rfs_file_content);
+        cbytes_free(xfs_file_content);
         return (EC_FALSE);
     }
 
     c_file_close(des_fd);
-    cbytes_free(rfs_file_content);
+    cbytes_free(xfs_file_content);
 
     if(do_log(SEC_0059_CP2P, 9))
     {
@@ -1710,7 +1688,7 @@ EC_BOOL cp2p_file_load(const UINT32 cp2p_md_id, const CSTRING *src_file, const C
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfs_update(CP2P_MD_CRFS_MODI(cp2p_md), des_file_path, src_file_bytes))
+    if(EC_FALSE == cxfs_update(CP2P_MD_CXFS_MODI(cp2p_md), des_file_path, src_file_bytes))
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_load: "
                                              "update '%s' to storage failed\n",
@@ -1766,7 +1744,7 @@ EC_BOOL cp2p_file_upload(const UINT32 cp2p_md_id, const CBYTES *src_file_content
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == crfs_update(CP2P_MD_CRFS_MODI(cp2p_md), des_file_path, src_file_content))
+    if(EC_FALSE == cxfs_update(CP2P_MD_CXFS_MODI(cp2p_md), des_file_path, src_file_content))
     {
         dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_upload: "
                                              "update '%s' to storage failed\n",
@@ -1810,7 +1788,7 @@ EC_BOOL cp2p_file_delete(const UINT32 cp2p_md_id, const UINT32 des_network, cons
     {
         if(CMPI_ANY_TCID == des_tcid || CP2P_MD_NETWORK_TCID(cp2p_md) == des_tcid)
         {
-            CSTRING     *rfs_file_path;
+            CSTRING     *xfs_file_path;
 #if 0
             if(EC_FALSE == cp2p_file_exists(cp2p_md_id, cp2p_file))
             {
@@ -1820,15 +1798,15 @@ EC_BOOL cp2p_file_delete(const UINT32 cp2p_md_id, const UINT32 des_network, cons
                 return (EC_FALSE);
             }
 #endif
-            rfs_file_path = __cp2p_file_name_gen(CP2P_FILE_SERVICE_NAME(cp2p_file), CP2P_FILE_SRC_NAME(cp2p_file));
-            if(NULL_PTR == rfs_file_path)
+            xfs_file_path = __cp2p_file_name_gen(CP2P_FILE_SERVICE_NAME(cp2p_file), CP2P_FILE_SRC_NAME(cp2p_file));
+            if(NULL_PTR == xfs_file_path)
             {
                 dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_delete: "
                                                      "gen file name failed\n");
                 return (EC_FALSE);
             }
-            crfs_delete_file(CP2P_MD_CRFS_MODI(cp2p_md), rfs_file_path);
-            cstring_free(rfs_file_path);
+            cxfs_delete_file(CP2P_MD_CXFS_MODI(cp2p_md), xfs_file_path);
+            cstring_free(xfs_file_path);
         }
 
         return cp2p_file_delete_notify(cp2p_md_id, des_network, des_tcid, cp2p_file);
@@ -1850,7 +1828,7 @@ EC_BOOL cp2p_file_delete(const UINT32 cp2p_md_id, const UINT32 des_network, cons
 
     if(CMPI_ANY_TCID == des_tcid || CP2P_MD_NETWORK_TCID(cp2p_md) == des_tcid)
     {
-        CSTRING     *rfs_file_path;
+        CSTRING     *xfs_file_path;
 #if 0
         if(EC_FALSE == cp2p_file_exists(cp2p_md_id, cp2p_file))
         {
@@ -1860,15 +1838,15 @@ EC_BOOL cp2p_file_delete(const UINT32 cp2p_md_id, const UINT32 des_network, cons
             return (EC_FALSE);
         }
 #endif
-        rfs_file_path = __cp2p_file_name_gen(CP2P_FILE_SERVICE_NAME(cp2p_file), CP2P_FILE_SRC_NAME(cp2p_file));
-        if(NULL_PTR == rfs_file_path)
+        xfs_file_path = __cp2p_file_name_gen(CP2P_FILE_SERVICE_NAME(cp2p_file), CP2P_FILE_SRC_NAME(cp2p_file));
+        if(NULL_PTR == xfs_file_path)
         {
             dbg_log(SEC_0059_CP2P, 0)(LOGSTDOUT, "error:cp2p_file_delete: "
                                                  "gen file name failed\n");
             return (EC_FALSE);
         }
-        crfs_delete_file(CP2P_MD_CRFS_MODI(cp2p_md), rfs_file_path);
-        cstring_free(rfs_file_path);
+        cxfs_delete_file(CP2P_MD_CXFS_MODI(cp2p_md), xfs_file_path);
+        cstring_free(xfs_file_path);
 
         if(do_log(SEC_0059_CP2P, 9))
         {

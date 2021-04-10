@@ -69,20 +69,6 @@ typedef struct
 
     UINT32    high_precision_time_switch    ;/*ONLY FOR DEBUG! give high precision in micro-second, reduce the affect of on-wall clock*/
 
-    UINT32    ngx_bgn_over_rfs_switch       ;/*only for NGX_BGN_SWITCH == SWITCH_ON*/
-    UINT32    ngx_bgn_over_xfs_switch       ;/*only for NGX_BGN_SWITCH == SWITCH_ON*/
-
-    UINT32    crfsnp_try_retire_max_num     ; /* CRFSNP_TRY_RETIRE_MAX_NUM  */
-    UINT32    crfsnp_try_recycle_max_num    ; /* CRFSNP_TRY_RECYCLE_MAX_NUM */
-    UINT32    crfsnp_cache_in_mem_switch    ; /* CRFSNP_CACHE_IN_MEM_SWITCH */
-    UINT32    crfsdn_cache_in_mem_switch    ; /* CRFSDN_CACHE_IN_MEM_SWITCH */
-
-    UINT32    crfsdn_camd_switch            ; /* CRFSDN_CAMD_SWITCH*/
-    UINT32    crfsdn_camd_sata_disk_size    ; /* CRFSDN_CAMD_SATA_DISK_SIZE */
-    UINT32    crfsdn_camd_mem_disk_size     ; /* CRFSDN_CAMD_MEM_DISK_SIZE  */
-    UINT32    crfsdn_camd_ssd_disk_offset   ; /* CRFSDN_CAMD_SSD_DISK_OFFSET*/
-    UINT32    crfsdn_camd_ssd_disk_size     ; /* CRFSDN_CAMD_SSD_DISK_SIZE  */
-
     REAL      cxfsnp_max_used_ratio         ; /* CXFSNP_MAX_USED_RATIO    */
     REAL      cxfsdn_max_used_ratio         ; /* CXFSDN_MAX_USED_RATIO    */
 
@@ -112,9 +98,7 @@ typedef struct
     uint32_t  ngx_epoll_timeout_msec        ;
 
     uint32_t  ngx_http_req_num_per_loop     ; /*0 means handle all http requests per loop*/
-    uint32_t  rfs_http_req_num_per_loop     ; /*0 means handle all http requests per loop*/
     uint32_t  xfs_http_req_num_per_loop     ; /*0 means handle all http requests per loop*/
-    uint32_t  rsvd11;
     CSTRING   ssl_certificate_file_name_cstr;
     CSTRING   ssl_private_key_file_name_cstr;
 
@@ -217,19 +201,6 @@ typedef struct
 #define CPARACFG_DNS_CACHE_EXPIRED_NSEC(cparacfg)                   ((cparacfg)->dns_cache_expired_nsec)
 
 #define CPARACFG_HIGH_PRECISION_TIME_SWITCH(cparacfg)               ((cparacfg)->high_precision_time_switch)
-#define CPARACFG_NGX_BGN_OVER_RFS_SWITCH(cparacfg)                  ((cparacfg)->ngx_bgn_over_rfs_switch)
-#define CPARACFG_NGX_BGN_OVER_XFS_SWITCH(cparacfg)                  ((cparacfg)->ngx_bgn_over_xfs_switch)
-
-#define CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM(cparacfg)                ((cparacfg)->crfsnp_try_retire_max_num)
-#define CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM(cparacfg)               ((cparacfg)->crfsnp_try_recycle_max_num)
-#define CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH(cparacfg)               ((cparacfg)->crfsnp_cache_in_mem_switch)
-#define CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH(cparacfg)               ((cparacfg)->crfsdn_cache_in_mem_switch)
-
-#define CPARACFG_CRFSDN_CAMD_SWITCH(cparacfg)                       ((cparacfg)->crfsdn_camd_switch)
-#define CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE(cparacfg)               ((cparacfg)->crfsdn_camd_sata_disk_size)
-#define CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE(cparacfg)                ((cparacfg)->crfsdn_camd_mem_disk_size)
-#define CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET(cparacfg)              ((cparacfg)->crfsdn_camd_ssd_disk_offset)
-#define CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE(cparacfg)                ((cparacfg)->crfsdn_camd_ssd_disk_size)
 
 #define CPARACFG_CXFSNP_MAX_USED_RATIO(cparacfg)                    ((cparacfg)->cxfsnp_max_used_ratio)
 #define CPARACFG_CXFSDN_MAX_USED_RATIO(cparacfg)                    ((cparacfg)->cxfsdn_max_used_ratio)
@@ -264,7 +235,6 @@ typedef struct
 #define CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg)                   ((cparacfg)->ngx_epoll_timeout_msec)
 
 #define CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP(cparacfg)                ((cparacfg)->ngx_http_req_num_per_loop)
-#define CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)                ((cparacfg)->rfs_http_req_num_per_loop)
 #define CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)                ((cparacfg)->xfs_http_req_num_per_loop)
 
 #define CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR(cparacfg)           (&((cparacfg)->ssl_certificate_file_name_cstr))
@@ -327,16 +297,9 @@ typedef struct
 
 //#define CPARACFG_CONN_KEEPALIVE_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CONN_KEEPALIVE_SWITCH(cparacfg)))
 #define CPARACFG_HIGH_PRECISION_TIME_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_HIGH_PRECISION_TIME_SWITCH(cparacfg)))
-#define CPARACFG_NGX_BGN_OVER_RFS_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_NGX_BGN_OVER_RFS_SWITCH(cparacfg)))
-#define CPARACFG_NGX_BGN_OVER_XFS_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_NGX_BGN_OVER_XFS_SWITCH(cparacfg)))
 #define CPARACFG_CSOCKET_SO_KEEPALIVE_SWITCH_STR(cparacfg)          (c_switch_to_str(CPARACFG_CSOCKET_SO_KEEPALIVE_SWITCH(cparacfg)))
 
 #define CPARACFG_CSOCKET_UNIX_DOMAIN_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CSOCKET_UNIX_DOMAIN_SWITCH(cparacfg)))
-
-#define CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH(cparacfg)))
-#define CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH(cparacfg)))
-
-#define CPARACFG_CRFSDN_CAMD_SWITCH_STR(cparacfg)                   (c_switch_to_str(CPARACFG_CRFSDN_CAMD_SWITCH(cparacfg)))
 
 #define CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH(cparacfg)))
 #define CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH(cparacfg)))
@@ -461,19 +424,6 @@ typedef struct
 #define CPARACFG_DNS_CACHE_EXPIRED_NSEC_DEF                      60
 
 #define CPARACFG_HIGH_PRECISION_TIME_SWITCH_DEF                  SWITCH_OFF
-#define CPARACFG_NGX_BGN_OVER_RFS_SWITCH_DEF                     SWITCH_OFF
-#define CPARACFG_NGX_BGN_OVER_XFS_SWITCH_DEF                     SWITCH_ON
-
-#define CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM_DEF                   128
-#define CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM_DEF                  512
-#define CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH_DEF                  SWITCH_OFF
-#define CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH_DEF                  SWITCH_OFF
-
-#define CPARACFG_CRFSDN_CAMD_SWITCH_DEF                          SWITCH_OFF
-#define CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE_DEF                  0
-#define CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE_DEF                   0
-#define CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET_DEF                 0
-#define CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE_DEF                   0
 
 #define CPARACFG_CXFSNP_MAX_USED_RATIO_DEF                       (0.999)
 #define CPARACFG_CXFSDN_MAX_USED_RATIO_DEF                       (0.980)
@@ -502,7 +452,6 @@ typedef struct
 #define CPARACFG_NGX_EPOLL_TIMEOUT_MSEC_DEF                      0
 
 #define CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP_DEF                   0 /*0 means handle all*/
-#define CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP_DEF                   0 /*0 means handle all*/
 #define CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP_DEF                   0 /*0 means handle all*/
 #define CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR_DEF              ((uint8_t *)"certificate.pem")
 #define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR_DEF              ((uint8_t *)"private_key.pem")
@@ -617,20 +566,6 @@ typedef struct
 
 #define    HIGH_PRECISION_TIME_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_HIGH_PRECISION_TIME_SWITCH)
 
-#define    NGX_BGN_OVER_RFS_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_NGX_BGN_OVER_RFS_SWITCH)
-#define    NGX_BGN_OVER_XFS_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_NGX_BGN_OVER_XFS_SWITCH)
-
-#define    CRFSNP_TRY_RETIRE_MAX_NUM                     CPARACFG_DEFAULT_MAP(CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM)
-#define    CRFSNP_TRY_RECYCLE_MAX_NUM                    CPARACFG_DEFAULT_MAP(CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM)
-#define    CRFSNP_CACHE_IN_MEM_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH)
-#define    CRFSDN_CACHE_IN_MEM_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH)
-
-#define    CRFSDN_CAMD_SWITCH                            CPARACFG_DEFAULT_MAP(CPARACFG_CRFSDN_CAMD_SWITCH)
-#define    CRFSDN_CAMD_SATA_DISK_SIZE                    CPARACFG_DEFAULT_MAP(CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE)
-#define    CRFSDN_CAMD_MEM_DISK_SIZE                     CPARACFG_DEFAULT_MAP(CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE)
-#define    CRFSDN_CAMD_SSD_DISK_OFFSET                   CPARACFG_DEFAULT_MAP(CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET)
-#define    CRFSDN_CAMD_SSD_DISK_SIZE                     CPARACFG_DEFAULT_MAP(CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE)
-
 #define    CXFSNP_MAX_USED_RATIO                         CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNP_MAX_USED_RATIO)
 #define    CXFSDN_MAX_USED_RATIO                         CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_MAX_USED_RATIO)
 
@@ -658,7 +593,6 @@ typedef struct
 #define    NGX_EPOLL_TIMEOUT_MSEC                        CPARACFG_DEFAULT_MAP(CPARACFG_NGX_EPOLL_TIMEOUT_MSEC)
 
 #define    NGX_HTTP_REQ_NUM_PER_LOOP                     CPARACFG_DEFAULT_MAP(CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP)
-#define    RFS_HTTP_REQ_NUM_PER_LOOP                     CPARACFG_DEFAULT_MAP(CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP)
 #define    XFS_HTTP_REQ_NUM_PER_LOOP                     CPARACFG_DEFAULT_MAP(CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP)
 
 #define    SSL_CERTIFICATE_FILE_NAME                     CPARACFG_DEFAULT_STR_MAP(CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR)

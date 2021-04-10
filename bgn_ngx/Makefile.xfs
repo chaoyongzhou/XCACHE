@@ -209,14 +209,10 @@ CMACRO = \
          -DCLOAD_HEARTBEAT_INTVL_NSEC=10 \
          -DRANK_HEARTBEAT_FASTDEC_INTVL_NSEC=10 \
          -DCLOAD_STAT_UPDATE_INTVL_NSEC=3 \
-         -DCRFS_ASSERT_SWITCH=SWITCH_OFF \
          -DCMUTEX_DEBUG_SWITCH=SWITCH_OFF \
-         -DCRFSNGX_SWITCH=SWITCH_OFF \
-         -DCRFSNGX_SOCKET_TIMEOUT_NSEC=60 \
          -DCTDNS_NP_CACHE_IN_MEM=SWITCH_OFF \
          -DCTDNS_SP_CACHE_IN_MEM=SWITCH_OFF \
          -DCSRV_ACCEPT_MAX_NUM=20 \
-         -DCRFS_MD5_SWITCH=SWITCH_OFF \
          -DCXFS_ASSERT_SWITCH=SWITCH_OFF \
          -DCXFSNGX_SWITCH=SWITCH_OFF \
          -DCXFSNGX_SOCKET_TIMEOUT_NSEC=60 \
@@ -361,15 +357,6 @@ test_crb: libbgn obj/crun.o obj/test_crb.o
 
 test_cpgrb: libbgn obj/crun.o obj/test_cpgrb.o
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cpgrb.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
-
-test_cpgb: libbgn obj/crun.o obj/test_cpgb.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cpgb.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
-
-test_cpgd: libbgn obj/crun.o obj/test_cpgd.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cpgd.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
-
-test_cpgv: libbgn obj/crun.o obj/test_cpgv.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cpgv.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
 
 test_cxfsdn: libbgn obj/crun.o obj/test_cxfsdn.o
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cxfsdn.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)

@@ -72,7 +72,7 @@ FUNC_ADDR_NODE g_cdetectn_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cdetectn_show_orig_nodes(const UINT32 crfs_md_id, LOG *log); -- */
+/* -- EC_BOOL cdetectn_show_orig_nodes(const UINT32 cdetectn_md_id, LOG *log); -- */
 /*func module     */     MD_CDETECTN,
 /*func logic addr */     (UINT32)cdetectn_show_orig_nodes,
 /*func beg addr   */     0,
@@ -87,7 +87,7 @@ FUNC_ADDR_NODE g_cdetectn_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cdetectn_show_orig_node(const UINT32 crfs_md_id, const CSTRING *domain, LOG *log); -- */
+/* -- EC_BOOL cdetectn_show_orig_node(const UINT32 cdetectn_md_id, const CSTRING *domain, LOG *log); -- */
 /*func module     */     MD_CDETECTN,
 /*func logic addr */     (UINT32)cdetectn_show_orig_node,
 /*func beg addr   */     0,

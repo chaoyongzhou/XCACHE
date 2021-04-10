@@ -34,7 +34,6 @@ extern "C"{
 #include "cbtimer.h"
 #include "cmisc.h"
 
-#include "crfsnp.h"
 #include "task.h"
 #include "csyscfg.inc"
 #include "csyscfg.h"
@@ -940,8 +939,6 @@ void cparacfg_thread_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UIN
     sys_print(log, " taskLiveNsec=\"%ld\""             , CPARACFG_TASK_LIVE_NSEC(cparacfg));
     sys_print(log, " taskZombieNsec=\"%ld\""           , CPARACFG_TASK_ZOMBIE_NSEC(cparacfg));
 
-    sys_print(log, " ngxBgnOverRfsSwitch=\"%s\""       , CPARACFG_NGX_BGN_OVER_RFS_SWITCH_STR(cparacfg));
-    sys_print(log, " ngxBgnOverXfsSwitch=\"%s\""       , CPARACFG_NGX_BGN_OVER_XFS_SWITCH_STR(cparacfg));
     sys_print(log, "/>\n");
 
     return ;
@@ -1091,29 +1088,6 @@ void cparacfg_ssl_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
     return;
 }
 
-void cparacfg_rfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
-{
-    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_TCID(cparacfg)))
-    {
-        c_ident_print(log, level);
-        sys_print(log, "<rfsConfig");
-        sys_print(log, " rfsNpRetireMaxNum=\"%ld\""      , CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM(cparacfg));
-        sys_print(log, " rfsNpRecycleMaxNum=\"%ld\""     , CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM(cparacfg));
-        sys_print(log, " rfsNpCacheInMemSwitch=\"%s\""   , CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH_STR(cparacfg));
-        sys_print(log, " rfsDnCacheInMemSwitch=\"%s\""   , CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg));
-
-        sys_print(log, " rfsDnAmdSwitch=\"%s\""          , CPARACFG_CRFSDN_CAMD_SWITCH_STR(cparacfg));
-        sys_print(log, " rfsDnAmdSataDiskSize=\"%ld\""   , CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE(cparacfg));
-        sys_print(log, " rfsDnAmdMemDiskSize=\"%ld\""    , CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE(cparacfg));
-        sys_print(log, " rfsDnAmdSsdDiskOffset=\"%ld\""  , CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET(cparacfg));
-        sys_print(log, " rfsDnAmdSsdDiskSize=\"%ld\""    , CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
-
-        sys_print(log, " httpReqNumPerLoop=\"%u\""       , CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
-        sys_print(log, "/>\n");
-    }
-    return;
-}
-
 void cparacfg_xfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
 {
     if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_TCID(cparacfg)))
@@ -1231,7 +1205,6 @@ void cparacfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
 #endif
     //cparacfg_log_cfg_print_xml(log, cparacfg, level + 1);
     cparacfg_conn_cfg_print_xml(log, cparacfg, level + 1);
-    cparacfg_rfs_cfg_print_xml(log, cparacfg, level + 1);
     cparacfg_xfs_cfg_print_xml(log, cparacfg, level + 1);
     cparacfg_ngx_cfg_print_xml(log, cparacfg, level + 1);
     cparacfg_amd_cfg_print_xml(log, cparacfg, level + 1);

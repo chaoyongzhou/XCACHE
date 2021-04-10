@@ -28,7 +28,6 @@ extern "C"{
 #define CMPI_DBG_RANK      ((UINT32)  0)  /*define debug rank*/
 #define CMPI_MON_RANK      ((UINT32)  0)  /*define monitor rank*/
 #define CMPI_FWD_RANK      ((UINT32)  0)  /*define forward rank*/
-#define CMPI_CRFS_RANK     ((UINT32)  0)  /*define crfs rank*/
 #define CMPI_CXFS_RANK     ((UINT32)  0)  /*define cxfs rank*/
 
 #define CMPI_DBG_TCID_BEG         ((UINT32) 64) /*dbg tcid beg = 0.0.0.64 */

@@ -5522,7 +5522,7 @@ EC_BOOL chttp_defer_request_queue_clean()
 *
 * WARNING:
 *
-*   chttp_defer_request_queue_init is called in RFS module,
+*   chttp_defer_request_queue_init is called in XFS module,
 *   but chttp_defer_request_queue_is_empty is checked in task_brd_check_and_notify
 *   where maybe chttp_defer_request_queue_init is not called or never be called!
 *
@@ -5626,7 +5626,7 @@ EC_BOOL chttp_defer_request_queue_launch(CHTTP_NODE_COMMIT_REQUEST chttp_node_co
     }
     else
     {
-        http_req_max_num = RFS_HTTP_REQ_NUM_PER_LOOP;
+        http_req_max_num = XFS_HTTP_REQ_NUM_PER_LOOP;
     }
 
     if(0 == http_req_max_num)
@@ -5637,7 +5637,7 @@ EC_BOOL chttp_defer_request_queue_launch(CHTTP_NODE_COMMIT_REQUEST chttp_node_co
     /*
     * note: loop_switch control the loop times:
     *       for NGX BGN (SWITCH_ON == NGX_BGN_SWITCH), handle all http requests in one loop
-    *       for RFS (SWITCH_OFF == NGX_BGN_SWITCH), handle one http request only in one loop
+    *       for XFS (SWITCH_OFF == NGX_BGN_SWITCH), handle one http request only in one loop
     */
     for(http_req_idx = 0; http_req_idx < http_req_max_num; http_req_idx ++)
     {
@@ -11083,14 +11083,7 @@ EC_BOOL chttp_request_merge(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_store
     timeout_msec = CHTTP_STORE_MERGE_WAIT_TIMEOUT_NSEC(chttp_store) * 1000;
     expire_nsec  = CHTTP_STORE_MERGE_LOCK_EXPIRES_NSEC(chttp_store);
 
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
-    {
-        tag = MD_CXFS;
-    }
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        tag = MD_CRFS;
-    }
+    tag = MD_CXFS;
 
     /*make path*/
     cstring_init(&path, NULL_PTR);
@@ -11554,15 +11547,7 @@ STATIC_CAST static EC_BOOL __chttp_request_header_file_wait(const CHTTP_REQ *cht
 
         timeout_msec = 60 * 1000;
 
-        if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
-        {
-            tag = MD_CXFS;
-        }
-
-        if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-        {
-            tag = MD_CRFS;
-        }
+        tag = MD_CXFS;
 
         dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] __chttp_request_header_file_wait: cond wait '%s' => go\n",
                         (char *)cstring_get_str(path));
@@ -11693,14 +11678,7 @@ EC_BOOL chttp_request_header(const CHTTP_REQ *chttp_req, CHTTP_STORE *chttp_stor
 
     timeout_msec = CHTTP_STORE_MERGE_WAIT_TIMEOUT_NSEC(chttp_store) * 1000;
 
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
-    {
-        tag = MD_CXFS;
-    }
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        tag = MD_CRFS;
-    }
+    tag = MD_CXFS;
 
     /*make path*/
     cstring_init(&path, NULL_PTR);

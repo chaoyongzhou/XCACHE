@@ -49,10 +49,8 @@ extern "C"{
 #include "cload.h"
 #include "cbtimer.h"
 #include "chttp.h"
-#include "crfshttp.h"
 #include "cxfshttp.h"
 #include "chttps.h"
-#include "crfshttps.h"
 #include "cxfshttps.h"
 #include "cdns.h"
 #include "cdnscache.h"
@@ -7326,57 +7324,6 @@ EC_BOOL super_print_data_all(const UINT32 super_md_id, const UINT32 obj_zone_num
     return (EC_TRUE);
 }
 
-EC_BOOL super_do_test(const UINT32 super_md_id)
-{
-#if ( SWITCH_ON == SUPER_DEBUG_SWITCH )
-    if ( SUPER_MD_ID_CHECK_INVALID(super_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:super_do_test: super module #0x%lx not started.\n",
-                super_md_id);
-        dbg_exit(MD_SUPER, super_md_id);
-    }
-#endif/*SUPER_DEBUG_SWITCH*/
-
-    const char *headers[] = {
-        "CC-Cache-Version:1493957359.183\r\n",
-        "origin-server:223.202.201.159:80\r\n",
-        "Date:Fri, 05 May 2017 04:09:22 GMT\r\n",
-        "Response-Status:200\r\n",
-        "Cache-Control:max-age=30\r\n",
-        "ETag:\"57392004-0\"\r\n",
-        "Content-Length:0\r\n",
-        "Last-Modified:Mon, 16 May 2016 01:19:00 GMT\r\n",
-        "Expires:Fri, 05 May 2017 04:09:52 GMT\r\n",
-        "Content-Type:text/plain\r\n",
-        "Accept-Ranges:bytes\r\n",
-        "Server:openresty/1.9.3.1\r\n",
-        "\r\n",
-    };
-    const char *body_data = "---- this is body content ----";
-    UINT32 idx;
-
-    CSTRING    path;
-    CBYTES     body;
-
-    cstring_init(&path, (UINT8 *)"/cc/304/0");
-    cbytes_init(&body);
-
-    for(idx = 0; idx < sizeof(headers)/sizeof(headers[0]); idx ++)
-    {
-        cbytes_append(&body, (UINT8 *)headers[ idx ], strlen(headers[ idx ]));
-    }
-
-    cbytes_append(&body, (UINT8 *)body_data, strlen(body_data));
-
-    crfs_write(0, &path, &body);
-
-    cstring_clean(&path);
-    cbytes_clean(&body);
-
-    return (EC_TRUE);
-}
-
 EC_BOOL super_cond_wait(const UINT32 super_md_id, const UINT32 tag, const CSTRING *key, const UINT32 timeout_msec)
 {
     SUPER_MD  *super_md;
@@ -7663,15 +7610,9 @@ EC_BOOL super_http_store(const UINT32 super_md_id, const UINT32 tcid, const UINT
 
     chttp_req_set_ipaddr_word(&chttp_req, store_srv_ipaddr);
     chttp_req_set_port_word(&chttp_req, store_srv_port);
-    chttp_req_set_method(&chttp_req, (const char *)"POST");
+    chttp_req_set_method(&chttp_req, (const char *)"PUT");
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)"?mod="CRFSHTTP_REST_API_NAME"&op=update");
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
         cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=update");
@@ -7771,7 +7712,7 @@ STATIC_CAST static EC_BOOL __super_http_store_after_ddir(const CHTTP_STORE *chtt
 
         if(EC_FALSE == cmon_node_is_up(&cmon_node))
         {
-            dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_http_store_after_ddir: delete '%.*s' skip rfs %s which is not up\n",
+            dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_http_store_after_ddir: delete '%.*s' skip xfs %s which is not up\n",
                     (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(CMON_NODE_TCID(&cmon_node))
                     );
@@ -7872,7 +7813,7 @@ STATIC_CAST static EC_BOOL __super_store_after_ddir(const CHTTP_STORE *chttp_sto
 
         if(EC_FALSE == cmon_node_is_up(&cmon_node))
         {
-            dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_store_after_ddir: delete '%.*s' skip rfs %s which is not up\n",
+            dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] __super_store_after_ddir: delete '%.*s' skip xfs %s which is not up\n",
                     (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                     c_word_to_ipv4(CMON_NODE_TCID(&cmon_node))
                     );
@@ -7883,9 +7824,9 @@ STATIC_CAST static EC_BOOL __super_store_after_ddir(const CHTTP_STORE *chttp_sto
         MOD_NODE_TCID(&recv_mod_node) = CMON_NODE_TCID(&cmon_node);
         MOD_NODE_COMM(&recv_mod_node) = TASK_BRD_COMM(task_brd);
         MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-        MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs*/
+        MOD_NODE_MODI(&recv_mod_node) = 0;/*only one xfs*/
 
-        task_p2p_inc(task_mgr, 0, &recv_mod_node, &ret, FI_crfs_delete, CMPI_ERROR_MODI, path, CRFSNP_ITEM_FILE_IS_DIR);
+        task_p2p_inc(task_mgr, 0, &recv_mod_node, &ret, FI_cxfs_delete_dir, CMPI_ERROR_MODI, path);
 
         cmon_node_clean(&cmon_node);
     }
@@ -7924,7 +7865,7 @@ EC_BOOL super_store_after_ddir(const UINT32 super_md_id, const UINT32 tcid, cons
     MOD_NODE_TCID(&recv_mod_node) = tcid;
     MOD_NODE_COMM(&recv_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&recv_mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one rfs*/
+    MOD_NODE_MODI(&recv_mod_node) = 0;/*only one xfs*/
 
     dbg_log(SEC_0117_SUPER, 1)(LOGSTDOUT, "[DEBUG] super_store_after_ddir: p2p: [token %s] path '%.*s', data %p [len %ld] => tcid %s\n",
                 (char *)cstring_get_str(auth_token),
@@ -7934,7 +7875,7 @@ EC_BOOL super_store_after_ddir(const UINT32 super_md_id, const UINT32 tcid, cons
     ret = EC_FALSE;
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
             &recv_mod_node,
-            &ret, FI_crfs_update_with_token, CMPI_ERROR_MODI, path, cbytes, auth_token);
+            &ret, FI_cxfs_update_with_token, CMPI_ERROR_MODI, path, cbytes, auth_token);
 
     dbg_log(SEC_0117_SUPER, 9)(LOGSTDOUT, "[DEBUG] super_store_after_ddir: store '%.*s' done\n",
                     (uint32_t)CSTRING_LEN(path), CSTRING_STR(path));
@@ -7969,14 +7910,7 @@ EC_BOOL super_notify(const UINT32 super_md_id, const UINT32 notify_flag, const C
             return (EC_FALSE);
         }
 
-        if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
-        {
-            tag = MD_CXFS;
-        }
-        if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-        {
-            tag = MD_CRFS;
-        }
+        tag = MD_CXFS;
 
         super_cond_wakeup(0, tag, notify_key);
 
@@ -8029,13 +7963,7 @@ EC_BOOL super_unlock_notify(const UINT32 super_md_id, const UINT32 store_srv_ipa
 
     uri = CHTTP_REQ_URI(&chttp_req);
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        cstring_append_cstr(uri, path);
-        cstring_append_str(uri, (uint8_t *)"?mod="CRFSHTTP_REST_API_NAME"&op=unlock_notify_req");
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         cstring_append_cstr(uri, path);
         cstring_append_str(uri, (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=unlock_notify_req");
@@ -8104,13 +8032,7 @@ STATIC_CAST static EC_BOOL __super_unlock_over_http(const UINT32 super_md_id, co
 
     uri = CHTTP_REQ_URI(&chttp_req);
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        cstring_append_cstr(uri, path);
-        cstring_append_str(uri, (uint8_t *)"?mod="CRFSHTTP_REST_API_NAME"&op=unlock_req");
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         cstring_append_cstr(uri, path);
         cstring_append_str(uri, (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=unlock_req");
@@ -8166,12 +8088,12 @@ STATIC_CAST static EC_BOOL __super_unlock_over_bgn(const UINT32 super_md_id, con
     MOD_NODE_TCID(&mod_node) = tcid;
     MOD_NODE_COMM(&mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&mod_node) = CMPI_FWD_RANK;
-    MOD_NODE_MODI(&mod_node) = 0;/*crfs_md_id = 0*/
+    MOD_NODE_MODI(&mod_node) = 0;/*cxfs_md_id = 0*/
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              &mod_node,
              &ret,
-             FI_crfs_file_unlock, CMPI_ERROR_MODI, path, auth_token);
+             FI_cxfs_file_unlock, CMPI_ERROR_MODI, path, auth_token);
 
     if(EC_FALSE == ret)
     {
@@ -8218,13 +8140,7 @@ STATIC_CAST static EC_BOOL __super_wait_data_e(const UINT32 super_md_id, const U
     chttp_req_set_port_word(&chttp_req, store_srv_port);
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)"?mod="CRFSHTTP_REST_API_NAME"&op=file_wait");
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
         cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=file_wait");
@@ -8319,13 +8235,7 @@ STATIC_CAST static EC_BOOL __super_read_data_e(const UINT32 super_md_id, const U
                         (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)"?mod="CRFSHTTP_REST_API_NAME"&op=getsmf");
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
         cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=getsmf");
@@ -8420,14 +8330,7 @@ EC_BOOL super_wait_data_e(const UINT32 super_md_id, const UINT32 store_srv_ipadd
         return (EC_TRUE);
     }
 
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
-    {
-        tag = MD_CXFS;
-    }
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        tag = MD_CRFS;
-    }
+    tag = MD_CXFS;
 
     timeout_msec = 60 * 1000;
 
@@ -8492,13 +8395,7 @@ STATIC_CAST static EC_BOOL __super_wait_data(const UINT32 super_md_id, const UIN
     chttp_req_set_port_word(&chttp_req, store_srv_port);
     chttp_req_set_method(&chttp_req, (const char *)"GET");
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)"?mod="CRFSHTTP_REST_API_NAME"&op=file_wait");
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
         cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=file_wait");
@@ -8591,13 +8488,7 @@ STATIC_CAST static EC_BOOL __super_read_data(const UINT32 super_md_id, const UIN
                         (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),
                         c_word_to_ipv4(store_srv_ipaddr), store_srv_port);
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)"?mod="CRFSHTTP_REST_API_NAME"&op=getsmf");
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req), path);
         cstring_append_str(CHTTP_REQ_URI(&chttp_req), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=getsmf");
@@ -8690,14 +8581,7 @@ EC_BOOL super_wait_data(const UINT32 super_md_id, const UINT32 store_srv_ipaddr,
         return (EC_TRUE);
     }
 
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
-    {
-        tag = MD_CXFS;
-    }
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        tag = MD_CRFS;
-    }
+    tag = MD_CXFS;
 
     timeout_msec = 60 * 1000;
 
@@ -8758,15 +8642,9 @@ EC_BOOL super_renew_header(const UINT32 super_md_id, const UINT32 store_srv_tcid
 
     chttp_req_set_ipaddr_word(&chttp_req_t, store_srv_ipaddr);
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
-    chttp_req_set_method(&chttp_req_t, (const char *)"GET");
+    chttp_req_set_method(&chttp_req_t, (const char *)"PUT");
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)"?mod="CRFSHTTP_REST_API_NAME"&op=renew_header");
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
         cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=renew_header");
@@ -8837,15 +8715,9 @@ EC_BOOL super_renew_headers(const UINT32 super_md_id, const UINT32 store_srv_tci
 
     chttp_req_set_ipaddr_word(&chttp_req_t, store_srv_ipaddr);
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
-    chttp_req_set_method(&chttp_req_t, (const char *)"GET");
+    chttp_req_set_method(&chttp_req_t, (const char *)"PUT");
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)"?mod="CRFSHTTP_REST_API_NAME"&op=renew_header");
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
         cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=renew_header");
@@ -8940,13 +8812,7 @@ EC_BOOL super_file_notify(const UINT32 super_md_id, const UINT32 store_srv_tcid,
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
     chttp_req_set_method(&chttp_req_t, (const char *)"GET");
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)"?mod="CRFSHTTP_REST_API_NAME"&op=file_notify");
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
         cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=file_notify");
@@ -9009,15 +8875,9 @@ EC_BOOL super_delete_dir(const UINT32 super_md_id, const UINT32 store_srv_tcid, 
 
     chttp_req_set_ipaddr_word(&chttp_req_t, store_srv_ipaddr);
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
-    chttp_req_set_method(&chttp_req_t, (const char *)"GET");
+    chttp_req_set_method(&chttp_req_t, (const char *)"DELETE");
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)"?mod="CRFSHTTP_REST_API_NAME"&op=ddir");
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
         cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=ddir");
@@ -9080,15 +8940,9 @@ EC_BOOL super_delete_file(const UINT32 super_md_id, const UINT32 store_srv_tcid,
 
     chttp_req_set_ipaddr_word(&chttp_req_t, store_srv_ipaddr);
     chttp_req_set_port_word(&chttp_req_t, store_srv_port);
-    chttp_req_set_method(&chttp_req_t, (const char *)"GET");
+    chttp_req_set_method(&chttp_req_t, (const char *)"DELETE");
 
-    if(SWITCH_ON == NGX_BGN_OVER_RFS_SWITCH)
-    {
-        cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
-        cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)"?mod="CRFSHTTP_REST_API_NAME"&op=dsmf");
-    }
-
-    if(SWITCH_ON == NGX_BGN_OVER_XFS_SWITCH)
+    if(1)
     {
         cstring_append_cstr(CHTTP_REQ_URI(&chttp_req_t), path);
         cstring_append_str(CHTTP_REQ_URI(&chttp_req_t), (uint8_t *)"?mod="CXFSHTTP_REST_API_NAME"&op=dsmf");

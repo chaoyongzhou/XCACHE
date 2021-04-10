@@ -251,10 +251,10 @@ typedef struct
             /*load time means the http request was loaded time in coroutine*/
             uint64_t                  l_msec;
 
-            /*handle time means the rfs/xfs beg to handle time*/
+            /*handle time means the xfs beg to handle time*/
             uint64_t                  h_msec;
 
-            /*done time means the rfs handle done time*/
+            /*done time means the xfs handle done time*/
             uint64_t                  d_msec; /*done time in micro-second*/
 
             /*end time means all data sent out time*/
@@ -455,7 +455,7 @@ typedef struct _CHTTP_NODE
     CHUNK_MGR                 recv_buf; /*io buffer used by http*/
 
     CSOCKET_CNODE            *csocket_cnode;
-    CQUEUE_DATA              *cqueue_data; /*crfshttp_node mounted point in request defer queue*/
+    CQUEUE_DATA              *cqueue_data; /*cxfshttp_node mounted point in request defer queue*/
 
     CBUFFER                   url;   /*string*/
     CBUFFER                   host;  /*string*/

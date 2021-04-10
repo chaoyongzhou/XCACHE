@@ -200,14 +200,10 @@ CMACRO = \
          -DCLOAD_HEARTBEAT_INTVL_NSEC=10 \
          -DRANK_HEARTBEAT_FASTDEC_INTVL_NSEC=10 \
          -DCLOAD_STAT_UPDATE_INTVL_NSEC=3 \
-         -DCRFS_ASSERT_SWITCH=SWITCH_OFF \
          -DCMUTEX_DEBUG_SWITCH=SWITCH_OFF \
-         -DCRFSNGX_SWITCH=SWITCH_OFF \
-         -DCRFSNGX_SOCKET_TIMEOUT_NSEC=60 \
          -DCTDNS_NP_CACHE_IN_MEM=SWITCH_OFF \
          -DCTDNS_SP_CACHE_IN_MEM=SWITCH_OFF \
          -DCSRV_ACCEPT_MAX_NUM=20 \
-         -DCRFS_MD5_SWITCH=SWITCH_OFF \
          -DCXFS_ASSERT_SWITCH=SWITCH_OFF \
          -DCXFSNGX_SWITCH=SWITCH_OFF \
          -DCXFSNGX_SOCKET_TIMEOUT_NSEC=60 \
@@ -262,7 +258,6 @@ REL_OBJS  = $(patsubst $(REL_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(REL_SRC)/*.c
 TST_OBJS  = $(patsubst $(TST_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(TST_SRC)/*.c))
 
 XFS_OBJS = $(OBJ_DIR)/test_cxfs_tool.o
-RFS_OBJS = $(OBJ_DIR)/test_crfs_tool.o
 
 default: xfs_tool
 
@@ -277,9 +272,6 @@ libjson: $(JSON_OBJS)
 
 xfs_tool: libbgn libamd libjson libjson $(XFS_OBJS)
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/xfs_tool $(XFS_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
-
-rfs_tool: libbgn libamd libjson libjson $(RFS_OBJS)
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/rfs_tool $(RFS_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)
 
 bgn: libbgn $(REL_OBJS)
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/bgn $(REL_OBJS) $(BGN_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(EXT_LIB)
@@ -305,32 +297,11 @@ test_sizeof: libbgn obj/crun.o obj/test_sizeof.o
 test_cexpat: libbgn obj/crun.o obj/test_cexpat.o
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cexpat.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
 
-test_crfsc: libbgn obj/crun.o obj/test_crfsc.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_crfsc.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
-
 test_crb: libbgn obj/crun.o obj/test_crb.o
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_crb.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
 
 test_cpgrb: libbgn obj/crun.o obj/test_cpgrb.o
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cpgrb.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
-
-test_cpgb: libbgn obj/crun.o obj/test_cpgb.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cpgb.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
-
-test_cpgd: libbgn obj/crun.o obj/test_cpgd.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cpgd.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
-
-test_cpgv: libbgn obj/crun.o obj/test_cpgv.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_cpgv.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
-
-test_crfsdn: libbgn obj/crun.o obj/test_crfsdn.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_crfsdn.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
-
-test_crfsnp: libbgn obj/crun.o obj/test_crfsnp.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_crfsnp.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
-
-test_crfs: libbgn obj/crun.o obj/test_crfs.o
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test obj/crun.o obj/test_crfs.o $(BGN_INC) $(TST_INC) $(BGN_LIB) $(EXT_LIB)
 
 $(BGN_OBJS): $(OBJ_DIR)/%.o: $(BGN_SRC)/%.c
 	$(CC) $(CFLAGS) -c $< $(BGN_INC) $(AMD_INC) $(JSON_INC) $(EXT_INC) -o $@	
@@ -362,7 +333,6 @@ clean-log:
 
 clean-bin:
 	$(if $(wildcard $(BIN_DIR)/xfs_tool),rm -f $(BIN_DIR)/xfs_tool,)
-	$(if $(wildcard $(BIN_DIR)/rfs_tool),rm -f $(BIN_DIR)/rfs_tool,)
 
 clean-trial: clean-log clean-bin clean-obj
 	

@@ -35,7 +35,7 @@ typedef struct
     UINT32               network_level;
     UINT32               network_tcid;
 
-    UINT32               crfs_modi;
+    UINT32               cxfs_modi;
     UINT32               ctdns_modi;
 
 }CP2P_MD;
@@ -45,7 +45,7 @@ typedef struct
 #define CP2P_MD_NETWORK_LEVEL(cp2p_md)     ((cp2p_md)->network_level)
 #define CP2P_MD_NETWORK_TCID(cp2p_md)      ((cp2p_md)->network_tcid)
 
-#define CP2P_MD_CRFS_MODI(cp2p_md)         ((cp2p_md)->crfs_modi)
+#define CP2P_MD_CXFS_MODI(cp2p_md)         ((cp2p_md)->cxfs_modi)
 #define CP2P_MD_CTDNS_MODI(cp2p_md)        ((cp2p_md)->ctdns_modi)
 
 
@@ -113,7 +113,7 @@ UINT32 cp2p_free_module_static_mem(const UINT32 cp2p_md_id);
 * start CP2P module
 *
 **/
-UINT32 cp2p_start(const CSTRING * crfs_root_dir, const CSTRING * ctdns_root_dir);
+UINT32 cp2p_start(const CSTRING * cxfs_root_dir, const CSTRING * ctdns_root_dir);
 
 /**
 *

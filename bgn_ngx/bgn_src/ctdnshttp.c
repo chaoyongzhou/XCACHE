@@ -251,7 +251,7 @@ EC_BOOL ctdnshttp_commit_request(CHTTP_NODE *chttp_node)
         }
         CHTTP_NODE_LOG_TIME_WHEN_LOADED(chttp_node);/*record http request was loaded time in coroutine*/
         CHTTP_NODE_CROUTINE_NODE(chttp_node) = croutine_node;
-        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CTDNSHTTP_0002);
+        CROUTINE_NODE_COND_RELEASE(croutine_node, LOC_CTDNSHTTP_0004);
 
         return (EC_TRUE);
     }

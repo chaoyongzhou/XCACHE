@@ -87,12 +87,12 @@ extern "C"{
 #define            e_dbg_CSDOC_WORDS_ptr    ((UINT32) 50)
 #define            e_dbg_CSWORD_DOCS_ptr    ((UINT32) 51)
 #define                  e_dbg_CLIST_ptr    ((UINT32) 52)
-#define            e_dbg_CRFSNP_ITEM_ptr    ((UINT32) 53)
-#define           e_dbg_CRFSNP_FNODE_ptr    ((UINT32) 54)
+#define                  e_dbg_00053_ptr    ((UINT32) 53) /*-- obsolete --*/
+#define                  e_dbg_00054_ptr    ((UINT32) 54)
 #define                  e_dbg_00055_ptr    ((UINT32) 55) /*-- obsolete --*/
 #define                  e_dbg_00056_ptr    ((UINT32) 56) /*-- obsolete --*/
 #define               e_dbg_uint64_t_ptr    ((UINT32) 57)
-#define      e_dbg_CRFSDN_CACHE_NODE_ptr    ((UINT32) 58)
+#define                  e_dbg_00058_ptr    ((UINT32) 58) /*-- obsolete --*/
 #define            e_dbg_CMD5_DIGEST_ptr    ((UINT32) 59)
 #define                  e_dbg_00060_ptr    ((UINT32) 60) /*-- obsolete --*/
 #define                  e_dbg_00061_ptr    ((UINT32) 61) /*-- obsolete --*/
@@ -113,7 +113,7 @@ extern "C"{
 #define           e_dbg_CTDNSSV_NODE_ptr    ((UINT32) 76)
 #define              e_dbg_CP2P_FILE_ptr    ((UINT32) 77)
 #define               e_dbg_CP2P_CMD_ptr    ((UINT32) 78)
-#define             e_dbg_CRFSNP_KEY_ptr    ((UINT32) 79)
+#define                  e_dbg_00079_ptr    ((UINT32) 79) /*-- obsolete --*/
 
 #define            e_dbg_CXFSNP_ITEM_ptr    ((UINT32) 80)
 #define           e_dbg_CXFSNP_FNODE_ptr    ((UINT32) 81)

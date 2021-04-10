@@ -105,19 +105,6 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_DNS_CACHE_EXPIRED_NSEC);
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_HIGH_PRECISION_TIME_SWITCH);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_NGX_BGN_OVER_RFS_SWITCH);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_NGX_BGN_OVER_XFS_SWITCH);
-
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH);
-
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFSDN_CAMD_SWITCH);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE);
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFSNP_MAX_USED_RATIO);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFSDN_MAX_USED_RATIO);
@@ -146,7 +133,6 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_NGX_EPOLL_TIMEOUT_MSEC);
 
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP);
-    CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP);
 
     CPARACFG_SET_STR_DEFAULT(cparacfg, CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR);
@@ -283,19 +269,6 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "DNS_CACHE_EXPIRED_NSEC                     = %ld\n",  CPARACFG_DNS_CACHE_EXPIRED_NSEC(cparacfg));
 
     sys_log(log, "HIGH_PRECISION_TIME_SWITCH                 = %s\n" ,  CPARACFG_HIGH_PRECISION_TIME_SWITCH_STR(cparacfg));
-    sys_log(log, "NGX_BGN_OVER_RFS_SWITCH                    = %s\n" ,  CPARACFG_NGX_BGN_OVER_RFS_SWITCH_STR(cparacfg));
-    sys_log(log, "NGX_BGN_OVER_XFS_SWITCH                    = %s\n" ,  CPARACFG_NGX_BGN_OVER_XFS_SWITCH_STR(cparacfg));
-
-    sys_log(log, "CRFSNP_TRY_RETIRE_MAX_NUM                  = %ld\n",  CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM(cparacfg));
-    sys_log(log, "CRFSNP_TRY_RECYCLE_MAX_NUM                 = %ld\n",  CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM(cparacfg));
-    sys_log(log, "CRFSNP_CACHE_IN_MEM_SWITCH                 = %s\n" ,  CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH_STR(cparacfg));
-    sys_log(log, "CRFSDN_CACHE_IN_MEM_SWITCH                 = %s\n" ,  CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg));
-
-    sys_log(log, "CRFSDN_CAMD_SWITCH                         = %s\n" ,  CPARACFG_CRFSDN_CAMD_SWITCH_STR(cparacfg));
-    sys_log(log, "CRFSDN_CAMD_SATA_DISK_SIZE                 = %ld\n",  CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE(cparacfg));
-    sys_log(log, "CRFSDN_CAMD_MEM_DISK_SIZE                  = %ld\n",  CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE(cparacfg));
-    sys_log(log, "CRFSDN_CAMD_SSD_DISK_OFFSET                = %ld\n",  CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET(cparacfg));
-    sys_log(log, "CRFSDN_CAMD_SSD_DISK_SIZE                  = %ld\n",  CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
 
     sys_log(log, "CXFSNP_MAX_USED_RATIO                      = %.3f\n",  CPARACFG_CXFSNP_MAX_USED_RATIO(cparacfg));
     sys_log(log, "CXFSDN_MAX_USED_RATIO                      = %.3f\n",  CPARACFG_CXFSDN_MAX_USED_RATIO(cparacfg));
@@ -324,7 +297,6 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "NGX_EPOLL_TIMEOUT_MSEC                     = %u\n" ,  CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg));
 
     sys_log(log, "NGX_HTTP_REQ_NUM_PER_LOOP                  = %u\n" ,  CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP(cparacfg));
-    sys_log(log, "RFS_HTTP_REQ_NUM_PER_LOOP                  = %u\n" ,  CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
     sys_log(log, "XFS_HTTP_REQ_NUM_PER_LOOP                  = %u\n" ,  CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
 
     sys_log(log, "CAMD_SSD_AIO_REQ_MAX_NUM                   = %ld\n" , CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM(cparacfg));
@@ -417,19 +389,6 @@ void cparacfg_json(json_object *obj, const CPARACFG *cparacfg)
     json_object_add_k_int64(obj, "DNS_CACHE_EXPIRED_NSEC"  ,  CPARACFG_DNS_CACHE_EXPIRED_NSEC(cparacfg));
 
     json_object_add_kv(obj, "HIGH_PRECISION_TIME_SWITCH"   ,  CPARACFG_HIGH_PRECISION_TIME_SWITCH_STR(cparacfg));
-    json_object_add_kv(obj, "NGX_BGN_OVER_RFS_SWITCH"      ,  CPARACFG_NGX_BGN_OVER_RFS_SWITCH_STR(cparacfg));
-    json_object_add_kv(obj, "NGX_BGN_OVER_XFS_SWITCH"      ,  CPARACFG_NGX_BGN_OVER_XFS_SWITCH_STR(cparacfg));
-
-    json_object_add_k_int64(obj, "CRFSNP_TRY_RETIRE_MAX_NUM"  ,  CPARACFG_CRFSNP_TRY_RETIRE_MAX_NUM(cparacfg));
-    json_object_add_k_int64(obj, "CRFSNP_TRY_RECYCLE_MAX_NUM" ,  CPARACFG_CRFSNP_TRY_RECYCLE_MAX_NUM(cparacfg));
-    json_object_add_kv(obj,      "CRFSNP_CACHE_IN_MEM_SWITCH" ,  CPARACFG_CRFSNP_CACHE_IN_MEM_SWITCH_STR(cparacfg));
-    json_object_add_kv(obj,      "CRFSDN_CACHE_IN_MEM_SWITCH" ,  CPARACFG_CRFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg));
-
-    json_object_add_kv(obj,      "CRFSDN_CAMD_SWITCH"         ,  CPARACFG_CRFSDN_CAMD_SWITCH_STR(cparacfg));
-    json_object_add_k_int64(obj, "CRFSDN_CAMD_SATA_DISK_SIZE" ,  CPARACFG_CRFSDN_CAMD_SATA_DISK_SIZE(cparacfg));
-    json_object_add_k_int64(obj, "CRFSDN_CAMD_MEM_DISK_SIZE"  ,  CPARACFG_CRFSDN_CAMD_MEM_DISK_SIZE(cparacfg));
-    json_object_add_k_int64(obj, "CRFSDN_CAMD_SSD_DISK_OFFSET",  CPARACFG_CRFSDN_CAMD_SSD_DISK_OFFSET(cparacfg));
-    json_object_add_k_int64(obj, "CRFSDN_CAMD_SSD_DISK_SIZE"  ,  CPARACFG_CRFSDN_CAMD_SSD_DISK_SIZE(cparacfg));
 
     json_object_add_k_double(obj, "CXFSNP_MAX_USED_RATIO",  CPARACFG_CXFSNP_MAX_USED_RATIO(cparacfg));
     json_object_add_k_double(obj, "CXFSDN_MAX_USED_RATIO",  CPARACFG_CXFSDN_MAX_USED_RATIO(cparacfg));
@@ -457,7 +416,6 @@ void cparacfg_json(json_object *obj, const CPARACFG *cparacfg)
     json_object_add_k_int32(obj, "NGX_EPOLL_TIMEOUT_MSEC"       ,  CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg));
 
     json_object_add_k_int32(obj, "NGX_HTTP_REQ_NUM_PER_LOOP",  CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP(cparacfg));
-    json_object_add_k_int32(obj, "RFS_HTTP_REQ_NUM_PER_LOOP",  CPARACFG_RFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
     json_object_add_k_int32(obj, "XFS_HTTP_REQ_NUM_PER_LOOP",  CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg));
 
     json_object_add_k_int64(obj, "CAMD_SSD_AIO_REQ_MAX_NUM"    , CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM(cparacfg));
