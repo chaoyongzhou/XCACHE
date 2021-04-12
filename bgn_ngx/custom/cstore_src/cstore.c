@@ -2286,12 +2286,12 @@ EC_BOOL cstore_push_file_handler(const UINT32 cstore_md_id)
 
     if(NULL_PTR == v)
     {
-        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_push_file_handler: "
+        dbg_log(SEC_0173_CSTORE, 1)(LOGSTDOUT, "[DEBUG] cstore_push_file_handler: "
                                                "not configure '%s'\n",
                                                k);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_ALLOWED, LOC_CSTORE_0116);
-        return (EC_FALSE);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0116);
+        return (EC_TRUE);
     }
 
     backend_cmd_format = v;
