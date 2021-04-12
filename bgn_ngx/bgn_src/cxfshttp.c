@@ -123,6 +123,7 @@ static const CHTTP_API g_cxfshttp_api_list[] = {
     {CONST_STR_AND_LEN("logrotate")         , CHTTP_METHOD_GET   , cxfshttp_commit_logrotate_request},
     {CONST_STR_AND_LEN("actsyscfg")         , CHTTP_METHOD_GET   , cxfshttp_commit_actsyscfg_request},
     {CONST_STR_AND_LEN("qtree")             , CHTTP_METHOD_GET   , cxfshttp_commit_qtree_request},
+    {CONST_STR_AND_LEN("qlist")             , CHTTP_METHOD_GET   , cxfshttp_commit_qlist_request},
     {CONST_STR_AND_LEN("status_np")         , CHTTP_METHOD_GET   , cxfshttp_commit_statusnp_request},
     {CONST_STR_AND_LEN("status_dn")         , CHTTP_METHOD_GET   , cxfshttp_commit_statusdn_request},
     {CONST_STR_AND_LEN("stat")              , CHTTP_METHOD_GET   , cxfshttp_commit_stat_request},
@@ -5341,6 +5342,227 @@ EC_BOOL cxfshttp_commit_qtree_response(CHTTP_NODE *chttp_node)
     return cxfshttp_commit_response(chttp_node);
 }
 #endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: qlist ----------------------------------------*/
+EC_BOOL cxfshttp_commit_qlist_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == cxfshttp_handle_qlist_request(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_qlist_request: handle request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfshttp_make_qlist_response(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_qlist_request: make response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = cxfshttp_commit_qlist_response(chttp_node);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_qlist_request: commit response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL cxfshttp_handle_qlist_request(CHTTP_NODE *chttp_node)
+{
+    CBUFFER     *uri_cbuffer;
+
+    uint8_t     *cache_key;
+    uint32_t     cache_len;
+
+    CSTRING      path;
+
+    UINT32       req_body_chunk_num;
+
+    uri_cbuffer  = CHTTP_NODE_URI(chttp_node);
+
+    cache_key = CBUFFER_DATA(uri_cbuffer);
+    cache_len = CBUFFER_USED(uri_cbuffer);
+
+    cstring_init(&path, NULL_PTR);
+    cstring_append_chars(&path, cache_len, cache_key, LOC_CXFSHTTP_0017);
+
+    dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_qlist_request: path %s\n", (char *)cstring_get_str(&path));
+
+    req_body_chunk_num = chttp_node_recv_chunks_num(chttp_node);
+    /*CXFSHTTP_ASSERT(0 == req_body_chunk_num);*/
+    if(!(0 == req_body_chunk_num))
+    {
+        CHUNK_MGR *req_body_chunks;
+
+        req_body_chunks = chttp_node_recv_chunks(chttp_node);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_qlist_request: path %s\n", (char *)cstring_get_str(&path));
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_qlist_request: chunk num %ld\n", req_body_chunk_num);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_qlist_request: chunk mgr %p info\n", req_body_chunks);
+        chunk_mgr_print_info(LOGSTDOUT, req_body_chunks);
+
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error: cxfshttp_handle_qlist_request: chunk mgr %p chars\n", req_body_chunks);
+        chunk_mgr_print_chars(LOGSTDOUT, req_body_chunks);
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_BAD_REQUEST);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_qlist_request: bad request: path %s", (char *)cstring_get_str(&path));
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_BAD_REQUEST;
+
+        cstring_clean(&path);
+
+        return (EC_TRUE);
+    }
+
+    if(1)
+    {
+        UINT32       super_md_id;
+
+        CBYTES      *rsp_content_cbytes;
+
+        CVECTOR      *path_cstr_vec;
+
+        json_object *rsp_body_obj;
+        const char  *rsp_body_str;
+
+        UINT32       pos;
+        CSTRING     *path_cstr;
+
+        super_md_id = 0;
+
+        path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CXFSHTTP_0018);
+
+        if(EC_FALSE == cxfs_qlist_path(super_md_id, &path, path_cstr_vec))
+        {
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_qlist_request failed\n");
+
+            CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+            CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
+            CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_qlist_request failed");
+
+            CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+
+            cstring_clean(&path);
+
+            cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CXFSHTTP_0019);
+            cvector_free(path_cstr_vec, LOC_CXFSHTTP_0020);
+
+            return (EC_TRUE);
+        }
+
+        /* qlist success, get path from path_cstr_vec */
+
+        rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+        cbytes_clean(rsp_content_cbytes);
+
+        rsp_body_obj = json_object_new_array();
+
+        for(pos = 0; pos < cvector_size(path_cstr_vec); pos ++)
+        {
+            path_cstr = (CSTRING *)cvector_get(path_cstr_vec, pos);
+
+            if(NULL_PTR == path_cstr)
+            {
+                continue;
+            }
+
+            json_object_array_add(rsp_body_obj, json_object_new_string((const char *)cstring_get_str(path_cstr)));
+
+            cvector_set(path_cstr_vec, pos, NULL_PTR);
+            cstring_free(path_cstr);
+        }
+
+        rsp_body_str = json_object_to_json_string_ext(rsp_body_obj, JSON_C_TO_STRING_NOSLASHESCAPE);
+        cbytes_set(rsp_content_cbytes, (const UINT8 *)rsp_body_str, strlen(rsp_body_str)/* + 1*/);
+
+        dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_qlist_request done\n");
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %u --", CHTTP_OK);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_qlist_request done");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+
+        cstring_clean(&path);
+
+        cvector_free(path_cstr_vec, LOC_CXFSHTTP_0021);
+
+        /* free json obj */
+        json_object_put(rsp_body_obj);
+
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_make_qlist_response(CHTTP_NODE *chttp_node)
+{
+
+    CBYTES        *content_cbytes;
+    uint64_t       content_len;
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    content_len    = CBYTES_LEN(content_cbytes);
+
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_qlist_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_qlist_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_qlist_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    /*no data copying but data transfering*/
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
+                                              (uint8_t *)CBYTES_BUF(content_cbytes),
+                                              (uint32_t )CBYTES_LEN(content_cbytes),
+                                              (uint32_t )CBYTES_ALIGNED(content_cbytes)))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_mdsmf_response: make body with len %d failed\n",
+                           (uint32_t)CBYTES_LEN(content_cbytes));
+        return (EC_FALSE);
+    }
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_commit_qlist_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_qlist_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return cxfshttp_commit_response(chttp_node);
+}
+#endif
+
 
 #if 1
 /*---------------------------------------- HTTP METHOD: GET, OPERATOR: statusnp ----------------------------------------*/

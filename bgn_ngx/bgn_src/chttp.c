@@ -10928,8 +10928,7 @@ STATIC_CAST static EC_BOOL __chttp_request_merge_file_retire(const CHTTP_REQ *ch
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == ccache_file_retire(store_srv_tcid, store_srv_ipaddr, store_srv_port,
-                                    path))
+    if(EC_FALSE == ccache_file_retire(store_srv_tcid, store_srv_ipaddr, store_srv_port, path))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:__chttp_request_merge_file_retire: [No.%ld] file_retire '%.*s' on %s:%s:%ld failed\n",
                         CHTTP_STORE_SEQ_NO_GET(chttp_store), (uint32_t)CSTRING_LEN(path), CSTRING_STR(path),

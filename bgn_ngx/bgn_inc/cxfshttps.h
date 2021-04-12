@@ -148,6 +148,11 @@ EC_BOOL cxfshttps_handle_qtree_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttps_make_qtree_response(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttps_commit_qtree_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL cxfshttps_commit_qlist_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttps_handle_qlist_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttps_make_qlist_response(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttps_commit_qlist_response(CHTTP_NODE *chttp_node);
+
 EC_BOOL cxfshttps_commit_file_notify_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttps_handle_file_notify_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttps_make_file_notify_response(CHTTP_NODE *chttp_node);

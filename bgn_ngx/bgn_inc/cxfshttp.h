@@ -169,6 +169,11 @@ EC_BOOL cxfshttp_handle_qtree_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_make_qtree_response(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_commit_qtree_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL cxfshttp_commit_qlist_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_handle_qlist_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_make_qlist_response(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_qlist_response(CHTTP_NODE *chttp_node);
+
 EC_BOOL cxfshttp_commit_statusnp_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_handle_statusnp_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_make_statusnp_response(CHTTP_NODE *chttp_node);

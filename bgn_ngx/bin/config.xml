@@ -85,7 +85,7 @@
       <node role="master"  tcid="0.0.0.65"   rank="0"/>
       <node role="slave"  tcid="0.0.0.64"   rank="0"/>
     </cluster>
-    <cluster id="3" name="rfs-ngx" model="master_slave">
+    <cluster id="3" name="xfs-ngx" model="master_slave">
       <node role="master"   tcid="10.10.67.18" rank="0"/>
       <node role="master"   tcid="10.10.67.19" rank="0"/>
       <node role="master"   tcid="10.10.67.20" rank="0"/>
