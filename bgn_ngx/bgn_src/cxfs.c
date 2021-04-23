@@ -4242,7 +4242,7 @@ STATIC_CAST static EC_BOOL __cxfs_reserve_hash_dn(const UINT32 cxfs_md_id, const
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(CXFSPGB_CACHE_MAX_BYTE_SIZE <= data_len)
+    if(CXFSPGB_CACHE_MAX_BYTE_SIZE < data_len)
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_reserve_hash_dn: data_len %ld overflow\n", data_len);
         return (EC_FALSE);
@@ -4399,7 +4399,7 @@ STATIC_CAST static EC_BOOL __cxfs_reserve_no_hash_dn(const UINT32 cxfs_md_id, co
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
-    if(CXFSPGB_CACHE_MAX_BYTE_SIZE <= data_len)
+    if(CXFSPGB_CACHE_MAX_BYTE_SIZE < data_len)
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_reserve_no_hash_dn: data_len %ld overflow\n", data_len);
         return (EC_FALSE);
@@ -4527,7 +4527,7 @@ EC_BOOL cxfs_reserve_dn(const UINT32 cxfs_md_id, const UINT32 data_len, CXFSNP_F
         return (EC_FALSE);
     }
 
-    if(CXFSPGB_CACHE_MAX_BYTE_SIZE <= data_len)
+    if(CXFSPGB_CACHE_MAX_BYTE_SIZE < data_len)
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_reserve_dn: data_len %ld overflow\n", data_len);
         return (EC_FALSE);
@@ -5585,6 +5585,74 @@ EC_BOOL cxfs_read_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *o
 
 /**
 *
+*  truncate a file with all zero content
+*
+**/
+EC_BOOL cxfs_truncate_file(const UINT32 cxfs_md_id, const CSTRING *file_path, const UINT32 file_size)
+{
+    CBYTES      *file_content;
+
+#if (SWITCH_ON == CXFS_DEBUG_SWITCH)
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_truncate_file: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        cxfs_print_module_status(cxfs_md_id, LOGSTDOUT);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*(SWITCH_ON == CXFS_DEBUG_SWITCH)*/
+
+    if(EC_TRUE == cxfs_is_file(cxfs_md_id, file_path))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_truncate_file: "
+                                             "file '%s' exists\n",
+                                             (char *)cstring_get_str(file_path));
+
+        return (EC_FALSE);
+    }
+
+    if(CXFSPGB_CACHE_MAX_BYTE_SIZE < file_size)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_truncate_file: "
+                                             "file '%s', size %ld overflow\n",
+                                             (char *)cstring_get_str(file_path),
+                                             file_size);
+        return (EC_FALSE);
+    }
+
+    file_content = cbytes_new(file_size);
+    if(NULL_PTR == file_content)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_truncate_file: "
+                                             "file '%s', size %ld, alloc content failed\n",
+                                             (char *)cstring_get_str(file_path),
+                                             file_size);
+        return (EC_FALSE);
+    }
+
+    BSET(CBYTES_BUF(file_content), 0x00, CBYTES_LEN(file_content));
+
+    if(EC_FALSE == cxfs_write(cxfs_md_id, file_path, file_content))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_truncate_file: "
+                                             "truncate file '%s', size %l failed\n",
+                                             (char *)cstring_get_str(file_path),
+                                             file_size);
+        cbytes_free(file_content);
+        return (EC_FALSE);
+    }
+
+    cbytes_free(file_content);
+    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_truncate_file: "
+                                         "truncate file '%s', size %ld done\n",
+                                         (char *)cstring_get_str(file_path),
+                                         file_size);
+    return (EC_TRUE);
+}
+
+/**
+*
 *  dump cfg
 *
 **/
@@ -6105,7 +6173,7 @@ EC_BOOL cxfs_export_dn(const UINT32 cxfs_md_id, const CBYTES *cbytes, const CXFS
 
     data_len = DMIN(CBYTES_LEN(cbytes), CXFSNP_FNODE_FILESZ(cxfsnp_fnode));
 
-    if(CXFSPGB_CACHE_MAX_BYTE_SIZE <= data_len)
+    if(CXFSPGB_CACHE_MAX_BYTE_SIZE < data_len)
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_export_dn: CBYTES_LEN %u or CXFSNP_FNODE_FILESZ %u overflow\n",
                             (uint32_t)CBYTES_LEN(cbytes), CXFSNP_FNODE_FILESZ(cxfsnp_fnode));
@@ -6176,7 +6244,7 @@ EC_BOOL cxfs_write_dn(const UINT32 cxfs_md_id, const CBYTES *cbytes, CXFSNP_FNOD
         return (EC_FALSE);
     }
 
-    if(CXFSPGB_CACHE_MAX_BYTE_SIZE <= CBYTES_LEN(cbytes))
+    if(CXFSPGB_CACHE_MAX_BYTE_SIZE < CBYTES_LEN(cbytes))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_write_dn: buff len (or file size) %ld overflow\n", CBYTES_LEN(cbytes));
         return (EC_FALSE);
@@ -11874,7 +11942,7 @@ STATIC_CAST static EC_BOOL __cxfs_replay_op_dn_reserve(const UINT32 cxfs_md_id, 
         return (EC_FALSE);
     }
 
-    if(CXFSPGB_CACHE_MAX_BYTE_SIZE <= CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node))
+    if(CXFSPGB_CACHE_MAX_BYTE_SIZE < CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_dn_reserve: data_len %u overflow\n",
                                              CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node));
@@ -11924,7 +11992,7 @@ STATIC_CAST static EC_BOOL __cxfs_replay_op_dn_release(const UINT32 cxfs_md_id, 
         return (EC_FALSE);
     }
 
-    if(CXFSPGB_CACHE_MAX_BYTE_SIZE <= CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node))
+    if(CXFSPGB_CACHE_MAX_BYTE_SIZE < CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_dn_release: data_len %u overflow\n",
                                              CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node));
@@ -11974,7 +12042,7 @@ STATIC_CAST static EC_BOOL __cxfs_replay_op_dn_recycle(const UINT32 cxfs_md_id, 
         return (EC_FALSE);
     }
 
-    if(CXFSPGB_CACHE_MAX_BYTE_SIZE <= CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node))
+    if(CXFSPGB_CACHE_MAX_BYTE_SIZE < CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_dn_recycle: data_len %u overflow\n",
                                              CXFSOP_DN_NODE_DATA_LEN(cxfsop_dn_node));
@@ -13447,81 +13515,6 @@ EC_BOOL cxfs_deactivate_ngx(const UINT32 cxfs_md_id)
     cmon_node_clean(&cmon_node);
 
     dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_deactivate_ngx: done\n");
-
-    return (EC_TRUE);
-}
-
-/*------------------------------------------------ interface for liburl ------------------------------------------------*/
-STATIC_CAST static EC_BOOL __cxfs_open_url_list_file(const char *fname, char **fmem, UINT32 *fsize, int *fd)
-{
-    char *cur_fmem;
-    int   cur_fd;
-    UINT32 cur_fsize;
-
-    cur_fd = c_file_open(fname, O_RDONLY, 0666);
-    if(ERR_FD == cur_fd)
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_open_url_list_file: open url list file %s failed\n", fname);
-        return (EC_FALSE);
-    }
-
-    if(EC_FALSE == c_file_size(cur_fd, &cur_fsize))
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_open_url_list_file: get size of url list file %s failed\n", fname);
-        c_file_close(cur_fd);
-        return (EC_FALSE);
-    }
-
-    cur_fmem = (char *)mmap(NULL_PTR, cur_fsize, PROT_READ, MAP_SHARED, cur_fd, 0);
-    if(MAP_FAILED == cur_fmem)
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_open_url_list_file: mmap url list file %s with cur_fd %d failed, errno = %d, errorstr = %s\n",
-                           fname, cur_fd, errno, strerror(errno));
-        return (EC_FALSE);
-    }
-
-    (*fd)    = cur_fd;
-    (*fmem)  = cur_fmem;
-    (*fsize) = cur_fsize;
-
-    return (EC_TRUE);
-}
-
-STATIC_CAST static EC_BOOL __cxfs_close_url_list_file(char *fmem, const UINT32 fsize, const int fd)
-{
-    if(ERR_FD != fd)
-    {
-        close(fd);
-    }
-
-    if(NULL_PTR != fmem)
-    {
-        munmap(fmem, fsize);
-    }
-
-    return (EC_TRUE);
-}
-
-STATIC_CAST static EC_BOOL __cxfs_fetch_url_cstr(const char *fmem, const UINT32 fsize, UINT32 *offset, UINT32 *idx,CSTRING *url_cstr)
-{
-    UINT32 old_offset;
-    UINT32 line_len;
-
-    old_offset = (*offset);
-    if(fsize <= old_offset)
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_fetch_url_cstr: offset %ld overflow fsize %ld\n", old_offset, fsize);
-        return (EC_FALSE);
-    }
-
-    line_len = c_line_len(fmem + old_offset);
-    cstring_append_chars(url_cstr, line_len, (UINT8 *)fmem + old_offset, LOC_CXFS_0018);
-    cstring_append_char(url_cstr, '\0');
-
-    (*offset) += line_len + 1;
-    (*idx) ++;
-
-    dbg_log(SEC_0192_CXFS, 0)(LOGCONSOLE, "[DEBUG] __cxfs_fetch_url_cstr: [%8ld] %s\n", (*idx), (char *)cstring_get_str(url_cstr));
 
     return (EC_TRUE);
 }

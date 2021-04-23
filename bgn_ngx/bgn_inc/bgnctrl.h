@@ -18,8 +18,8 @@ extern "C"{
 /*CXFS Package Debug Switch*/
 #define CXFS_DEBUG_SWITCH SWITCH_OFF
 
-/*CXFSNBD Package Debug Switch*/
-#define CXFSNBD_DEBUG_SWITCH SWITCH_OFF
+/*CNBD Package Debug Switch*/
+#define CNBD_DEBUG_SWITCH SWITCH_OFF
 
 /*CMON Package Debug Switch*/
 #define CMON_DEBUG_SWITCH SWITCH_OFF

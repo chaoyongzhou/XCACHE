@@ -669,6 +669,13 @@ EC_BOOL cxfs_read_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *o
 
 /**
 *
+*  truncate a file with all zero content
+*
+**/
+EC_BOOL cxfs_truncate_file(const UINT32 cxfs_md_id, const CSTRING *file_path, const UINT32 file_size);
+
+/**
+*
 *  dump cfg
 *
 **/

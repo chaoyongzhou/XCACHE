@@ -66,7 +66,7 @@ extern "C"{
 #include "cxfsnpmgr.h"
 #include "cxfshttp.h"
 #include "cxfsop.h"
-#include "cxfsnbd.h"
+#include "cnbd.h"
 #include "cmon.h"
 #include "cconhash.h"
 #include "cmaglev.h"
@@ -480,8 +480,8 @@ STATIC_CAST static UINT32 init_mem_manager()
 
     MM_MGR_DEF(MM_CXFSOP_MGR                   ,"MM_CXFSOP_MGR                   ",4         , sizeof(CXFSOP_MGR)                 , LOC_MM_0215);
 
-    MM_MGR_DEF(MM_CXFSNBD_REQ                  ,"MM_CXFSNBD_REQ                  ",32        , sizeof(CXFSNBD_REQ)                , LOC_MM_0216);
-    MM_MGR_DEF(MM_CXFSNBD_RSP                  ,"MM_CXFSNBD_RSP                  ",32        , sizeof(CXFSNBD_RSP)                , LOC_MM_0217);
+    MM_MGR_DEF(MM_CNBD_REQ                     ,"MM_CNBD_REQ                     ",32        , sizeof(CNBD_REQ)                   , LOC_MM_0216);
+    MM_MGR_DEF(MM_CNBD_RSP                     ,"MM_CNBD_RSP                     ",32        , sizeof(CNBD_RSP)                   , LOC_MM_0217);
 
     MM_MGR_DEF(MM_CMON_NODE                    ,"MM_CMON_NODE                    ",256       , sizeof(CMON_NODE)                  , LOC_MM_0218);
     MM_MGR_DEF(MM_CMON_HOT_PATH                ,"MM_CMON_HOT_PATH                ",32        , sizeof(CMON_HOT_PATH)              , LOC_MM_0219);

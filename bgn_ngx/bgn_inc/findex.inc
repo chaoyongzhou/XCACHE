@@ -332,6 +332,7 @@
 #define                  FI_cxfs_wait_file_retire  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 114))
 #define                  FI_cxfs_check_space_used  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 115))
 #define               FI_cxfs_check_adjacent_used  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 116))
+#define                     FI_cxfs_truncate_file  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 117))
 
 #define               FI_cmon_print_module_status  ((UINT32) ((MD_CMON << (WORDSIZE/2)) +  0))
 #define            FI_cmon_free_module_static_mem  ((UINT32) ((MD_CMON << (WORDSIZE/2)) +  1))
