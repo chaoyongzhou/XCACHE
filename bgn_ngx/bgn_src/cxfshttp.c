@@ -128,6 +128,7 @@ static const CHTTP_API g_cxfshttp_api_list[] = {
     {CONST_STR_AND_LEN("status_dn")         , CHTTP_METHOD_GET   , cxfshttp_commit_statusdn_request},
     {CONST_STR_AND_LEN("stat")              , CHTTP_METHOD_GET   , cxfshttp_commit_stat_request},
     {CONST_STR_AND_LEN("paracfg")           , CHTTP_METHOD_GET   , cxfshttp_commit_paracfg_request},
+    {CONST_STR_AND_LEN("show_mem")          , CHTTP_METHOD_GET   , cxfshttp_commit_show_mem_request},
 
     {CONST_STR_AND_LEN("file_notify")       , CHTTP_METHOD_GET   , cxfshttp_commit_file_notify_request},
     {CONST_STR_AND_LEN("file_terminate")    , CHTTP_METHOD_GET   , cxfshttp_commit_file_terminate_request},
@@ -5389,7 +5390,7 @@ EC_BOOL cxfshttp_handle_qlist_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path, NULL_PTR);
-    cstring_append_chars(&path, cache_len, cache_key, LOC_CXFSHTTP_0017);
+    cstring_append_chars(&path, cache_len, cache_key, LOC_CXFSHTTP_0022);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_qlist_request: path %s\n", (char *)cstring_get_str(&path));
 
@@ -5438,7 +5439,7 @@ EC_BOOL cxfshttp_handle_qlist_request(CHTTP_NODE *chttp_node)
 
         super_md_id = 0;
 
-        path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CXFSHTTP_0018);
+        path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CXFSHTTP_0023);
 
         if(EC_FALSE == cxfs_qlist_path(super_md_id, &path, path_cstr_vec))
         {
@@ -5452,8 +5453,8 @@ EC_BOOL cxfshttp_handle_qlist_request(CHTTP_NODE *chttp_node)
 
             cstring_clean(&path);
 
-            cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CXFSHTTP_0019);
-            cvector_free(path_cstr_vec, LOC_CXFSHTTP_0020);
+            cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CXFSHTTP_0024);
+            cvector_free(path_cstr_vec, LOC_CXFSHTTP_0025);
 
             return (EC_TRUE);
         }
@@ -5493,7 +5494,7 @@ EC_BOOL cxfshttp_handle_qlist_request(CHTTP_NODE *chttp_node)
 
         cstring_clean(&path);
 
-        cvector_free(path_cstr_vec, LOC_CXFSHTTP_0021);
+        cvector_free(path_cstr_vec, LOC_CXFSHTTP_0026);
 
         /* free json obj */
         json_object_put(rsp_body_obj);
@@ -5933,7 +5934,7 @@ EC_BOOL cxfshttp_handle_file_notify_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0022);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0027);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_file_notify_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -6105,7 +6106,7 @@ EC_BOOL cxfshttp_handle_file_terminate_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0023);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0028);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_file_terminate_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -6278,7 +6279,7 @@ EC_BOOL cxfshttp_handle_cond_wakeup_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0024);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0029);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_cond_wakeup_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -6453,7 +6454,7 @@ EC_BOOL cxfshttp_handle_cond_terminate_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0025);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0030);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_cond_terminate_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -6634,7 +6635,7 @@ EC_BOOL cxfshttp_handle_renew_header_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0026);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTP_0031);
 
     dbg_log(SEC_0194_CXFSHTTP, 9)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_renew_header_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -8182,6 +8183,130 @@ EC_BOOL cxfshttp_commit_paracfg_response(CHTTP_NODE *chttp_node)
     if(NULL_PTR == csocket_cnode)
     {
         dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_paracfg_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
+        return (EC_FALSE);
+    }
+
+    return cxfshttp_commit_response(chttp_node);
+}
+#endif
+
+#if 1
+/*---------------------------------------- HTTP METHOD: GET, FILE OPERATOR: show_mem ----------------------------------------*/
+EC_BOOL cxfshttp_commit_show_mem_request(CHTTP_NODE *chttp_node)
+{
+    EC_BOOL ret;
+
+    if(EC_FALSE == cxfshttp_handle_show_mem_request(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_show_mem_request: handle request failed\n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfshttp_make_show_mem_response(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_show_mem_request: make response failed\n");
+        return (EC_FALSE);
+    }
+
+    ret = cxfshttp_commit_show_mem_response(chttp_node);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_show_mem_request: commit response failed\n");
+        return (EC_FALSE);
+    }
+
+    return (ret);
+}
+
+EC_BOOL cxfshttp_handle_show_mem_request(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *rsp_content_cbytes;
+    LOG           *log;
+
+    rsp_content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    cbytes_clean(rsp_content_cbytes);
+
+    log = log_cstr_open();
+    if(NULL_PTR == log)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_handle_show_mem_request: no memory\n");
+
+        CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+        CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_ERR %u --", CHTTP_INTERNAL_SERVER_ERROR);
+        CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "error:cxfshttp_handle_show_mem_request: no memory");
+
+        CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_INTERNAL_SERVER_ERROR;
+
+        return (EC_FALSE);
+    }
+
+    super_show_mem(0, log);
+
+    cbytes_set(rsp_content_cbytes, cstring_get_str(LOG_CSTR(log)), cstring_get_len(LOG_CSTR(log)));
+
+    dbg_log(SEC_0194_CXFSHTTP, 5)(LOGSTDOUT, "[DEBUG] cxfshttp_handle_show_mem_request: done\n");
+
+    CHTTP_NODE_LOG_TIME_WHEN_DONE(chttp_node);
+    CHTTP_NODE_LOG_STAT_WHEN_DONE(chttp_node, "XFS_SUCC %u %ld", CHTTP_OK, CBYTES_LEN(rsp_content_cbytes));
+    CHTTP_NODE_LOG_INFO_WHEN_DONE(chttp_node, "[DEBUG] cxfshttp_handle_show_mem_request: done");
+
+    CHTTP_NODE_RSP_STATUS(chttp_node) = CHTTP_OK;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_make_show_mem_response(CHTTP_NODE *chttp_node)
+{
+    CBYTES        *content_cbytes;
+    uint64_t       content_len;
+
+    content_cbytes = CHTTP_NODE_CONTENT_CBYTES(chttp_node);
+    content_len    = CBYTES_LEN(content_cbytes);
+
+    if(EC_FALSE == chttp_make_response_header_common(chttp_node, content_len))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_show_mem_response: make response header failed\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CHTTP_NODE_KEEPALIVE(chttp_node))
+    {
+        if(EC_FALSE == chttp_make_response_header_keepalive(chttp_node))
+        {
+            dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_show_mem_response: make response header keepalive failed\n");
+            return (EC_FALSE);
+        }
+    }
+
+    if(EC_FALSE == chttp_make_response_header_end(chttp_node))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_show_mem_response: make header end failed\n");
+        return (EC_FALSE);
+    }
+
+    /*no data copying but data transfering*/
+    if(EC_FALSE == chttp_make_response_body_ext(chttp_node,
+                                              (uint8_t *)CBYTES_BUF(content_cbytes),
+                                              (uint32_t )CBYTES_LEN(content_cbytes),
+                                              (uint32_t )CBYTES_ALIGNED(content_cbytes)))
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_make_show_mem_response: make body with len %d failed\n",
+                           (uint32_t)CBYTES_LEN(content_cbytes));
+        return (EC_FALSE);
+    }
+    cbytes_umount(content_cbytes, NULL_PTR, NULL_PTR, NULL_PTR);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfshttp_commit_show_mem_response(CHTTP_NODE *chttp_node)
+{
+    CSOCKET_CNODE * csocket_cnode;
+
+    csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
+    if(NULL_PTR == csocket_cnode)
+    {
+        dbg_log(SEC_0194_CXFSHTTP, 0)(LOGSTDOUT, "error:cxfshttp_commit_show_mem_response: csocket_cnode of chttp_node %p is null\n", chttp_node);
         return (EC_FALSE);
     }
 

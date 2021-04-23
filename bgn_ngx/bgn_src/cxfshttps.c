@@ -4794,7 +4794,7 @@ EC_BOOL cxfshttps_handle_qlist_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path, NULL_PTR);
-    cstring_append_chars(&path, cache_len, cache_key, LOC_CXFSHTTPS_0019);
+    cstring_append_chars(&path, cache_len, cache_key, LOC_CXFSHTTPS_0024);
 
     dbg_log(SEC_0200_CXFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_qlist_request: path %s\n", (char *)cstring_get_str(&path));
 
@@ -4840,7 +4840,7 @@ EC_BOOL cxfshttps_handle_qlist_request(CHTTP_NODE *chttp_node)
 
         super_md_id = 0;
 
-        path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CXFSHTTPS_0020);
+        path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CXFSHTTPS_0025);
 
         if(EC_FALSE == cxfs_qlist_path(super_md_id, &path, path_cstr_vec))
         {
@@ -4854,8 +4854,8 @@ EC_BOOL cxfshttps_handle_qlist_request(CHTTP_NODE *chttp_node)
 
             cstring_clean(&path);
 
-            cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CXFSHTTPS_0021);
-            cvector_free(path_cstr_vec, LOC_CXFSHTTPS_0022);
+            cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CXFSHTTPS_0026);
+            cvector_free(path_cstr_vec, LOC_CXFSHTTPS_0027);
 
             return (EC_TRUE);
         }
@@ -4898,7 +4898,7 @@ EC_BOOL cxfshttps_handle_qlist_request(CHTTP_NODE *chttp_node)
 
         cstring_clean(&path);
 
-        cvector_free(path_cstr_vec, LOC_CXFSHTTPS_0023);
+        cvector_free(path_cstr_vec, LOC_CXFSHTTPS_0028);
 
         /* free json obj */
         json_object_put(rsp_body_obj);
@@ -5016,7 +5016,7 @@ EC_BOOL cxfshttps_handle_file_notify_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTPS_0024);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTPS_0029);
 
     dbg_log(SEC_0200_CXFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_file_notify_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -5188,7 +5188,7 @@ EC_BOOL cxfshttps_handle_cond_wakeup_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTPS_0025);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTPS_0030);
 
     dbg_log(SEC_0200_CXFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_cond_wakeup_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 
@@ -5369,7 +5369,7 @@ EC_BOOL cxfshttps_handle_renew_header_request(CHTTP_NODE *chttp_node)
     cache_len = CBUFFER_USED(uri_cbuffer);
 
     cstring_init(&path_cstr, NULL_PTR);
-    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTPS_0026);
+    cstring_append_chars(&path_cstr, cache_len, cache_key, LOC_CXFSHTTPS_0031);
 
     dbg_log(SEC_0200_CXFSHTTPS, 9)(LOGSTDOUT, "[DEBUG] cxfshttps_handle_renew_header_request: path %s\n", (char *)cstring_get_str(&path_cstr));
 

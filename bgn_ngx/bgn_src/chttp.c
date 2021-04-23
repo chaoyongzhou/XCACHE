@@ -1058,58 +1058,58 @@ EC_BOOL chttp_store_waiter_terminate(const CHTTP_STORE *chttp_store)
 
 void chttp_store_print(LOG *log, const CHTTP_STORE *chttp_store)
 {
-    sys_log(LOGSTDOUT, "chttp_store_print:seg_max_id               : %u\n", CHTTP_STORE_SEG_MAX_ID(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:seg_id                   : %u\n", CHTTP_STORE_SEG_ID(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:seg_size                 : %u\n", CHTTP_STORE_SEG_SIZE(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:seg_s_offset             : %u\n", CHTTP_STORE_SEG_S_OFFSET(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:seg_e_offset             : %u\n", CHTTP_STORE_SEG_E_OFFSET(chttp_store));
+    sys_log(log, "chttp_store_print:seg_max_id               : %u\n", CHTTP_STORE_SEG_MAX_ID(chttp_store));
+    sys_log(log, "chttp_store_print:seg_id                   : %u\n", CHTTP_STORE_SEG_ID(chttp_store));
+    sys_log(log, "chttp_store_print:seg_size                 : %u\n", CHTTP_STORE_SEG_SIZE(chttp_store));
+    sys_log(log, "chttp_store_print:seg_s_offset             : %u\n", CHTTP_STORE_SEG_S_OFFSET(chttp_store));
+    sys_log(log, "chttp_store_print:seg_e_offset             : %u\n", CHTTP_STORE_SEG_E_OFFSET(chttp_store));
 
-    sys_log(LOGSTDOUT, "chttp_store_print:basedir                  : %.*s\n", (uint32_t)CHTTP_STORE_BASEDIR_LEN(chttp_store), CHTTP_STORE_BASEDIR_STR(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:billing flags            : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_BILLING_FLAGS(chttp_store)), CSTRING_STR(CHTTP_STORE_BILLING_FLAGS(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:billing domain           : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_BILLING_DOMAIN(chttp_store)), CSTRING_STR(CHTTP_STORE_BILLING_DOMAIN(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:billing client type      : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store)), CSTRING_STR(CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store)));
+    sys_log(log, "chttp_store_print:basedir                  : %.*s\n", (uint32_t)CHTTP_STORE_BASEDIR_LEN(chttp_store), CHTTP_STORE_BASEDIR_STR(chttp_store));
+    sys_log(log, "chttp_store_print:billing flags            : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_BILLING_FLAGS(chttp_store)), CSTRING_STR(CHTTP_STORE_BILLING_FLAGS(chttp_store)));
+    sys_log(log, "chttp_store_print:billing domain           : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_BILLING_DOMAIN(chttp_store)), CSTRING_STR(CHTTP_STORE_BILLING_DOMAIN(chttp_store)));
+    sys_log(log, "chttp_store_print:billing client type      : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store)), CSTRING_STR(CHTTP_STORE_BILLING_CLIENT_TYPE(chttp_store)));
 
-    sys_log(LOGSTDOUT, "chttp_store_print:cache_ctrl               : 0x%x\n", CHTTP_STORE_CACHE_CTRL(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:cache_done               : 0x%x\n", CHTTP_STORE_CACHE_DONE(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:merge_flag               : %s\n"  , c_bit_bool_str(CHTTP_STORE_MERGE_FLAG(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:header_orig_flag         : %s\n"  , c_bit_bool_str(CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:direct_orig_flag         : %s\n"  , c_bit_bool_str(CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:need_log_flag            : %s\n"  , c_bit_bool_str(CHTTP_STORE_NEED_LOG_FLAG(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:locked_flag              : %s\n"  , c_bit_bool_str(CHTTP_STORE_LOCKED_FLAG(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:expired_flag             : %s\n"  , c_bit_bool_str(CHTTP_STORE_EXPIRED_FLAG(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:chunk_flag               : %s\n"  , c_bit_bool_str(CHTTP_STORE_CHUNK_FLAG(chttp_store)));
+    sys_log(log, "chttp_store_print:cache_ctrl               : 0x%x\n", CHTTP_STORE_CACHE_CTRL(chttp_store));
+    sys_log(log, "chttp_store_print:cache_done               : 0x%x\n", CHTTP_STORE_CACHE_DONE(chttp_store));
+    sys_log(log, "chttp_store_print:merge_flag               : %s\n"  , c_bit_bool_str(CHTTP_STORE_MERGE_FLAG(chttp_store)));
+    sys_log(log, "chttp_store_print:header_orig_flag         : %s\n"  , c_bit_bool_str(CHTTP_STORE_HEADER_ORIG_FLAG(chttp_store)));
+    sys_log(log, "chttp_store_print:direct_orig_flag         : %s\n"  , c_bit_bool_str(CHTTP_STORE_DIRECT_ORIG_FLAG(chttp_store)));
+    sys_log(log, "chttp_store_print:need_log_flag            : %s\n"  , c_bit_bool_str(CHTTP_STORE_NEED_LOG_FLAG(chttp_store)));
+    sys_log(log, "chttp_store_print:locked_flag              : %s\n"  , c_bit_bool_str(CHTTP_STORE_LOCKED_FLAG(chttp_store)));
+    sys_log(log, "chttp_store_print:expired_flag             : %s\n"  , c_bit_bool_str(CHTTP_STORE_EXPIRED_FLAG(chttp_store)));
+    sys_log(log, "chttp_store_print:chunk_flag               : %s\n"  , c_bit_bool_str(CHTTP_STORE_CHUNK_FLAG(chttp_store)));
 
-    sys_log(LOGSTDOUT, "chttp_store_print:auth_token               : %.*s\n", (uint32_t)CHTTP_STORE_AUTH_TOKEN_LEN(chttp_store), CHTTP_STORE_AUTH_TOKEN_STR(chttp_store));
+    sys_log(log, "chttp_store_print:auth_token               : %.*s\n", (uint32_t)CHTTP_STORE_AUTH_TOKEN_LEN(chttp_store), CHTTP_STORE_AUTH_TOKEN_STR(chttp_store));
 
-    sys_log(LOGSTDOUT, "chttp_store_print:last_modified_switch     : %s\n"       , c_bit_bool_str(CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:etag                     : %.*s\n"     , (uint32_t)CHTTP_STORE_ETAG_LEN(chttp_store), CHTTP_STORE_ETAG_STR(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:last_modified            : %.*s\n"     , (uint32_t)CHTTP_STORE_LAST_MODIFIED_LEN(chttp_store), CHTTP_STORE_LAST_MODIFIED_STR(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:content_length           : %"PRId64"\n", CHTTP_STORE_CONTENT_LENGTH(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:use_gzip_flag            : %u\n"       , CHTTP_STORE_USE_GZIP_FLAG(chttp_store));
+    sys_log(log, "chttp_store_print:last_modified_switch     : %s\n"       , c_bit_bool_str(CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store)));
+    sys_log(log, "chttp_store_print:etag                     : %.*s\n"     , (uint32_t)CHTTP_STORE_ETAG_LEN(chttp_store), CHTTP_STORE_ETAG_STR(chttp_store));
+    sys_log(log, "chttp_store_print:last_modified            : %.*s\n"     , (uint32_t)CHTTP_STORE_LAST_MODIFIED_LEN(chttp_store), CHTTP_STORE_LAST_MODIFIED_STR(chttp_store));
+    sys_log(log, "chttp_store_print:content_length           : %"PRId64"\n", CHTTP_STORE_CONTENT_LENGTH(chttp_store));
+    sys_log(log, "chttp_store_print:use_gzip_flag            : %u\n"       , CHTTP_STORE_USE_GZIP_FLAG(chttp_store));
 
-    sys_log(LOGSTDOUT, "chttp_store_print:cache_allow              : %s\n", c_bit_bool_str(CHTTP_STORE_CACHE_ALLOW(chttp_store)));
+    sys_log(log, "chttp_store_print:cache_allow              : %s\n", c_bit_bool_str(CHTTP_STORE_CACHE_ALLOW(chttp_store)));
 
-    sys_log(LOGSTDOUT, "chttp_store_print:cache_http_codes         : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store)), CSTRING_STR(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:ncache_http_codes        : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_NCACHE_HTTP_CODES(chttp_store)), CSTRING_STR(CHTTP_STORE_NCACHE_HTTP_CODES(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:cache_rsp_headers        : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store)), CSTRING_STR(CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:ncache_rsp_headers       : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store)), CSTRING_STR(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:cache_if_http_codes      : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store)), CSTRING_STR(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store)));
+    sys_log(log, "chttp_store_print:cache_http_codes         : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store)), CSTRING_STR(CHTTP_STORE_CACHE_HTTP_CODES(chttp_store)));
+    sys_log(log, "chttp_store_print:ncache_http_codes        : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_NCACHE_HTTP_CODES(chttp_store)), CSTRING_STR(CHTTP_STORE_NCACHE_HTTP_CODES(chttp_store)));
+    sys_log(log, "chttp_store_print:cache_rsp_headers        : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store)), CSTRING_STR(CHTTP_STORE_CACHE_RSP_HEADERS(chttp_store)));
+    sys_log(log, "chttp_store_print:ncache_rsp_headers       : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store)), CSTRING_STR(CHTTP_STORE_NCACHE_RSP_HEADERS(chttp_store)));
+    sys_log(log, "chttp_store_print:cache_if_http_codes      : %.*s\n", (uint32_t)CSTRING_LEN(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store)), CSTRING_STR(CHTTP_STORE_CACHE_IF_HTTP_CODES(chttp_store)));
 
-    sys_log(LOGSTDOUT, "chttp_store_print:override_expires_flag    : %s\n", c_bit_bool_str(CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:override_expires_nsec    : %u\n", CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:default_expires_nsec     : %u\n", CHTTP_STORE_DEFAULT_EXPIRES_NSEC(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:orig_timeout_nsec        : %u\n", CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store));
+    sys_log(log, "chttp_store_print:override_expires_flag    : %s\n", c_bit_bool_str(CHTTP_STORE_OVERRIDE_EXPIRES_FLAG(chttp_store)));
+    sys_log(log, "chttp_store_print:override_expires_nsec    : %u\n", CHTTP_STORE_OVERRIDE_EXPIRES_NSEC(chttp_store));
+    sys_log(log, "chttp_store_print:default_expires_nsec     : %u\n", CHTTP_STORE_DEFAULT_EXPIRES_NSEC(chttp_store));
+    sys_log(log, "chttp_store_print:orig_timeout_nsec        : %u\n", CHTTP_STORE_ORIG_TIMEOUT_NSEC(chttp_store));
 
-    sys_log(LOGSTDOUT, "chttp_store_print:merge_lock_expires_nsec  : %u\n", CHTTP_STORE_MERGE_LOCK_EXPIRES_NSEC(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:merge_wait_timeout_nsec  : %u\n", CHTTP_STORE_MERGE_WAIT_TIMEOUT_NSEC(chttp_store));
+    sys_log(log, "chttp_store_print:merge_lock_expires_nsec  : %u\n", CHTTP_STORE_MERGE_LOCK_EXPIRES_NSEC(chttp_store));
+    sys_log(log, "chttp_store_print:merge_wait_timeout_nsec  : %u\n", CHTTP_STORE_MERGE_WAIT_TIMEOUT_NSEC(chttp_store));
 
-    sys_log(LOGSTDOUT, "chttp_store_print:redirect_ctrl            : %s\n", c_bit_bool_str(CHTTP_STORE_REDIRECT_CTRL(chttp_store)));
-    sys_log(LOGSTDOUT, "chttp_store_print:redirect_max_times       : %u\n", (uint32_t)CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store));
+    sys_log(log, "chttp_store_print:redirect_ctrl            : %s\n", c_bit_bool_str(CHTTP_STORE_REDIRECT_CTRL(chttp_store)));
+    sys_log(log, "chttp_store_print:redirect_max_times       : %u\n", (uint32_t)CHTTP_STORE_REDIRECT_MAX_TIMES(chttp_store));
 
-    sys_log(LOGSTDOUT, "chttp_store_print:bgn_orig_modi             : %ld\n", (uint32_t)CHTTP_STORE_BGN_ORIG_MODI(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:bgn_import_header_callback: %p\n" , (void *)CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:bgn_send_header_callback  : %p\n" , (void *)CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store));
-    sys_log(LOGSTDOUT, "chttp_store_print:bgn_send_body_callback    : %p\n" , (void *)CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store));
+    sys_log(log, "chttp_store_print:bgn_orig_modi             : %ld\n", (uint32_t)CHTTP_STORE_BGN_ORIG_MODI(chttp_store));
+    sys_log(log, "chttp_store_print:bgn_import_header_callback: %p\n" , (void *)CHTTP_STORE_BGN_IMPORT_HEADER_CALLBACK(chttp_store));
+    sys_log(log, "chttp_store_print:bgn_send_header_callback  : %p\n" , (void *)CHTTP_STORE_BGN_SEND_HEADER_CALLBACK(chttp_store));
+    sys_log(log, "chttp_store_print:bgn_send_body_callback    : %p\n" , (void *)CHTTP_STORE_BGN_SEND_BODY_CALLBACK(chttp_store));
 
     return;
 }
@@ -1590,35 +1590,35 @@ EC_BOOL chttp_stat_clone(const CHTTP_STAT *chttp_stat_src, CHTTP_STAT *chttp_sta
 
 void chttp_stat_print(LOG *log, const CHTTP_STAT *chttp_stat)
 {
-    sys_log(LOGSTDOUT, "chttp_stat_print:rsp status : %u\n", CHTTP_STAT_RSP_STATUS(chttp_stat));
-    sys_log(LOGSTDOUT, "chttp_stat_print:send len   : %u\n", CHTTP_STAT_S_SEND_LEN(chttp_stat));
-    sys_log(LOGSTDOUT, "chttp_stat_print:recv len   : %u\n", CHTTP_STAT_S_RECV_LEN(chttp_stat));
+    sys_log(log, "chttp_stat_print:rsp status : %u\n", CHTTP_STAT_RSP_STATUS(chttp_stat));
+    sys_log(log, "chttp_stat_print:send len   : %u\n", CHTTP_STAT_S_SEND_LEN(chttp_stat));
+    sys_log(log, "chttp_stat_print:recv len   : %u\n", CHTTP_STAT_S_RECV_LEN(chttp_stat));
 
-    sys_log(LOGSTDOUT, "chttp_stat_print:req s-time : %lu\n", CHTTP_STAT_REQ_S_MSEC(chttp_stat));
-    sys_log(LOGSTDOUT, "chttp_stat_print:req e-time : %lu\n", CHTTP_STAT_REQ_E_MSEC(chttp_stat));
-    sys_log(LOGSTDOUT, "chttp_stat_print:req c-time : %lu\n", CHTTP_STAT_REQ_C_MSEC(chttp_stat));
+    sys_log(log, "chttp_stat_print:req s-time : %lu\n", CHTTP_STAT_REQ_S_MSEC(chttp_stat));
+    sys_log(log, "chttp_stat_print:req e-time : %lu\n", CHTTP_STAT_REQ_E_MSEC(chttp_stat));
+    sys_log(log, "chttp_stat_print:req c-time : %lu\n", CHTTP_STAT_REQ_C_MSEC(chttp_stat));
 
-    sys_log(LOGSTDOUT, "chttp_stat_print:rsp s-time : %lu\n", CHTTP_STAT_RSP_S_MSEC(chttp_stat));
-    sys_log(LOGSTDOUT, "chttp_stat_print:rsp e-time : %lu\n", CHTTP_STAT_RSP_E_MSEC(chttp_stat));
+    sys_log(log, "chttp_stat_print:rsp s-time : %lu\n", CHTTP_STAT_RSP_S_MSEC(chttp_stat));
+    sys_log(log, "chttp_stat_print:rsp e-time : %lu\n", CHTTP_STAT_RSP_E_MSEC(chttp_stat));
 
-    sys_log(LOGSTDOUT, "chttp_stat_print:ssl shakehand: %u\n", CHTTP_STAT_SSL_SHAKEHAND_MSEC(chttp_stat));
-    sys_log(LOGSTDOUT, "chttp_stat_print:ssl send len : %u\n", CHTTP_STAT_SSL_SEND_LEN(chttp_stat));
-    sys_log(LOGSTDOUT, "chttp_stat_print:client rtt   : %u\n", CHTTP_STAT_CLIENT_RTT_MSEC(chttp_stat));
+    sys_log(log, "chttp_stat_print:ssl shakehand: %u\n", CHTTP_STAT_SSL_SHAKEHAND_MSEC(chttp_stat));
+    sys_log(log, "chttp_stat_print:ssl send len : %u\n", CHTTP_STAT_SSL_SEND_LEN(chttp_stat));
+    sys_log(log, "chttp_stat_print:client rtt   : %u\n", CHTTP_STAT_CLIENT_RTT_MSEC(chttp_stat));
 
-    sys_log(LOGSTDOUT, "chttp_stat_print:device name: %s\n", CHTTP_STAT_DEVICE_NAME(chttp_stat));
-    sys_log(LOGSTDOUT, "chttp_stat_print:trace id   : %s\n", CHTTP_STAT_TRACE_ID(chttp_stat));
-    sys_log(LOGSTDOUT, "chttp_stat_print:req ipaddr : %s\n", CHTTP_STAT_REQ_IPADDR_STR(chttp_stat));
-    sys_log(LOGSTDOUT, "chttp_stat_print:req host   : %s\n", CHTTP_STAT_REQ_HOST(chttp_stat));
+    sys_log(log, "chttp_stat_print:device name: %s\n", CHTTP_STAT_DEVICE_NAME(chttp_stat));
+    sys_log(log, "chttp_stat_print:trace id   : %s\n", CHTTP_STAT_TRACE_ID(chttp_stat));
+    sys_log(log, "chttp_stat_print:req ipaddr : %s\n", CHTTP_STAT_REQ_IPADDR_STR(chttp_stat));
+    sys_log(log, "chttp_stat_print:req host   : %s\n", CHTTP_STAT_REQ_HOST(chttp_stat));
 
-    sys_log(LOGSTDOUT, "chttp_stat_print:log bitmap : %s\n", c_uint64_t_to_bin_str(CHTTP_STAT_LOG_BITMAP(chttp_stat)));
+    sys_log(log, "chttp_stat_print:log bitmap : %s\n", c_uint64_t_to_bin_str(CHTTP_STAT_LOG_BITMAP(chttp_stat)));
 
-    sys_log(LOGSTDOUT, "chttp_stat_print:start time : %lu\n", CHTTP_STAT_BASIC_S_MSEC(chttp_stat));
-    sys_log(LOGSTDOUT, "chttp_stat_print:recvd time : %lu\n", CHTTP_STAT_BASIC_R_MSEC(chttp_stat));
-    sys_log(LOGSTDOUT, "chttp_stat_print:done  time : %lu\n", CHTTP_STAT_BASIC_D_MSEC(chttp_stat));
-    sys_log(LOGSTDOUT, "chttp_stat_print:end   time : %lu\n", CHTTP_STAT_BASIC_E_MSEC(chttp_stat));
+    sys_log(log, "chttp_stat_print:start time : %lu\n", CHTTP_STAT_BASIC_S_MSEC(chttp_stat));
+    sys_log(log, "chttp_stat_print:recvd time : %lu\n", CHTTP_STAT_BASIC_R_MSEC(chttp_stat));
+    sys_log(log, "chttp_stat_print:done  time : %lu\n", CHTTP_STAT_BASIC_D_MSEC(chttp_stat));
+    sys_log(log, "chttp_stat_print:end   time : %lu\n", CHTTP_STAT_BASIC_E_MSEC(chttp_stat));
 
-    sys_log(LOGSTDOUT, "chttp_stat_print:status str : %s\n", CHTTP_STAT_STAT_STR(chttp_stat));
-    sys_log(LOGSTDOUT, "chttp_stat_print:info   str : %s\n", CHTTP_STAT_DESC_STR(chttp_stat));
+    sys_log(log, "chttp_stat_print:status str : %s\n", CHTTP_STAT_STAT_STR(chttp_stat));
+    sys_log(log, "chttp_stat_print:info   str : %s\n", CHTTP_STAT_DESC_STR(chttp_stat));
 
     return;
 }

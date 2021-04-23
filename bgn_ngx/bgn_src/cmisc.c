@@ -1308,6 +1308,282 @@ uint32_t  c_uint32_t_ston(const char *ipv4_str)
     return (in.s_addr);
 }
 
+uint16_t c_hton16(const uint16_t num)
+{
+    return htons(num);
+}
+
+uint16_t c_ntoh16(const uint16_t num)
+{
+    return ntohs(num);
+}
+
+
+uint32_t c_hton32(const uint32_t num)
+{
+    return htonl(num);
+}
+
+uint32_t c_ntoh32(const uint32_t num)
+{
+    return ntohl(num);
+}
+
+uint64_t c_hton64(const uint64_t num)
+{
+    uint64_t probe;
+
+    probe = 1;
+
+    /*little endian*/
+    if(*(char *)&probe)
+    {
+        uint32_t lo = (num & 0xffffffff);
+        uint32_t hi = (num  >> 32);
+        lo = ntohl(lo);
+        hi = ntohl(hi);
+        return (((uint64_t) lo) << 32 | hi);
+    }
+
+    /*big endian*/
+    return (num);
+}
+
+uint64_t c_ntoh64(const uint64_t num)
+{
+    uint64_t probe;
+
+    probe = 1;
+
+    /*little endian*/
+    if(*(char *)&probe)
+    {
+        uint32_t lo = (num & 0xffffffff);
+        uint32_t hi = (num  >> 32);
+        lo = ntohl(lo);
+        hi = ntohl(hi);
+        return (((uint64_t) lo) << 32 | hi);
+    }
+
+    /*big endian*/
+    return (num);
+}
+
+EC_BOOL c_socket_nonblock_enable(int sockfd)
+{
+    int flag;
+
+    flag = fcntl(sockfd, F_GETFL, 0);
+    fcntl(sockfd, F_SETFL, O_NONBLOCK | flag);
+    return (EC_TRUE);
+}
+
+EC_BOOL c_socket_nonblock_disable(int sockfd)
+{
+    int flag;
+
+    flag = fcntl(sockfd, F_GETFL, 0);
+    fcntl(sockfd, F_SETFL, (~O_NONBLOCK) & flag);
+    return (EC_TRUE);
+}
+
+EC_BOOL c_socket_is_nonblock(const int sockfd)
+{
+    int flag;
+
+    flag = fcntl(sockfd, F_GETFL, 0);
+
+    if(flag & O_NONBLOCK)
+    {
+        return (EC_TRUE);
+    }
+    return (EC_FALSE);
+}
+
+EC_BOOL c_socket_no_ierror(int sockfd, int err)
+{
+    if(EINPROGRESS == err || EAGAIN == err || EWOULDBLOCK == err || EINTR == err)
+    {
+        return (EC_TRUE); /*no error*/
+    }
+    return (EC_FALSE);/*found error*/
+}
+
+EC_BOOL c_socket_send(int sockfd, uint8_t *data, const uint32_t data_max_len, uint32_t *pos)
+{
+    if((*pos) < data_max_len)
+    {
+        ssize_t         ret;
+
+        ret = send(sockfd, data + (*pos), data_max_len - (*pos), 0);
+        if(0 > ret)
+        {
+            return c_socket_no_ierror(sockfd, errno);
+        }
+
+        (*pos) += ((uint32_t)ret);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_socket_send8(int sockfd, const uint8_t *data, const uint32_t data_max_len)
+{
+    uint32_t    data_len;
+
+    data_len = 0;
+    while(data_len < data_max_len)
+    {
+        ssize_t         ret;
+
+        ret = send(sockfd, data + data_len, data_max_len - data_len, 0);
+        if(0 > ret)
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_socket_send8: "
+                                                  "sockfd %d send failed, "
+                                                  "expected len %u, sent len %u"
+                                                  "errno = %d, errstr = %s\n",
+                                                  sockfd, data_max_len, data_len,
+                                                  errno, strerror(errno));
+            return (EC_FALSE);
+        }
+
+        data_len += ((uint32_t)ret);
+    }
+
+    if(data_len == data_max_len)
+    {
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_socket_send8: "
+                                          "sockfd %d send completed, "
+                                          "expected len %u, sent len %u\n",
+                                          sockfd, data_max_len, data_len);
+
+    return (EC_FALSE);
+}
+
+EC_BOOL c_socket_send16(int sockfd, const uint16_t data)
+{
+    uint16_t data_t;
+
+    data_t = htons(data);
+    return c_socket_send8(sockfd, (uint8_t *)&data_t, sizeof(data_t));
+}
+
+EC_BOOL c_socket_send32(int sockfd, const uint32_t data)
+{
+    uint32_t data_t;
+
+    data_t = htonl(data);
+
+    return c_socket_send8(sockfd, (uint8_t *)&data_t, sizeof(data_t));
+}
+
+EC_BOOL c_socket_send64(int sockfd, const uint64_t data)
+{
+    uint64_t data_t;
+
+    data_t = c_hton64(data);
+
+    return c_socket_send8(sockfd, (uint8_t *)&data_t, sizeof(data_t));
+}
+
+EC_BOOL c_socket_recv(int sockfd, uint8_t *data, const uint32_t data_max_len, uint32_t *pos)
+{
+    if((*pos) < data_max_len)
+    {
+        ssize_t         ret;
+
+        ret = recv(sockfd, data + (*pos), data_max_len - (*pos), 0);
+        if(0 > ret)
+        {
+            return c_socket_no_ierror(sockfd, errno);
+        }
+
+        (*pos) += ((uint32_t)ret);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_socket_recv8(int sockfd, uint8_t *data, const uint32_t data_max_len)
+{
+    uint32_t    data_len;
+
+    data_len = 0;
+    while(data_len < data_max_len)
+    {
+        ssize_t         ret;
+
+        ret = recv(sockfd, data + data_len, data_max_len - data_len, 0);
+        if(0 > ret)
+        {
+            dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_socket_recv8: "
+                                                  "sockfd %d recv failed, "
+                                                  "expected len %u, recv len %u, "
+                                                  "errno = %d, errstr = %s\n",
+                                                  sockfd, data_max_len, data_len,
+                                                  errno, strerror(errno));
+            return (EC_FALSE);
+        }
+
+        data_len += ((uint32_t)ret);
+    }
+
+    if(data_len == data_max_len)
+    {
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_socket_recv8: "
+                                          "sockfd %d recv completed, "
+                                          "expected len %u, recv len %u\n",
+                                          sockfd, data_max_len, data_len);
+
+    return (EC_FALSE);
+}
+
+EC_BOOL c_socket_recv16(int sockfd, uint16_t *data)
+{
+    uint16_t data_t;
+
+    if(EC_TRUE == c_socket_recv8(sockfd, (uint8_t *)&data_t, sizeof(data_t)))
+    {
+        (*data) = ntohs(data_t);
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL c_socket_recv32(int sockfd, uint32_t *data)
+{
+    uint32_t data_t;
+
+    if(EC_TRUE == c_socket_recv8(sockfd, (uint8_t *)&data_t, sizeof(data_t)))
+    {
+        (*data) = ntohl(data_t);
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
+EC_BOOL c_socket_recv64(int sockfd, uint64_t *data)
+{
+    uint64_t data_t;
+
+    if(EC_TRUE == c_socket_recv8(sockfd, (uint8_t *)&data_t, sizeof(data_t)))
+    {
+        (*data) = c_ntoh64(data_t);
+        return (EC_TRUE);
+    }
+
+    return (EC_FALSE);
+}
+
 UINT32 c_port_to_word(const char *port_str)
 {
     return ((UINT32)(atoi(port_str)));

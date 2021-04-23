@@ -267,6 +267,7 @@ REL_OBJS  = $(patsubst $(REL_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(REL_SRC)/*.c
 TST_OBJS  = $(patsubst $(TST_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(TST_SRC)/*.c))
 
 XFS_OBJS = $(OBJ_DIR)/demo_hsxfs.o
+XFSNBD_OBJS = $(OBJ_DIR)/demo_xfsnbd.o
 TRANS_OBJS = $(OBJ_DIR)/demo_trans.o
 
 default: xfs xfs_tool
@@ -284,10 +285,13 @@ trans: libbgn libamd libjson $(TRANS_OBJS)
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/trans $(TRANS_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
 
 xfs: libbgn libamd libjson $(XFS_OBJS)
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/xfs $(XFS_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/xfs $(XFSNBD_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
 
 xfs_tool:
 	$(MAKE) -C $(ROOT_DIR) -f Makefile.tool
+
+xfsnbd: libbgn libamd libjson $(XFSNBD_OBJS)
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/xfsnbd $(XFSNBD_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
 
 bgn: libbgn $(REL_OBJS)
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/bgn $(REL_OBJS) $(BGN_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(EXT_LIB)
@@ -403,6 +407,7 @@ clean-log:
 
 clean-bin:
 	$(if $(wildcard $(BIN_DIR)/xfs),rm -f $(BIN_DIR)/xfs,)
+	$(if $(wildcard $(BIN_DIR)/xfsnbd),rm -f $(BIN_DIR)/xfsnbd,)
 	$(if $(wildcard $(BIN_DIR)/xfs_tool),rm -f $(BIN_DIR)/xfs_tool,)
 
 clean-trial: clean-log clean-bin clean-obj

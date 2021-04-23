@@ -51,6 +51,7 @@ extern "C"{
 #define     MD_CMIAOPAI  ((UINT32) 26)
 #define     MD_CXFS      ((UINT32) 27)
 #define     MD_CTRANS    ((UINT32) 28)
+#define     MD_CXFSNBD   ((UINT32) 29)
 #define     MD_END       ((UINT32) 64)
 
 /* Memory Management */
@@ -359,8 +360,8 @@ extern "C"{
 #define                    MM_CXFSNP_MGR    ((UINT32)273)
 #define                    MM_CXFSNP_KEY    ((UINT32)274)
 #define                        MM_CXFSDN    ((UINT32)275)
-#define                        MM_000276    ((UINT32)276) /*-- obsolete --*/
-#define                        MM_000277    ((UINT32)277) /*-- obsolete --*/
+#define                   MM_CXFSNBD_REQ    ((UINT32)276)
+#define                   MM_CXFSNBD_RSP    ((UINT32)277)
 #define                        MM_000278    ((UINT32)278) /*-- obsolete --*/
 #define              MM_CXFS_LOCKED_FILE    ((UINT32)279)
 #define                MM_CXFS_WAIT_FILE    ((UINT32)280)

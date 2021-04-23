@@ -206,7 +206,7 @@
 #define SEC_0196_CXFSNPDEL                  ((UINT32)(    196)) /*cxfsnpdel                       */
 #define SEC_0197_CXFSNP                     ((UINT32)(    197)) /*cxfsnp                          */
 #define SEC_0198_CXFSNPRB                   ((UINT32)(    198)) /*cxfsnprb                        */
-#define SEC_0199_XXXXXXXXXX                 ((UINT32)(    199)) /*-- obsolete --                  */
+#define SEC_0199_CXFSNBD                    ((UINT32)(    199)) /*cxfsnbd                         */
 #define SEC_0200_CXFSHTTPS                  ((UINT32)(    200)) /*cxfshttps                       */
 #define SEC_0201_CXFSPGB                    ((UINT32)(    201)) /*cxfspgb                         */
 #define SEC_0202_CXFSPGD                    ((UINT32)(    202)) /*cxfspgd                         */

@@ -128,6 +128,46 @@ char *  c_uint32_t_ntos(const uint32_t ipv4);
 
 uint32_t c_uint32_t_ston(const char *ipv4_str);
 
+uint16_t c_hton16(const uint16_t num);
+
+uint16_t c_ntoh16(const uint16_t num);
+
+uint32_t c_hton32(const uint32_t num);
+
+uint32_t c_ntoh32(const uint32_t num);
+
+uint64_t c_hton64(const uint64_t num);
+
+uint64_t c_ntoh64(const uint64_t num);
+
+EC_BOOL c_socket_nonblock_enable(int sockfd);
+
+EC_BOOL c_socket_nonblock_disable(int sockfd);
+
+EC_BOOL c_socket_is_nonblock(const int sockfd);
+
+EC_BOOL c_socket_no_ierror(int sockfd, int err);
+
+EC_BOOL c_socket_send(int sockfd, uint8_t *data, const uint32_t data_max_len, uint32_t *pos);
+
+EC_BOOL c_socket_send8(int sockfd, const uint8_t *data, const uint32_t data_max_len);
+
+EC_BOOL c_socket_send16(int sockfd, const uint16_t data);
+
+EC_BOOL c_socket_send32(int sockfd, const uint32_t data);
+
+EC_BOOL c_socket_send64(int sockfd, const uint64_t data);
+
+EC_BOOL c_socket_recv(int sockfd, uint8_t *data, const uint32_t data_max_len, uint32_t *pos);
+
+EC_BOOL c_socket_recv8(int sockfd, uint8_t *data, const uint32_t data_max_len);
+
+EC_BOOL c_socket_recv16(int sockfd, uint16_t *data);
+
+EC_BOOL c_socket_recv32(int sockfd, uint32_t *data);
+
+EC_BOOL c_socket_recv64(int sockfd, uint64_t *data);
+
 UINT32 c_port_to_word(const char *port_str);
 
 char *c_word_to_port(const UINT32 port_num);

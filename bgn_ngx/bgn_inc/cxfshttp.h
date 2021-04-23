@@ -229,6 +229,11 @@ EC_BOOL cxfshttp_handle_paracfg_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_make_paracfg_response(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_commit_paracfg_response(CHTTP_NODE *chttp_node);
 
+EC_BOOL cxfshttp_commit_show_mem_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_handle_show_mem_request(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_make_show_mem_response(CHTTP_NODE *chttp_node);
+EC_BOOL cxfshttp_commit_show_mem_response(CHTTP_NODE *chttp_node);
+
 EC_BOOL cxfshttp_commit_activate_ngx_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_handle_activate_ngx_request(CHTTP_NODE *chttp_node);
 EC_BOOL cxfshttp_make_activate_ngx_response(CHTTP_NODE *chttp_node);
