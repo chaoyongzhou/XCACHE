@@ -483,5 +483,11 @@
 #define                               FI_ctrans_seg  ((UINT32) ((MD_CTRANS << (WORDSIZE/2)) + 4))
 #define                              FI_ctrans_file  ((UINT32) ((MD_CTRANS << (WORDSIZE/2)) + 5))
 
+#define                 FI_cnbd_print_module_status  ((UINT32) ((MD_CNBD << (WORDSIZE/2)) + 0))
+#define              FI_cnbd_free_module_static_mem  ((UINT32) ((MD_CNBD << (WORDSIZE/2)) + 1))
+#define                               FI_cnbd_start  ((UINT32) ((MD_CNBD << (WORDSIZE/2)) + 2))
+#define                                 FI_cnbd_end  ((UINT32) ((MD_CNBD << (WORDSIZE/2)) + 3))
+#define                          FI_cnbd_handle_req  ((UINT32) ((MD_CNBD << (WORDSIZE/2)) + 4))
+
 #endif/* _FINDEX_INC */
 

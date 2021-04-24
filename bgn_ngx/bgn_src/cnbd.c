@@ -33,6 +33,8 @@ extern "C"{
 
 #include "findex.inc"
 
+/*nbd: network block device*/
+
 #define CNBD_MD_CAPACITY()                  (cbc_md_capacity(MD_CNBD))
 
 #define CNBD_MD_GET(cnbd_md_id)     ((CNBD_MD *)cbc_md_get(MD_CNBD, (cnbd_md_id)))
@@ -111,8 +113,8 @@ UINT32 cnbd_start(const CSTRING *nbd_dev_name,
                         const UINT32   nbd_timeout)
 {
     CNBD_MD     *cnbd_md;
-    UINT32          cnbd_md_id;
-    int             sockfd[2]; /*socket pair*/
+    UINT32       cnbd_md_id;
+    int          sockfd[2]; /*socket pair*/
 
     cbc_md_reg(MD_CNBD, 16);
 
@@ -140,6 +142,7 @@ UINT32 cnbd_start(const CSTRING *nbd_dev_name,
     CNBD_MD_NBD_TIMEOUT(cnbd_md)  = 0;
     CNBD_MD_NBD_T_FLAGS(cnbd_md)  = 0;/*xxx*/
     CNBD_MD_NBD_DEV_NAME(cnbd_md) = NULL_PTR;
+    CNBD_MD_BUCKET_NAME(cnbd_md)  = NULL_PTR;
 
     clist_init(CNBD_MD_NBD_REQ_LIST(cnbd_md), MM_CNBD_REQ, LOC_CNBD_0001);
     clist_init(CNBD_MD_NBD_RSP_LIST(cnbd_md), MM_CNBD_RSP, LOC_CNBD_0002);
@@ -449,7 +452,7 @@ EC_BOOL cnbd_bucket_open(const UINT32 cnbd_md_id)
 EC_BOOL cnbd_bucket_truncate(const UINT32 cnbd_md_id)
 {
     CNBD_MD  *cnbd_md;
-    UINT32       bucket_size;
+    UINT32    bucket_size;
 
 #if (SWITCH_ON == CNBD_DEBUG_SWITCH)
     if ( CNBD_MD_ID_CHECK_INVALID(cnbd_md_id) )
@@ -667,6 +670,116 @@ EC_BOOL cnbd_bucket_write(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req, CNB
     CNBD_RSP_MAGIC(cnbd_rsp)  = CNBD_RSP_MAGIC_NUM;
     CNBD_RSP_STATUS(cnbd_rsp) = 0;
     CNBD_RSP_SEQNO(cnbd_rsp)  = CNBD_REQ_SEQNO(cnbd_req);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cnbd_set_bucket_open_handler(const UINT32 cnbd_md_id, EC_BOOL (*bucket_open_handler)(const UINT32))
+{
+    CNBD_MD  *cnbd_md;
+
+#if (SWITCH_ON == CNBD_DEBUG_SWITCH)
+    if ( CNBD_MD_ID_CHECK_INVALID(cnbd_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cnbd_bucket_write: cnbd module #%ld not started.\n",
+                cnbd_md_id);
+        cnbd_print_module_status(cnbd_md_id, LOGSTDOUT);
+        dbg_exit(MD_CNBD, cnbd_md_id);
+    }
+#endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
+
+    cnbd_md = CNBD_MD_GET(cnbd_md_id);
+
+    CNBD_MD_BUCKET_OPEN_FUNC(cnbd_md) = bucket_open_handler;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cnbd_set_bucket_truncate_handler(const UINT32 cnbd_md_id, EC_BOOL (*bucket_truncate_handler)(const UINT32))
+{
+    CNBD_MD  *cnbd_md;
+
+#if (SWITCH_ON == CNBD_DEBUG_SWITCH)
+    if ( CNBD_MD_ID_CHECK_INVALID(cnbd_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cnbd_bucket_write: cnbd module #%ld not started.\n",
+                cnbd_md_id);
+        cnbd_print_module_status(cnbd_md_id, LOGSTDOUT);
+        dbg_exit(MD_CNBD, cnbd_md_id);
+    }
+#endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
+
+    cnbd_md = CNBD_MD_GET(cnbd_md_id);
+
+    CNBD_MD_BUCKET_TRUNCATE_FUNC(cnbd_md) = bucket_truncate_handler;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cnbd_set_bucket_close_handler(const UINT32 cnbd_md_id, EC_BOOL (*bucket_close_handler)(const UINT32))
+{
+    CNBD_MD  *cnbd_md;
+
+#if (SWITCH_ON == CNBD_DEBUG_SWITCH)
+    if ( CNBD_MD_ID_CHECK_INVALID(cnbd_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cnbd_bucket_write: cnbd module #%ld not started.\n",
+                cnbd_md_id);
+        cnbd_print_module_status(cnbd_md_id, LOGSTDOUT);
+        dbg_exit(MD_CNBD, cnbd_md_id);
+    }
+#endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
+
+    cnbd_md = CNBD_MD_GET(cnbd_md_id);
+
+    CNBD_MD_BUCKET_CLOSE_FUNC(cnbd_md) = bucket_close_handler;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cnbd_set_bucket_read_handler(const UINT32 cnbd_md_id, EC_BOOL (*bucket_read_handler)(const UINT32, const CNBD_REQ *, CNBD_RSP *))
+{
+    CNBD_MD  *cnbd_md;
+
+#if (SWITCH_ON == CNBD_DEBUG_SWITCH)
+    if ( CNBD_MD_ID_CHECK_INVALID(cnbd_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cnbd_bucket_write: cnbd module #%ld not started.\n",
+                cnbd_md_id);
+        cnbd_print_module_status(cnbd_md_id, LOGSTDOUT);
+        dbg_exit(MD_CNBD, cnbd_md_id);
+    }
+#endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
+
+    cnbd_md = CNBD_MD_GET(cnbd_md_id);
+
+    CNBD_MD_BUCKET_READ_FUNC(cnbd_md) = bucket_read_handler;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cnbd_set_bucket_write_handler(const UINT32 cnbd_md_id, EC_BOOL (*bucket_write_handler)(const UINT32, const CNBD_REQ *, CNBD_RSP *))
+{
+    CNBD_MD  *cnbd_md;
+
+#if (SWITCH_ON == CNBD_DEBUG_SWITCH)
+    if ( CNBD_MD_ID_CHECK_INVALID(cnbd_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cnbd_bucket_write: cnbd module #%ld not started.\n",
+                cnbd_md_id);
+        cnbd_print_module_status(cnbd_md_id, LOGSTDOUT);
+        dbg_exit(MD_CNBD, cnbd_md_id);
+    }
+#endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
+
+    cnbd_md = CNBD_MD_GET(cnbd_md_id);
+
+    CNBD_MD_BUCKET_WRITE_FUNC(cnbd_md) = bucket_write_handler;
 
     return (EC_TRUE);
 }
@@ -1445,7 +1558,6 @@ EC_BOOL cnbd_handle_req_disc(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
 
 EC_BOOL cnbd_handle_req_flush(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
 {
-    //CNBD_MD  *cnbd_md;
     CNBD_RSP *cnbd_rsp;
 
 #if (SWITCH_ON == CNBD_DEBUG_SWITCH)
@@ -1458,8 +1570,6 @@ EC_BOOL cnbd_handle_req_flush(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
         dbg_exit(MD_CNBD, cnbd_md_id);
     }
 #endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
-
-    //cnbd_md = CNBD_MD_GET(cnbd_md_id);
 
     cnbd_rsp = cnbd_rsp_new();
     if(NULL_PTR == cnbd_rsp)
@@ -1480,7 +1590,6 @@ EC_BOOL cnbd_handle_req_flush(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
 
 EC_BOOL cnbd_handle_req_trim(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
 {
-    //CNBD_MD  *cnbd_md;
     CNBD_RSP *cnbd_rsp;
 
 #if (SWITCH_ON == CNBD_DEBUG_SWITCH)
@@ -1493,8 +1602,6 @@ EC_BOOL cnbd_handle_req_trim(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
         dbg_exit(MD_CNBD, cnbd_md_id);
     }
 #endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
-
-    //cnbd_md = CNBD_MD_GET(cnbd_md_id);
 
     cnbd_rsp = cnbd_rsp_new();
     if(NULL_PTR == cnbd_rsp)
@@ -1513,10 +1620,9 @@ EC_BOOL cnbd_handle_req_trim(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
     return (EC_TRUE);
 }
 
-EC_BOOL cnbd_handle_req(const UINT32 cnbd_md_id)
+EC_BOOL cnbd_handle_req(const UINT32 cnbd_md_id, CNBD_REQ *cnbd_req)
 {
-    //CNBD_MD  *cnbd_md;
-    CNBD_REQ       *cnbd_req;
+    const CNBD_CB  *cnbd_cb;
 
 #if (SWITCH_ON == CNBD_DEBUG_SWITCH)
     if ( CNBD_MD_ID_CHECK_INVALID(cnbd_md_id) )
@@ -1529,61 +1635,43 @@ EC_BOOL cnbd_handle_req(const UINT32 cnbd_md_id)
     }
 #endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
 
-    //cnbd_md = CNBD_MD_GET(cnbd_md_id);
+    dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_handle_req: "
+                " req %p (magic %#x, type %s, seqno %#lx, offset %ld, len %d) "
+                "(header pos %u, data pos %u)\n",
+                cnbd_req,
+                CNBD_REQ_MAGIC(cnbd_req),
+                __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
+                CNBD_REQ_SEQNO(cnbd_req),
+                CNBD_REQ_OFFSET(cnbd_req),
+                CNBD_REQ_LEN(cnbd_req),
+                CNBD_REQ_HEADER_POS(cnbd_req),
+                CNBD_REQ_DATA_POS(cnbd_req));
 
-    while(NULL_PTR != (cnbd_req = cnbd_pop_req(cnbd_md_id)))
+    ASSERT(CNBD_REQ_HEADER_POS(cnbd_req) == CNBD_REQ_HEADER_SIZE);
+    ASSERT(CNBD_CMD_WRITE != CNBD_REQ_TYPE(cnbd_req)
+        || CNBD_REQ_DATA_POS(cnbd_req) == CNBD_REQ_LEN(cnbd_req));
+
+    cnbd_cb = __cnbd_req_cb_fetch(CNBD_REQ_TYPE(cnbd_req));
+    if(NULL_PTR == cnbd_cb)
     {
-        const CNBD_CB  *cnbd_cb;
-
-        dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_handle_req: "
-                    " req %p (magic %#x, type %s, seqno %#lx, offset %ld, len %d) "
-                    "(header pos %u, data pos %u)\n",
-                    cnbd_req,
+        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_handle_req: "
+                    "handle req (magic %#x, type %s, seqno %#lx, offset %ld, len %d)"
+                    " => invalid type\n",
                     CNBD_REQ_MAGIC(cnbd_req),
                     __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
                     CNBD_REQ_SEQNO(cnbd_req),
                     CNBD_REQ_OFFSET(cnbd_req),
-                    CNBD_REQ_LEN(cnbd_req),
-                    CNBD_REQ_HEADER_POS(cnbd_req),
-                    CNBD_REQ_DATA_POS(cnbd_req));
-
-        ASSERT(CNBD_REQ_HEADER_POS(cnbd_req) == CNBD_REQ_HEADER_SIZE);
-        ASSERT(CNBD_CMD_WRITE != CNBD_REQ_TYPE(cnbd_req)
-            || CNBD_REQ_DATA_POS(cnbd_req) == CNBD_REQ_LEN(cnbd_req));
-
-        cnbd_cb = __cnbd_req_cb_fetch(CNBD_REQ_TYPE(cnbd_req));
-        if(NULL_PTR == cnbd_cb)
-        {
-            dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_handle_req: "
-                        "handle req (magic %#x, type %s, seqno %#lx, offset %ld, len %d)"
-                        " => invalid type\n",
-                        CNBD_REQ_MAGIC(cnbd_req),
-                        __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
-                        CNBD_REQ_SEQNO(cnbd_req),
-                        CNBD_REQ_OFFSET(cnbd_req),
-                        CNBD_REQ_LEN(cnbd_req));
+                    CNBD_REQ_LEN(cnbd_req));
 
 
-            cnbd_req_free(cnbd_req);
-            return (EC_FALSE);
-        }
+        cnbd_req_free(cnbd_req);
+        return (EC_FALSE);
+    }
 
-        if(EC_FALSE == CNBD_CB_HANDLER(cnbd_cb)(cnbd_md_id, cnbd_req))
-        {
-            dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_handle_req: "
-                        "handle req (magic %#x, type %s, seqno %#lx, offset %ld, len %d) failed\n",
-                        CNBD_REQ_MAGIC(cnbd_req),
-                        __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
-                        CNBD_REQ_SEQNO(cnbd_req),
-                        CNBD_REQ_OFFSET(cnbd_req),
-                        CNBD_REQ_LEN(cnbd_req));
-
-            cnbd_req_free(cnbd_req);
-            return (EC_FALSE);
-        }
-
-        dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_handle_req: "
-                    "handle req (magic %#x, type %s, seqno %#lx, offset %ld, len %d) done\n",
+    if(EC_FALSE == CNBD_CB_HANDLER(cnbd_cb)(cnbd_md_id, cnbd_req))
+    {
+        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_handle_req: "
+                    "handle req (magic %#x, type %s, seqno %#lx, offset %ld, len %d) failed\n",
                     CNBD_REQ_MAGIC(cnbd_req),
                     __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
                     CNBD_REQ_SEQNO(cnbd_req),
@@ -1591,7 +1679,50 @@ EC_BOOL cnbd_handle_req(const UINT32 cnbd_md_id)
                     CNBD_REQ_LEN(cnbd_req));
 
         cnbd_req_free(cnbd_req);
-        /*continue*/
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_handle_req: "
+                "handle req (magic %#x, type %s, seqno %#lx, offset %ld, len %d) done\n",
+                CNBD_REQ_MAGIC(cnbd_req),
+                __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
+                CNBD_REQ_SEQNO(cnbd_req),
+                CNBD_REQ_OFFSET(cnbd_req),
+                CNBD_REQ_LEN(cnbd_req));
+
+    cnbd_req_free(cnbd_req);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cnbd_handle_req_list(const UINT32 cnbd_md_id)
+{
+    CNBD_REQ       *cnbd_req;
+
+#if (SWITCH_ON == CNBD_DEBUG_SWITCH)
+    if ( CNBD_MD_ID_CHECK_INVALID(cnbd_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cnbd_handle_req_list: cnbd module #%ld not started.\n",
+                cnbd_md_id);
+        cnbd_print_module_status(cnbd_md_id, LOGSTDOUT);
+        dbg_exit(MD_CNBD, cnbd_md_id);
+    }
+#endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
+
+    while(NULL_PTR != (cnbd_req = cnbd_pop_req(cnbd_md_id)))
+    {
+        MOD_NODE        recv_mod_node;
+
+        MOD_NODE_TCID(&recv_mod_node) = CMPI_LOCAL_TCID;
+        MOD_NODE_COMM(&recv_mod_node) = CMPI_LOCAL_COMM;
+        MOD_NODE_RANK(&recv_mod_node) = CMPI_LOCAL_RANK;
+        MOD_NODE_MODI(&recv_mod_node) = cnbd_md_id;
+
+        task_p2p_no_wait(cnbd_md_id, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NOT_NEED_RSP_FLAG, TASK_NEED_NONE_RSP,
+                 &recv_mod_node,
+                 NULL_PTR,
+                 FI_cnbd_handle_req, CMPI_ERROR_MODI, (UINT32)cnbd_req/*trick*/);
     }
 
     return (EC_TRUE);
@@ -1818,6 +1949,11 @@ EC_BOOL cnbd_device_listen(const UINT32 cnbd_md_id)
 
     cnbd_md = CNBD_MD_GET(cnbd_md_id);
 
+    dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_device_listen: "
+                                         "nbd device '%s', fd %d, listen and block\n",
+                                         (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
+                                         CNBD_MD_NBD_FD(cnbd_md));
+
     /*block*/
     if(0 > ioctl(CNBD_MD_NBD_FD(cnbd_md), CNBD_DO_IT))
     {
@@ -1842,7 +1978,7 @@ EC_BOOL cnbd_device_listen(const UINT32 cnbd_md_id)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_device_listen: "
+    dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_device_listen: "
                                          "nbd device '%s', fd %d, listen terminated\n",
                                          (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
                                          CNBD_MD_NBD_FD(cnbd_md));
@@ -1956,7 +2092,7 @@ EC_BOOL cnbd_socket_recv(const UINT32 cnbd_md_id)
 
             CNBD_MD_NBD_REQ_ONGOING(cnbd_md) = cnbd_req;
 
-            return cnbd_handle_req(cnbd_md_id);
+            return cnbd_handle_req_list(cnbd_md_id);
         }
 
         cnbd_push_req(cnbd_md_id, cnbd_req);
@@ -2006,7 +2142,7 @@ EC_BOOL cnbd_socket_recv(const UINT32 cnbd_md_id)
 
                 cnbd_req_free(cnbd_req);
 
-                return cnbd_handle_req(cnbd_md_id);
+                return cnbd_handle_req_list(cnbd_md_id);
             }
 
             /*recv partial*/
@@ -2015,7 +2151,7 @@ EC_BOOL cnbd_socket_recv(const UINT32 cnbd_md_id)
 
             CNBD_MD_NBD_REQ_ONGOING(cnbd_md) = cnbd_req;
 
-            return cnbd_handle_req(cnbd_md_id);
+            return cnbd_handle_req_list(cnbd_md_id);
         }
 
         cnbd_push_req(cnbd_md_id, cnbd_req);

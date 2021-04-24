@@ -252,6 +252,16 @@ EC_BOOL cnbd_bucket_read(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req, CNBD
 
 EC_BOOL cnbd_bucket_write(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req, CNBD_RSP *cnbd_rsp);
 
+EC_BOOL cnbd_set_bucket_open_handler(const UINT32 cnbd_md_id, EC_BOOL (*bucket_open_handler)(const UINT32));
+
+EC_BOOL cnbd_set_bucket_truncate_handler(const UINT32 cnbd_md_id, EC_BOOL (*bucket_truncate_handler)(const UINT32));
+
+EC_BOOL cnbd_set_bucket_close_handler(const UINT32 cnbd_md_id, EC_BOOL (*bucket_close_handler)(const UINT32));
+
+EC_BOOL cnbd_set_bucket_read_handler(const UINT32 cnbd_md_id, EC_BOOL (*bucket_read_handler)(const UINT32, const CNBD_REQ *, CNBD_RSP *));
+
+EC_BOOL cnbd_set_bucket_write_handler(const UINT32 cnbd_md_id, EC_BOOL (*bucket_write_handler)(const UINT32, const CNBD_REQ *, CNBD_RSP *));
+
 CNBD_REQ *cnbd_req_new();
 
 EC_BOOL cnbd_req_init(CNBD_REQ *cnbd_req);
@@ -302,7 +312,9 @@ EC_BOOL cnbd_handle_req_flush(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
 
 EC_BOOL cnbd_handle_req_trim(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req);
 
-EC_BOOL cnbd_handle_req(const UINT32 cnbd_md_id);
+EC_BOOL cnbd_handle_req(const UINT32 cnbd_md_id, CNBD_REQ *cnbd_req);
+
+EC_BOOL cnbd_handle_reqs(const UINT32 cnbd_md_id);
 
 EC_BOOL cnbd_device_open(const UINT32 cnbd_md_id);
 

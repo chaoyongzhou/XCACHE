@@ -4351,7 +4351,7 @@ TASK_RSP * task_req_handle(TASK_REQ *task_req)
 
         if(/*MD_SUPER != mod_type && */CMPI_ANY_MODI != mod_id && NULL_PTR == cbc_md_get(mod_type, mod_id))
         {
-            dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "warn:task_req_handle: mod_type %ld, mod_id %ld, but cbc_md_get get null, cancel task_req %p\n",
+            dbg_log(SEC_0015_TASK, 1)(LOGSTDOUT, "warn:task_req_handle: mod_type %ld, mod_id %ld, but cbc_md_get null, cancel task_req %p\n",
                                mod_type, mod_id, task_req);
             task_req_cancel(task_req);
             return (NULL_PTR);
