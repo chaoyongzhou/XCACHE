@@ -1130,9 +1130,25 @@ void cparacfg_ngx_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
 
         sys_print(log, " hotPathSwitch=\"%s\""        , CPARACFG_CMON_HOT_PATH_SWITCH_STR(cparacfg));
 
-        sys_print(log, " outputBlockingLowAt=\"%u\""     , CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg));
-        sys_print(log, " epollTimeoutMsec=\"%u\""        , CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg));
-        sys_print(log, " httpReqNumPerLoop=\"%u\""       , CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP(cparacfg));
+        sys_print(log, " outputBlockingLowAt=\"%u\""  , CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg));
+        sys_print(log, " epollTimeoutMsec=\"%u\""     , CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg));
+        sys_print(log, " httpReqNumPerLoop=\"%u\""    , CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP(cparacfg));
+        sys_print(log, "/>\n");
+    }
+    return;
+}
+
+void cparacfg_nbd_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
+{
+    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_TCID(cparacfg)))
+    {
+        c_ident_print(log, level);
+        sys_print(log, "<nbdConfig");
+        sys_print(log, " deviceName=\"%s\""     , CPARACFG_CXFSNBD_DEVICE_NAME_STR(cparacfg));
+        sys_print(log, " deviceSize=\"ldf\""    , CPARACFG_CXFSNBD_DEVICE_SIZE(cparacfg));
+        sys_print(log, " blockSize=\"ldf\""     , CPARACFG_CXFSNBD_BLOCK_SIZE(cparacfg));
+        sys_print(log, " timeoutNsec=\"ldf\""   , CPARACFG_CXFSNBD_TIMEOUT_NSEC(cparacfg));
+
         sys_print(log, "/>\n");
     }
     return;
@@ -1208,6 +1224,7 @@ void cparacfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
     cparacfg_xfs_cfg_print_xml(log, cparacfg, level + 1);
     cparacfg_ngx_cfg_print_xml(log, cparacfg, level + 1);
     cparacfg_amd_cfg_print_xml(log, cparacfg, level + 1);
+    cparacfg_nbd_cfg_print_xml(log, cparacfg, level + 1);
     cparacfg_ssl_cfg_print_xml (log, cparacfg, level + 1);
     cparacfg_log_cfg_print_xml(log, cparacfg, level + 1); /* change the order */
     c_ident_print(log, level);

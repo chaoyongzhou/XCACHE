@@ -22,11 +22,22 @@ extern "C"{
 #include "cnbd.h"
 #include "cxfs.h"
 
+#if 0
 #define CXFSNBD_DEV_NAME            ("/dev/nbd0")
 #define CXFSNBD_DEV_SIZE            (((uint64_t)128) << 20) /*128MB*/
 
 #define CXFSNBD_BLK_SIZE            (512)
 #define CXFSNBD_TIMEOUT             (30)
+#endif
+
+#if 1
+#define CXFSNBD_DEV_NAME            CXFSNBD_DEVICE_NAME
+#define CXFSNBD_DEV_SIZE            CXFSNBD_DEVICE_SIZE
+
+#define CXFSNBD_BLK_SIZE            CXFSNBD_BLOCK_SIZE
+#define CXFSNBD_TIMEOUT             CXFSNBD_TIMEOUT_NSEC
+#endif
+
 
 #define CXFSNBD_CXFS_SEG_SIZE       (((UINT32)64) << 20) /*64MB*/
 
