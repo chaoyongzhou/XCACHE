@@ -489,5 +489,13 @@
 #define                                 FI_cnbd_end  ((UINT32) ((MD_CNBD << (WORDSIZE/2)) + 3))
 #define                          FI_cnbd_handle_req  ((UINT32) ((MD_CNBD << (WORDSIZE/2)) + 4))
 
+#define              FI_cxfsnbd_print_module_status  ((UINT32) ((MD_CXFSNBD << (WORDSIZE/2)) + 0))
+#define           FI_cxfsnbd_free_module_static_mem  ((UINT32) ((MD_CXFSNBD << (WORDSIZE/2)) + 1))
+#define                            FI_cxfsnbd_start  ((UINT32) ((MD_CXFSNBD << (WORDSIZE/2)) + 2))
+#define                              FI_cxfsnbd_end  ((UINT32) ((MD_CXFSNBD << (WORDSIZE/2)) + 3))
+#define                     FI_cxfsnbd_bucket_check  ((UINT32) ((MD_CXFSNBD << (WORDSIZE/2)) + 4))
+#define                    FI_cxfsnbd_bucket_create  ((UINT32) ((MD_CXFSNBD << (WORDSIZE/2)) + 5))
+#define                    FI_cxfsnbd_bucket_launch  ((UINT32) ((MD_CXFSNBD << (WORDSIZE/2)) + 6))
+
 #endif/* _FINDEX_INC */
 

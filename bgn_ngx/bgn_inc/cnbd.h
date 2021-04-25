@@ -154,8 +154,8 @@ typedef struct
     //int                       rsvd01;
     int                         demo_fd;       /*DEBUG ONLY!*/
 
-    CSTRING                     *nbd_dev_name;
-    CSTRING                     *bucket_name;
+    CSTRING                    *nbd_dev_name;
+    CSTRING                    *bucket_name;
 
     uint64_t                    nbd_blk_size;
     uint64_t                    nbd_dev_size;

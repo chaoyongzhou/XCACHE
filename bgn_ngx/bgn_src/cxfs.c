@@ -6417,7 +6417,7 @@ EC_BOOL cxfs_write_e_dn(const UINT32 cxfs_md_id, CXFSNP_FNODE *cxfsnp_fnode, UIN
         return (EC_FALSE);
     }
 
-    if(CXFSPGB_CACHE_MAX_BYTE_SIZE <= (*offset) + CBYTES_LEN(cbytes))
+    if(CXFSPGB_CACHE_MAX_BYTE_SIZE < (*offset) + CBYTES_LEN(cbytes))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_write_e_dn: offset %ld + buff len (or file size) %ld = %ld overflow\n",
                             (*offset), CBYTES_LEN(cbytes), (*offset) + CBYTES_LEN(cbytes));

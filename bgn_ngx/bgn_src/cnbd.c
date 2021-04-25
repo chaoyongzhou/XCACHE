@@ -50,6 +50,39 @@ static const CNBD_CB g_cnbd_cb_list[] = {
     {CNBD_CMD_TRIM , 0, "NBD_CMD_TRIM" , cnbd_handle_req_trim},
 };
 
+STATIC_CAST const char *__cnbd_req_type_str(const uint32_t type)
+{
+    switch (type)
+    {
+        case CNBD_CMD_READ:              return ((const char *)"NBD_CMD_READ");
+        case CNBD_CMD_WRITE:             return ((const char *)"NBD_CMD_WRITE");
+        case CNBD_CMD_DISC:              return ((const char *)"NBD_CMD_DISC");
+        case CNBD_CMD_FLUSH:             return ((const char *)"NBD_CMD_FLUSH");
+        case CNBD_CMD_TRIM:              return ((const char *)"NBD_CMD_TRIM");
+        default:                            break;
+    }
+    return ((const char *)"UNKNOWN");
+}
+
+STATIC_CAST const CNBD_CB *__cnbd_req_cb_fetch(const uint32_t type)
+{
+    uint32_t     cnbd_req_cb_num;
+    uint32_t     cnbd_req_cb_idx;
+
+    cnbd_req_cb_num = sizeof(g_cnbd_cb_list)/sizeof(g_cnbd_cb_list[0]);
+    for(cnbd_req_cb_idx = 0; cnbd_req_cb_idx < cnbd_req_cb_num; cnbd_req_cb_idx ++)
+    {
+        const CNBD_CB      *cnbd_cb;
+
+        cnbd_cb = &(g_cnbd_cb_list[ cnbd_req_cb_idx ]);
+        if(CNBD_CB_TYPE(cnbd_cb) == type)
+        {
+            return (cnbd_cb);
+        }
+    }
+
+    return (NULL_PTR);
+}
 
 /**
 *   for test only
@@ -885,11 +918,11 @@ void cnbd_req_print(LOG *log, const CNBD_REQ *cnbd_req)
     {
         sys_log(log, "cnbd_req_print: "
                      "req %p: "
-                     "magic %u, type %#x, seqno %#lx, offset %ld, len %u, "
+                     "magic %u, type %s, seqno %#lx, offset %ld, len %u, "
                      "(pos %u, data %p)\n",
                      cnbd_req,
                      CNBD_REQ_MAGIC(cnbd_req),
-                     CNBD_REQ_TYPE(cnbd_req),
+                     __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
                      CNBD_REQ_SEQNO(cnbd_req),
                      CNBD_REQ_OFFSET(cnbd_req),
                      CNBD_REQ_LEN(cnbd_req),
@@ -1006,39 +1039,6 @@ void cnbd_rsp_print(LOG *log, const CNBD_RSP *cnbd_rsp)
     return;
 }
 
-STATIC_CAST const char *__cnbd_req_type_str(const uint32_t type)
-{
-    switch (type)
-    {
-        case CNBD_CMD_READ:              return ((const char *)"NBD_CMD_READ");
-        case CNBD_CMD_WRITE:             return ((const char *)"NBD_CMD_WRITE");
-        case CNBD_CMD_DISC:              return ((const char *)"NBD_CMD_DISC");
-        case CNBD_CMD_FLUSH:             return ((const char *)"NBD_CMD_FLUSH");
-        case CNBD_CMD_TRIM:              return ((const char *)"NBD_CMD_TRIM");
-        default:                            break;
-    }
-    return ((const char *)"UNKNOWN");
-}
-
-STATIC_CAST const CNBD_CB *__cnbd_req_cb_fetch(const uint32_t type)
-{
-    uint32_t     cnbd_req_cb_num;
-    uint32_t     cnbd_req_cb_idx;
-
-    cnbd_req_cb_num = sizeof(g_cnbd_cb_list)/sizeof(g_cnbd_cb_list[0]);
-    for(cnbd_req_cb_idx = 0; cnbd_req_cb_idx < cnbd_req_cb_num; cnbd_req_cb_idx ++)
-    {
-        const CNBD_CB      *cnbd_cb;
-
-        cnbd_cb = &(g_cnbd_cb_list[ cnbd_req_cb_idx ]);
-        if(CNBD_CB_TYPE(cnbd_cb) == type)
-        {
-            return (cnbd_cb);
-        }
-    }
-
-    return (NULL_PTR);
-}
 
 EC_BOOL cnbd_push_req(const UINT32 cnbd_md_id, CNBD_REQ *cnbd_req)
 {
@@ -1446,8 +1446,7 @@ EC_BOOL cnbd_handle_req_read(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
         if(EC_FALSE == CNBD_MD_BUCKET_READ_FUNC(cnbd_md)(cnbd_md_id, cnbd_req, cnbd_rsp))
         {
             dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_handle_req_read: "
-                                                 "read (fd %d, offset %u, len %u) failed\n",
-                                                 CNBD_MD_DEMO_FD(cnbd_md),
+                                                 "read (offset %u, len %u) failed\n",
                                                  CNBD_REQ_OFFSET(cnbd_req),
                                                  CNBD_REQ_LEN(cnbd_req));
 
@@ -1456,8 +1455,7 @@ EC_BOOL cnbd_handle_req_read(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
         }
 
         dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_handle_req_read: "
-                                             "read (fd %d, offset %u, len %u) done\n",
-                                             CNBD_MD_DEMO_FD(cnbd_md),
+                                             "read (offset %u, len %u) done\n",
                                              CNBD_REQ_OFFSET(cnbd_req),
                                              CNBD_REQ_LEN(cnbd_req));
     }
@@ -1519,8 +1517,7 @@ EC_BOOL cnbd_handle_req_write(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
         if(EC_FALSE == CNBD_MD_BUCKET_WRITE_FUNC(cnbd_md)(cnbd_md_id, cnbd_req, cnbd_rsp))
         {
             dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_handle_req_write: "
-                                                 "write (fd %d, offset %u, len %u) failed\n",
-                                                 CNBD_MD_DEMO_FD(cnbd_md),
+                                                 "write (offset %u, len %u) failed\n",
                                                  CNBD_REQ_OFFSET(cnbd_req),
                                                  CNBD_REQ_LEN(cnbd_req));
 
@@ -1529,8 +1526,7 @@ EC_BOOL cnbd_handle_req_write(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
         }
 
         dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_handle_req_write: "
-                                             "write (fd %d, offset %u, len %u) done\n",
-                                             CNBD_MD_DEMO_FD(cnbd_md),
+                                             "write (offset %u, len %u) done\n",
                                              CNBD_REQ_OFFSET(cnbd_req),
                                              CNBD_REQ_LEN(cnbd_req));
     }

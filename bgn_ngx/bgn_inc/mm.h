@@ -40,7 +40,7 @@ extern "C"{
 #define     MD_CSTORE    ((UINT32) 15)
 #define     MD_CVENDOR   ((UINT32) 16)
 #define     MD_CREFRESH  ((UINT32) 17)
-#define     MD_0018      ((UINT32) 18) /*-- obsolete --*/
+#define     MD_CXFSNBD   ((UINT32) 18) /*-- obsolete --*/
 #define     MD_CFLV      ((UINT32) 19)
 #define     MD_CMP4      ((UINT32) 20)
 #define     MD_CTDNS     ((UINT32) 21)
@@ -362,7 +362,7 @@ extern "C"{
 #define                        MM_CXFSDN    ((UINT32)275)
 #define                      MM_CNBD_REQ    ((UINT32)276)
 #define                      MM_CNBD_RSP    ((UINT32)277)
-#define                        MM_000278    ((UINT32)278) /*-- obsolete --*/
+#define                   MM_CXFSNBD_SEG    ((UINT32)278)
 #define              MM_CXFS_LOCKED_FILE    ((UINT32)279)
 #define                MM_CXFS_WAIT_FILE    ((UINT32)280)
 #define                        MM_000281    ((UINT32)281) /*-- obsolete --*/

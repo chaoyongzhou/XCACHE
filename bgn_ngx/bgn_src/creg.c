@@ -40,6 +40,7 @@ extern "C"{
 #include "cfile.h"
 #include "ctrans.h"
 #include "cnbd.h"
+#include "cxfsnbd.h"
 
 #include "cmd5.h"
 #include "cbuffer.h"
@@ -67,6 +68,7 @@ extern "C"{
 #include "cfile.inc"
 #include "ctrans.inc"
 #include "cnbd.inc"
+#include "cxfsnbd.inc"
 #include "task.inc"
 
 TYPE_CONV_ITEM *creg_type_conv_item_new()
@@ -990,6 +992,8 @@ EC_BOOL creg_func_addr_vec_add_default(CVECTOR *func_addr_vec)
     creg_func_addr_vec_add(func_addr_vec, MD_CTRANS  ,  &g_ctrans_func_addr_list_len ,   (FUNC_ADDR_NODE *)g_ctrans_func_addr_list , FI_ctrans_start  , FI_ctrans_end   , ERR_FUNC_ID             , NULL_PTR                                   );
 
     creg_func_addr_vec_add(func_addr_vec, MD_CNBD    ,  &g_cnbd_func_addr_list_len   ,   (FUNC_ADDR_NODE *)g_cnbd_func_addr_list   , FI_cnbd_start    , FI_cnbd_end     , ERR_FUNC_ID             , NULL_PTR                                   );
+
+    creg_func_addr_vec_add(func_addr_vec, MD_CXFSNBD ,  &g_cxfsnbd_func_addr_list_len,   (FUNC_ADDR_NODE *)g_cxfsnbd_func_addr_list, FI_cxfsnbd_start , FI_cxfsnbd_end  , ERR_FUNC_ID             , NULL_PTR                                   );
 
     return (EC_TRUE);
 }
