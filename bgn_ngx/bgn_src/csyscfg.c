@@ -1144,7 +1144,6 @@ void cparacfg_nbd_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
     {
         c_ident_print(log, level);
         sys_print(log, "<nbdConfig");
-        sys_print(log, " deviceName=\"%s\""     , CPARACFG_CXFSNBD_DEVICE_NAME_STR(cparacfg));
         sys_print(log, " deviceSize=\"ldf\""    , CPARACFG_CXFSNBD_DEVICE_SIZE(cparacfg));
         sys_print(log, " blockSize=\"ldf\""     , CPARACFG_CXFSNBD_BLOCK_SIZE(cparacfg));
         sys_print(log, " timeoutNsec=\"ldf\""   , CPARACFG_CXFSNBD_TIMEOUT_NSEC(cparacfg));

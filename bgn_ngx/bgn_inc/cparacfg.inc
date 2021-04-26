@@ -86,9 +86,8 @@ typedef struct
     UINT32    cxfs_camd_overhead_switch     ; /* CXFS_CAMD_OVERHEAD_SWITCH */
     UINT32    cxfs_camd_discard_ratio       ; /* CXFS_CAMD_DISCARD_RATIO */
 
-    CSTRING   cxfsnbd_device_name_cstr      ;
-    UINT32    cxfsnbd_device_size           ; /*CXFSNBD_DEV_SIZE*/
-    UINT32    cxfsnbd_block_size            ; /*CXFSNBD_BLK_SIZE*/
+    UINT32    cxfsnbd_device_size           ; /*CXFSNBD_DEVICE_SIZE*/
+    UINT32    cxfsnbd_block_size            ; /*CXFSNBD_BLOCK_SIZE*/
     UINT32    cxfsnbd_timeout_nsec          ; /*CXFSNBD_TIMEOUT_NSEC*/
 
     uint16_t  rsvd03;
@@ -229,8 +228,6 @@ typedef struct
 
 #define CPARACFG_CXFS_CAMD_DISCARD_RATIO(cparacfg)                  ((cparacfg)->cxfs_camd_discard_ratio)
 
-#define CPARACFG_CXFSNBD_DEVICE_NAME_CSTR(cparacfg)                 (&((cparacfg)->cxfsnbd_device_name_cstr))
-#define CPARACFG_CXFSNBD_DEVICE_NAME_STR(cparacfg)                  ((char *)cstring_get_str(CPARACFG_CXFSNBD_DEVICE_NAME_CSTR(cparacfg)))
 #define CPARACFG_CXFSNBD_DEVICE_SIZE(cparacfg)                      ((cparacfg)->cxfsnbd_device_size)
 #define CPARACFG_CXFSNBD_BLOCK_SIZE(cparacfg)                       ((cparacfg)->cxfsnbd_block_size)
 #define CPARACFG_CXFSNBD_TIMEOUT_NSEC(cparacfg)                     ((cparacfg)->cxfsnbd_timeout_nsec)
@@ -453,7 +450,6 @@ typedef struct
 #define CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH_DEF                   SWITCH_OFF
 #define CPARACFG_CXFS_CAMD_DISCARD_RATIO_DEF                     10 /*1/10*/
 
-#define CPARACFG_CXFSNBD_DEVICE_NAME_CSTR_DEF                   ((uint8_t *)"/dev/nbd0")
 #define CPARACFG_CXFSNBD_DEVICE_SIZE_DEF                         (128 << 20) /*128MB*/
 #define CPARACFG_CXFSNBD_BLOCK_SIZE_DEF                          512 /*512B*/
 #define CPARACFG_CXFSNBD_TIMEOUT_NSEC_DEF                        30
@@ -599,7 +595,6 @@ typedef struct
 #define    CXFS_CAMD_OVERHEAD_SWITCH                     CPARACFG_DEFAULT_MAP(CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH)
 #define    CXFS_CAMD_DISCARD_RATIO                       CPARACFG_DEFAULT_MAP(CPARACFG_CXFS_CAMD_DISCARD_RATIO)
 
-#define    CXFSNBD_DEVICE_NAME                           CPARACFG_DEFAULT_STR_MAP(CPARACFG_CXFSNBD_DEVICE_NAME_CSTR)
 #define    CXFSNBD_DEVICE_SIZE                           CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNBD_DEVICE_SIZE)
 #define    CXFSNBD_BLOCK_SIZE                            CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNBD_BLOCK_SIZE)
 #define    CXFSNBD_TIMEOUT_NSEC                          CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNBD_TIMEOUT_NSEC)

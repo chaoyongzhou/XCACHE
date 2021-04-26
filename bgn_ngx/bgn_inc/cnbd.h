@@ -85,7 +85,7 @@ typedef struct
 #define CNBD_REQ_DATA_POS(cnbd_req)           ((cnbd_req)->data_pos)
 #define CNBD_REQ_DATA_ZONE(cnbd_req)          ((cnbd_req)->data_zone)
 
-#define CNBD_REQ_HEADER_SIZE (     sizeof(uint32_t) /*magic */   \
+#define CNBD_REQ_HEADER_SIZE (        sizeof(uint32_t) /*magic */   \
                                     + sizeof(uint32_t) /*type  */   \
                                     + sizeof(uint64_t) /*handle*/   \
                                     + sizeof(uint64_t) /*offset*/   \
@@ -122,7 +122,7 @@ typedef struct
 #define CNBD_RSP_DATA_LEN(cnbd_rsp)           ((cnbd_rsp)->data_len)
 #define CNBD_RSP_DATA_ZONE(cnbd_rsp)          ((cnbd_rsp)->data_zone)
 
-#define CNBD_RSP_HEADER_SIZE (     sizeof(uint32_t) /*magic */   \
+#define CNBD_RSP_HEADER_SIZE (        sizeof(uint32_t) /*magic */   \
                                     + sizeof(uint32_t) /*status*/   \
                                     + sizeof(uint64_t) /*handle*/   \
                                     )
@@ -168,10 +168,6 @@ typedef struct
     CNBD_REQ                   *nbd_req_ongoing;
     CNBD_RSP                   *nbd_rsp_ongoing;
 
-    EC_BOOL (*bucket_open_handler)(const UINT32);
-    EC_BOOL (*bucket_close_handler)(const UINT32);
-    EC_BOOL (*bucket_truncate_handler)(const UINT32);
-
     EC_BOOL (*bucket_read_handler)(const UINT32, const CNBD_REQ *, CNBD_RSP *);
     EC_BOOL (*bucket_write_handler)(const UINT32, const CNBD_REQ *, CNBD_RSP *);
 
@@ -200,10 +196,6 @@ typedef struct
 #define CNBD_MD_NBD_REQ_ONGOING(cnbd_md)          ((cnbd_md)->nbd_req_ongoing)
 #define CNBD_MD_NBD_RSP_ONGOING(cnbd_md)          ((cnbd_md)->nbd_rsp_ongoing)
 
-#define CNBD_MD_BUCKET_OPEN_FUNC(cnbd_md)         ((cnbd_md)->bucket_open_handler)
-#define CNBD_MD_BUCKET_CLOSE_FUNC(cnbd_md)        ((cnbd_md)->bucket_close_handler)
-#define CNBD_MD_BUCKET_TRUNCATE_FUNC(cnbd_md)     ((cnbd_md)->bucket_truncate_handler)
-
 #define CNBD_MD_BUCKET_READ_FUNC(cnbd_md)         ((cnbd_md)->bucket_read_handler)
 #define CNBD_MD_BUCKET_WRITE_FUNC(cnbd_md)        ((cnbd_md)->bucket_write_handler)
 
@@ -230,10 +222,10 @@ UINT32 cnbd_free_module_static_mem(const UINT32 cnbd_md_id);
 *
 **/
 UINT32 cnbd_start(const CSTRING *nbd_dev_name,
-                        const CSTRING *bucket_name,
-                        const UINT32   nbd_blk_size,
-                        const UINT32   nbd_dev_size,
-                        const UINT32   nbd_timeout);
+                  const UINT32   nbd_blk_size,
+                  const UINT32   nbd_dev_size,
+                  const UINT32   nbd_timeout,
+                  const CSTRING *bucket_name);
 
 /**
 *
@@ -244,19 +236,13 @@ void cnbd_end(const UINT32 cnbd_md_id);
 
 EC_BOOL cnbd_bucket_open(const UINT32 cnbd_md_id);
 
-EC_BOOL cnbd_bucket_truncate(const UINT32 cnbd_md_id);
+EC_BOOL cnbd_bucket_create(const UINT32 cnbd_md_id);
 
 EC_BOOL cnbd_bucket_close(const UINT32 cnbd_md_id);
 
 EC_BOOL cnbd_bucket_read(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req, CNBD_RSP *cnbd_rsp);
 
 EC_BOOL cnbd_bucket_write(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req, CNBD_RSP *cnbd_rsp);
-
-EC_BOOL cnbd_set_bucket_open_handler(const UINT32 cnbd_md_id, EC_BOOL (*bucket_open_handler)(const UINT32));
-
-EC_BOOL cnbd_set_bucket_truncate_handler(const UINT32 cnbd_md_id, EC_BOOL (*bucket_truncate_handler)(const UINT32));
-
-EC_BOOL cnbd_set_bucket_close_handler(const UINT32 cnbd_md_id, EC_BOOL (*bucket_close_handler)(const UINT32));
 
 EC_BOOL cnbd_set_bucket_read_handler(const UINT32 cnbd_md_id, EC_BOOL (*bucket_read_handler)(const UINT32, const CNBD_REQ *, CNBD_RSP *));
 

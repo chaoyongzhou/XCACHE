@@ -1562,7 +1562,6 @@ EC_BOOL cxml_parse_cparacfg_ngx_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 
 EC_BOOL cxml_parse_cparacfg_nbd_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 {
-    __cxml_parse_tag_cstr(node, (const char *)"deviceName" , CPARACFG_CXFSNBD_DEVICE_NAME_CSTR(cparacfg));
     __cxml_parse_tag_uint32(node, (const char *)"deviceSize" , &(CPARACFG_CXFSNBD_DEVICE_SIZE(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"blockSize" , &(CPARACFG_CXFSNBD_BLOCK_SIZE(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"timeoutNsec", &(CPARACFG_CXFSNBD_TIMEOUT_NSEC(cparacfg)));

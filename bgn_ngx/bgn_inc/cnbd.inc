@@ -42,7 +42,7 @@ FUNC_ADDR_NODE g_cnbd_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- UINT32 cnbd_start(const CSTRING *nbd_dev_name, const CSTRING *bucket_name, const UINT32 nbd_blk_size, const UINT32 nbd_dev_size, const UINT32 nbd_timeout); -- */
+/* -- UINT32 cnbd_start(const CSTRING *nbd_dev_name, const UINT32 nbd_blk_size, const UINT32 nbd_dev_size, const UINT32 nbd_timeout, const CSTRING *bucket_name); -- */
 /*func module     */     MD_CNBD,
 /*func logic addr */     (UINT32)cnbd_start,
 /*func beg addr   */     0,
@@ -53,7 +53,7 @@ FUNC_ADDR_NODE g_cnbd_func_addr_list[ ] = {
 /*func ret type   */     e_dbg_UINT32,
 /*func para num   */     5,
 /*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,},
+/*func para type  */     {e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {

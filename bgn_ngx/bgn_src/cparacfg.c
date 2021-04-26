@@ -123,7 +123,6 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFS_CAMD_DISCARD_RATIO);
 
-    CPARACFG_SET_STR_DEFAULT(cparacfg, CPARACFG_CXFSNBD_DEVICE_NAME_CSTR);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFSNBD_DEVICE_SIZE);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFSNBD_BLOCK_SIZE);
     CPARACFG_SET_DEFAULT(cparacfg, CPARACFG_CXFSNBD_TIMEOUT_NSEC);
@@ -292,7 +291,6 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
     sys_log(log, "CXFS_CAMD_OVERHEAD_SWITCH                  = %s\n",   CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH_STR(cparacfg));
     sys_log(log, "CXFS_CAMD_DISCARD_RATIO                    = %ld\n",  CPARACFG_CXFS_CAMD_DISCARD_RATIO(cparacfg));
 
-    sys_log(log, "CXFSNBD_DEVICE_NAME                        = %s\n" ,  CPARACFG_CXFSNBD_DEVICE_NAME_STR(cparacfg));
     sys_log(log, "CXFSNBD_DEVICE_SIZE                        = %ld\n",  CPARACFG_CXFSNBD_DEVICE_SIZE(cparacfg));
     sys_log(log, "CXFSNBD_BLOCK_SIZE                         = %ld\n",  CPARACFG_CXFSNBD_BLOCK_SIZE(cparacfg));
     sys_log(log, "CXFSNBD_TIMEOUT_NSEC                       = %ld\n",  CPARACFG_CXFSNBD_TIMEOUT_NSEC(cparacfg));
@@ -417,7 +415,6 @@ void cparacfg_json(json_object *obj, const CPARACFG *cparacfg)
     json_object_add_kv(obj,      "CXFS_CAMD_OVERHEAD_SWITCH"  , CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH_STR(cparacfg));
     json_object_add_k_int64(obj, "CXFS_CAMD_DISCARD_RATIO"    , CPARACFG_CXFS_CAMD_DISCARD_RATIO(cparacfg));
 
-    json_object_add_kv(obj,      "CXFSNBD_DEVICE_NAME"        , CPARACFG_CXFSNBD_DEVICE_NAME_STR(cparacfg));
     json_object_add_k_int64(obj, "CXFSNBD_DEVICE_SIZE"        , CPARACFG_CXFSNBD_DEVICE_SIZE(cparacfg));
     json_object_add_k_int64(obj, "CXFSNBD_BLOCK_SIZE"         , CPARACFG_CXFSNBD_BLOCK_SIZE(cparacfg));
     json_object_add_k_int64(obj, "CXFSNBD_TIMEOUT_NSEC"       , CPARACFG_CXFSNBD_TIMEOUT_NSEC(cparacfg));

@@ -90,7 +90,13 @@ UINT32 cxfsnbd_free_module_static_mem(const UINT32 cxfsnbd_md_id)
 * start CXFSNBD module
 *
 **/
-UINT32 cxfsnbd_start(const CSTRING *bucket_name, const UINT32 cxfs_tcid, const UINT32 cxfs_md_id)
+UINT32 cxfsnbd_start(const CSTRING *nbd_dev_name,
+                        const UINT32   nbd_blk_size,
+                        const UINT32   nbd_dev_size,
+                        const UINT32   nbd_timeout,
+                        const CSTRING *bucket_name,
+                        const UINT32   cxfs_tcid,
+                        const UINT32   cxfs_md_id)
 {
     CXFSNBD_MD     *cxfsnbd_md;
     UINT32          cxfsnbd_md_id;
@@ -131,9 +137,9 @@ UINT32 cxfsnbd_start(const CSTRING *bucket_name, const UINT32 cxfs_tcid, const U
     CXFSNBD_MD_CXFS_MODI(cxfsnbd_md)    = cxfs_md_id;
 
     /*debug config*/
-    CXFSNBD_MD_NBD_BLK_SIZE(cxfsnbd_md) = CXFSNBD_BLK_SIZE;
-    CXFSNBD_MD_NBD_DEV_SIZE(cxfsnbd_md) = CXFSNBD_DEV_SIZE;
-    CXFSNBD_MD_NBD_TIMEOUT(cxfsnbd_md)  = CXFSNBD_TIMEOUT;
+    CXFSNBD_MD_NBD_BLK_SIZE(cxfsnbd_md) = nbd_blk_size;
+    CXFSNBD_MD_NBD_DEV_SIZE(cxfsnbd_md) = nbd_dev_size;
+    CXFSNBD_MD_NBD_TIMEOUT(cxfsnbd_md)  = nbd_timeout;
     CXFSNBD_MD_NBD_T_FLAGS(cxfsnbd_md)  = 0;/*xxx*/
 
     if(NULL_PTR == bucket_name)
@@ -156,54 +162,22 @@ UINT32 cxfsnbd_start(const CSTRING *bucket_name, const UINT32 cxfs_tcid, const U
         return (CMPI_ERROR_MODI);
     }
 
-    CXFSNBD_MD_NBD_DEV_NAME(cxfsnbd_md) = cstring_new((const UINT8 *)CXFSNBD_DEV_NAME, LOC_CXFSNBD_0001);
+    CXFSNBD_MD_NBD_DEV_NAME(cxfsnbd_md) = cstring_dup(nbd_dev_name);
     if(NULL_PTR == CXFSNBD_MD_NBD_DEV_NAME(cxfsnbd_md))
     {
         dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_start:"
                                                 "new dev name '%s' failed\n",
-                                                (char *)CXFSNBD_DEV_NAME);
-
-        cxfsnbd_end(cxfsnbd_md_id);
-        return (CMPI_ERROR_MODI);
-    }
-
-    while(0 && NULL_PTR != bucket_name)
-    {
-        if(EC_TRUE == cxfsnbd_bucket_check(cxfsnbd_md_id))
-        {
-            dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "[DEBUG] cxfsnbd_start:"
-                                                    "check bucket %s done\n",
-                                                    (char *)CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md));
-
-            break;
-        }
-
-        dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_start:"
-                                                "check bucket %s failed\n",
-                                                (char *)CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md));
-
-        if(EC_TRUE == cxfsnbd_bucket_create(cxfsnbd_md_id))
-        {
-            dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "[DEBUG] cxfsnbd_start:"
-                                                    "create bucket %s done\n",
-                                                    (char *)CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md));
-
-            break;
-        }
-
-        dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_start:"
-                                                "create bucket %s failed\n",
-                                                (char *)CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md));
+                                                (char *)cstring_get_str(nbd_dev_name));
 
         cxfsnbd_end(cxfsnbd_md_id);
         return (CMPI_ERROR_MODI);
     }
 
     CXFSNBD_MD_CNBD_MODI(cxfsnbd_md) = cnbd_start(CXFSNBD_MD_NBD_DEV_NAME(cxfsnbd_md),
-                                                  CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md),
                                                   CXFSNBD_MD_NBD_BLK_SIZE(cxfsnbd_md),
                                                   CXFSNBD_MD_NBD_DEV_SIZE(cxfsnbd_md),
-                                                  CXFSNBD_MD_NBD_TIMEOUT(cxfsnbd_md));
+                                                  CXFSNBD_MD_NBD_TIMEOUT(cxfsnbd_md),
+                                                  CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md));
 
     if(CMPI_ERROR_MODI == CXFSNBD_MD_CNBD_MODI(cxfsnbd_md))
     {
@@ -411,7 +385,7 @@ CXFSNBD_SEG *cxfsnbd_seg_new()
 {
     CXFSNBD_SEG *cxfsnbd_seg;
 
-    alloc_static_mem(MM_CXFSNBD_SEG, &cxfsnbd_seg, LOC_CXFSNBD_0002);
+    alloc_static_mem(MM_CXFSNBD_SEG, &cxfsnbd_seg, LOC_CXFSNBD_0001);
     if(NULL_PTR == cxfsnbd_seg)
     {
         dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_seg_new: "
@@ -423,7 +397,7 @@ CXFSNBD_SEG *cxfsnbd_seg_new()
     {
         dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_seg_new: "
                                                 "init cxfsnbd_seg failed\n");
-        free_static_mem(MM_CXFSNBD_SEG, cxfsnbd_seg, LOC_CXFSNBD_0003);
+        free_static_mem(MM_CXFSNBD_SEG, cxfsnbd_seg, LOC_CXFSNBD_0002);
         return (NULL_PTR);
     }
 
@@ -525,7 +499,7 @@ EC_BOOL cxfsnbd_seg_free(CXFSNBD_SEG *cxfsnbd_seg)
     if(NULL_PTR != cxfsnbd_seg)
     {
         cxfsnbd_seg_clean(cxfsnbd_seg);
-        free_static_mem(MM_CXFSNBD_SEG, cxfsnbd_seg, LOC_CXFSNBD_0004);
+        free_static_mem(MM_CXFSNBD_SEG, cxfsnbd_seg, LOC_CXFSNBD_0003);
     }
 
     return (EC_TRUE);
@@ -587,7 +561,7 @@ CVECTOR *cxfsnbd_seg_vec_new(const UINT32 capacity)
     CVECTOR *cxfsnbd_seg_vec;
     UINT32   pos;
 
-    cxfsnbd_seg_vec = cvector_new(capacity, MM_CXFSNBD_SEG, LOC_CXFSNBD_0005);
+    cxfsnbd_seg_vec = cvector_new(capacity, MM_CXFSNBD_SEG, LOC_CXFSNBD_0004);
     if(NULL_PTR == cxfsnbd_seg_vec)
     {
         dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_seg_vec_new: "
@@ -620,7 +594,7 @@ EC_BOOL cxfsnbd_seg_vec_clean(CVECTOR *cxfsnbd_seg_vec)
 {
     if(NULL_PTR != cxfsnbd_seg_vec)
     {
-        cvector_clean(cxfsnbd_seg_vec, (CVECTOR_DATA_CLEANER)cxfsnbd_seg_free, LOC_CXFSNBD_0006);
+        cvector_clean(cxfsnbd_seg_vec, (CVECTOR_DATA_CLEANER)cxfsnbd_seg_free, LOC_CXFSNBD_0005);
     }
     return (EC_TRUE);
 }
@@ -697,7 +671,7 @@ EC_BOOL cxfsnbd_seg_vec_free(CVECTOR *cxfsnbd_seg_vec)
     if(NULL_PTR != cxfsnbd_seg_vec)
     {
         cxfsnbd_seg_vec_clean(cxfsnbd_seg_vec);
-        cvector_free(cxfsnbd_seg_vec, LOC_CXFSNBD_0007);
+        cvector_free(cxfsnbd_seg_vec, LOC_CXFSNBD_0006);
     }
     return (EC_TRUE);
 }
@@ -1048,7 +1022,7 @@ EC_BOOL cxfsnbd_bucket_read(const UINT32 cxfsnbd_md_id, const CNBD_REQ *cnbd_req
     cnbd_req_offset_s = (UINT32)(CNBD_REQ_OFFSET(cnbd_req) +                      0);
     cnbd_req_offset_e = (UINT32)(CNBD_REQ_OFFSET(cnbd_req) + CNBD_REQ_LEN(cnbd_req));
 
-    data = safe_malloc(CNBD_REQ_LEN(cnbd_req), LOC_CXFSNBD_0008);
+    data = safe_malloc(CNBD_REQ_LEN(cnbd_req), LOC_CXFSNBD_0007);
     if(NULL_PTR == data)
     {
         dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_bucket_read: "
@@ -1065,7 +1039,7 @@ EC_BOOL cxfsnbd_bucket_read(const UINT32 cxfsnbd_md_id, const CNBD_REQ *cnbd_req
         dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_bucket_read: "
                                                 "new cxfsnbd_seg_vec failed\n");
 
-        safe_free(data, LOC_CXFSNBD_0009);
+        safe_free(data, LOC_CXFSNBD_0008);
         return (EC_FALSE);
     }
 
@@ -1077,7 +1051,7 @@ EC_BOOL cxfsnbd_bucket_read(const UINT32 cxfsnbd_md_id, const CNBD_REQ *cnbd_req
         cxfsnbd_seg_vec_umount_data(cxfsnbd_seg_vec);
         cxfsnbd_seg_vec_free(cxfsnbd_seg_vec);
 
-        safe_free(data, LOC_CXFSNBD_0010);
+        safe_free(data, LOC_CXFSNBD_0009);
         return (EC_FALSE);
     }
 
@@ -1106,7 +1080,7 @@ EC_BOOL cxfsnbd_bucket_read(const UINT32 cxfsnbd_md_id, const CNBD_REQ *cnbd_req
         cxfsnbd_seg_vec_umount_data(cxfsnbd_seg_vec);
         cxfsnbd_seg_vec_free(cxfsnbd_seg_vec);
 
-        safe_free(data, LOC_CXFSNBD_0011);
+        safe_free(data, LOC_CXFSNBD_0010);
         return (EC_FALSE);
     }
 
@@ -1152,7 +1126,7 @@ EC_BOOL cxfsnbd_bucket_read(const UINT32 cxfsnbd_md_id, const CNBD_REQ *cnbd_req
             cxfsnbd_seg_vec_umount_data(cxfsnbd_seg_vec);
             cxfsnbd_seg_vec_free(cxfsnbd_seg_vec);
 
-            safe_free(data, LOC_CXFSNBD_0012);
+            safe_free(data, LOC_CXFSNBD_0011);
             return (EC_FALSE);
         }
 

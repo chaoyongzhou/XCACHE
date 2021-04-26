@@ -140,10 +140,10 @@ UINT32 cnbd_free_module_static_mem(const UINT32 cnbd_md_id)
 *
 **/
 UINT32 cnbd_start(const CSTRING *nbd_dev_name,
-                        const CSTRING *bucket_name,
-                        const UINT32   nbd_blk_size,
-                        const UINT32   nbd_dev_size,
-                        const UINT32   nbd_timeout)
+                  const UINT32   nbd_blk_size,
+                  const UINT32   nbd_dev_size,
+                  const UINT32   nbd_timeout,
+                  const CSTRING *bucket_name)
 {
     CNBD_MD     *cnbd_md;
     UINT32       cnbd_md_id;
@@ -180,12 +180,8 @@ UINT32 cnbd_start(const CSTRING *nbd_dev_name,
     clist_init(CNBD_MD_NBD_REQ_LIST(cnbd_md), MM_CNBD_REQ, LOC_CNBD_0001);
     clist_init(CNBD_MD_NBD_RSP_LIST(cnbd_md), MM_CNBD_RSP, LOC_CNBD_0002);
 
-    CNBD_MD_NBD_REQ_ONGOING(cnbd_md) = NULL_PTR;
-    CNBD_MD_NBD_RSP_ONGOING(cnbd_md) = NULL_PTR;
-
-    CNBD_MD_BUCKET_OPEN_FUNC(cnbd_md)     = NULL_PTR;
-    CNBD_MD_BUCKET_CLOSE_FUNC(cnbd_md)    = NULL_PTR;
-    CNBD_MD_BUCKET_TRUNCATE_FUNC(cnbd_md) = NULL_PTR;
+    CNBD_MD_NBD_REQ_ONGOING(cnbd_md)      = NULL_PTR;
+    CNBD_MD_NBD_RSP_ONGOING(cnbd_md)      = NULL_PTR;
 
     CNBD_MD_BUCKET_READ_FUNC(cnbd_md)     = NULL_PTR;
     CNBD_MD_BUCKET_WRITE_FUNC(cnbd_md)    = NULL_PTR;
@@ -383,6 +379,11 @@ void cnbd_end(const UINT32 cnbd_md_id)
         cnbd_device_close(cnbd_md_id);
     }
 
+    if(ERR_FD != CNBD_MD_DEMO_FD(cnbd_md))
+    {
+        cnbd_bucket_close(cnbd_md_id);
+    }
+
     if(NULL_PTR != CNBD_MD_NBD_DEV_NAME(cnbd_md))
     {
         cstring_free(CNBD_MD_NBD_DEV_NAME(cnbd_md));
@@ -395,20 +396,10 @@ void cnbd_end(const UINT32 cnbd_md_id)
         CNBD_MD_BUCKET_NAME(cnbd_md) = NULL_PTR;
     }
 
-    if(ERR_FD != CNBD_MD_DEMO_FD(cnbd_md))
-    {
-        c_file_close(CNBD_MD_DEMO_FD(cnbd_md));
-        CNBD_MD_DEMO_FD(cnbd_md) = ERR_FD;
-    }
-
     CNBD_MD_NBD_BLK_SIZE(cnbd_md) = 0;
     CNBD_MD_NBD_DEV_SIZE(cnbd_md) = 0;
     CNBD_MD_NBD_TIMEOUT(cnbd_md)  = 0;
     CNBD_MD_NBD_T_FLAGS(cnbd_md)  = 0;
-
-    CNBD_MD_BUCKET_OPEN_FUNC(cnbd_md)     = NULL_PTR;
-    CNBD_MD_BUCKET_CLOSE_FUNC(cnbd_md)    = NULL_PTR;
-    CNBD_MD_BUCKET_TRUNCATE_FUNC(cnbd_md) = NULL_PTR;
 
     CNBD_MD_BUCKET_READ_FUNC(cnbd_md)     = NULL_PTR;
     CNBD_MD_BUCKET_WRITE_FUNC(cnbd_md)    = NULL_PTR;
@@ -430,6 +421,7 @@ void cnbd_end(const UINT32 cnbd_md_id)
 EC_BOOL cnbd_bucket_open(const UINT32 cnbd_md_id)
 {
     CNBD_MD  *cnbd_md;
+    UINT32    bucket_size;
 
 #if (SWITCH_ON == CNBD_DEBUG_SWITCH)
     if ( CNBD_MD_ID_CHECK_INVALID(cnbd_md_id) )
@@ -452,7 +444,7 @@ EC_BOOL cnbd_bucket_open(const UINT32 cnbd_md_id)
     }
 
     CNBD_MD_DEMO_FD(cnbd_md) = c_file_open((char *)CNBD_MD_BUCKET_NAME_STR(cnbd_md),
-                                                 O_RDWR | O_CREAT, 0666);
+                                                 O_RDWR, 0666);
     if(ERR_FD == CNBD_MD_DEMO_FD(cnbd_md))
     {
         dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_bucket_open:"
@@ -462,12 +454,22 @@ EC_BOOL cnbd_bucket_open(const UINT32 cnbd_md_id)
         return (EC_FALSE);
     }
 
-    if(EC_FALSE == c_file_truncate(CNBD_MD_DEMO_FD(cnbd_md),
-                                    (UINT32)CNBD_MD_NBD_DEV_SIZE(cnbd_md)))
+    if(EC_FALSE == c_file_size(CNBD_MD_DEMO_FD(cnbd_md), &bucket_size))
     {
         dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_bucket_open:"
-                                             "truncate bucket %s size %ld failed\n",
+                                             "bucket %s size failed\n",
+                                             CNBD_MD_BUCKET_NAME_STR(cnbd_md));
+
+        c_file_close(CNBD_MD_DEMO_FD(cnbd_md));
+        return (EC_FALSE);
+    }
+
+    if((uint64_t)bucket_size != CNBD_MD_NBD_DEV_SIZE(cnbd_md))
+    {
+        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_bucket_open:"
+                                             "bucket %s size %ld != %ld\n",
                                              CNBD_MD_BUCKET_NAME_STR(cnbd_md),
+                                             bucket_size,
                                              CNBD_MD_NBD_DEV_SIZE(cnbd_md));
 
         c_file_close(CNBD_MD_DEMO_FD(cnbd_md));
@@ -475,14 +477,14 @@ EC_BOOL cnbd_bucket_open(const UINT32 cnbd_md_id)
     }
 
     dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_bucket_open:"
-                                         "create bucket %s, truncate size %ld\n",
+                                         "bucket %s size %ld done\n",
                                          CNBD_MD_BUCKET_NAME_STR(cnbd_md),
-                                         CNBD_MD_NBD_DEV_SIZE(cnbd_md));
+                                         bucket_size);
 
     return (EC_TRUE);
 }
 
-EC_BOOL cnbd_bucket_truncate(const UINT32 cnbd_md_id)
+EC_BOOL cnbd_bucket_create(const UINT32 cnbd_md_id)
 {
     CNBD_MD  *cnbd_md;
     UINT32    bucket_size;
@@ -491,7 +493,7 @@ EC_BOOL cnbd_bucket_truncate(const UINT32 cnbd_md_id)
     if ( CNBD_MD_ID_CHECK_INVALID(cnbd_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cnbd_bucket_truncate: cnbd module #%ld not started.\n",
+                "error:cnbd_bucket_create: cnbd module #%ld not started.\n",
                 cnbd_md_id);
         cnbd_print_module_status(cnbd_md_id, LOGSTDOUT);
         dbg_exit(MD_CNBD, cnbd_md_id);
@@ -502,7 +504,7 @@ EC_BOOL cnbd_bucket_truncate(const UINT32 cnbd_md_id)
 
     if(EC_TRUE == cstring_is_empty(CNBD_MD_BUCKET_NAME(cnbd_md)))
     {
-        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_bucket_truncate:"
+        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_bucket_create:"
                                              "no bucket name\n");
         return (EC_FALSE);
     }
@@ -513,13 +515,13 @@ EC_BOOL cnbd_bucket_truncate(const UINT32 cnbd_md_id)
                                                      O_RDWR | O_CREAT, 0666);
         if(ERR_FD == CNBD_MD_DEMO_FD(cnbd_md))
         {
-            dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_bucket_truncate:"
+            dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_bucket_create:"
                                                  "open bucket %s failed\n",
                                                  CNBD_MD_BUCKET_NAME_STR(cnbd_md));
 
             return (EC_FALSE);
         }
-        dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_bucket_truncate:"
+        dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_bucket_create:"
                                              "open bucket %s, fd %d done\n",
                                              CNBD_MD_BUCKET_NAME_STR(cnbd_md),
                                              CNBD_MD_DEMO_FD(cnbd_md));
@@ -529,8 +531,8 @@ EC_BOOL cnbd_bucket_truncate(const UINT32 cnbd_md_id)
 
     if(EC_FALSE == c_file_truncate(CNBD_MD_DEMO_FD(cnbd_md), bucket_size))
     {
-        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_bucket_truncate:"
-                                             "truncate bucket %s, size %ld failed\n",
+        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_bucket_create:"
+                                             "create bucket %s, size %ld failed\n",
                                              CNBD_MD_BUCKET_NAME_STR(cnbd_md),
                                              bucket_size);
 
@@ -538,7 +540,7 @@ EC_BOOL cnbd_bucket_truncate(const UINT32 cnbd_md_id)
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_bucket_truncate:"
+    dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_bucket_create:"
                                          "create bucket %s, size %ld done\n",
                                          CNBD_MD_BUCKET_NAME_STR(cnbd_md),
                                          bucket_size);
@@ -703,72 +705,6 @@ EC_BOOL cnbd_bucket_write(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req, CNB
     CNBD_RSP_MAGIC(cnbd_rsp)  = CNBD_RSP_MAGIC_NUM;
     CNBD_RSP_STATUS(cnbd_rsp) = 0;
     CNBD_RSP_SEQNO(cnbd_rsp)  = CNBD_REQ_SEQNO(cnbd_req);
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cnbd_set_bucket_open_handler(const UINT32 cnbd_md_id, EC_BOOL (*bucket_open_handler)(const UINT32))
-{
-    CNBD_MD  *cnbd_md;
-
-#if (SWITCH_ON == CNBD_DEBUG_SWITCH)
-    if ( CNBD_MD_ID_CHECK_INVALID(cnbd_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:cnbd_bucket_write: cnbd module #%ld not started.\n",
-                cnbd_md_id);
-        cnbd_print_module_status(cnbd_md_id, LOGSTDOUT);
-        dbg_exit(MD_CNBD, cnbd_md_id);
-    }
-#endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
-
-    cnbd_md = CNBD_MD_GET(cnbd_md_id);
-
-    CNBD_MD_BUCKET_OPEN_FUNC(cnbd_md) = bucket_open_handler;
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cnbd_set_bucket_truncate_handler(const UINT32 cnbd_md_id, EC_BOOL (*bucket_truncate_handler)(const UINT32))
-{
-    CNBD_MD  *cnbd_md;
-
-#if (SWITCH_ON == CNBD_DEBUG_SWITCH)
-    if ( CNBD_MD_ID_CHECK_INVALID(cnbd_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:cnbd_bucket_write: cnbd module #%ld not started.\n",
-                cnbd_md_id);
-        cnbd_print_module_status(cnbd_md_id, LOGSTDOUT);
-        dbg_exit(MD_CNBD, cnbd_md_id);
-    }
-#endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
-
-    cnbd_md = CNBD_MD_GET(cnbd_md_id);
-
-    CNBD_MD_BUCKET_TRUNCATE_FUNC(cnbd_md) = bucket_truncate_handler;
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cnbd_set_bucket_close_handler(const UINT32 cnbd_md_id, EC_BOOL (*bucket_close_handler)(const UINT32))
-{
-    CNBD_MD  *cnbd_md;
-
-#if (SWITCH_ON == CNBD_DEBUG_SWITCH)
-    if ( CNBD_MD_ID_CHECK_INVALID(cnbd_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:cnbd_bucket_write: cnbd module #%ld not started.\n",
-                cnbd_md_id);
-        cnbd_print_module_status(cnbd_md_id, LOGSTDOUT);
-        dbg_exit(MD_CNBD, cnbd_md_id);
-    }
-#endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
-
-    cnbd_md = CNBD_MD_GET(cnbd_md_id);
-
-    CNBD_MD_BUCKET_CLOSE_FUNC(cnbd_md) = bucket_close_handler;
 
     return (EC_TRUE);
 }

@@ -42,7 +42,7 @@ FUNC_ADDR_NODE g_cxfsnbd_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- UINT32 cxfsnbd_start(const CSTRING *bucket_name, const UINT32 cxfs_tcid, const UINT32 cxfs_md_id); -- */
+/* -- UINT32 cxfsnbd_start(const CSTRING *nbd_dev_name, const UINT32 nbd_blk_size, const UINT32 nbd_dev_size, const UINT32 nbd_timeout, const CSTRING *bucket_name, const UINT32 cxfs_tcid, const UINT32 cxfs_md_id); -- */
 /*func module     */     MD_CXFSNBD,
 /*func logic addr */     (UINT32)cxfsnbd_start,
 /*func beg addr   */     0,
@@ -51,9 +51,9 @@ FUNC_ADDR_NODE g_cxfsnbd_func_addr_list[ ] = {
 /*func name       */     "cxfsnbd_start",
 /*func index      */     FI_cxfsnbd_start,
 /*func ret type   */     e_dbg_UINT32,
-/*func para num   */     3,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,},
+/*func para num   */     7,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,},
 /*func para val   */     0, 0, {0},
 },
 {

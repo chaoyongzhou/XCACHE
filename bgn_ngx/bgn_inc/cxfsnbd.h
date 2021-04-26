@@ -22,23 +22,6 @@ extern "C"{
 #include "cnbd.h"
 #include "cxfs.h"
 
-#if 0
-#define CXFSNBD_DEV_NAME            ("/dev/nbd0")
-#define CXFSNBD_DEV_SIZE            (((uint64_t)128) << 20) /*128MB*/
-
-#define CXFSNBD_BLK_SIZE            (512)
-#define CXFSNBD_TIMEOUT             (30)
-#endif
-
-#if 1
-#define CXFSNBD_DEV_NAME            CXFSNBD_DEVICE_NAME
-#define CXFSNBD_DEV_SIZE            CXFSNBD_DEVICE_SIZE
-
-#define CXFSNBD_BLK_SIZE            CXFSNBD_BLOCK_SIZE
-#define CXFSNBD_TIMEOUT             CXFSNBD_TIMEOUT_NSEC
-#endif
-
-
 #define CXFSNBD_CXFS_SEG_SIZE       (((UINT32)64) << 20) /*64MB*/
 
 typedef struct
@@ -135,7 +118,13 @@ UINT32 cxfsnbd_free_module_static_mem(const UINT32 cxfsnbd_md_id);
 * start CXFSNBD module
 *
 **/
-UINT32 cxfsnbd_start(const CSTRING *bucket_name, const UINT32 cxfs_tcid, const UINT32 cxfs_md_id);
+UINT32 cxfsnbd_start(const CSTRING *nbd_dev_name,
+                        const UINT32   nbd_blk_size,
+                        const UINT32   nbd_dev_size,
+                        const UINT32   nbd_timeout,
+                        const CSTRING *bucket_name,
+                        const UINT32   cxfs_tcid,
+                        const UINT32   cxfs_md_id);
 
 /**
 *
