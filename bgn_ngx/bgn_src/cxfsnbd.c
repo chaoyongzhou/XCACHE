@@ -795,7 +795,7 @@ EC_BOOL cxfsnbd_bucket_check(const UINT32 cxfsnbd_md_id)
 
     dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_check:"
                                             "check bucket %s size %ld done\n",
-                                            CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md),
+                                            (char *)CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md),
                                             bucket_size);
 
     return (EC_TRUE);
@@ -954,27 +954,27 @@ EC_BOOL cxfsnbd_bucket_launch(const UINT32 cxfsnbd_md_id)
     {
         dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "[DEBUG] cxfsnbd_launch:"
                                                 "check bucket %s done\n",
-                                                (char *)CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md));
+                                                (char *)CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md));
 
         return (EC_TRUE);
     }
 
     dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_launch:"
                                             "check bucket %s failed\n",
-                                            (char *)CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md));
+                                            (char *)CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md));
 
     if(EC_TRUE == cxfsnbd_bucket_create(cxfsnbd_md_id))
     {
         dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "[DEBUG] cxfsnbd_launch:"
                                                 "create bucket %s done\n",
-                                                (char *)CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md));
+                                                (char *)CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md));
 
         return (EC_TRUE);
     }
 
     dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_launch:"
                                             "create bucket %s failed\n",
-                                            (char *)CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md));
+                                            (char *)CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md));
 
     /*destroy cxfsnbd module */
     cxfsnbd_end(cxfsnbd_md_id);
