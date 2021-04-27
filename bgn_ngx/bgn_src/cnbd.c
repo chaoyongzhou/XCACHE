@@ -996,9 +996,8 @@ EC_BOOL cnbd_push_req(const UINT32 cnbd_md_id, CNBD_REQ *cnbd_req)
     clist_push_back(CNBD_MD_NBD_REQ_LIST(cnbd_md), (void *)cnbd_req);
 
     dbg_log(SEC_0206_CNBD, 6)(LOGSTDOUT, "[DEBUG] cnbd_push_req: "
-                "push req %p (magic %#x, type %s, seqno %#lx, offset %ld, len %d) "
+                "push req (magic %#x, type %s, seqno %#lx, offset %ld, len %d) "
                 "(header pos %u, data pos %u)\n",
-                cnbd_req,
                 CNBD_REQ_MAGIC(cnbd_req),
                 __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
                 CNBD_REQ_SEQNO(cnbd_req),
@@ -1033,9 +1032,8 @@ CNBD_REQ *cnbd_pop_req(const UINT32 cnbd_md_id)
     if(NULL_PTR != cnbd_req)
     {
         dbg_log(SEC_0206_CNBD, 6)(LOGSTDOUT, "[DEBUG] cnbd_pop_req: "
-                    "pop req %p (magic %#x, type %s, seqno %#lx, offset %ld, len %d) "
+                    "pop (magic %#x, type %s, seqno %#lx, offset %ld, len %d) "
                     "(header pos %u, data pos %u)\n",
-                    cnbd_req,
                     CNBD_REQ_MAGIC(cnbd_req),
                     __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
                     CNBD_REQ_SEQNO(cnbd_req),
@@ -1068,9 +1066,8 @@ EC_BOOL cnbd_push_rsp(const UINT32 cnbd_md_id, CNBD_RSP *cnbd_rsp)
     clist_push_back(CNBD_MD_NBD_RSP_LIST(cnbd_md), (void *)cnbd_rsp);
 
     dbg_log(SEC_0206_CNBD, 6)(LOGSTDOUT, "[DEBUG] cnbd_push_rsp: "
-                    "push rsp %p (magic %u, status %#x, seqno %#lx, len %u) "
+                    "push rsp (magic %u, status %#x, seqno %#lx, len %u) "
                     "(header pos %u, data pos %u)\n",
-                    cnbd_rsp,
                     CNBD_RSP_MAGIC(cnbd_rsp),
                     CNBD_RSP_STATUS(cnbd_rsp),
                     CNBD_RSP_SEQNO(cnbd_rsp),
@@ -1104,9 +1101,8 @@ CNBD_RSP *cnbd_pop_rsp(const UINT32 cnbd_md_id)
     if(NULL_PTR != cnbd_rsp)
     {
         dbg_log(SEC_0206_CNBD, 6)(LOGSTDOUT, "[DEBUG] cnbd_pop_rsp: "
-                        "pop rsp %p (magic %u, status %#x, seqno %#lx, len %u) "
+                        "pop rsp (magic %u, status %#x, seqno %#lx, len %u) "
                         "(header pos %u, data pos %u)\n",
-                        cnbd_rsp,
                         CNBD_RSP_MAGIC(cnbd_rsp),
                         CNBD_RSP_STATUS(cnbd_rsp),
                         CNBD_RSP_SEQNO(cnbd_rsp),
@@ -1568,9 +1564,8 @@ EC_BOOL cnbd_handle_req(const UINT32 cnbd_md_id, CNBD_REQ *cnbd_req)
 #endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
 
     dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_handle_req: "
-                " req %p (magic %#x, type %s, seqno %#lx, offset %ld, len %d) "
+                " req (magic %#x, type %s, seqno %#lx, offset %ld, len %d) "
                 "(header pos %u, data pos %u)\n",
-                cnbd_req,
                 CNBD_REQ_MAGIC(cnbd_req),
                 __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
                 CNBD_REQ_SEQNO(cnbd_req),
