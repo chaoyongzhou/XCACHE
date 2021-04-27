@@ -2030,8 +2030,7 @@ EC_BOOL cnbd_socket_recv(const UINT32 cnbd_md_id)
         cnbd_push_req(cnbd_md_id, cnbd_req);
 
         dbg_log(SEC_0206_CNBD, 5)(LOGSTDOUT, "[DEBUG] cnbd_socket_recv: "
-                    "recv ongoing req %p (magic %#x, type %s, seqno %#lx, offset %ld, len %d)\n",
-                    cnbd_req,
+                    "recv ongoing (magic %#x, type %s, seqno %#lx, offset %ld, len %d)\n",
                     CNBD_REQ_MAGIC(cnbd_req),
                     __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
                     CNBD_REQ_SEQNO(cnbd_req),
@@ -2089,8 +2088,7 @@ EC_BOOL cnbd_socket_recv(const UINT32 cnbd_md_id)
         cnbd_push_req(cnbd_md_id, cnbd_req);
 
         dbg_log(SEC_0206_CNBD, 5)(LOGSTDOUT, "[DEBUG] cnbd_socket_recv: "
-                    "recv req %p (magic %#x, type %s, seqno %#lx, offset %ld, len %d)\n",
-                    cnbd_req,
+                    "recv (magic %#x, type %s, seqno %#lx, offset %ld, len %d)\n",
                     CNBD_REQ_MAGIC(cnbd_req),
                     __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
                     CNBD_REQ_SEQNO(cnbd_req),
