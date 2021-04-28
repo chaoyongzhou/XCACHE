@@ -165,7 +165,12 @@ EC_BOOL cxfsdn_node_read(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data
 
 EC_BOOL cxfsdn_set_check_page_used_cb(CXFSDN *cxfsdn, void *data, void *func)
 {
-    return camd_set_check_page_used_cb(CXFSDN_CAMD_MD(cxfsdn), data, func);
+    if(NULL_PTR != CXFSDN_CAMD_MD(cxfsdn))
+    {
+        return camd_set_check_page_used_cb(CXFSDN_CAMD_MD(cxfsdn), data, func);
+    }
+
+    return (EC_TRUE);
 }
 
 CXFSDN *cxfsdn_create(const CXFSCFG *cxfscfg,

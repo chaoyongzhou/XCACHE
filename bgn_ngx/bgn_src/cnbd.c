@@ -140,10 +140,10 @@ UINT32 cnbd_free_module_static_mem(const UINT32 cnbd_md_id)
 *
 **/
 UINT32 cnbd_start(const CSTRING *nbd_dev_name,
-                  const UINT32   nbd_blk_size,
-                  const UINT32   nbd_dev_size,
-                  const UINT32   nbd_timeout,
-                  const CSTRING *bucket_name)
+                    const UINT32   nbd_blk_size, /*sector size*/
+                    const UINT32   nbd_dev_size,
+                    const UINT32   nbd_timeout,
+                    const CSTRING *bucket_name)
 {
     CNBD_MD     *cnbd_md;
     UINT32       cnbd_md_id;
@@ -630,7 +630,7 @@ EC_BOOL cnbd_bucket_read(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req, CNBD
         if(EC_FALSE == c_file_read(CNBD_MD_DEMO_FD(cnbd_md), &rd_offset, rd_size, data))
         {
             dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_bucket_read: "
-                                                 "read (fd %d, offset %u, len %u) failed\n",
+                                                 "read (fd %d, offset %lu, len %u) failed\n",
                                                  CNBD_MD_DEMO_FD(cnbd_md),
                                                  CNBD_REQ_OFFSET(cnbd_req),
                                                  CNBD_REQ_LEN(cnbd_req));
@@ -640,7 +640,7 @@ EC_BOOL cnbd_bucket_read(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req, CNBD
         }
 
         dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_bucket_read: "
-                                             "read (fd %d, offset %u, len %u) done\n",
+                                             "read (fd %d, offset %lu, len %u) done\n",
                                              CNBD_MD_DEMO_FD(cnbd_md),
                                              CNBD_REQ_OFFSET(cnbd_req),
                                              CNBD_REQ_LEN(cnbd_req));
@@ -687,7 +687,7 @@ EC_BOOL cnbd_bucket_write(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req, CNB
         if(EC_FALSE == c_file_write(CNBD_MD_DEMO_FD(cnbd_md), &wr_offset, wr_size, data))
         {
             dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_handle_req_write: "
-                                                 "write (fd %d, offset %u, len %u) failed\n",
+                                                 "write (fd %d, offset %lu, len %u) failed\n",
                                                  CNBD_MD_DEMO_FD(cnbd_md),
                                                  CNBD_REQ_OFFSET(cnbd_req),
                                                  CNBD_REQ_LEN(cnbd_req));
@@ -696,7 +696,7 @@ EC_BOOL cnbd_bucket_write(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req, CNB
         }
 
         dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_handle_req_write: "
-                                             "write (fd %d, offset %u, len %u) done\n",
+                                             "write (fd %d, offset %lu, len %u) done\n",
                                              CNBD_MD_DEMO_FD(cnbd_md),
                                              CNBD_REQ_OFFSET(cnbd_req),
                                              CNBD_REQ_LEN(cnbd_req));
@@ -854,7 +854,7 @@ void cnbd_req_print(LOG *log, const CNBD_REQ *cnbd_req)
     {
         sys_log(log, "cnbd_req_print: "
                      "req %p: "
-                     "magic %u, type %s, seqno %#lx, offset %ld, len %u, "
+                     "magic %u, type %s, seqno %#lx, offset %lu, len %u, "
                      "(pos %u, data %p)\n",
                      cnbd_req,
                      CNBD_REQ_MAGIC(cnbd_req),
@@ -996,7 +996,7 @@ EC_BOOL cnbd_push_req(const UINT32 cnbd_md_id, CNBD_REQ *cnbd_req)
     clist_push_back(CNBD_MD_NBD_REQ_LIST(cnbd_md), (void *)cnbd_req);
 
     dbg_log(SEC_0206_CNBD, 6)(LOGSTDOUT, "[DEBUG] cnbd_push_req: "
-                "push req (magic %#x, type %s, seqno %#lx, offset %ld, len %d) "
+                "push req (magic %#x, type %s, seqno %#lx, offset %lu, len %u) "
                 "(header pos %u, data pos %u)\n",
                 CNBD_REQ_MAGIC(cnbd_req),
                 __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
@@ -1032,7 +1032,7 @@ CNBD_REQ *cnbd_pop_req(const UINT32 cnbd_md_id)
     if(NULL_PTR != cnbd_req)
     {
         dbg_log(SEC_0206_CNBD, 6)(LOGSTDOUT, "[DEBUG] cnbd_pop_req: "
-                    "pop (magic %#x, type %s, seqno %#lx, offset %ld, len %d) "
+                    "pop (magic %#x, type %s, seqno %#lx, offset %lu, len %u) "
                     "(header pos %u, data pos %u)\n",
                     CNBD_REQ_MAGIC(cnbd_req),
                     __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
@@ -1163,7 +1163,7 @@ EC_BOOL cnbd_recv_req(const UINT32 cnbd_md_id, CNBD_REQ *cnbd_req)
 
         dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_recv_req: "
                     "recv req header "
-                    "(magic %#x, type %s, seqno %#lx, offset %ld, len %d) done\n",
+                    "(magic %#x, type %s, seqno %#lx, offset %lu, len %u) done\n",
                     CNBD_REQ_MAGIC(cnbd_req),
                     __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
                     CNBD_REQ_SEQNO(cnbd_req),
@@ -1357,7 +1357,7 @@ EC_BOOL cnbd_handle_req_read(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
         if(EC_FALSE == cnbd_bucket_read(cnbd_md_id, cnbd_req, cnbd_rsp))
         {
             dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_handle_req_read: "
-                                                 "read (fd %d, offset %u, len %u) failed\n",
+                                                 "read (fd %d, offset %lu, len %u) failed\n",
                                                  CNBD_MD_DEMO_FD(cnbd_md),
                                                  CNBD_REQ_OFFSET(cnbd_req),
                                                  CNBD_REQ_LEN(cnbd_req));
@@ -1367,7 +1367,7 @@ EC_BOOL cnbd_handle_req_read(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
         }
 
         dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_handle_req_read: "
-                                             "read (fd %d, offset %u, len %u) done\n",
+                                             "read (fd %d, offset %lu, len %u) done\n",
                                              CNBD_MD_DEMO_FD(cnbd_md),
                                              CNBD_REQ_OFFSET(cnbd_req),
                                              CNBD_REQ_LEN(cnbd_req));
@@ -1378,7 +1378,7 @@ EC_BOOL cnbd_handle_req_read(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
         if(EC_FALSE == CNBD_MD_BUCKET_READ_FUNC(cnbd_md)(cnbd_md_id, cnbd_req, cnbd_rsp))
         {
             dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_handle_req_read: "
-                                                 "read (offset %u, len %u) failed\n",
+                                                 "read (offset %lu, len %u) failed\n",
                                                  CNBD_REQ_OFFSET(cnbd_req),
                                                  CNBD_REQ_LEN(cnbd_req));
 
@@ -1387,7 +1387,7 @@ EC_BOOL cnbd_handle_req_read(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
         }
 
         dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_handle_req_read: "
-                                             "read (offset %u, len %u) done\n",
+                                             "read (offset %lu, len %u) done\n",
                                              CNBD_REQ_OFFSET(cnbd_req),
                                              CNBD_REQ_LEN(cnbd_req));
     }
@@ -1429,7 +1429,7 @@ EC_BOOL cnbd_handle_req_write(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
         if(EC_FALSE == cnbd_bucket_write(cnbd_md_id, cnbd_req, cnbd_rsp))
         {
             dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_handle_req_write: "
-                                                 "write (fd %d, offset %u, len %u) failed\n",
+                                                 "write (fd %d, offset %lu, len %u) failed\n",
                                                  CNBD_MD_DEMO_FD(cnbd_md),
                                                  CNBD_REQ_OFFSET(cnbd_req),
                                                  CNBD_REQ_LEN(cnbd_req));
@@ -1439,7 +1439,7 @@ EC_BOOL cnbd_handle_req_write(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
         }
 
         dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_handle_req_write: "
-                                             "write (fd %d, offset %u, len %u) done\n",
+                                             "write (fd %d, offset %lu, len %u) done\n",
                                              CNBD_MD_DEMO_FD(cnbd_md),
                                              CNBD_REQ_OFFSET(cnbd_req),
                                              CNBD_REQ_LEN(cnbd_req));
@@ -1449,7 +1449,7 @@ EC_BOOL cnbd_handle_req_write(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
         if(EC_FALSE == CNBD_MD_BUCKET_WRITE_FUNC(cnbd_md)(cnbd_md_id, cnbd_req, cnbd_rsp))
         {
             dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_handle_req_write: "
-                                                 "write (offset %u, len %u) failed\n",
+                                                 "write (offset %lu, len %u) failed\n",
                                                  CNBD_REQ_OFFSET(cnbd_req),
                                                  CNBD_REQ_LEN(cnbd_req));
 
@@ -1458,7 +1458,7 @@ EC_BOOL cnbd_handle_req_write(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req)
         }
 
         dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_handle_req_write: "
-                                             "write (offset %u, len %u) done\n",
+                                             "write (offset %lu, len %u) done\n",
                                              CNBD_REQ_OFFSET(cnbd_req),
                                              CNBD_REQ_LEN(cnbd_req));
     }
@@ -1564,7 +1564,7 @@ EC_BOOL cnbd_handle_req(const UINT32 cnbd_md_id, CNBD_REQ *cnbd_req)
 #endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
 
     dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_handle_req: "
-                " req (magic %#x, type %s, seqno %#lx, offset %ld, len %d) "
+                " req (magic %#x, type %s, seqno %#lx, offset %lu, len %u) "
                 "(header pos %u, data pos %u)\n",
                 CNBD_REQ_MAGIC(cnbd_req),
                 __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
@@ -1582,7 +1582,7 @@ EC_BOOL cnbd_handle_req(const UINT32 cnbd_md_id, CNBD_REQ *cnbd_req)
     if(NULL_PTR == cnbd_cb)
     {
         dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_handle_req: "
-                    "handle req (magic %#x, type %s, seqno %#lx, offset %ld, len %d)"
+                    "handle req (magic %#x, type %s, seqno %#lx, offset %lu, len %u)"
                     " => invalid type\n",
                     CNBD_REQ_MAGIC(cnbd_req),
                     __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
@@ -1598,7 +1598,7 @@ EC_BOOL cnbd_handle_req(const UINT32 cnbd_md_id, CNBD_REQ *cnbd_req)
     if(EC_FALSE == CNBD_CB_HANDLER(cnbd_cb)(cnbd_md_id, cnbd_req))
     {
         dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_handle_req: "
-                    "handle req (magic %#x, type %s, seqno %#lx, offset %ld, len %d) failed\n",
+                    "handle req (magic %#x, type %s, seqno %#lx, offset %lu, len %u) failed\n",
                     CNBD_REQ_MAGIC(cnbd_req),
                     __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
                     CNBD_REQ_SEQNO(cnbd_req),
@@ -1610,7 +1610,7 @@ EC_BOOL cnbd_handle_req(const UINT32 cnbd_md_id, CNBD_REQ *cnbd_req)
     }
 
     dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_handle_req: "
-                "handle req (magic %#x, type %s, seqno %#lx, offset %ld, len %d) done\n",
+                "handle req (magic %#x, type %s, seqno %#lx, offset %lu, len %u) done\n",
                 CNBD_REQ_MAGIC(cnbd_req),
                 __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
                 CNBD_REQ_SEQNO(cnbd_req),
@@ -1787,7 +1787,7 @@ EC_BOOL cnbd_device_set(const UINT32 cnbd_md_id)
     if(0 > ioctl(CNBD_MD_NBD_FD(cnbd_md), CNBD_SET_BLKSIZE, CNBD_MD_NBD_BLK_SIZE(cnbd_md)))
     {
         dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_device_set: "
-                                             "nbd device '%s', fd %d, ioctl %s (%ld) failed, "
+                                             "nbd device '%s', fd %d, ioctl %s (%lu) failed, "
                                              "errno %d, errstr %s\n",
                                              (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
                                              CNBD_MD_NBD_FD(cnbd_md),
@@ -1797,7 +1797,7 @@ EC_BOOL cnbd_device_set(const UINT32 cnbd_md_id)
         return (EC_FALSE);
     }
     dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_device_set: "
-                                         "nbd device '%s', fd %d, set block size %ld\n",
+                                         "nbd device '%s', fd %d, set block size %lu\n",
                                          (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
                                          CNBD_MD_NBD_FD(cnbd_md),
                                          CNBD_MD_NBD_BLK_SIZE(cnbd_md));
@@ -1805,7 +1805,7 @@ EC_BOOL cnbd_device_set(const UINT32 cnbd_md_id)
     if(0 > ioctl(CNBD_MD_NBD_FD(cnbd_md), CNBD_SET_SIZE, CNBD_MD_NBD_DEV_SIZE(cnbd_md)))
     {
         dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_device_set: "
-                                             "nbd device '%s', fd %d, ioctl %s (%ld) failed, "
+                                             "nbd device '%s', fd %d, ioctl %s (%lu) failed, "
                                              "errno %d, errstr %s\n",
                                              (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
                                              CNBD_MD_NBD_FD(cnbd_md),
@@ -1815,7 +1815,7 @@ EC_BOOL cnbd_device_set(const UINT32 cnbd_md_id)
         return (EC_FALSE);
     }
     dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_device_set: "
-                                         "nbd device '%s', fd %d, set device size %ld\n",
+                                         "nbd device '%s', fd %d, set device size %lu\n",
                                          (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
                                          CNBD_MD_NBD_FD(cnbd_md),
                                          CNBD_MD_NBD_DEV_SIZE(cnbd_md));
@@ -1851,7 +1851,7 @@ EC_BOOL cnbd_device_set(const UINT32 cnbd_md_id)
         return (EC_FALSE);
     }
     dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_device_set: "
-                                         "nbd device '%s', fd %d, set timeout %ld\n",
+                                         "nbd device '%s', fd %d, set timeout %lu\n",
                                          (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
                                          CNBD_MD_NBD_FD(cnbd_md),
                                          CNBD_MD_NBD_TIMEOUT(cnbd_md));
@@ -1887,12 +1887,13 @@ EC_BOOL cnbd_device_listen(const UINT32 cnbd_md_id)
         int err;
 
         err = errno;
+        task_brd_update_time_default();
         dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_device_listen: "
                                              "nbd device '%s', fd %d, listen failed, "
                                              "errno %d, errstr %s\n",
                                              (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
                                              CNBD_MD_NBD_FD(cnbd_md),
-                                             errno, strerror(errno));
+                                             err, strerror(err));
 
         if(EBUSY == err)
         {
@@ -1905,6 +1906,7 @@ EC_BOOL cnbd_device_listen(const UINT32 cnbd_md_id)
         return (EC_FALSE);
     }
 
+    task_brd_update_time_default();
     dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_device_listen: "
                                          "nbd device '%s', fd %d, listen terminated\n",
                                          (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
@@ -1937,10 +1939,11 @@ EC_BOOL cnbd_device_disconnect(const UINT32 cnbd_md_id)
 
     ret = EC_TRUE;
 
-    if(0 > ioctl(CNBD_MD_NBD_FD(cnbd_md), CNBD_CLEAR_SOCK))
+    if(0 > ioctl(CNBD_MD_NBD_FD(cnbd_md), CNBD_CLEAR_QUE))
     {
+        task_brd_update_time_default();
         dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_device_disconnect: "
-                                             "nbd device '%s', fd %d, clear sock failed, "
+                                             "nbd device '%s', fd %d, clear que failed, "
                                              "errno %d, errstr %s\n",
                                              (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
                                              CNBD_MD_NBD_FD(cnbd_md),
@@ -1949,14 +1952,16 @@ EC_BOOL cnbd_device_disconnect(const UINT32 cnbd_md_id)
     }
     else
     {
+        task_brd_update_time_default();
         dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_device_disconnect: "
-                                             "nbd device '%s', fd %d, clear sock done\n",
+                                             "nbd device '%s', fd %d, clear que done\n",
                                              (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
                                              CNBD_MD_NBD_FD(cnbd_md));
     }
 
     if(0 > ioctl(CNBD_MD_NBD_FD(cnbd_md), CNBD_DISCONNECT))
     {
+        task_brd_update_time_default();
         dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_device_disconnect: "
                                              "nbd device '%s', fd %d, disconnect failed, "
                                              "errno %d, errstr %s\n",
@@ -1967,11 +1972,33 @@ EC_BOOL cnbd_device_disconnect(const UINT32 cnbd_md_id)
     }
     else
     {
+        task_brd_update_time_default();
         dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_device_disconnect: "
                                              "nbd device '%s', fd %d, disconnect done\n",
                                              (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
                                              CNBD_MD_NBD_FD(cnbd_md));
     }
+
+    if(0 > ioctl(CNBD_MD_NBD_FD(cnbd_md), CNBD_CLEAR_SOCK))
+    {
+        task_brd_update_time_default();
+        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_device_disconnect: "
+                                             "nbd device '%s', fd %d, clear sock failed, "
+                                             "errno %d, errstr %s\n",
+                                             (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
+                                             CNBD_MD_NBD_FD(cnbd_md),
+                                             errno, strerror(errno));
+        ret = EC_FALSE;
+    }
+    else
+    {
+        task_brd_update_time_default();
+        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_device_disconnect: "
+                                             "nbd device '%s', fd %d, clear sock done\n",
+                                             (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
+                                             CNBD_MD_NBD_FD(cnbd_md));
+    }
+
     return (ret);
 }
 
@@ -2025,7 +2052,7 @@ EC_BOOL cnbd_socket_recv(const UINT32 cnbd_md_id)
         cnbd_push_req(cnbd_md_id, cnbd_req);
 
         dbg_log(SEC_0206_CNBD, 5)(LOGSTDOUT, "[DEBUG] cnbd_socket_recv: "
-                    "recv ongoing (magic %#x, type %s, seqno %#lx, offset %ld, len %d)\n",
+                    "recv ongoing (magic %#x, type %s, seqno %#lx, offset %lu, len %u)\n",
                     CNBD_REQ_MAGIC(cnbd_req),
                     __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
                     CNBD_REQ_SEQNO(cnbd_req),
@@ -2083,7 +2110,7 @@ EC_BOOL cnbd_socket_recv(const UINT32 cnbd_md_id)
         cnbd_push_req(cnbd_md_id, cnbd_req);
 
         dbg_log(SEC_0206_CNBD, 5)(LOGSTDOUT, "[DEBUG] cnbd_socket_recv: "
-                    "recv (magic %#x, type %s, seqno %#lx, offset %ld, len %d)\n",
+                    "recv (magic %#x, type %s, seqno %#lx, offset %lu, len %u)\n",
                     CNBD_REQ_MAGIC(cnbd_req),
                     __cnbd_req_type_str(CNBD_REQ_TYPE(cnbd_req)),
                     CNBD_REQ_SEQNO(cnbd_req),

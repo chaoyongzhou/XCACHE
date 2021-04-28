@@ -91,7 +91,7 @@ UINT32 cxfsnbd_free_module_static_mem(const UINT32 cxfsnbd_md_id)
 *
 **/
 UINT32 cxfsnbd_start(const CSTRING *nbd_dev_name,
-                        const UINT32   nbd_blk_size,
+                        const UINT32   nbd_blk_size, /*sector size*/
                         const UINT32   nbd_dev_size,
                         const UINT32   nbd_timeout,
                         const CSTRING *bucket_name,
@@ -182,7 +182,7 @@ UINT32 cxfsnbd_start(const CSTRING *nbd_dev_name,
     if(CMPI_ERROR_MODI == CXFSNBD_MD_CNBD_MODI(cxfsnbd_md))
     {
         dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_start:"
-            "start nbd (dev %s, bucket %s, block size %ld, dev size %ld, timeout %ld) failed\n",
+            "start nbd (dev %s, bucket %s, block size %lu, dev size %lu, timeout %lu) failed\n",
             (char *)CXFSNBD_MD_NBD_DEV_NAME_STR(cxfsnbd_md),
             (char *)CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md),
             CXFSNBD_MD_NBD_BLK_SIZE(cxfsnbd_md),
@@ -194,7 +194,7 @@ UINT32 cxfsnbd_start(const CSTRING *nbd_dev_name,
     }
 
     dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "[DEBUG] cxfsnbd_start:"
-        "start nbd (dev %s, bucket %s, block size %ld, dev size %ld, timeout %ld) done\n",
+        "start nbd (dev %s, bucket %s, block size %lu, dev size %lu, timeout %lu) done\n",
         (char *)CXFSNBD_MD_NBD_DEV_NAME_STR(cxfsnbd_md),
         (char *)CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md),
         CXFSNBD_MD_NBD_BLK_SIZE(cxfsnbd_md),
@@ -290,7 +290,7 @@ void cxfsnbd_end(const UINT32 cxfsnbd_md_id)
 
 STATIC_CAST CSTRING *__cxfsnbd_make_bucket_seg_name(const CSTRING *bucket_name, const UINT32 seg_idx)
 {
-    return cstring_make("%s/%ld", (char *)cstring_get_str(bucket_name), seg_idx);
+    return cstring_make("%s/%lu", (char *)cstring_get_str(bucket_name), seg_idx);
 }
 
 STATIC_CAST CVECTOR *__cxfsnbd_make_bucket_segs(const CSTRING *bucket_name,
@@ -341,7 +341,7 @@ STATIC_CAST CVECTOR *__cxfsnbd_make_bucket_segs(const CSTRING *bucket_name,
         }
 
         dbg_log(SEC_0141_CXFSNBD, 6)(LOGSTDOUT, "[DEBUG] __cxfsnbd_make_bucket_segs:"
-                                                "[#%ld] bucket %s seg %ld : offset %ld, size %ld\n",
+                                                "[#%lu] bucket %s seg %lu : offset %lu, size %lu\n",
                                                 cxfs_seg_no_c - cxfs_seg_no_s,
                                                 (char *)cstring_get_str(bucket_name),
                                                 cxfs_seg_no_c, cxfs_seg_offset, cxfs_seg_size);
@@ -354,7 +354,7 @@ STATIC_CAST CVECTOR *__cxfsnbd_make_bucket_segs(const CSTRING *bucket_name,
         if(NULL_PTR == CXFSNBD_CXFS_SEG_NAME(cxfsnbd_seg))
         {
             dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:__cxfsnbd_make_bucket_segs:"
-                                                    "bucket %s make seg %ld name failed\n",
+                                                    "bucket %s make seg %lu name failed\n",
                                                     (char *)cstring_get_str(bucket_name),
                                                     cxfs_seg_no_c);
 
@@ -510,8 +510,8 @@ void cxfsnbd_seg_print(LOG *log, const CXFSNBD_SEG *cxfsnbd_seg)
     if(NULL_PTR != cxfsnbd_seg)
     {
         sys_log(log, "cxfsnbd_seg_print: "
-                     "seg %p: name %s, data len %ld, data buf %p, "
-                     "nbd [%ld, %ld), data [%ld, %ld), xfs (#%ld, [%ld, %ld), %s)\n",
+                     "seg %p: name %s, data len %lu, data buf %p, "
+                     "nbd [%lu, %lu), data [%lu, %lu), xfs (#%lu, [%lu, %lu), %s)\n",
                      cxfsnbd_seg,
                      (char *)CXFSNBD_CXFS_SEG_NAME_STR(cxfsnbd_seg),
                      CXFSNBD_CXFS_SEG_DATA_LEN(cxfsnbd_seg),
@@ -535,8 +535,8 @@ void cxfsnbd_seg_print_plain(LOG *log, const CXFSNBD_SEG *cxfsnbd_seg)
 {
     if(NULL_PTR != cxfsnbd_seg)
     {
-        sys_print(log, "seg %p: name %s, data len %ld, data buf %p, "
-                       "nbd [%ld, %ld), data [%ld, %ld), xfs (#%ld, [%ld, %ld), %s)\n",
+        sys_print(log, "seg %p: name %s, data len %lu, data buf %p, "
+                       "nbd [%lu, %lu), data [%lu, %lu), xfs (#%lu, [%lu, %lu), %s)\n",
                        cxfsnbd_seg,
                        (char *)CXFSNBD_CXFS_SEG_NAME_STR(cxfsnbd_seg),
                        CXFSNBD_CXFS_SEG_DATA_LEN(cxfsnbd_seg),
@@ -565,7 +565,7 @@ CVECTOR *cxfsnbd_seg_vec_new(const UINT32 capacity)
     if(NULL_PTR == cxfsnbd_seg_vec)
     {
         dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_seg_vec_new: "
-                                                "new cxfsnbd_seg vector capacity %ld failed\n",
+                                                "new cxfsnbd_seg vector capacity %lu failed\n",
                                                 capacity);
         return (NULL_PTR);
     }
@@ -620,8 +620,8 @@ EC_BOOL cxfsnbd_seg_vec_mount_data(CVECTOR *cxfsnbd_seg_vec, UINT8 *data, const 
             if(len < CXFSNBD_DATA_SEG_E_OFFSET(cxfsnbd_seg))
             {
                 dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_seg_vec_mount_data: "
-                                                        "seg data range [%ld, %ld) overflow, "
-                                                        "data len = %ld\n",
+                                                        "seg data range [%lu, %lu) overflow, "
+                                                        "data len = %lu\n",
                                                         CXFSNBD_DATA_SEG_S_OFFSET(cxfsnbd_seg),
                                                         CXFSNBD_DATA_SEG_E_OFFSET(cxfsnbd_seg),
                                                         len);
@@ -631,7 +631,7 @@ EC_BOOL cxfsnbd_seg_vec_mount_data(CVECTOR *cxfsnbd_seg_vec, UINT8 *data, const 
             if(CXFSNBD_DATA_SEG_S_OFFSET(cxfsnbd_seg) >= CXFSNBD_DATA_SEG_E_OFFSET(cxfsnbd_seg))
             {
                 dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_seg_vec_mount_data: "
-                                                        "invalid seg data range [%ld, %ld)\n",
+                                                        "invalid seg data range [%lu, %lu)\n",
                                                         CXFSNBD_DATA_SEG_S_OFFSET(cxfsnbd_seg),
                                                         CXFSNBD_DATA_SEG_E_OFFSET(cxfsnbd_seg));
                 return (EC_FALSE);
@@ -643,13 +643,13 @@ EC_BOOL cxfsnbd_seg_vec_mount_data(CVECTOR *cxfsnbd_seg_vec, UINT8 *data, const 
             if(EC_FALSE == cxfsnbd_seg_mount_data(cxfsnbd_seg, seg_data, seg_data_len))
             {
                 dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_seg_vec_mount_data: "
-                                                        "mount seg data range [%ld, %ld) failed\n",
+                                                        "mount seg data range [%lu, %lu) failed\n",
                                                         CXFSNBD_DATA_SEG_S_OFFSET(cxfsnbd_seg),
                                                         CXFSNBD_DATA_SEG_E_OFFSET(cxfsnbd_seg));
                 return (EC_FALSE);
             }
             dbg_log(SEC_0141_CXFSNBD, 9)(LOGSTDOUT, "[DEBUG] cxfsnbd_seg_vec_mount_data: "
-                                                    "mount seg data range [%ld, %ld) done\n",
+                                                    "mount seg data range [%lu, %lu) done\n",
                                                     CXFSNBD_DATA_SEG_S_OFFSET(cxfsnbd_seg),
                                                     CXFSNBD_DATA_SEG_E_OFFSET(cxfsnbd_seg));
         }
@@ -738,14 +738,14 @@ EC_BOOL cxfsnbd_bucket_check(const UINT32 cxfsnbd_md_id)
         if(NULL_PTR == cxfs_seg_fname)
         {
             dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_bucket_check:"
-                                                    "bucket %s make seg %ld name failed\n",
+                                                    "bucket %s make seg %lu name failed\n",
                                                     (char *)CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md),
                                                     cxfs_seg_idx);
 
             return (EC_FALSE);
         }
 
-        dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_check:"
+        dbg_log(SEC_0141_CXFSNBD, 6)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_check:"
                                                 "make bucket seg name '%s' done\n",
                                                 (char *)cstring_get_str(cxfs_seg_fname));
 
@@ -765,7 +765,7 @@ EC_BOOL cxfsnbd_bucket_check(const UINT32 cxfsnbd_md_id)
         if(EC_FALSE == ret)
         {
             dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_bucket_check:"
-                                                    "bucket %s seg %ld/%ld size failed\n",
+                                                    "bucket %s seg %lu/%lu size failed\n",
                                                     (char *)CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md),
                                                     cxfs_seg_idx, cxfs_seg_num);
 
@@ -776,7 +776,7 @@ EC_BOOL cxfsnbd_bucket_check(const UINT32 cxfsnbd_md_id)
         if(CXFSNBD_CXFS_SEG_SIZE != cxfs_seg_size)
         {
             dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_bucket_check:"
-                                                    "bucket %s seg %ld/%ld size %ld != %ld\n",
+                                                    "bucket %s seg %lu/%lu size %lu != %lu\n",
                                                     (char *)CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md),
                                                     cxfs_seg_idx, cxfs_seg_num,
                                                     cxfs_seg_size, CXFSNBD_CXFS_SEG_SIZE);
@@ -786,7 +786,7 @@ EC_BOOL cxfsnbd_bucket_check(const UINT32 cxfsnbd_md_id)
         }
 
         dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_check:"
-                                                "bucket %s seg %ld/%ld size %ld => OK\n",
+                                                "bucket %s seg %lu/%lu size %lu => OK\n",
                                                 (char *)CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md),
                                                 cxfs_seg_idx, cxfs_seg_num,
                                                 cxfs_seg_size);
@@ -794,7 +794,7 @@ EC_BOOL cxfsnbd_bucket_check(const UINT32 cxfsnbd_md_id)
     }
 
     dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_check:"
-                                            "check bucket %s size %ld done\n",
+                                            "check bucket %s size %lu done\n",
                                             (char *)CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md),
                                             bucket_size);
 
@@ -856,14 +856,14 @@ EC_BOOL cxfsnbd_bucket_create(const UINT32 cxfsnbd_md_id)
         if(NULL_PTR == cxfs_seg_fname)
         {
             dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_bucket_create:"
-                                                    "bucket %s seg %ld make name failed\n",
+                                                    "bucket %s seg %lu make name failed\n",
                                                     (char *)CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md),
                                                     cxfs_seg_idx);
 
             return (EC_FALSE);
         }
 
-        dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_create:"
+        dbg_log(SEC_0141_CXFSNBD, 6)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_create:"
                                                 "make bucket seg name '%s' done\n",
                                                 (char *)cstring_get_str(cxfs_seg_fname));
 
@@ -891,7 +891,7 @@ EC_BOOL cxfsnbd_bucket_create(const UINT32 cxfsnbd_md_id)
             if(EC_FALSE == ret)
             {
                 dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_bucket_create:"
-                                                        "delete bucket %s seg %ld/%ld failed\n",
+                                                        "delete bucket %s seg %lu/%lu failed\n",
                                                         (char *)CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md),
                                                         cxfs_seg_idx, cxfs_seg_num);
 
@@ -910,7 +910,7 @@ EC_BOOL cxfsnbd_bucket_create(const UINT32 cxfsnbd_md_id)
         if(EC_FALSE == ret)
         {
             dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_bucket_create:"
-                                                    "create bucket %s seg %ld/%ld failed\n",
+                                                    "create bucket %s seg %lu/%lu failed\n",
                                                     (char *)CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md),
                                                     cxfs_seg_idx, cxfs_seg_num);
 
@@ -919,14 +919,14 @@ EC_BOOL cxfsnbd_bucket_create(const UINT32 cxfsnbd_md_id)
         }
 
         dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_create:"
-                                                "create bucket %s seg %ld/%ld done\n",
+                                                "create bucket %s seg %lu/%lu done\n",
                                                 (char *)CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md),
                                                 cxfs_seg_idx, cxfs_seg_num);
         cstring_free(cxfs_seg_fname);
     }
 
     dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_create:"
-                                            "create bucket %s, size %ld done\n",
+                                            "create bucket %s, size %lu done\n",
                                             CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md),
                                             bucket_size);
 
@@ -1059,7 +1059,7 @@ EC_BOOL cxfsnbd_bucket_read(const UINT32 cxfsnbd_md_id, const CNBD_REQ *cnbd_req
     {
         cnbd_req_print(LOGSTDOUT, cnbd_req);
         dbg_log(SEC_0141_CXFSNBD, 9)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_read: "
-                                                "req %p => [%u, %u)\n",
+                                                "req %p => [%lu, %lu)\n",
                                                 cnbd_req,
                                                 CNBD_REQ_OFFSET(cnbd_req),
                                                 CNBD_REQ_OFFSET(cnbd_req) + CNBD_REQ_LEN(cnbd_req));
@@ -1117,7 +1117,7 @@ EC_BOOL cxfsnbd_bucket_read(const UINT32 cxfsnbd_md_id, const CNBD_REQ *cnbd_req
         if(EC_FALSE == CXFSNBD_CXFS_SEG_RESULT(cxfsnbd_seg))
         {
             dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_bucket_read: "
-                                                    "bucket read [%ld, %ld) of [%ld, %ld) failed\n",
+                                                    "bucket read [%lu, %lu) of [%lu, %lu) failed\n",
                                                     CXFSNBD_CNBD_SEG_S_OFFSET(cxfsnbd_seg),
                                                     CXFSNBD_CNBD_SEG_E_OFFSET(cxfsnbd_seg),
                                                     cnbd_req_offset_s,
@@ -1131,14 +1131,14 @@ EC_BOOL cxfsnbd_bucket_read(const UINT32 cxfsnbd_md_id, const CNBD_REQ *cnbd_req
         }
 
         dbg_log(SEC_0141_CXFSNBD, 7)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_read: "
-                                                "bucket read [%ld, %ld) of [%ld, %ld) done\n",
+                                                "bucket read [%lu, %lu) of [%lu, %lu) done\n",
                                                 CXFSNBD_CNBD_SEG_S_OFFSET(cxfsnbd_seg),
                                                 CXFSNBD_CNBD_SEG_E_OFFSET(cxfsnbd_seg),
                                                 cnbd_req_offset_s,
                                                 cnbd_req_offset_e);
 
         dbg_log(SEC_0141_CXFSNBD, 6)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_read: "
-                                                "bucket [%ld, %ld) herit data [%ld, %ld] done\n",
+                                                "bucket [%lu, %lu) herit data [%lu, %lu] done\n",
                                                 CXFSNBD_CNBD_SEG_S_OFFSET(cxfsnbd_seg),
                                                 CXFSNBD_CNBD_SEG_E_OFFSET(cxfsnbd_seg),
                                                 CXFSNBD_DATA_SEG_S_OFFSET(cxfsnbd_seg),
@@ -1157,9 +1157,15 @@ EC_BOOL cxfsnbd_bucket_read(const UINT32 cxfsnbd_md_id, const CNBD_REQ *cnbd_req
     CNBD_RSP_STATUS(cnbd_rsp)     = 0;
     CNBD_RSP_SEQNO(cnbd_rsp)      = CNBD_REQ_SEQNO(cnbd_req);
 
-    dbg_log(SEC_0141_CXFSNBD, 5)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_read: "
-                                            "read (offset %u, len %u) done\n",
+    dbg_log(SEC_0141_CXFSNBD, 6)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_read: "
+                                            "read (offset %lu, len %u) done\n",
                                             CNBD_REQ_OFFSET(cnbd_req),
+                                            CNBD_REQ_LEN(cnbd_req));
+
+    dbg_log(SEC_0141_CXFSNBD, 5)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_read: "
+                                            "read [%lu, %lu) len %u done\n",
+                                            CNBD_REQ_OFFSET(cnbd_req),
+                                            CNBD_REQ_OFFSET(cnbd_req) + CNBD_REQ_LEN(cnbd_req),
                                             CNBD_REQ_LEN(cnbd_req));
 
     return (EC_TRUE);
@@ -1231,7 +1237,7 @@ EC_BOOL cxfsnbd_bucket_write(const UINT32 cxfsnbd_md_id, const CNBD_REQ *cnbd_re
     {
         cnbd_req_print(LOGSTDOUT, cnbd_req);
         dbg_log(SEC_0141_CXFSNBD, 9)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_write: "
-                                                "req %p => [%u, %u)\n",
+                                                "req %p => [%lu, %lu)\n",
                                                 cnbd_req,
                                                 CNBD_REQ_OFFSET(cnbd_req),
                                                 CNBD_REQ_OFFSET(cnbd_req) + CNBD_REQ_LEN(cnbd_req));
@@ -1289,7 +1295,7 @@ EC_BOOL cxfsnbd_bucket_write(const UINT32 cxfsnbd_md_id, const CNBD_REQ *cnbd_re
         if(EC_FALSE == CXFSNBD_CXFS_SEG_RESULT(cxfsnbd_seg))
         {
             dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_bucket_write: "
-                                                    "bucket write [%ld, %ld) of [%ld, %ld) failed\n",
+                                                    "bucket write [%lu, %lu) of [%lu, %lu) failed\n",
                                                     CXFSNBD_CNBD_SEG_S_OFFSET(cxfsnbd_seg),
                                                     CXFSNBD_CNBD_SEG_E_OFFSET(cxfsnbd_seg),
                                                     cnbd_req_offset_s,
@@ -1302,14 +1308,14 @@ EC_BOOL cxfsnbd_bucket_write(const UINT32 cxfsnbd_md_id, const CNBD_REQ *cnbd_re
         }
 
         dbg_log(SEC_0141_CXFSNBD, 7)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_write: "
-                                                "bucket write [%ld, %ld) of [%ld, %ld) done\n",
+                                                "bucket write [%lu, %lu) of [%lu, %lu) done\n",
                                                 CXFSNBD_CNBD_SEG_S_OFFSET(cxfsnbd_seg),
                                                 CXFSNBD_CNBD_SEG_E_OFFSET(cxfsnbd_seg),
                                                 cnbd_req_offset_s,
                                                 cnbd_req_offset_e);
 
         dbg_log(SEC_0141_CXFSNBD, 6)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_write: "
-                                                "bucket [%ld, %ld) herit data [%ld, %ld]\n",
+                                                "bucket [%lu, %lu) herit data [%lu, %lu]\n",
                                                 CXFSNBD_CNBD_SEG_S_OFFSET(cxfsnbd_seg),
                                                 CXFSNBD_CNBD_SEG_E_OFFSET(cxfsnbd_seg),
                                                 CXFSNBD_DATA_SEG_S_OFFSET(cxfsnbd_seg),
@@ -1325,13 +1331,19 @@ EC_BOOL cxfsnbd_bucket_write(const UINT32 cxfsnbd_md_id, const CNBD_REQ *cnbd_re
     CNBD_RSP_STATUS(cnbd_rsp)     = 0;
     CNBD_RSP_SEQNO(cnbd_rsp)      = CNBD_REQ_SEQNO(cnbd_req);
 
-    dbg_log(SEC_0141_CXFSNBD, 5)(LOGSTDOUT, "[DEBUG] cxfsnbd_handle_req_write: "
-                                            "write (offset %u, len %u) done\n",
+    dbg_log(SEC_0141_CXFSNBD, 6)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_write: "
+                                            "write (offset %lu, len %u) done\n",
                                             CNBD_REQ_OFFSET(cnbd_req),
                                             CNBD_REQ_LEN(cnbd_req));
+
+    dbg_log(SEC_0141_CXFSNBD, 5)(LOGSTDOUT, "[DEBUG] cxfsnbd_bucket_write: "
+                                            "write [%lu, %lu) len %u done\n",
+                                            CNBD_REQ_OFFSET(cnbd_req),
+                                            CNBD_REQ_OFFSET(cnbd_req) + CNBD_REQ_LEN(cnbd_req),
+                                            CNBD_REQ_LEN(cnbd_req));
+
     return (EC_TRUE);
 }
-
 
 #ifdef __cplusplus
 }

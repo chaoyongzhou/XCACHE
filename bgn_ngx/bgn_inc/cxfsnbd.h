@@ -171,8 +171,6 @@ EC_BOOL cxfsnbd_bucket_read(const UINT32 cxfsnbd_md_id, const CNBD_REQ *cnbd_req
 
 EC_BOOL cxfsnbd_bucket_write(const UINT32 cxfsnbd_md_id, const CNBD_REQ *cnbd_req, CNBD_RSP *cnbd_rsp);
 
-
-
 #endif /*_CXFSNBD_H*/
 
 #ifdef __cplusplus
