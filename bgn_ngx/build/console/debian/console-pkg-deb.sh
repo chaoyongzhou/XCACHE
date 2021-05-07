@@ -59,8 +59,8 @@ cd ${BUILD_ROOT}
 mv -f ${fs_type}_${version}_amd64.deb ${CUR_DIR}/
 mv -f ${fs_type}-dbgsym_${version}_amd64.deb ${CUR_DIR}/
 mv -f ${fs_type}_${version}.tar.gz ${CUR_DIR}/
-mv -f ${fs_type}_${version}_amd64.buildinfo ${CUR_DIR}/
-mv -f ${fs_type}_${version}_amd64.changes ${CUR_DIR}/
+#mv -f ${fs_type}_${version}_amd64.buildinfo ${CUR_DIR}/
+#mv -f ${fs_type}_${version}_amd64.changes ${CUR_DIR}/
 
 # clean up
 rm -rf ${PKGBUILD_DIR}

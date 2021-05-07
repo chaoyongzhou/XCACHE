@@ -14,7 +14,7 @@ make_pkg_xfs()
 
    ln -s ${work_dir}/${bgn_dir}/build/xfs/debian/xfs-pkg-deb.sh .
 
-   sh xfs-pkg-deb.sh xfs ${version} ${bgn_dir} no
+   bash xfs-pkg-deb.sh xfs ${version} ${bgn_dir} no
    ret=$?
 
    [ ! -f xfs-pkg-deb.sh ] || rm -f xfs-pkg-deb.sh
@@ -39,7 +39,7 @@ make_pkg_xcache()
        ln -s ${work_dir}/${bgn_dir}/build/xcache/debian/xcache-pkg-deb.debug.sh ./xcache-pkg-deb.sh
    fi
 
-   sh xcache-pkg-deb.sh nginx ${version}
+   bash xcache-pkg-deb.sh nginx ${version}
    ret=$?
 
    [ ! -f xcache-pkg-deb.sh ] || rm -f xcache-pkg-deb.sh
@@ -59,7 +59,7 @@ make_pkg_detect()
 
    ln -s ${work_dir}/${bgn_dir}/build/detect/debian/detect-pkg-deb.sh .
 
-   sh detect-pkg-deb.sh detect ${version} ${bgn_dir} no
+   bash detect-pkg-deb.sh detect ${version} ${bgn_dir} no
    ret=$?
 
    [ ! -f detect-pkg-deb.sh ] || rm -f detect-pkg-deb.sh
@@ -81,7 +81,7 @@ make_pkg_p2p()
 
    ln -s ${work_dir}/${bgn_dir}/build/p2p/debian/p2p-pkg-deb.sh .
 
-   sh p2p-pkg-deb.sh p2p ${version} ${network_level} ${bgn_dir} no
+   bash p2p-pkg-deb.sh p2p ${version} ${network_level} ${bgn_dir} no
    ret=$?
 
    [ ! -f p2p-pkg-deb.sh ] || rm -f p2p-pkg-deb.sh
@@ -101,7 +101,7 @@ make_pkg_tdns()
 
    ln -s ${work_dir}/${bgn_dir}/build/tdns/debian/tdns-pkg-deb.sh .
 
-   sh tdns-pkg-deb.sh tdns ${version} ${bgn_dir} no
+   bash tdns-pkg-deb.sh tdns ${version} ${bgn_dir} no
    ret=$?
 
    [ ! -f tdns-pkg-deb.sh ] || rm -f tdns-pkg-deb.sh
@@ -121,7 +121,7 @@ make_pkg_console()
 
    ln -s ${work_dir}/${bgn_dir}/build/console/debian/console-pkg-deb.sh .
 
-   sh console-pkg-deb.sh console ${version} ${bgn_dir} no
+   bash console-pkg-deb.sh console ${version} ${bgn_dir} no
    ret=$?
 
    [ ! -f console-pkg-deb.sh ] || rm -f console-pkg-deb.sh

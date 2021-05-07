@@ -133,6 +133,12 @@ UINT32 cxfsnbd_start(const CSTRING *nbd_dev_name,
 **/
 void cxfsnbd_end(const UINT32 cxfsnbd_md_id);
 
+CSTRING *cxfsnbd_make_bucket_seg_name(const CSTRING *bucket_name, const UINT32 seg_idx);
+
+CVECTOR *cxfsnbd_make_bucket_segs(const CSTRING *bucket_name,
+                                          const UINT32 nbd_offset_s,
+                                          const UINT32 nbd_offset_e);
+
 CXFSNBD_SEG *cxfsnbd_seg_new();
 
 EC_BOOL cxfsnbd_seg_init(CXFSNBD_SEG *cxfsnbd_seg);

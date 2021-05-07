@@ -269,9 +269,10 @@ TST_OBJS  = $(patsubst $(TST_SRC)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(TST_SRC)/*.c
 XFS_OBJS = $(OBJ_DIR)/demo_hsxfs.o
 NBD_OBJS = $(OBJ_DIR)/demo_nbd.o
 XFSNBD_OBJS = $(OBJ_DIR)/demo_xfsnbd.o
+XFSNBDC_OBJS = $(OBJ_DIR)/demo_xfsnbdc.o
 TRANS_OBJS = $(OBJ_DIR)/demo_trans.o
 
-default: xfs xfs_tool
+default: xfs xfsnbdc xfs_tool
 
 libbgn: $(BGN_OBJS)
 	$(AR) $(LIB_DIR)/libbgn.a $(BGN_OBJS)
@@ -290,6 +291,9 @@ xfs: libbgn libamd libjson $(XFS_OBJS)
 
 xfs_tool:
 	$(MAKE) -C $(ROOT_DIR) -f Makefile.tool
+
+xfsnbdc: libbgn libamd libjson $(XFSNBDC_OBJS)
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/xfsnbdc $(XFSNBDC_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
 
 xfsnbd: libbgn libamd libjson $(XFSNBD_OBJS)
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/xfsnbd $(XFSNBD_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
@@ -390,8 +394,9 @@ $(REL_OBJS): $(OBJ_DIR)/%.o: $(REL_SRC)/%.c
 $(TST_OBJS): $(OBJ_DIR)/%.o: $(TST_SRC)/%.c
 	$(CC) $(CFLAGS) -c $< $(TST_INC) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(EXT_INC) -o $@
 
-install: xfs xfs_tool
+install: xfs xfsnbdc xfs_tool
 	install -p -D bin/xfs $(DESTDIR)$(prefix)/bin/xfs
+	install -p -D bin/xfsnbdc $(DESTDIR)$(prefix)/bin/xfsnbdc
 	install -p -D bin/xfs_tool $(DESTDIR)$(prefix)/bin/xfs_tool
 	install -p -D build/xfs/debian/xfs_init.sh $(DESTDIR)$(prefix)/bin/xfs_init.sh
 	install -p -D build/xfs/debian/xfs_cfg_scan.pl $(DESTDIR)$(prefix)/bin/xfs_cfg_scan.pl
@@ -411,8 +416,10 @@ clean-log:
 
 clean-bin:
 	$(if $(wildcard $(BIN_DIR)/xfs),rm -f $(BIN_DIR)/xfs,)
+	$(if $(wildcard $(BIN_DIR)/xfsc),rm -f $(BIN_DIR)/xfsc,)
 	$(if $(wildcard $(BIN_DIR)/nbd),rm -f $(BIN_DIR)/nbd,)
 	$(if $(wildcard $(BIN_DIR)/xfsnbd),rm -f $(BIN_DIR)/xfsnbd,)
+	$(if $(wildcard $(BIN_DIR)/xfsnbdc),rm -f $(BIN_DIR)/xfsnbdc,)
 	$(if $(wildcard $(BIN_DIR)/xfs_tool),rm -f $(BIN_DIR)/xfs_tool,)
 
 clean-trial: clean-log clean-bin clean-obj

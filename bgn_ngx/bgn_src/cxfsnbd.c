@@ -288,14 +288,14 @@ void cxfsnbd_end(const UINT32 cxfsnbd_md_id)
     return ;
 }
 
-STATIC_CAST CSTRING *__cxfsnbd_make_bucket_seg_name(const CSTRING *bucket_name, const UINT32 seg_idx)
+CSTRING *cxfsnbd_make_bucket_seg_name(const CSTRING *bucket_name, const UINT32 seg_idx)
 {
     return cstring_make("%s/%lu", (char *)cstring_get_str(bucket_name), seg_idx);
 }
 
-STATIC_CAST CVECTOR *__cxfsnbd_make_bucket_segs(const CSTRING *bucket_name,
-                                                        const UINT32 nbd_offset_s,
-                                                        const UINT32 nbd_offset_e)
+CVECTOR *cxfsnbd_make_bucket_segs(const CSTRING *bucket_name,
+                                          const UINT32 nbd_offset_s,
+                                          const UINT32 nbd_offset_e)
 {
     UINT32       nbd_offset_c;
 
@@ -308,7 +308,7 @@ STATIC_CAST CVECTOR *__cxfsnbd_make_bucket_segs(const CSTRING *bucket_name,
 
     if(EC_TRUE == cstring_is_empty(bucket_name))
     {
-        dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:__cxfsnbd_make_bucket_segs:"
+        dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_make_bucket_segs:"
                                                 "no bucket name\n");
         return (NULL_PTR);
     }
@@ -320,7 +320,7 @@ STATIC_CAST CVECTOR *__cxfsnbd_make_bucket_segs(const CSTRING *bucket_name,
     cxfsnbd_seg_vec = cxfsnbd_seg_vec_new(cxfs_seg_no_e - cxfs_seg_no_s);
     if(NULL_PTR == cxfsnbd_seg_vec)
     {
-        dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:__cxfsnbd_make_bucket_segs:"
+        dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_make_bucket_segs:"
                                                 "new cxfsnbd_seg_vec failed\n");
         return (NULL_PTR);
     }
@@ -340,7 +340,7 @@ STATIC_CAST CVECTOR *__cxfsnbd_make_bucket_segs(const CSTRING *bucket_name,
             cxfs_seg_size = (CXFSNBD_CXFS_SEG_SIZE - cxfs_seg_offset);
         }
 
-        dbg_log(SEC_0141_CXFSNBD, 6)(LOGSTDOUT, "[DEBUG] __cxfsnbd_make_bucket_segs:"
+        dbg_log(SEC_0141_CXFSNBD, 6)(LOGSTDOUT, "[DEBUG] cxfsnbd_make_bucket_segs:"
                                                 "[#%lu] bucket %s seg %lu : offset %lu, size %lu\n",
                                                 cxfs_seg_no_c - cxfs_seg_no_s,
                                                 (char *)cstring_get_str(bucket_name),
@@ -348,12 +348,12 @@ STATIC_CAST CVECTOR *__cxfsnbd_make_bucket_segs(const CSTRING *bucket_name,
 
         cxfsnbd_seg = (CXFSNBD_SEG *)cvector_get(cxfsnbd_seg_vec, cxfs_seg_no_c - cxfs_seg_no_s);
 
-        CXFSNBD_CXFS_SEG_NAME(cxfsnbd_seg) = __cxfsnbd_make_bucket_seg_name(
+        CXFSNBD_CXFS_SEG_NAME(cxfsnbd_seg) = cxfsnbd_make_bucket_seg_name(
                                                 bucket_name, cxfs_seg_no_c);
 
         if(NULL_PTR == CXFSNBD_CXFS_SEG_NAME(cxfsnbd_seg))
         {
-            dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:__cxfsnbd_make_bucket_segs:"
+            dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_make_bucket_segs:"
                                                     "bucket %s make seg %lu name failed\n",
                                                     (char *)cstring_get_str(bucket_name),
                                                     cxfs_seg_no_c);
@@ -734,7 +734,7 @@ EC_BOOL cxfsnbd_bucket_check(const UINT32 cxfsnbd_md_id)
         MOD_NODE    recv_mod_node;
         EC_BOOL     ret;
 
-        cxfs_seg_fname = __cxfsnbd_make_bucket_seg_name( CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md), cxfs_seg_idx);
+        cxfs_seg_fname = cxfsnbd_make_bucket_seg_name( CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md), cxfs_seg_idx);
         if(NULL_PTR == cxfs_seg_fname)
         {
             dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_bucket_check:"
@@ -852,7 +852,7 @@ EC_BOOL cxfsnbd_bucket_create(const UINT32 cxfsnbd_md_id)
         MOD_NODE    recv_mod_node;
         EC_BOOL     ret;
 
-        cxfs_seg_fname = __cxfsnbd_make_bucket_seg_name( CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md), cxfs_seg_idx);
+        cxfs_seg_fname = cxfsnbd_make_bucket_seg_name( CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md), cxfs_seg_idx);
         if(NULL_PTR == cxfs_seg_fname)
         {
             dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_bucket_create:"
@@ -1032,7 +1032,7 @@ EC_BOOL cxfsnbd_bucket_read(const UINT32 cxfsnbd_md_id, const CNBD_REQ *cnbd_req
         return (EC_FALSE);
     }
 
-    cxfsnbd_seg_vec = __cxfsnbd_make_bucket_segs(CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md),
+    cxfsnbd_seg_vec = cxfsnbd_make_bucket_segs(CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md),
                                                  cnbd_req_offset_s, cnbd_req_offset_e);
     if(NULL_PTR == cxfsnbd_seg_vec)
     {
@@ -1211,7 +1211,7 @@ EC_BOOL cxfsnbd_bucket_write(const UINT32 cxfsnbd_md_id, const CNBD_REQ *cnbd_re
     cnbd_req_offset_s = (UINT32)(CNBD_REQ_OFFSET(cnbd_req) +                      0);
     cnbd_req_offset_e = (UINT32)(CNBD_REQ_OFFSET(cnbd_req) + CNBD_REQ_LEN(cnbd_req));
 
-    cxfsnbd_seg_vec = __cxfsnbd_make_bucket_segs(CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md),
+    cxfsnbd_seg_vec = cxfsnbd_make_bucket_segs(CXFSNBD_MD_BUCKET_NAME(cxfsnbd_md),
                                                  cnbd_req_offset_s, cnbd_req_offset_e);
     if(NULL_PTR == cxfsnbd_seg_vec)
     {

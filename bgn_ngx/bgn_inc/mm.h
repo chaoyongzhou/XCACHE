@@ -32,15 +32,15 @@ extern "C"{
 #define     MD_CLOOPBACK ((UINT32)  7)
 #define     MD_CSESSION  ((UINT32)  8)
 #define     MD_0009      ((UINT32)  9) /*-- obsolete --*/
-#define     MD_0010      ((UINT32) 10) /*-- obsolete --*/
-#define     MD_0011      ((UINT32) 11) /*-- obsolete --*/
+#define     MD_CXFSNBDC  ((UINT32) 10)
+#define     MD_CXFSC     ((UINT32) 11)
 #define     MD_CSHELL    ((UINT32) 12)
 #define     MD_CACLTIME  ((UINT32) 13)
 #define     MD_CSTORECFG ((UINT32) 14)
 #define     MD_CSTORE    ((UINT32) 15)
 #define     MD_CVENDOR   ((UINT32) 16)
 #define     MD_CREFRESH  ((UINT32) 17)
-#define     MD_CXFSNBD   ((UINT32) 18) /*-- obsolete --*/
+#define     MD_CXFSNBD   ((UINT32) 18)
 #define     MD_CFLV      ((UINT32) 19)
 #define     MD_CMP4      ((UINT32) 20)
 #define     MD_CTDNS     ((UINT32) 21)
@@ -365,7 +365,7 @@ extern "C"{
 #define                   MM_CXFSNBD_SEG    ((UINT32)278)
 #define              MM_CXFS_LOCKED_FILE    ((UINT32)279)
 #define                MM_CXFS_WAIT_FILE    ((UINT32)280)
-#define                        MM_000281    ((UINT32)281) /*-- obsolete --*/
+#define                   MM_CXFSC_RNODE    ((UINT32)281)
 #define                        MM_000282    ((UINT32)282) /*-- obsolete --*/
 #define                    MM_CXFSOP_MGR    ((UINT32)283)
 #define                     MM_CAMD_COND    ((UINT32)284)

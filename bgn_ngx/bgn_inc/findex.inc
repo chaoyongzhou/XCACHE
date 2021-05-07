@@ -497,5 +497,26 @@
 #define                    FI_cxfsnbd_bucket_create  ((UINT32) ((MD_CXFSNBD << (WORDSIZE/2)) + 5))
 #define                    FI_cxfsnbd_bucket_launch  ((UINT32) ((MD_CXFSNBD << (WORDSIZE/2)) + 6))
 
+#define             FI_cxfsnbdc_print_module_status  ((UINT32) ((MD_CXFSNBDC << (WORDSIZE/2)) + 0))
+#define          FI_cxfsnbdc_free_module_static_mem  ((UINT32) ((MD_CXFSNBDC << (WORDSIZE/2)) + 1))
+#define                           FI_cxfsnbdc_start  ((UINT32) ((MD_CXFSNBDC << (WORDSIZE/2)) + 2))
+#define                             FI_cxfsnbdc_end  ((UINT32) ((MD_CXFSNBDC << (WORDSIZE/2)) + 3))
+#define                    FI_cxfsnbdc_bucket_check  ((UINT32) ((MD_CXFSNBDC << (WORDSIZE/2)) + 4))
+#define                   FI_cxfsnbdc_bucket_create  ((UINT32) ((MD_CXFSNBDC << (WORDSIZE/2)) + 5))
+#define                   FI_cxfsnbdc_bucket_launch  ((UINT32) ((MD_CXFSNBDC << (WORDSIZE/2)) + 6))
+
+#define                FI_cxfsc_print_module_status  ((UINT32) ((MD_CXFSC << (WORDSIZE/2)) + 0))
+#define             FI_cxfsc_free_module_static_mem  ((UINT32) ((MD_CXFSC << (WORDSIZE/2)) + 1))
+#define                              FI_cxfsc_start  ((UINT32) ((MD_CXFSC << (WORDSIZE/2)) + 2))
+#define                                FI_cxfsc_end  ((UINT32) ((MD_CXFSC << (WORDSIZE/2)) + 3))
+#define                            FI_cxfsc_reg_xfs  ((UINT32) ((MD_CXFSC << (WORDSIZE/2)) + 4))
+#define                          FI_cxfsc_reg_rnode  ((UINT32) ((MD_CXFSC << (WORDSIZE/2)) + 5))
+#define                            FI_cxfsc_is_file  ((UINT32) ((MD_CXFSC << (WORDSIZE/2)) + 6))
+#define                          FI_cxfsc_file_size  ((UINT32) ((MD_CXFSC << (WORDSIZE/2)) + 7))
+#define                            FI_cxfsc_write_e  ((UINT32) ((MD_CXFSC << (WORDSIZE/2)) + 8))
+#define                             FI_cxfsc_read_e  ((UINT32) ((MD_CXFSC << (WORDSIZE/2)) + 9))
+#define                        FI_cxfsc_delete_file  ((UINT32) ((MD_CXFSC << (WORDSIZE/2)) + 10))
+#define                      FI_cxfsc_truncate_file  ((UINT32) ((MD_CXFSC << (WORDSIZE/2)) + 11))
+
 #endif/* _FINDEX_INC */
 

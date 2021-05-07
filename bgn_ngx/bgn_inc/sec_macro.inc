@@ -149,7 +149,7 @@
 #define SEC_0139_MAIN                       ((UINT32)(    139)) /*main                            */
 #define SEC_0140_CTRANS                     ((UINT32)(    140)) /*ctrans                          */
 #define SEC_0141_CXFSNBD                    ((UINT32)(    141)) /*cxfsnbd                         */
-#define SEC_0142_XXXXXX                     ((UINT32)(    142)) /*-- obsolete --                  */
+#define SEC_0142_CXFSNBDC                   ((UINT32)(    142)) /*cxfsnbdc                        */
 #define SEC_0143_XXXXX                      ((UINT32)(    143)) /*-- obsolete --                  */
 #define SEC_0144_XXXXXXXXXXX                ((UINT32)(    144)) /*-- obsolete --                  */
 #define SEC_0145_XXXXXXXXX                  ((UINT32)(    145)) /*-- obsolete --                  */
@@ -206,7 +206,7 @@
 #define SEC_0196_CXFSNPDEL                  ((UINT32)(    196)) /*cxfsnpdel                       */
 #define SEC_0197_CXFSNP                     ((UINT32)(    197)) /*cxfsnp                          */
 #define SEC_0198_CXFSNPRB                   ((UINT32)(    198)) /*cxfsnprb                        */
-#define SEC_0199_XXXX                       ((UINT32)(    199)) /*-- obsolete --                  */
+#define SEC_0199_CXFSC                      ((UINT32)(    199)) /*cxfsc                           */
 #define SEC_0200_CXFSHTTPS                  ((UINT32)(    200)) /*cxfshttps                       */
 #define SEC_0201_CXFSPGB                    ((UINT32)(    201)) /*cxfspgb                         */
 #define SEC_0202_CXFSPGD                    ((UINT32)(    202)) /*cxfspgd                         */
