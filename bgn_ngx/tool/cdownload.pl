@@ -228,7 +228,7 @@ sub download_file_entrance
     {
         if($remote_file_name !~ /^\//)
         {
-            &echo(9, sprntf("[DEBUG] download_file_entrance: %s => /%s\n",
+            &echo(9, sprintf("[DEBUG] download_file_entrance: %s => /%s\n",
                             $remote_file_name, $remote_file_name));
             $remote_file_name = "/".$remote_file_name
         }
