@@ -2,7 +2,7 @@
 
 ########################################################################################################################
 # description:  upload file to server
-# version    :  v1.6
+# version    :  v1.7
 # creator    :  chaoyong zhou
 #
 # History:
@@ -13,6 +13,7 @@
 #    5. 03/11/2021: v1.4, support acl based on token and time
 #    6. 03/31/2021: v1.5, support complete interface which push file to backend storage
 #    7. 06/01/2021: v1.6, support specific acl token of specific bucket
+#    8. 06/01/2021: v1.7, fix merge remote file handler which not need carry on data
 ########################################################################################################################
 
 use strict;
@@ -447,7 +448,7 @@ sub upload_remote_file_do
 }
 
 ################################################################################################################
-# $status = merge_remote_file_do($remote_file_name, $s_offset, $e_offset, $file_size, $data)
+# $status = merge_remote_file_do($remote_file_name, $s_offset, $e_offset, $file_size)
 ################################################################################################################
 sub merge_remote_file_do
 {
@@ -459,9 +460,8 @@ sub merge_remote_file_do
     my $s_offset;
     my $e_offset;
     my $file_size;
-    my $data;
 
-    ($remote_file_name, $s_offset, $e_offset, $file_size, $data) = @_;
+    ($remote_file_name, $s_offset, $e_offset, $file_size) = @_;
 
     $ua = LWP::UserAgent->new;
 
@@ -474,7 +474,6 @@ sub merge_remote_file_do
 
     $res = $ua->put($url,
                 'Content-Type'  => "text/html; charset=utf-8",
-                Content         =>$data,
                 'Host'          => &get_remote_host(),
                 'Content-Range' => "bytes ${s_offset}-${e_offset}/${file_size}");
 
@@ -807,8 +806,7 @@ sub append_file
                          $remote_file_name, $s_offset_t, $e_offset_t, $local_file_size));
 
         $status = &merge_remote_file_do($remote_file_name,
-                                        $s_offset_t, $e_offset_t, $local_file_size,
-                                        $data);
+                                        $s_offset_t, $e_offset_t, $local_file_size);
         if(200 != $status)
         {
             close($fp);
