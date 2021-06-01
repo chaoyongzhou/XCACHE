@@ -2,7 +2,7 @@
 
 ########################################################################################################################
 # description:  upload file to server
-# version    :  v1.5
+# version    :  v1.6
 # creator    :  chaoyong zhou
 #
 # History:
@@ -12,6 +12,7 @@
 #    4. 03/05/2021: v1.3, support direct domain access
 #    5. 03/11/2021: v1.4, support acl based on token and time
 #    6. 03/31/2021: v1.5, support complete interface which push file to backend storage
+#    7. 06/01/2021: v1.6, support specific acl token of specific bucket
 ########################################################################################################################
 
 use strict;
@@ -24,13 +25,13 @@ my $g_des_ip;
 my $g_timeout_nsec;
 my $g_step_nbytes;
 my $g_log_level     = 1; # default log level
-my $g_acl_token     = "0123456789abcdef0123456789abcdef";
+my $g_acl_token;
 my $g_expired_nsec  = 15;
 my $g_ua_agent      = "Mozilla/8.0";
 
 my $g_autoflush_flag;
 my $g_usage =
-    "$0 [sync=<on|off>] src=<local file> des=<remote file> [ip=<server server ip[:port]>] [host=<hostname>] [timeout=<seconds>] [step=<nbytes>] [loglevel=<1..9>] [verbose=on|off]";
+    "$0 [sync=<on|off>] src=<local file> des=<remote file> [ip=<server server ip[:port]>] [host=<hostname>] [token=<acl token>] [timeout=<seconds>] [step=<nbytes>] [loglevel=<1..9>] [verbose=on|off]";
 my $verbose;
 
 my $paras_config = {};
@@ -46,6 +47,7 @@ if( defined($verbose) && $verbose =~/on/i )
 
 $g_des_host     = $$paras_config{"host"}        || "store.demo.com";# default server domain
 $g_des_ip       = $$paras_config{"ip"};
+$g_acl_token    = $$paras_config{"token"}       || "0123456789abcdef0123456789abcdef"; # default token
 $g_timeout_nsec = $$paras_config{"timeout"}     || 60;              # default timeout in seconds
 $g_step_nbytes  = $$paras_config{"step"}        || 2 << 20;         # default segment size in bytes
 
