@@ -1435,17 +1435,18 @@ EC_BOOL cstore_combine_file_handler(const UINT32 cstore_md_id)
         {
             file_e_offset = CSTORE_MD_FILE_SIZE(cstore_md);
         }
+
         src_file_path = __cstore_make_part_file_path(des_file_path,
                                                     file_s_offset,
-                                                    file_e_offset,
+                                                    file_e_offset - 1,
                                                     CSTORE_MD_FILE_SIZE(cstore_md));
         if(NULL_PTR == src_file_path)
         {
             dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_combine_file_handler: "
                                                    "make file name '%s_%ld_%ld_%ld' failed\n",
                                                    (char *)cstring_get_str(des_file_path),
-                                                   CSTORE_MD_FILE_S_OFFSET(cstore_md),
-                                                   CSTORE_MD_FILE_E_OFFSET(cstore_md),
+                                                   file_s_offset,
+                                                   file_e_offset - 1,
                                                    CSTORE_MD_FILE_SIZE(cstore_md));
 
             c_file_close(des_fd);
