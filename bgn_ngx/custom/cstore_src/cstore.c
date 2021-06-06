@@ -1221,12 +1221,6 @@ EC_BOOL cstore_merge_file_handler(const UINT32 cstore_md_id)
         return (EC_FALSE);
     }
 
-    /*trick: if X-Segment-Size exists, combine would own higher priority*/
-    if(0 < CSTORE_MD_SEGMENT_SIZE(cstore_md))
-    {
-        return cstore_combine_file_handler(cstore_md_id);
-    }
-
     des_file_path = CSTORE_MD_FILE_PATH(cstore_md);
 
     if(CSTORE_MD_FILE_S_OFFSET(cstore_md) > CSTORE_MD_FILE_E_OFFSET(cstore_md)
