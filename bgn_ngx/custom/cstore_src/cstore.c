@@ -759,13 +759,13 @@ EC_BOOL cstore_parse_file_size(const UINT32 cstore_md_id)
             dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_size: "
                                                    "[cngx] invald '%s':'%s'\n",
                                                    k, v);
-            safe_free(v, LOC_CSTORE_0020);
+            safe_free(v, LOC_CSTORE_0023);
             return (EC_FALSE);
         }
 
         CSTORE_MD_FILE_SIZE(cstore_md) = c_str_to_word(v);
 
-        safe_free(v, LOC_CSTORE_0022);
+        safe_free(v, LOC_CSTORE_0024);
 
         dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_file_size: "
                                                "[cngx] parsed file size: %ld\n",
@@ -827,13 +827,13 @@ EC_BOOL cstore_parse_segment_size(const UINT32 cstore_md_id)
             dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_segment_size: "
                                                    "[cngx] invald '%s':'%s'\n",
                                                    k, v);
-            safe_free(v, LOC_CSTORE_0020);
+            safe_free(v, LOC_CSTORE_0025);
             return (EC_FALSE);
         }
 
         CSTORE_MD_SEGMENT_SIZE(cstore_md) = c_str_to_word(v);
 
-        safe_free(v, LOC_CSTORE_0022);
+        safe_free(v, LOC_CSTORE_0026);
 
         dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_segment_size: "
                                                "[cngx] parsed segment size: %ld\n",
@@ -889,17 +889,17 @@ EC_BOOL cstore_parse_file_md5(const UINT32 cstore_md_id)
                                            "[cngx] parsed '%s':'%s'\n",
                                            k, v);
 
-    CSTORE_MD_FILE_MD5(cstore_md) = cstring_new((UINT8 *)v, LOC_CSTORE_0023);
+    CSTORE_MD_FILE_MD5(cstore_md) = cstring_new((UINT8 *)v, LOC_CSTORE_0027);
     if(NULL_PTR == CSTORE_MD_FILE_MD5(cstore_md))
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_md5: "
                                                "new cstring '%s' failed\n",
                                                v);
-        safe_free(v, LOC_CSTORE_0024);
+        safe_free(v, LOC_CSTORE_0028);
         return (EC_FALSE);
     }
 
-    safe_free(v, LOC_CSTORE_0025);
+    safe_free(v, LOC_CSTORE_0029);
     return (EC_TRUE);
 }
 
@@ -1066,7 +1066,7 @@ EC_BOOL cstore_upload_file_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_upload_file_handler: "
                                                "no file name\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0026);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0030);
         return (EC_FALSE);
     }
 
@@ -1079,7 +1079,7 @@ EC_BOOL cstore_upload_file_handler(const UINT32 cstore_md_id)
                                                CSTORE_MD_FILE_S_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_E_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_SIZE(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0027);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0031);
         return (EC_FALSE);
     }
 
@@ -1095,7 +1095,7 @@ EC_BOOL cstore_upload_file_handler(const UINT32 cstore_md_id)
                                                CSTORE_MD_FILE_S_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_E_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_SIZE(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0028);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0032);
         return (EC_FALSE);
     }
     else
@@ -1113,7 +1113,7 @@ EC_BOOL cstore_upload_file_handler(const UINT32 cstore_md_id)
 
             cstring_free(path_cstr);
 
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0029);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0033);
             return (EC_FALSE);
         }
 
@@ -1131,7 +1131,7 @@ EC_BOOL cstore_upload_file_handler(const UINT32 cstore_md_id)
             c_file_close(fd);
             cstring_free(path_cstr);
 
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0030);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0034);
             return (EC_TRUE);
         }
 
@@ -1146,7 +1146,7 @@ EC_BOOL cstore_upload_file_handler(const UINT32 cstore_md_id)
             c_file_close(fd);
             cstring_free(path_cstr);
 
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0031);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0035);
 
             return (EC_TRUE);
         }
@@ -1162,7 +1162,7 @@ EC_BOOL cstore_upload_file_handler(const UINT32 cstore_md_id)
             c_file_close(fd);
             cstring_free(path_cstr);
 
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0032);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0036);
 
             return (EC_FALSE);
         }
@@ -1176,7 +1176,7 @@ EC_BOOL cstore_upload_file_handler(const UINT32 cstore_md_id)
         c_file_close(fd);
         cstring_free(path_cstr);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0033);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0037);
 
         return (EC_TRUE);
     }
@@ -1185,7 +1185,7 @@ EC_BOOL cstore_upload_file_handler(const UINT32 cstore_md_id)
     dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_upload_file_handler: "
                                            "file '%s', should never reach here\n",
                                            (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0034);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0038);
     return (EC_FALSE);
 }
 
@@ -1217,7 +1217,7 @@ EC_BOOL cstore_merge_file_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_merge_file_handler: "
                                                "no file name\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0035);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0039);
         return (EC_FALSE);
     }
 
@@ -1238,7 +1238,7 @@ EC_BOOL cstore_merge_file_handler(const UINT32 cstore_md_id)
                                                CSTORE_MD_FILE_S_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_E_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_SIZE(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0036);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0040);
         return (EC_FALSE);
     }
 
@@ -1254,7 +1254,7 @@ EC_BOOL cstore_merge_file_handler(const UINT32 cstore_md_id)
                                                CSTORE_MD_FILE_S_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_E_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_SIZE(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0037);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0041);
         return (EC_FALSE);
     }
 
@@ -1266,7 +1266,7 @@ EC_BOOL cstore_merge_file_handler(const UINT32 cstore_md_id)
 
         cstring_free(src_file_path);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0038);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0042);
         return (EC_TRUE);
     }
 
@@ -1280,7 +1280,7 @@ EC_BOOL cstore_merge_file_handler(const UINT32 cstore_md_id)
 
         cstring_free(src_file_path);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0039);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0043);
         return (EC_FALSE);
     }
 
@@ -1294,7 +1294,7 @@ EC_BOOL cstore_merge_file_handler(const UINT32 cstore_md_id)
         c_file_close(src_fd);
         cstring_free(src_file_path);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0040);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0044);
         return (EC_FALSE);
     }
 
@@ -1309,7 +1309,7 @@ EC_BOOL cstore_merge_file_handler(const UINT32 cstore_md_id)
         c_file_close(des_fd);
         cstring_free(src_file_path);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0041);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0045);
         return (EC_FALSE);
     }
 
@@ -1330,7 +1330,7 @@ EC_BOOL cstore_merge_file_handler(const UINT32 cstore_md_id)
 
         cstring_free(src_file_path);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0042);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0046);
         return (EC_FALSE);
     }
 
@@ -1340,7 +1340,7 @@ EC_BOOL cstore_merge_file_handler(const UINT32 cstore_md_id)
 
     cstring_free(src_file_path);
 
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0043);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0047);
 
     return (EC_TRUE);
 }
@@ -1382,7 +1382,7 @@ EC_BOOL cstore_combine_file_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_combine_file_handler: "
                                                "no file name\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0035);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0048);
         return (EC_FALSE);
     }
 
@@ -1390,7 +1390,7 @@ EC_BOOL cstore_combine_file_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_combine_file_handler: "
                                                "no segment size\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0035);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0049);
         return (EC_FALSE);
     }
 
@@ -1398,7 +1398,7 @@ EC_BOOL cstore_combine_file_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_combine_file_handler: "
                                                "no file size\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0035);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0050);
         return (EC_FALSE);
     }
 
@@ -1411,7 +1411,7 @@ EC_BOOL cstore_combine_file_handler(const UINT32 cstore_md_id)
                                                "open file '%s' failed\n",
                                                (char *)cstring_get_str(des_file_path));
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0040);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0051);
         return (EC_FALSE);
     }
 
@@ -1422,7 +1422,7 @@ EC_BOOL cstore_combine_file_handler(const UINT32 cstore_md_id)
                                                (char *)cstring_get_str(des_file_path));
 
         c_file_close(des_fd);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0040);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0052);
         return (EC_FALSE);
     }
 
@@ -1450,7 +1450,7 @@ EC_BOOL cstore_combine_file_handler(const UINT32 cstore_md_id)
 
             c_file_close(des_fd);
 
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0037);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0053);
             return (EC_FALSE);
         }
 
@@ -1476,7 +1476,7 @@ EC_BOOL cstore_combine_file_handler(const UINT32 cstore_md_id)
                                            file_s_offset - 1,
                                            CSTORE_MD_FILE_SIZE(cstore_md)));
             }
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0038);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0054);
             return (EC_TRUE);
         }
 
@@ -1491,7 +1491,7 @@ EC_BOOL cstore_combine_file_handler(const UINT32 cstore_md_id)
             c_file_close(des_fd);
             cstring_free(src_file_path);
 
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0039);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0055);
             return (EC_FALSE);
         }
 
@@ -1506,7 +1506,7 @@ EC_BOOL cstore_combine_file_handler(const UINT32 cstore_md_id)
             c_file_close(des_fd);
             cstring_free(src_file_path);
 
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0041);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0056);
             return (EC_FALSE);
         }
 
@@ -1527,7 +1527,7 @@ EC_BOOL cstore_combine_file_handler(const UINT32 cstore_md_id)
             c_file_close(des_fd);
             cstring_free(src_file_path);
 
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0042);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0057);
             return (EC_FALSE);
         }
 
@@ -1557,7 +1557,7 @@ EC_BOOL cstore_combine_file_handler(const UINT32 cstore_md_id)
                                    CSTORE_MD_FILE_SIZE(cstore_md)));
     }
 
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0043);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0058);
 
     return (EC_TRUE);
 }
@@ -1585,7 +1585,7 @@ EC_BOOL cstore_override_file_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_override_file_handler: "
                                                "no file name\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0044);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0059);
         return (EC_FALSE);
     }
 
@@ -1598,7 +1598,7 @@ EC_BOOL cstore_override_file_handler(const UINT32 cstore_md_id)
                                                CSTORE_MD_FILE_S_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_E_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_SIZE(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0045);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0060);
         return (EC_FALSE);
     }
 
@@ -1608,7 +1608,7 @@ EC_BOOL cstore_override_file_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_override_file_handler: "
                                                "file '%s' not exist\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0046);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0061);
         return (EC_FALSE);
     }
 
@@ -1627,7 +1627,7 @@ EC_BOOL cstore_override_file_handler(const UINT32 cstore_md_id)
                                                    "open file '%s' failed\n",
                                                    (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
 
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0047);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0062);
             return (EC_FALSE);
         }
 
@@ -1638,7 +1638,7 @@ EC_BOOL cstore_override_file_handler(const UINT32 cstore_md_id)
                                                    (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
 
             c_file_close(fd);
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0048);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0063);
 
             return (EC_FALSE);
         }
@@ -1655,7 +1655,7 @@ EC_BOOL cstore_override_file_handler(const UINT32 cstore_md_id)
                                                    CSTORE_MD_FILE_SIZE(cstore_md));
 
             c_file_close(fd);
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0049);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0064);
 
             return (EC_FALSE);
         }
@@ -1672,7 +1672,7 @@ EC_BOOL cstore_override_file_handler(const UINT32 cstore_md_id)
                                                    CSTORE_MD_FILE_E_OFFSET(cstore_md));
 
             c_file_close(fd);
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0050);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0065);
 
             return (EC_TRUE);
         }
@@ -1686,7 +1686,7 @@ EC_BOOL cstore_override_file_handler(const UINT32 cstore_md_id)
                                                    CSTORE_MD_FILE_E_OFFSET(cstore_md));
 
             c_file_close(fd);
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0051);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0066);
 
             return (EC_FALSE);
         }
@@ -1698,7 +1698,7 @@ EC_BOOL cstore_override_file_handler(const UINT32 cstore_md_id)
                                                CSTORE_MD_FILE_E_OFFSET(cstore_md));
 
         c_file_close(fd);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0052);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0067);
 
         return (EC_TRUE);
     }
@@ -1707,7 +1707,7 @@ EC_BOOL cstore_override_file_handler(const UINT32 cstore_md_id)
     dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_override_file_handler: "
                                            "file '%s', should never reach here\n",
                                            (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0053);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0068);
     return (EC_FALSE);
 }
 
@@ -1733,7 +1733,7 @@ EC_BOOL cstore_empty_file_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_empty_file_handler: "
                                                "no file name\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0054);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0069);
         return (EC_FALSE);
     }
 
@@ -1744,7 +1744,7 @@ EC_BOOL cstore_empty_file_handler(const UINT32 cstore_md_id)
                                                "open or create file '%s' failed\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0055);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0070);
         return (EC_FALSE);
     }
 
@@ -1756,7 +1756,7 @@ EC_BOOL cstore_empty_file_handler(const UINT32 cstore_md_id)
 
         c_file_close(fd);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0056);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0071);
         return (EC_FALSE);
     }
 
@@ -1766,7 +1766,7 @@ EC_BOOL cstore_empty_file_handler(const UINT32 cstore_md_id)
 
     c_file_close(fd);
 
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0057);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0072);
 
     return (EC_TRUE);
 
@@ -1797,7 +1797,7 @@ EC_BOOL cstore_check_file_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_check_file_handler: "
                                                "no file name\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0058);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0073);
         return (EC_FALSE);
     }
 
@@ -1806,7 +1806,7 @@ EC_BOOL cstore_check_file_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_check_file_handler: "
                                                "no md5\n");
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0059);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0074);
         return (EC_FALSE);
     }
 
@@ -1818,7 +1818,7 @@ EC_BOOL cstore_check_file_handler(const UINT32 cstore_md_id)
                                                CSTORE_MD_FILE_E_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_SIZE(cstore_md));
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0060);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0075);
         return (EC_FALSE);
     }
 
@@ -1827,7 +1827,7 @@ EC_BOOL cstore_check_file_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_check_file_handler: "
                                                "file '%s' not exist\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0061);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0076);
         return (EC_FALSE);
     }
 
@@ -1837,7 +1837,7 @@ EC_BOOL cstore_check_file_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_check_file_handler: "
                                                "open file '%s' failed\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0062);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0077);
         return (EC_FALSE);
     }
 
@@ -1848,7 +1848,7 @@ EC_BOOL cstore_check_file_handler(const UINT32 cstore_md_id)
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
 
         c_file_close(fd);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0063);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0078);
 
         return (EC_FALSE);
     }
@@ -1862,7 +1862,7 @@ EC_BOOL cstore_check_file_handler(const UINT32 cstore_md_id)
                                                CSTORE_MD_FILE_SIZE(cstore_md));
 
         c_file_close(fd);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_UNAUTHORIZED, LOC_CSTORE_0064);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_UNAUTHORIZED, LOC_CSTORE_0079);
 
         return (EC_FALSE);
     }
@@ -1887,7 +1887,7 @@ EC_BOOL cstore_check_file_handler(const UINT32 cstore_md_id)
                                                    CSTORE_MD_FILE_E_OFFSET(cstore_md));
 
             c_file_close(fd);
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0065);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0080);
 
             return (EC_FALSE);
         }
@@ -1911,7 +1911,7 @@ EC_BOOL cstore_check_file_handler(const UINT32 cstore_md_id)
                                                    cmd5_digest_hex_str(&seg_md5sum),
                                                    CSTORE_MD_FILE_MD5_STR(cstore_md));
 
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_UNAUTHORIZED, LOC_CSTORE_0066);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_UNAUTHORIZED, LOC_CSTORE_0081);
             return (EC_TRUE);
         }
 
@@ -1922,13 +1922,13 @@ EC_BOOL cstore_check_file_handler(const UINT32 cstore_md_id)
                                                CSTORE_MD_FILE_E_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_MD5_STR(cstore_md));
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0067);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0082);
         return (EC_TRUE);
     }
 
     c_file_close(fd);
 
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0068);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0083);
     return (EC_TRUE);
 }
 
@@ -1953,7 +1953,7 @@ EC_BOOL cstore_delete_file_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_delete_file_handler: "
                                                "no file name\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0069);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0084);
         return (EC_FALSE);
     }
 
@@ -1962,7 +1962,7 @@ EC_BOOL cstore_delete_file_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_delete_file_handler: "
                                                "file '%s' not exist\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0070);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0085);
         return (EC_FALSE);
     }
 
@@ -1971,7 +1971,7 @@ EC_BOOL cstore_delete_file_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_delete_file_handler: "
                                                "unlink file '%s' failed\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0071);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0086);
         return (EC_FALSE);
     }
 
@@ -1979,7 +1979,7 @@ EC_BOOL cstore_delete_file_handler(const UINT32 cstore_md_id)
                                            "unlink file '%s' done\n",
                                            (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
 
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0072);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0087);
     return (EC_TRUE);
 }
 
@@ -2011,7 +2011,7 @@ EC_BOOL cstore_size_file_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_size_file_handler: "
                                                "no file name\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0073);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0088);
         return (EC_FALSE);
     }
 
@@ -2023,7 +2023,7 @@ EC_BOOL cstore_size_file_handler(const UINT32 cstore_md_id)
 
         if(EC_FALSE == cngx_has_var(r, (const char *)CSTORE_CNGX_VAR_PULL_BACKEND_CMD))
         {
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0074);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0089);
             return (EC_FALSE);
         }
 
@@ -2033,7 +2033,7 @@ EC_BOOL cstore_size_file_handler(const UINT32 cstore_md_id)
                                                    "pull file '%s' failed\n",
                                                    (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
 
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0075);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0090);
             return (EC_FALSE);
         }
 
@@ -2048,7 +2048,7 @@ EC_BOOL cstore_size_file_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_size_file_handler: "
                                                "open file '%s' failed\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0076);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0091);
         return (EC_FALSE);
     }
 
@@ -2059,7 +2059,7 @@ EC_BOOL cstore_size_file_handler(const UINT32 cstore_md_id)
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
 
         c_file_close(fd);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0077);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0092);
 
         return (EC_FALSE);
     }
@@ -2072,7 +2072,7 @@ EC_BOOL cstore_size_file_handler(const UINT32 cstore_md_id)
                                            fsize);
 
     cngx_set_header_out_kv(r, (const char *)"X-File-Size", c_word_to_str(fsize));
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0078);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0093);
     return (EC_TRUE);
 }
 
@@ -2106,7 +2106,7 @@ EC_BOOL cstore_md5_file_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_md5_file_handler: "
                                                "no file name\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0079);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0094);
         return (EC_FALSE);
     }
 
@@ -2118,7 +2118,7 @@ EC_BOOL cstore_md5_file_handler(const UINT32 cstore_md_id)
                                                CSTORE_MD_FILE_E_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_SIZE(cstore_md));
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0080);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0095);
         return (EC_FALSE);
     }
 
@@ -2130,7 +2130,7 @@ EC_BOOL cstore_md5_file_handler(const UINT32 cstore_md_id)
 
         if(EC_FALSE == cngx_has_var(r, (const char *)CSTORE_CNGX_VAR_PULL_BACKEND_CMD))
         {
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0081);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0096);
             return (EC_FALSE);
         }
 
@@ -2140,7 +2140,7 @@ EC_BOOL cstore_md5_file_handler(const UINT32 cstore_md_id)
                                                    "pull file '%s' failed\n",
                                                    (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
 
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0082);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0097);
             return (EC_FALSE);
         }
         dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_md5_file_handler: "
@@ -2154,7 +2154,7 @@ EC_BOOL cstore_md5_file_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_md5_file_handler: "
                                                "open file '%s' failed\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0083);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0098);
         return (EC_FALSE);
     }
 
@@ -2165,7 +2165,7 @@ EC_BOOL cstore_md5_file_handler(const UINT32 cstore_md_id)
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
 
         c_file_close(fd);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0084);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0099);
 
         return (EC_FALSE);
     }
@@ -2190,7 +2190,7 @@ EC_BOOL cstore_md5_file_handler(const UINT32 cstore_md_id)
                                                CSTORE_MD_FILE_E_OFFSET(cstore_md));
 
         c_file_close(fd);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0085);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0100);
 
         return (EC_FALSE);
     }
@@ -2213,7 +2213,7 @@ EC_BOOL cstore_md5_file_handler(const UINT32 cstore_md_id)
 
     cngx_set_header_out_kv(r, (const char *)"X-MD5", cmd5_digest_hex_str(&seg_md5sum));
 
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0086);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0101);
     return (EC_TRUE);
 }
 
@@ -2249,7 +2249,7 @@ EC_BOOL cstore_download_file_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_download_file_handler: "
                                                "no file name\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0087);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0102);
         return (EC_FALSE);
     }
 
@@ -2261,7 +2261,7 @@ EC_BOOL cstore_download_file_handler(const UINT32 cstore_md_id)
                                                CSTORE_MD_FILE_E_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_SIZE(cstore_md));
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0088);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0103);
         return (EC_FALSE);
     }
 
@@ -2273,7 +2273,7 @@ EC_BOOL cstore_download_file_handler(const UINT32 cstore_md_id)
 
         if(EC_FALSE == cngx_has_var(r, (const char *)CSTORE_CNGX_VAR_PULL_BACKEND_CMD))
         {
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0089);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0104);
             return (EC_FALSE);
         }
 
@@ -2283,7 +2283,7 @@ EC_BOOL cstore_download_file_handler(const UINT32 cstore_md_id)
                                                    "pull file '%s' failed\n",
                                                    (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
 
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0090);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0105);
             return (EC_FALSE);
         }
 
@@ -2298,7 +2298,7 @@ EC_BOOL cstore_download_file_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_download_file_handler: "
                                                "open file '%s' failed\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0091);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0106);
         return (EC_FALSE);
     }
 
@@ -2309,7 +2309,7 @@ EC_BOOL cstore_download_file_handler(const UINT32 cstore_md_id)
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
 
         c_file_close(fd);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0092);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0107);
 
         return (EC_FALSE);
     }
@@ -2324,7 +2324,7 @@ EC_BOOL cstore_download_file_handler(const UINT32 cstore_md_id)
                                                CSTORE_MD_FILE_E_OFFSET(cstore_md));
 
         c_file_close(fd);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0093);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0108);
 
         return (EC_FALSE);
     }
@@ -2354,7 +2354,7 @@ EC_BOOL cstore_download_file_handler(const UINT32 cstore_md_id)
                                                rsize, client_body_max_size);
 
         c_file_close(fd);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0094);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0109);
 
         return (EC_FALSE);
     }
@@ -2371,7 +2371,7 @@ EC_BOOL cstore_download_file_handler(const UINT32 cstore_md_id)
                                                rsize);
 
         c_file_close(fd);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0095);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0110);
 
         return (EC_FALSE);
     }
@@ -2387,7 +2387,7 @@ EC_BOOL cstore_download_file_handler(const UINT32 cstore_md_id)
         cbytes_free(rsp_body);
 
         c_file_close(fd);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0096);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0111);
 
         return (EC_FALSE);
     }
@@ -2411,7 +2411,7 @@ EC_BOOL cstore_download_file_handler(const UINT32 cstore_md_id)
 
     cngx_set_header_out_kv(r, (const char *)"Content-Length", c_word_to_str(rsize));
 
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0097);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0112);
     return (EC_TRUE);
 }
 
@@ -2486,7 +2486,7 @@ EC_BOOL cstore_make_dir_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_make_dir_handler: "
                                                "no file name\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0098);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0113);
         return (EC_FALSE);
     }
 
@@ -2497,7 +2497,7 @@ EC_BOOL cstore_make_dir_handler(const UINT32 cstore_md_id)
                                                "get var '%s' failed\n",
                                                k);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0099);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0114);
         return (EC_FALSE);
     }
 
@@ -2507,7 +2507,7 @@ EC_BOOL cstore_make_dir_handler(const UINT32 cstore_md_id)
                                                "not configure '%s'\n",
                                                k);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_ALLOWED, LOC_CSTORE_0100);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_ALLOWED, LOC_CSTORE_0115);
         return (EC_FALSE);
     }
 
@@ -2523,15 +2523,15 @@ EC_BOOL cstore_make_dir_handler(const UINT32 cstore_md_id)
                                                "replace '%s' with '%s' in '%s' failed\n",
                                                k, bucket_dir_path, backend_cmd_format);
 
-        safe_free(backend_cmd_format, LOC_CSTORE_0101);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0102);
+        safe_free(backend_cmd_format, LOC_CSTORE_0116);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0117);
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_make_dir_handler: "
                                            "replace '%s' with '%s' in '%s' => '%s'\n",
                                            k, bucket_dir_path, backend_cmd_format, backend_cmd);
-    safe_free(backend_cmd_format, LOC_CSTORE_0103);
+    safe_free(backend_cmd_format, LOC_CSTORE_0118);
 
     dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_make_dir_handler: "
                                            "parsed cmd '%s'\n",
@@ -2541,16 +2541,16 @@ EC_BOOL cstore_make_dir_handler(const UINT32 cstore_md_id)
     cmd_output_max_size = CSTORE_CACHE_MAX_SIZE;
     cmd_output_size     = 0;
 
-    cmd_output = (char *)safe_malloc(cmd_output_max_size, LOC_CSTORE_0104);
+    cmd_output = (char *)safe_malloc(cmd_output_max_size, LOC_CSTORE_0119);
     if(NULL_PTR == cmd_output)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_make_dir_handler: "
                                                "alloc cmd ouptut with size %ld failed\n",
                                                cmd_output_max_size);
 
-        safe_free(backend_cmd, LOC_CSTORE_0105);
+        safe_free(backend_cmd, LOC_CSTORE_0120);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0106);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0121);
         return (EC_FALSE);
     }
 
@@ -2560,10 +2560,10 @@ EC_BOOL cstore_make_dir_handler(const UINT32 cstore_md_id)
                                                "execute cmd '%s' failed\n",
                                                backend_cmd);
 
-        safe_free(cmd_output, LOC_CSTORE_0107);
-        safe_free(backend_cmd, LOC_CSTORE_0108);
+        safe_free(cmd_output, LOC_CSTORE_0122);
+        safe_free(backend_cmd, LOC_CSTORE_0123);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0109);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0124);
         return (EC_FALSE);
     }
 
@@ -2573,10 +2573,10 @@ EC_BOOL cstore_make_dir_handler(const UINT32 cstore_md_id)
                                            backend_cmd,
                                            (uint32_t)cmd_output_size, cmd_output);
 
-    safe_free(cmd_output, LOC_CSTORE_0110);
-    safe_free(backend_cmd, LOC_CSTORE_0111);
+    safe_free(cmd_output, LOC_CSTORE_0125);
+    safe_free(backend_cmd, LOC_CSTORE_0126);
 
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0112);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0127);
     return (EC_TRUE);
 }
 
@@ -2621,7 +2621,7 @@ EC_BOOL cstore_push_file_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_push_file_handler: "
                                                "no file name\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0113);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0128);
         return (EC_FALSE);
     }
 
@@ -2630,7 +2630,7 @@ EC_BOOL cstore_push_file_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_push_file_handler: "
                                                "file '%s' not exist\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0114);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0129);
         return (EC_FALSE);
     }
 
@@ -2641,7 +2641,7 @@ EC_BOOL cstore_push_file_handler(const UINT32 cstore_md_id)
                                                "get var '%s' failed\n",
                                                k);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0115);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0130);
         return (EC_FALSE);
     }
 
@@ -2651,7 +2651,7 @@ EC_BOOL cstore_push_file_handler(const UINT32 cstore_md_id)
                                                "not configure '%s'\n",
                                                k);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0116);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0131);
         return (EC_TRUE);
     }
 
@@ -2672,8 +2672,8 @@ EC_BOOL cstore_push_file_handler(const UINT32 cstore_md_id)
                                                    "dirname of '%s' failed\n",
                                                    bucket_file_path);
 
-            safe_free(backend_cmd_format, LOC_CSTORE_0117);
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0118);
+            safe_free(backend_cmd_format, LOC_CSTORE_0132);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0133);
             return (EC_FALSE);
         }
 
@@ -2693,9 +2693,9 @@ EC_BOOL cstore_push_file_handler(const UINT32 cstore_md_id)
             /*trick: exchange back*/
             cstring_set_str(CSTORE_MD_BUCKET_PATH(cstore_md), (UINT8 *)bucket_file_path);
 
-            safe_free(bucket_dir_path, LOC_CSTORE_0119);
-            safe_free(backend_cmd_format, LOC_CSTORE_0120);
-            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_ALLOWED, LOC_CSTORE_0121);
+            safe_free(bucket_dir_path, LOC_CSTORE_0134);
+            safe_free(backend_cmd_format, LOC_CSTORE_0135);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_ALLOWED, LOC_CSTORE_0136);
             return (EC_FALSE);
         }
 
@@ -2706,7 +2706,7 @@ EC_BOOL cstore_push_file_handler(const UINT32 cstore_md_id)
         /*trick: exchange back*/
         cstring_set_str(CSTORE_MD_BUCKET_PATH(cstore_md), (UINT8 *)bucket_file_path);;
 
-        safe_free(bucket_dir_path, LOC_CSTORE_0122);
+        safe_free(bucket_dir_path, LOC_CSTORE_0137);
     }
 
     k = (const char *)"{file_path}";
@@ -2717,15 +2717,15 @@ EC_BOOL cstore_push_file_handler(const UINT32 cstore_md_id)
                                                "replace '%s' with '%s' in '%s' failed\n",
                                                k, src_file_path, backend_cmd_format);
 
-        safe_free(backend_cmd_format, LOC_CSTORE_0123);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0124);
+        safe_free(backend_cmd_format, LOC_CSTORE_0138);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0139);
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_push_file_handler: "
                                            "replace '%s' with '%s' in '%s' => '%s'\n",
                                            k, src_file_path, backend_cmd_format, backend_cmd);
-    safe_free(backend_cmd_format, LOC_CSTORE_0125);
+    safe_free(backend_cmd_format, LOC_CSTORE_0140);
     backend_cmd_format = backend_cmd;
 
     k = (const char *)"{bucket_path}";
@@ -2736,15 +2736,15 @@ EC_BOOL cstore_push_file_handler(const UINT32 cstore_md_id)
                                                "replace '%s' with '%s' in '%s' failed\n",
                                                k, bucket_file_path, backend_cmd_format);
 
-        safe_free(backend_cmd_format, LOC_CSTORE_0126);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0127);
+        safe_free(backend_cmd_format, LOC_CSTORE_0141);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0142);
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_push_file_handler: "
                                            "replace '%s' with '%s' in '%s' => '%s'\n",
                                            k, bucket_file_path, backend_cmd_format, backend_cmd);
-    safe_free(backend_cmd_format, LOC_CSTORE_0128);
+    safe_free(backend_cmd_format, LOC_CSTORE_0143);
 
     dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_push_file_handler: "
                                            "parsed cmd '%s'\n",
@@ -2754,16 +2754,16 @@ EC_BOOL cstore_push_file_handler(const UINT32 cstore_md_id)
     cmd_output_max_size = CSTORE_CACHE_MAX_SIZE;
     cmd_output_size     = 0;
 
-    cmd_output = (char *)safe_malloc(cmd_output_max_size, LOC_CSTORE_0129);
+    cmd_output = (char *)safe_malloc(cmd_output_max_size, LOC_CSTORE_0144);
     if(NULL_PTR == cmd_output)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_push_file_handler: "
                                                "alloc cmd ouptut with size %ld failed\n",
                                                cmd_output_max_size);
 
-        safe_free(backend_cmd, LOC_CSTORE_0130);
+        safe_free(backend_cmd, LOC_CSTORE_0145);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0131);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0146);
         return (EC_FALSE);
     }
 
@@ -2773,10 +2773,10 @@ EC_BOOL cstore_push_file_handler(const UINT32 cstore_md_id)
                                                "execute cmd '%s' failed\n",
                                                backend_cmd);
 
-        safe_free(cmd_output, LOC_CSTORE_0132);
-        safe_free(backend_cmd, LOC_CSTORE_0133);
+        safe_free(cmd_output, LOC_CSTORE_0147);
+        safe_free(backend_cmd, LOC_CSTORE_0148);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0134);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0149);
         return (EC_FALSE);
     }
 
@@ -2786,10 +2786,10 @@ EC_BOOL cstore_push_file_handler(const UINT32 cstore_md_id)
                                            backend_cmd,
                                            (uint32_t)cmd_output_size, cmd_output);
 
-    safe_free(cmd_output, LOC_CSTORE_0135);
-    safe_free(backend_cmd, LOC_CSTORE_0136);
+    safe_free(cmd_output, LOC_CSTORE_0150);
+    safe_free(backend_cmd, LOC_CSTORE_0151);
 
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0137);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0152);
     return (EC_TRUE);
 }
 
@@ -2834,7 +2834,7 @@ EC_BOOL cstore_pull_file_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_pull_file_handler: "
                                                "no file name\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0138);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0153);
         return (EC_FALSE);
     }
 
@@ -2843,7 +2843,7 @@ EC_BOOL cstore_pull_file_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_pull_file_handler: "
                                                "file '%s' already exist\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_ALLOWED, LOC_CSTORE_0139);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_ALLOWED, LOC_CSTORE_0154);
         return (EC_FALSE);
     }
 
@@ -2854,7 +2854,7 @@ EC_BOOL cstore_pull_file_handler(const UINT32 cstore_md_id)
                                                "get var '%s' failed\n",
                                                k);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0140);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0155);
         return (EC_FALSE);
     }
 
@@ -2864,7 +2864,7 @@ EC_BOOL cstore_pull_file_handler(const UINT32 cstore_md_id)
                                                "not configure '%s'\n",
                                                k);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_ALLOWED, LOC_CSTORE_0141);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_ALLOWED, LOC_CSTORE_0156);
         return (EC_FALSE);
     }
 
@@ -2881,15 +2881,15 @@ EC_BOOL cstore_pull_file_handler(const UINT32 cstore_md_id)
                                                "replace '%s' with '%s' in '%s' failed\n",
                                                k, src_file_path, backend_cmd_format);
 
-        safe_free(backend_cmd_format, LOC_CSTORE_0142);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0143);
+        safe_free(backend_cmd_format, LOC_CSTORE_0157);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0158);
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_pull_file_handler: "
                                            "replace '%s' with '%s' in '%s' => '%s'\n",
                                            k, src_file_path, backend_cmd_format, backend_cmd);
-    safe_free(backend_cmd_format, LOC_CSTORE_0144);
+    safe_free(backend_cmd_format, LOC_CSTORE_0159);
     backend_cmd_format = backend_cmd;
 
     k = (const char *)"{bucket_path}";
@@ -2900,15 +2900,15 @@ EC_BOOL cstore_pull_file_handler(const UINT32 cstore_md_id)
                                                "replace '%s' with '%s' in '%s' failed\n",
                                                k, bucket_file_path, backend_cmd_format);
 
-        safe_free(backend_cmd_format, LOC_CSTORE_0145);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0146);
+        safe_free(backend_cmd_format, LOC_CSTORE_0160);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0161);
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_pull_file_handler: "
                                            "replace '%s' with '%s' in '%s' => '%s'\n",
                                            k, bucket_file_path, backend_cmd_format, backend_cmd);
-    safe_free(backend_cmd_format, LOC_CSTORE_0147);
+    safe_free(backend_cmd_format, LOC_CSTORE_0162);
 
     dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_pull_file_handler: "
                                            "parsed cmd '%s'\n",
@@ -2918,16 +2918,16 @@ EC_BOOL cstore_pull_file_handler(const UINT32 cstore_md_id)
     cmd_output_max_size = CSTORE_CACHE_MAX_SIZE;
     cmd_output_size     = 0;
 
-    cmd_output = (char *)safe_malloc(cmd_output_max_size, LOC_CSTORE_0148);
+    cmd_output = (char *)safe_malloc(cmd_output_max_size, LOC_CSTORE_0163);
     if(NULL_PTR == cmd_output)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_pull_file_handler: "
                                                "alloc cmd ouptut with size %ld failed\n",
                                                cmd_output_max_size);
 
-        safe_free(backend_cmd, LOC_CSTORE_0149);
+        safe_free(backend_cmd, LOC_CSTORE_0164);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0150);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0165);
         return (EC_FALSE);
     }
 
@@ -2937,10 +2937,10 @@ EC_BOOL cstore_pull_file_handler(const UINT32 cstore_md_id)
                                                "execute cmd '%s' failed\n",
                                                backend_cmd);
 
-        safe_free(cmd_output, LOC_CSTORE_0151);
-        safe_free(backend_cmd, LOC_CSTORE_0152);
+        safe_free(cmd_output, LOC_CSTORE_0166);
+        safe_free(backend_cmd, LOC_CSTORE_0167);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0153);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0168);
         return (EC_FALSE);
     }
 
@@ -2950,10 +2950,10 @@ EC_BOOL cstore_pull_file_handler(const UINT32 cstore_md_id)
                                            backend_cmd,
                                            (uint32_t)cmd_output_size, cmd_output);
 
-    safe_free(cmd_output, LOC_CSTORE_0154);
-    safe_free(backend_cmd, LOC_CSTORE_0155);
+    safe_free(cmd_output, LOC_CSTORE_0169);
+    safe_free(backend_cmd, LOC_CSTORE_0170);
 
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0156);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0171);
     return (EC_TRUE);
 }
 
@@ -2998,7 +2998,7 @@ EC_BOOL cstore_purge_file_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_purge_file_handler: "
                                                "no file name\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0157);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0172);
         return (EC_FALSE);
     }
 
@@ -3009,7 +3009,7 @@ EC_BOOL cstore_purge_file_handler(const UINT32 cstore_md_id)
                                                "get var '%s' failed\n",
                                                k);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0158);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0173);
         return (EC_FALSE);
     }
 
@@ -3019,7 +3019,7 @@ EC_BOOL cstore_purge_file_handler(const UINT32 cstore_md_id)
                                                "not configure '%s'\n",
                                                k);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_ALLOWED, LOC_CSTORE_0159);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_ALLOWED, LOC_CSTORE_0174);
         return (EC_FALSE);
     }
 
@@ -3035,15 +3035,15 @@ EC_BOOL cstore_purge_file_handler(const UINT32 cstore_md_id)
                                                "replace '%s' with '%s' in '%s' failed\n",
                                                k, bucket_file_path, backend_cmd_format);
 
-        safe_free(backend_cmd_format, LOC_CSTORE_0160);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0161);
+        safe_free(backend_cmd_format, LOC_CSTORE_0175);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0176);
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_purge_file_handler: "
                                            "replace '%s' with '%s' in '%s' => '%s'\n",
                                            k, bucket_file_path, backend_cmd_format, backend_cmd);
-    safe_free(backend_cmd_format, LOC_CSTORE_0162);
+    safe_free(backend_cmd_format, LOC_CSTORE_0177);
 
     dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_purge_file_handler: "
                                            "parsed cmd '%s'\n",
@@ -3053,16 +3053,16 @@ EC_BOOL cstore_purge_file_handler(const UINT32 cstore_md_id)
     cmd_output_max_size = CSTORE_CACHE_MAX_SIZE;
     cmd_output_size     = 0;
 
-    cmd_output = (char *)safe_malloc(cmd_output_max_size, LOC_CSTORE_0163);
+    cmd_output = (char *)safe_malloc(cmd_output_max_size, LOC_CSTORE_0178);
     if(NULL_PTR == cmd_output)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_purge_file_handler: "
                                                "alloc cmd ouptut with size %ld failed\n",
                                                cmd_output_max_size);
 
-        safe_free(backend_cmd, LOC_CSTORE_0164);
+        safe_free(backend_cmd, LOC_CSTORE_0179);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0165);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0180);
         return (EC_FALSE);
     }
 
@@ -3072,10 +3072,10 @@ EC_BOOL cstore_purge_file_handler(const UINT32 cstore_md_id)
                                                "execute cmd '%s' failed\n",
                                                backend_cmd);
 
-        safe_free(cmd_output, LOC_CSTORE_0166);
-        safe_free(backend_cmd, LOC_CSTORE_0167);
+        safe_free(cmd_output, LOC_CSTORE_0181);
+        safe_free(backend_cmd, LOC_CSTORE_0182);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0168);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0183);
         return (EC_FALSE);
     }
 
@@ -3085,10 +3085,10 @@ EC_BOOL cstore_purge_file_handler(const UINT32 cstore_md_id)
                                            backend_cmd,
                                            (uint32_t)cmd_output_size, cmd_output);
 
-    safe_free(cmd_output, LOC_CSTORE_0169);
-    safe_free(backend_cmd, LOC_CSTORE_0170);
+    safe_free(cmd_output, LOC_CSTORE_0184);
+    safe_free(backend_cmd, LOC_CSTORE_0185);
 
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0171);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0186);
     return (EC_TRUE);
 }
 
@@ -3133,7 +3133,7 @@ EC_BOOL cstore_list_file_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_list_file_handler: "
                                                "no file name\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0172);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0187);
         return (EC_FALSE);
     }
 
@@ -3144,7 +3144,7 @@ EC_BOOL cstore_list_file_handler(const UINT32 cstore_md_id)
                                                "get var '%s' failed\n",
                                                k);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0173);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0188);
         return (EC_FALSE);
     }
 
@@ -3154,7 +3154,7 @@ EC_BOOL cstore_list_file_handler(const UINT32 cstore_md_id)
                                                "not configure '%s'\n",
                                                k);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_ALLOWED, LOC_CSTORE_0174);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_ALLOWED, LOC_CSTORE_0189);
         return (EC_FALSE);
     }
 
@@ -3170,15 +3170,15 @@ EC_BOOL cstore_list_file_handler(const UINT32 cstore_md_id)
                                                "replace '%s' with '%s' in '%s' failed\n",
                                                k, bucket_file_path, backend_cmd_format);
 
-        safe_free(backend_cmd_format, LOC_CSTORE_0175);
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0176);
+        safe_free(backend_cmd_format, LOC_CSTORE_0190);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0191);
         return (EC_FALSE);
     }
 
     dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_list_file_handler: "
                                            "replace '%s' with '%s' in '%s' => '%s'\n",
                                            k, bucket_file_path, backend_cmd_format, backend_cmd);
-    safe_free(backend_cmd_format, LOC_CSTORE_0177);
+    safe_free(backend_cmd_format, LOC_CSTORE_0192);
 
     dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_list_file_handler: "
                                            "parsed cmd '%s'\n",
@@ -3188,16 +3188,16 @@ EC_BOOL cstore_list_file_handler(const UINT32 cstore_md_id)
     cmd_output_max_size = CSTORE_CACHE_MAX_SIZE;
     cmd_output_size     = 0;
 
-    cmd_output = (char *)safe_malloc(cmd_output_max_size, LOC_CSTORE_0178);
+    cmd_output = (char *)safe_malloc(cmd_output_max_size, LOC_CSTORE_0193);
     if(NULL_PTR == cmd_output)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_list_file_handler: "
                                                "alloc cmd ouptut with size %ld failed\n",
                                                cmd_output_max_size);
 
-        safe_free(backend_cmd, LOC_CSTORE_0179);
+        safe_free(backend_cmd, LOC_CSTORE_0194);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0180);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0195);
         return (EC_FALSE);
     }
 
@@ -3207,10 +3207,10 @@ EC_BOOL cstore_list_file_handler(const UINT32 cstore_md_id)
                                                "execute cmd '%s' failed\n",
                                                backend_cmd);
 
-        safe_free(cmd_output, LOC_CSTORE_0181);
-        safe_free(backend_cmd, LOC_CSTORE_0182);
+        safe_free(cmd_output, LOC_CSTORE_0196);
+        safe_free(backend_cmd, LOC_CSTORE_0197);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0183);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0198);
         return (EC_FALSE);
     }
 
@@ -3231,10 +3231,10 @@ EC_BOOL cstore_list_file_handler(const UINT32 cstore_md_id)
                                                backend_cmd,
                                                (uint32_t)cmd_output_size, cmd_output);
 
-        safe_free(cmd_output, LOC_CSTORE_0184);
-        safe_free(backend_cmd, LOC_CSTORE_0185);
+        safe_free(cmd_output, LOC_CSTORE_0199);
+        safe_free(backend_cmd, LOC_CSTORE_0200);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0186);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0201);
         return (EC_FALSE);
     }
 
@@ -3243,9 +3243,9 @@ EC_BOOL cstore_list_file_handler(const UINT32 cstore_md_id)
 
     cngx_set_header_out_kv(r, (const char *)"Content-Length", c_word_to_str(cmd_output_size));
 
-    safe_free(backend_cmd, LOC_CSTORE_0187);
+    safe_free(backend_cmd, LOC_CSTORE_0202);
 
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0188);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0203);
     return (EC_TRUE);
 }
 
@@ -3270,7 +3270,7 @@ EC_BOOL cstore_delete_dir_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_delete_dir_handler: "
                                                "no dir name\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0189);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0204);
         return (EC_FALSE);
     }
 
@@ -3279,7 +3279,7 @@ EC_BOOL cstore_delete_dir_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_delete_dir_handler: "
                                                "dir '%s' not exist\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0190);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0205);
         return (EC_FALSE);
     }
 
@@ -3288,7 +3288,7 @@ EC_BOOL cstore_delete_dir_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_delete_dir_handler: "
                                                "remove dir '%s' failed\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0191);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0206);
         return (EC_FALSE);
     }
 
@@ -3296,7 +3296,7 @@ EC_BOOL cstore_delete_dir_handler(const UINT32 cstore_md_id)
                                            "remove dir '%s' done\n",
                                            (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
 
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0192);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0207);
     return (EC_TRUE);
 }
 
@@ -3531,7 +3531,7 @@ EC_BOOL cstore_list_dir_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_list_dir_handler: "
                                                "no dir name\n");
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0193);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0208);
         return (EC_FALSE);
     }
 
@@ -3540,21 +3540,21 @@ EC_BOOL cstore_list_dir_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_list_dir_handler: "
                                                "dir '%s' not exist\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0194);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_NOT_FOUND, LOC_CSTORE_0209);
         return (EC_FALSE);
     }
 
     cmd_output_max_size = CSTORE_CACHE_MAX_SIZE;
     cmd_output_size     = 0;
 
-    cmd_output = (char *)safe_malloc(cmd_output_max_size, LOC_CSTORE_0195);
+    cmd_output = (char *)safe_malloc(cmd_output_max_size, LOC_CSTORE_0210);
     if(NULL_PTR == cmd_output)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_list_dir_handler: "
                                                "alloc cmd ouptut with size %ld failed\n",
                                                cmd_output_max_size);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0196);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0211);
         return (EC_TRUE);
     }
 
@@ -3567,9 +3567,9 @@ EC_BOOL cstore_list_dir_handler(const UINT32 cstore_md_id)
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
 
 
-        safe_free(cmd_output, LOC_CSTORE_0197);
+        safe_free(cmd_output, LOC_CSTORE_0212);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0198);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0213);
         return (EC_FALSE);
     }
 
@@ -3588,9 +3588,9 @@ EC_BOOL cstore_list_dir_handler(const UINT32 cstore_md_id)
                                                "=> new rsp body failed\n",
                                                (uint32_t)cmd_output_size, cmd_output);
 
-        safe_free(cmd_output, LOC_CSTORE_0199);
+        safe_free(cmd_output, LOC_CSTORE_0214);
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0200);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0215);
         return (EC_FALSE);
     }
 
@@ -3601,7 +3601,7 @@ EC_BOOL cstore_list_dir_handler(const UINT32 cstore_md_id)
 
     cngx_set_header_out_kv(r, (const char *)"X-File-Num", c_word_to_str(file_num));
 
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0201);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0216);
 
     return (EC_TRUE);
 }
@@ -3646,7 +3646,7 @@ EC_BOOL cstore_content_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_content_handler: "
                                                "parse method failed\n");
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0202);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0217);
         cstore_content_send_response(cstore_md_id);
         return (EC_FALSE);
     }
@@ -3658,7 +3658,7 @@ EC_BOOL cstore_content_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_content_handler: "
                                                "parse file path failed\n");
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0203);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0218);
         cstore_content_send_response(cstore_md_id);
         return (EC_FALSE);
     }
@@ -3670,7 +3670,7 @@ EC_BOOL cstore_content_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_content_handler: "
                                                "parse file op failed\n");
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0204);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0219);
         cstore_content_send_response(cstore_md_id);
         return (EC_FALSE);
     }
@@ -3682,7 +3682,7 @@ EC_BOOL cstore_content_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_range: "
                                                "parse file range failed\n");
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0205);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0220);
         cstore_content_send_response(cstore_md_id);
         return (EC_FALSE);
     }
@@ -3694,7 +3694,7 @@ EC_BOOL cstore_content_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_range: "
                                                "parse file md5 failed\n");
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0206);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0221);
         cstore_content_send_response(cstore_md_id);
         return (EC_FALSE);
     }
@@ -3706,7 +3706,7 @@ EC_BOOL cstore_content_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_range: "
                                                "parse file size failed\n");
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0205);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0222);
         cstore_content_send_response(cstore_md_id);
         return (EC_FALSE);
     }
@@ -3718,7 +3718,7 @@ EC_BOOL cstore_content_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_range: "
                                                "parse segment size failed\n");
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0205);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0223);
         cstore_content_send_response(cstore_md_id);
         return (EC_FALSE);
     }
@@ -3730,7 +3730,7 @@ EC_BOOL cstore_content_handler(const UINT32 cstore_md_id)
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_content_handler: "
                                                "parse file body failed\n");
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0207);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0224);
         cstore_content_send_response(cstore_md_id);
         return (EC_FALSE);
     }
@@ -3744,7 +3744,7 @@ EC_BOOL cstore_content_handler(const UINT32 cstore_md_id)
                                                "invalid file path '%s'\n",
                                                (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
 
-        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0208);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0225);
         cstore_content_send_response(cstore_md_id);
         return (EC_FALSE);
     }
@@ -4079,7 +4079,7 @@ EC_BOOL cstore_content_handler(const UINT32 cstore_md_id)
                                            (char *)CSTORE_MD_FILE_OP_STR(cstore_md),
                                            (char *)CSTORE_MD_FILE_PATH_STR(cstore_md));
 
-    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0209);
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0226);
     cstore_content_send_response(cstore_md_id);
     return (EC_FALSE);
 }
