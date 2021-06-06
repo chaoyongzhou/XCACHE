@@ -1429,8 +1429,12 @@ EC_BOOL cstore_combine_file_handler(const UINT32 cstore_md_id)
     file_s_offset = des_file_size;
     file_e_offset = file_s_offset + CSTORE_MD_SEGMENT_SIZE(cstore_md);
 
-    while(file_e_offset <= CSTORE_MD_FILE_SIZE(cstore_md))
+    while(file_s_offset < CSTORE_MD_FILE_SIZE(cstore_md))
     {
+        if(file_e_offset > CSTORE_MD_FILE_SIZE(cstore_md))
+        {
+            file_e_offset = CSTORE_MD_FILE_SIZE(cstore_md);
+        }
         src_file_path = __cstore_make_part_file_path(des_file_path,
                                                     file_s_offset,
                                                     file_e_offset,
