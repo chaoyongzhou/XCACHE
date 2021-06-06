@@ -30,6 +30,7 @@ extern "C"{
 #define CSTORE_FILE_UPLOAD_OP                       ("upload")      /*method: POST*/
 #define CSTORE_FILE_EMPTY_OP                        ("empty")       /*method: PUT*/
 #define CSTORE_FILE_MERGE_OP                        ("merge")       /*method: PUT*/
+#define CSTORE_FILE_COMBINE_OP                      ("combine")     /*method: PUT*/
 #define CSTORE_FILE_COMPLETE_OP                     ("complete")    /*method: GET*/
 #define CSTORE_FILE_OVERRIDE_OP                     ("override")    /*method: PUT*/
 #define CSTORE_FILE_CHECK_OP                        ("check")       /*method: GET*/
@@ -80,6 +81,7 @@ typedef struct
     UINT32               file_size;
     UINT32               file_s_offset;
     UINT32               file_e_offset;
+    UINT32               segment_size;
 
     ngx_http_request_t  *ngx_http_req;
 
@@ -118,6 +120,7 @@ typedef struct
 #define CSTORE_MD_FILE_SIZE(cstore_md)                    ((cstore_md)->file_size)
 #define CSTORE_MD_FILE_S_OFFSET(cstore_md)                ((cstore_md)->file_s_offset)
 #define CSTORE_MD_FILE_E_OFFSET(cstore_md)                ((cstore_md)->file_e_offset)
+#define CSTORE_MD_SEGMENT_SIZE(cstore_md)                 ((cstore_md)->segment_size)
 
 #define CSTORE_MD_NGX_HTTP_REQ(cstore_md)                 ((cstore_md)->ngx_http_req)
 
@@ -184,6 +187,10 @@ EC_BOOL cstore_parse_file_op(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_parse_file_range(const UINT32 cstore_md_id);
 
+EC_BOOL cstore_parse_file_size(const UINT32 cstore_md_id);
+
+EC_BOOL cstore_parse_segment_size(const UINT32 cstore_md_id);
+
 EC_BOOL cstore_parse_file_md5(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_upload_file_handler(const UINT32 cstore_md_id);
@@ -191,6 +198,8 @@ EC_BOOL cstore_upload_file_handler(const UINT32 cstore_md_id);
 EC_BOOL cstore_empty_file_handler(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_merge_file_handler(const UINT32 cstore_md_id);
+
+EC_BOOL cstore_combine_file_handler(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_override_file_handler(const UINT32 cstore_md_id);
 

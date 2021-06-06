@@ -150,6 +150,7 @@ UINT32 cstore_start(ngx_http_request_t *r)
     CSTORE_MD_FILE_SIZE(cstore_md)        = 0;
     CSTORE_MD_FILE_S_OFFSET(cstore_md)    = 0;
     CSTORE_MD_FILE_E_OFFSET(cstore_md)    = 0;
+    CSTORE_MD_SEGMENT_SIZE(cstore_md)     = 0;
 
     CSTORE_MD_NGX_HTTP_REQ(cstore_md)     = r;
 
@@ -259,6 +260,7 @@ void cstore_end(const UINT32 cstore_md_id)
     CSTORE_MD_FILE_SIZE(cstore_md)        = 0;
     CSTORE_MD_FILE_S_OFFSET(cstore_md)    = 0;
     CSTORE_MD_FILE_E_OFFSET(cstore_md)    = 0;
+    CSTORE_MD_SEGMENT_SIZE(cstore_md)     = 0;
 
     CSTORE_MD_NGX_HTTP_REQ(cstore_md) = NULL_PTR;
 
@@ -602,7 +604,7 @@ EC_BOOL cstore_parse_file_op(const UINT32 cstore_md_id)
     }
     safe_free(file_op_str, LOC_CSTORE_0018);
 
-    dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "[DEBUG] cstore_parse_file_op: "
+    dbg_log(SEC_0173_CSTORE, 1)(LOGSTDOUT, "[DEBUG] cstore_parse_file_op: "
                                            "parsed op '%s'\n",
                                            (char *)CSTORE_MD_FILE_OP_STR(cstore_md));
 
@@ -700,6 +702,142 @@ EC_BOOL cstore_parse_file_range(const UINT32 cstore_md_id)
                                                CSTORE_MD_FILE_S_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_E_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_SIZE(cstore_md));
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cstore_parse_file_size(const UINT32 cstore_md_id)
+{
+    CSTORE_MD                   *cstore_md;
+
+    ngx_http_request_t          *r;
+
+    const char                  *k;
+    char                        *v;
+
+#if ( SWITCH_ON == CSTORE_DEBUG_SWITCH )
+    if ( CSTORE_MD_ID_CHECK_INVALID(cstore_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cstore_parse_file_size: cstore module #0x%lx not started.\n",
+                cstore_md_id);
+        dbg_exit(MD_CSTORE, cstore_md_id);
+    }
+#endif/*CSTORE_DEBUG_SWITCH*/
+
+    cstore_md = CSTORE_MD_GET(cstore_md_id);
+
+    r = CSTORE_MD_NGX_HTTP_REQ(cstore_md);
+
+    k = (const char *)"X-File-Size";
+    if(EC_FALSE == cngx_get_header_in(r, k, &v))
+    {
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_size: "
+                                               "[cngx] get '%s' failed\n",
+                                               k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_file_size: "
+                                               "[cngx] no '%s'\n",
+                                               k);
+        return (EC_TRUE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_file_size: "
+                                               "[cngx] get var '%s':'%s' done\n",
+                                               k, v);
+
+        if(EC_FALSE == c_str_is_digit(v))
+        {
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_size: "
+                                                   "[cngx] invald '%s':'%s'\n",
+                                                   k, v);
+            safe_free(v, LOC_CSTORE_0020);
+            return (EC_FALSE);
+        }
+
+        CSTORE_MD_FILE_SIZE(cstore_md) = c_str_to_word(v);
+
+        safe_free(v, LOC_CSTORE_0022);
+
+        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_file_size: "
+                                               "[cngx] parsed file size: %ld\n",
+                                               CSTORE_MD_FILE_SIZE(cstore_md));
+        return (EC_TRUE);
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cstore_parse_segment_size(const UINT32 cstore_md_id)
+{
+    CSTORE_MD                   *cstore_md;
+
+    ngx_http_request_t          *r;
+
+    const char                  *k;
+    char                        *v;
+
+#if ( SWITCH_ON == CSTORE_DEBUG_SWITCH )
+    if ( CSTORE_MD_ID_CHECK_INVALID(cstore_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cstore_parse_segment_size: cstore module #0x%lx not started.\n",
+                cstore_md_id);
+        dbg_exit(MD_CSTORE, cstore_md_id);
+    }
+#endif/*CSTORE_DEBUG_SWITCH*/
+
+    cstore_md = CSTORE_MD_GET(cstore_md_id);
+
+    r = CSTORE_MD_NGX_HTTP_REQ(cstore_md);
+
+    k = (const char *)"X-Segment-Size";
+    if(EC_FALSE == cngx_get_header_in(r, k, &v))
+    {
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_segment_size: "
+                                               "[cngx] get '%s' failed\n",
+                                               k);
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == v)
+    {
+        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_segment_size: "
+                                               "[cngx] no '%s'\n",
+                                               k);
+        return (EC_TRUE);
+    }
+
+    if(NULL_PTR != v)
+    {
+        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_segment_size: "
+                                               "[cngx] get var '%s':'%s' done\n",
+                                               k, v);
+
+        if(EC_FALSE == c_str_is_digit(v))
+        {
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_segment_size: "
+                                                   "[cngx] invald '%s':'%s'\n",
+                                                   k, v);
+            safe_free(v, LOC_CSTORE_0020);
+            return (EC_FALSE);
+        }
+
+        CSTORE_MD_SEGMENT_SIZE(cstore_md) = c_str_to_word(v);
+
+        safe_free(v, LOC_CSTORE_0022);
+
+        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_segment_size: "
+                                               "[cngx] parsed segment size: %ld\n",
+                                               CSTORE_MD_SEGMENT_SIZE(cstore_md));
         return (EC_TRUE);
     }
 
@@ -1083,6 +1221,12 @@ EC_BOOL cstore_merge_file_handler(const UINT32 cstore_md_id)
         return (EC_FALSE);
     }
 
+    /*trick: if X-Segment-Size exists, combine would own higher priority*/
+    if(0 < CSTORE_MD_SEGMENT_SIZE(cstore_md))
+    {
+        return cstore_combine_file_handler(cstore_md_id);
+    }
+
     des_file_path = CSTORE_MD_FILE_PATH(cstore_md);
 
     if(CSTORE_MD_FILE_S_OFFSET(cstore_md) > CSTORE_MD_FILE_E_OFFSET(cstore_md)
@@ -1145,7 +1289,7 @@ EC_BOOL cstore_merge_file_handler(const UINT32 cstore_md_id)
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_merge_file_handler: "
                                                "open file '%s' failed\n",
-                                               (char *)cstring_get_str(src_file_path));
+                                               (char *)cstring_get_str(des_file_path));
 
         c_file_close(src_fd);
         cstring_free(src_file_path);
@@ -1172,6 +1316,11 @@ EC_BOOL cstore_merge_file_handler(const UINT32 cstore_md_id)
     c_file_close(src_fd);
     c_file_close(des_fd);
 
+    dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_merge_file_handler: "
+                                           "merge '%s' to '%s' done\n",
+                                           (char *)cstring_get_str(src_file_path),
+                                           (char *)cstring_get_str(des_file_path));
+
     /*unlink src file*/
     if(EC_FALSE == c_file_unlink((char *)cstring_get_str(src_file_path)))
     {
@@ -1189,12 +1338,220 @@ EC_BOOL cstore_merge_file_handler(const UINT32 cstore_md_id)
                                            "unlink '%s' done\n",
                                            (char *)cstring_get_str(src_file_path));
 
-    dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_merge_file_handler: "
-                                           "merge '%s' to '%s' done\n",
-                                           (char *)cstring_get_str(src_file_path),
-                                           (char *)cstring_get_str(des_file_path));
-
     cstring_free(src_file_path);
+
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0043);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cstore_combine_file_handler(const UINT32 cstore_md_id)
+{
+    CSTORE_MD                   *cstore_md;
+
+    ngx_http_request_t          *r;
+
+    CSTRING                     *src_file_path;
+    CSTRING                     *des_file_path;
+
+    UINT32                       file_s_offset;
+    UINT32                       file_e_offset;
+    UINT32                       des_file_size;
+
+    int                          src_fd;
+    int                          des_fd;
+
+#if ( SWITCH_ON == CSTORE_DEBUG_SWITCH )
+    if ( CSTORE_MD_ID_CHECK_INVALID(cstore_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cstore_combine_file_handler: cstore module #0x%lx not started.\n",
+                cstore_md_id);
+        dbg_exit(MD_CSTORE, cstore_md_id);
+    }
+#endif/*CSTORE_DEBUG_SWITCH*/
+
+    cstore_md = CSTORE_MD_GET(cstore_md_id);
+
+    r = CSTORE_MD_NGX_HTTP_REQ(cstore_md);
+
+    dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_combine_file_handler: enter\n");
+
+    /*check validity*/
+    if(NULL_PTR == CSTORE_MD_FILE_PATH(cstore_md))
+    {
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_combine_file_handler: "
+                                               "no file name\n");
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0035);
+        return (EC_FALSE);
+    }
+
+    if(0 == CSTORE_MD_SEGMENT_SIZE(cstore_md))
+    {
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_combine_file_handler: "
+                                               "no segment size\n");
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0035);
+        return (EC_FALSE);
+    }
+
+    if(0 == CSTORE_MD_FILE_SIZE(cstore_md))
+    {
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_combine_file_handler: "
+                                               "no file size\n");
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0035);
+        return (EC_FALSE);
+    }
+
+    des_file_path = CSTORE_MD_FILE_PATH(cstore_md);
+
+    des_fd = c_file_open((char *)cstring_get_str(des_file_path), O_RDWR | O_CREAT, 0666);
+    if(ERR_FD == des_fd)
+    {
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_combine_file_handler: "
+                                               "open file '%s' failed\n",
+                                               (char *)cstring_get_str(des_file_path));
+
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0040);
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == c_file_size(des_fd, &des_file_size))
+    {
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_combine_file_handler: "
+                                               "size file '%s' failed\n",
+                                               (char *)cstring_get_str(des_file_path));
+
+        c_file_close(des_fd);
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0040);
+        return (EC_FALSE);
+    }
+
+    file_s_offset = des_file_size;
+    file_e_offset = file_s_offset + CSTORE_MD_SEGMENT_SIZE(cstore_md);
+
+    while(file_e_offset <= CSTORE_MD_FILE_SIZE(cstore_md))
+    {
+        src_file_path = __cstore_make_part_file_path(des_file_path,
+                                                    file_s_offset,
+                                                    file_e_offset,
+                                                    CSTORE_MD_FILE_SIZE(cstore_md));
+        if(NULL_PTR == src_file_path)
+        {
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_combine_file_handler: "
+                                                   "make file name '%s_%ld_%ld_%ld' failed\n",
+                                                   (char *)cstring_get_str(des_file_path),
+                                                   CSTORE_MD_FILE_S_OFFSET(cstore_md),
+                                                   CSTORE_MD_FILE_E_OFFSET(cstore_md),
+                                                   CSTORE_MD_FILE_SIZE(cstore_md));
+
+            c_file_close(des_fd);
+
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0037);
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == c_file_exist((char *)cstring_get_str(src_file_path)))
+        {
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "[DEBUG] cstore_combine_file_handler: "
+                                                   "no file '%s' => combine succ\n",
+                                                   (char *)cstring_get_str(src_file_path));
+
+            c_file_close(des_fd);
+            cstring_free(src_file_path);
+
+            if(file_s_offset > des_file_size)
+            {
+                dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_combine_file_handler: "
+                                                       "combine '%s' range [%ld, %ld) done\n",
+                                                       (char *)cstring_get_str(des_file_path),
+                                                       des_file_size, file_s_offset);
+
+                cngx_set_header_out_kv(r, (const char *)"X-Combined-Range",
+                                           c_format_str("%ld-%ld/%ld",
+                                           des_file_size,
+                                           file_s_offset - 1,
+                                           CSTORE_MD_FILE_SIZE(cstore_md)));
+            }
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0038);
+            return (EC_TRUE);
+        }
+
+        /*src file read only*/
+        src_fd = c_file_open((char *)cstring_get_str(src_file_path), O_RDONLY, 0666);
+        if(ERR_FD == src_fd)
+        {
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_combine_file_handler: "
+                                                   "open file '%s' failed\n",
+                                                   (char *)cstring_get_str(src_file_path));
+
+            c_file_close(des_fd);
+            cstring_free(src_file_path);
+
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0039);
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == c_file_merge(src_fd, des_fd, (UINT32)CSTORE_FILE_MERGE_SEG_SIZE))
+        {
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_combine_file_handler: "
+                                                   "merge '%s' to '%s' failed\n",
+                                                   (char *)cstring_get_str(src_file_path),
+                                                   (char *)cstring_get_str(des_file_path));
+
+            c_file_close(src_fd);
+            c_file_close(des_fd);
+            cstring_free(src_file_path);
+
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0041);
+            return (EC_FALSE);
+        }
+
+        c_file_close(src_fd);
+
+        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_combine_file_handler: "
+                                               "combine '%s' to '%s' done\n",
+                                               (char *)cstring_get_str(src_file_path),
+                                               (char *)cstring_get_str(des_file_path));
+
+        /*unlink src file*/
+        if(EC_FALSE == c_file_unlink((char *)cstring_get_str(src_file_path)))
+        {
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_combine_file_handler: "
+                                                   "unlink '%s' failed\n",
+                                                   (char *)cstring_get_str(src_file_path));
+
+            c_file_close(des_fd);
+            cstring_free(src_file_path);
+
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0042);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_combine_file_handler: "
+                                               "unlink '%s' done\n",
+                                               (char *)cstring_get_str(src_file_path));
+
+        cstring_free(src_file_path);
+
+        file_s_offset = file_e_offset;
+        file_e_offset = file_s_offset + CSTORE_MD_SEGMENT_SIZE(cstore_md);
+    }
+
+    c_file_close(des_fd);
+
+    if(file_s_offset > des_file_size)
+    {
+        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_combine_file_handler: "
+                                               "combine '%s' range [%ld, %ld) done\n",
+                                               (char *)cstring_get_str(des_file_path),
+                                               des_file_size, file_s_offset);
+
+        cngx_set_header_out_kv(r, (const char *)"X-Combined-Range",
+                                   c_format_str("%ld-%ld/%ld",
+                                   des_file_size,
+                                   file_s_offset - 1,
+                                   CSTORE_MD_FILE_SIZE(cstore_md)));
+    }
 
     cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0043);
 
@@ -3340,6 +3697,30 @@ EC_BOOL cstore_content_handler(const UINT32 cstore_md_id)
     dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_content_handler: "
                                            "parse file md5 done\n");
 
+    if(EC_FALSE == cstore_parse_file_size(cstore_md_id))
+    {
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_range: "
+                                               "parse file size failed\n");
+
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0205);
+        cstore_content_send_response(cstore_md_id);
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_content_handler: "
+                                           "parse file size done\n");
+
+    if(EC_FALSE == cstore_parse_segment_size(cstore_md_id))
+    {
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_range: "
+                                               "parse segment size failed\n");
+
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0205);
+        cstore_content_send_response(cstore_md_id);
+        return (EC_FALSE);
+    }
+    dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_content_handler: "
+                                           "parse segment size done\n");
+
     if(EC_FALSE == cstore_parse_file_body(cstore_md_id))
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_content_handler: "
@@ -3391,6 +3772,24 @@ EC_BOOL cstore_content_handler(const UINT32 cstore_md_id)
         {
             dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_content_handler: "
                                                    "merge file failed\n");
+
+            cstore_content_send_response(cstore_md_id);
+            return (EC_FALSE);
+        }
+
+        cstore_content_send_response(cstore_md_id);
+        return (EC_TRUE);
+    }
+
+    /*combine parts to file*/
+    if(NULL_PTR != CSTORE_MD_FILE_OP(cstore_md)
+    && EC_TRUE == cstring_is_str(CSTORE_MD_FILE_OP(cstore_md), (UINT8 *)CSTORE_FILE_COMBINE_OP)
+    && EC_TRUE == cstring_is_str_ignore_case(CSTORE_MD_METHOD(cstore_md), (UINT8 *)"PUT"))
+    {
+        if(EC_FALSE == cstore_combine_file_handler(cstore_md_id))
+        {
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_content_handler: "
+                                                   "combine file failed\n");
 
             cstore_content_send_response(cstore_md_id);
             return (EC_FALSE);

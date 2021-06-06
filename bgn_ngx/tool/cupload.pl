@@ -432,7 +432,7 @@ sub upload_remote_file_do
 
     $res = $ua->post($url,
                 'Content-Type'  => "text/html; charset=utf-8",
-                Content         =>$data,
+                Content         => $data,
                 'Host'          => &get_remote_host(),
                 'Content-Range' => "bytes ${s_offset}-${e_offset}/${file_size}");
 
@@ -516,7 +516,7 @@ sub override_remote_file_do
 
     $res = $ua->put($url,
                 'Content-Type'  => "text/html; charset=utf-8",
-                Content         =>$data,
+                Content         => $data,
                 'Host'          => &get_remote_host(),
                 'Content-Range' => "bytes ${s_offset}-${e_offset}/${file_size}");
 

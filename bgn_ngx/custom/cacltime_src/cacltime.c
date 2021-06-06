@@ -517,7 +517,7 @@ EC_BOOL cacltime_access_check(const UINT32 cacltime_md_id, const CACLTIME_ACCESS
 
     key_str = v;
 
-    /*chekc md5*/
+    /*check md5*/
     op_len    = strlen(CACLTIME_ACCESS_NODE_OP(cacltime_access_node));
     path_len  = strlen(CACLTIME_ACCESS_NODE_PATH(cacltime_access_node));
     key_len   = strlen((char *)key_str);
