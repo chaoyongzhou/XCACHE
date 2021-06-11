@@ -3049,9 +3049,16 @@ char *c_dirname(const char *path_name)
 
         while('/' == (*src)) { src ++; }
 
-        for(count = 0; '.' == (*src); count ++, src ++)
+        for(count = 0; '.' == (*src) && src < end; count ++, src ++)
         {
             /*do nothing*/
+        }
+
+        if('/' != (*src))
+        {
+            (*des ++) = '/';
+            src -= count;
+            continue;
         }
 
         if(0 == count)
