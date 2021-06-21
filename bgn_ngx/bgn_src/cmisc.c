@@ -4473,6 +4473,50 @@ EC_BOOL c_file_rename(const char *src_filename, const char *des_filename)
     return (EC_TRUE);
 }
 
+const char *c_file_name_suffix(const char *filename)
+{
+    const char *p;
+
+    if(NULL_PTR == filename)
+    {
+        return (NULL_PTR);
+    }
+
+    p = filename + strlen(filename) - 1;
+    for(;filename < p && '.' == (*p); p --)
+    {
+    }
+
+    for(;filename < p && '/' != (*p); p --)
+    {
+        if('.' == (*p))
+        {
+            return (p);
+        }
+    }
+
+    return (NULL_PTR);
+}
+
+EC_BOOL c_file_name_check_suffix(const char *filename, const char *suffix)
+{
+    const char *p;
+
+    p = filename + strlen(filename) - strlen(suffix);
+
+    if(p < filename)
+    {
+        return (EC_FALSE);
+    }
+
+    if(0 != STRCMP(p, suffix))
+    {
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
 int c_fp_dup(int fd)
 {
     int fd2;

@@ -345,6 +345,10 @@ EC_BOOL c_file_remove(const char *filename);
 
 EC_BOOL c_file_rename(const char *src_filename, const char *des_filename);
 
+const char *c_file_name_suffix(const char *filename);
+
+EC_BOOL c_file_name_check_suffix(const char *filename, const char *suffix);
+
 int c_fp_dup(int fd);
 
 EC_BOOL c_dev_exist(const char *pathname);

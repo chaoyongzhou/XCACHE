@@ -37,6 +37,7 @@ extern "C"{
 #define CSTORE_FILE_DELETE_OP                       ("delete")      /*method: DELETE*/
 #define CSTORE_FILE_SIZE_OP                         ("size")        /*method: GET*/
 #define CSTORE_FILE_MD5_OP                          ("md5")         /*method: GET*/
+#define CSTORE_FILE_UNZIP_OP                        ("unzip")       /*method: PUT*/
 
 #define CSTORE_FILE_DOWNLOAD_OP                     ("download")    /*method: GET*/
 #define CSTORE_DIR_MAKE_OP                          ("mkdir")       /*method: PUT*/
@@ -222,6 +223,8 @@ EC_BOOL cstore_push_file_handler(const UINT32 cstore_md_id);
 EC_BOOL cstore_pull_file_handler(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_list_file_handler(const UINT32 cstore_md_id);
+
+EC_BOOL cstore_unzip_file_handler(const UINT32 cstore_md_id);
 
 EC_BOOL cstore_purge_file_handler(const UINT32 cstore_md_id);
 

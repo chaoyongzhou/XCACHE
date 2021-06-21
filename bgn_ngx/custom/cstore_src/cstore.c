@@ -3244,6 +3244,184 @@ EC_BOOL cstore_list_file_handler(const UINT32 cstore_md_id)
     return (EC_TRUE);
 }
 
+/**
+*
+* unzip file
+*
+**/
+EC_BOOL cstore_unzip_file_handler(const UINT32 cstore_md_id)
+{
+    CSTORE_MD                   *cstore_md;
+
+    char                        *file_path;
+
+    /*suffix, command bin, command format*/
+    static const char *unzip_cfg_list[][3] = {
+        {".zip"     , "/usr/bin/unzip"      , "%s %s"                       },
+
+        {".tar.gz"  , "/bin/tar"            , "%s zxf %s"                   },
+        {".gz"      , "/bin/gunzip"         , "%s %s"                       },
+        {".gz"      , "/bin/gzip"           , "%s -d %s"                    },
+
+        {".tar"     , "/bin/tar"            , "%s xf %s"                    },
+        {".tgz"     , "/bin/tar"            , "%s zxf %s"                   },
+
+        {".tar.bz2" , "/bin/tar"            , "%s jxf %s"                   },
+        {".tar.bz"  , "/bin/tar"            , "%s jxf %s"                   },
+        {".bz2"     , "/bin/bunzip2"        , "%s %s"                       },
+        {".bz2"     , "/bin/bzip2"          , "%s -d %s"                    },
+        {".bz"      , "/bin/bunzip2"        , "%s %s"                       },
+        {".bz"      , "/bin/bzip2"          , "%s -d %s"                    },
+
+        {".tar.xz"  , "/usr/bin/xz"         , "%s -d %s -c | /bin/tar -xf -"},
+        {".xz"      , "/usr/bin/xz"         , "%s -d -k %s"                 },
+
+        {".tar.7z"  , "/usr/bin/7z"         , "%s x -so %s | /bin/tar -xf -"},
+        {".7z"      , "/usr/bin/7z"         , "%s x %s"                     },
+
+        {".tar.Z"   , "/bin/uncompress"     , "%s Zxf %s"                   },/*too old*/
+        {".Z"       , "/bin/uncompress"     , "%s %s"                       },/*too old*/
+
+        {".rar"     , "/usr/bin/rar"        , "%s x %s"                     },
+        {".lha"     , "/usr/bin/lha"        , "%s -e %s"                    },
+        {".rpm"     , "/usr/bin/rpm2cpio"   , "%s %s | /bin/cpio -div"      },
+        {".deb"     , "/usr/bin/ar"         , "%s x %s"                     },
+    };
+    static const uint32_t unzip_cfg_num = sizeof(unzip_cfg_list)/sizeof(unzip_cfg_list[0]);
+    uint32_t unzip_cfg_idx;
+
+#if ( SWITCH_ON == CSTORE_DEBUG_SWITCH )
+    if ( CSTORE_MD_ID_CHECK_INVALID(cstore_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cstore_unzip_file_handler: cstore module #0x%lx not started.\n",
+                cstore_md_id);
+        dbg_exit(MD_CSTORE, cstore_md_id);
+    }
+#endif/*CSTORE_DEBUG_SWITCH*/
+
+    cstore_md = CSTORE_MD_GET(cstore_md_id);
+
+    /*check validity*/
+    if(NULL_PTR == CSTORE_MD_FILE_PATH(cstore_md))
+    {
+        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_unzip_file_handler: "
+                                               "no file name\n");
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0172);
+        return (EC_FALSE);
+    }
+
+    file_path = (char *)CSTORE_MD_FILE_PATH_STR(cstore_md);
+    if(NULL_PTR != file_path)
+    {
+        char                        *dir_path;
+
+        dir_path  = c_dirname(file_path);
+        if(NULL_PTR == dir_path)
+        {
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_unzip_file_handler: "
+                                                   "dir name of '%s' failed\n",
+                                                   file_path);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0172);
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == c_dir_create(dir_path))
+        {
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_unzip_file_handler: "
+                                                   "create dir '%s' failed\n",
+                                                   dir_path);
+            safe_free(dir_path, LOC_CSTORE_0172);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0172);
+            return (EC_FALSE);
+        }
+
+        if(0 != chdir(dir_path))
+        {
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_unzip_file_handler: "
+                                                   "change working dir to '%s' failed\n",
+                                                   dir_path);
+            safe_free(dir_path, LOC_CSTORE_0172);
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0172);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_unzip_file_handler: "
+                                               "change working dir to '%s' done\n",
+                                               dir_path);
+
+        safe_free(dir_path, LOC_CSTORE_0172);
+    }
+
+    for(unzip_cfg_idx = 0; unzip_cfg_idx < unzip_cfg_num; unzip_cfg_idx ++)
+    {
+        const char                  *suffix;
+        const char                  *cmd_bin;
+        const char                  *cmd_fmt;
+        char                        *cmd_line;
+
+        suffix = unzip_cfg_list[ unzip_cfg_idx ][ 0 ];
+        if(EC_FALSE == c_file_name_check_suffix(file_path, suffix))
+        {
+            continue;
+        }
+
+        cmd_bin = unzip_cfg_list[ unzip_cfg_idx ][ 1 ];
+        cmd_fmt = unzip_cfg_list[ unzip_cfg_idx ][ 2 ];
+
+        if(EC_FALSE == c_file_access(cmd_bin, X_OK))
+        {
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_unzip_file_handler: "
+                                                   "'%s' is not executable\n",
+                                                   cmd_bin);
+
+            continue;/*try next*/
+        }
+
+        cmd_line = c_str_make(cmd_fmt, cmd_bin, file_path);
+        if(NULL_PTR == cmd_line)
+        {
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_unzip_file_handler: "
+                                                   "make unzip cmd of file '%s' failed\n",
+                                                   file_path);
+
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0195);
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == c_exec_shell(cmd_line, NULL_PTR, 0, NULL_PTR))
+        {
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_unzip_file_handler: "
+                                                   "exec cmd '%s' failed\n",
+                                                   cmd_line);
+
+            c_str_free(cmd_line);
+
+            cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CSTORE_0195);
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_unzip_file_handler: "
+                                               "exec cmd '%s' done\n",
+                                               cmd_line);
+
+        c_str_free(cmd_line);
+
+        cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_OK, LOC_CSTORE_0171);
+
+        return (EC_TRUE);
+    }
+
+
+    dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_unzip_file_handler: "
+                                           "not support unzip '%s' yet\n",
+                                           file_path);
+
+    cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_FORBIDDEN, LOC_CSTORE_0195);
+    return (EC_FALSE);
+
+}
+
 EC_BOOL cstore_delete_dir_handler(const UINT32 cstore_md_id)
 {
     CSTORE_MD                *cstore_md;
@@ -3600,7 +3778,6 @@ EC_BOOL cstore_list_dir_handler(const UINT32 cstore_md_id)
 
     return (EC_TRUE);
 }
-
 
 /**
 *
@@ -4059,6 +4236,24 @@ EC_BOOL cstore_content_handler(const UINT32 cstore_md_id)
         {
             dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_content_handler: "
                                                    "list dir failed\n");
+
+            cstore_content_send_response(cstore_md_id);
+            return (EC_FALSE);
+        }
+
+        cstore_content_send_response(cstore_md_id);
+        return (EC_TRUE);
+    }
+
+    /*unzip file*/
+    if(NULL_PTR != CSTORE_MD_FILE_OP(cstore_md)
+    && EC_TRUE == cstring_is_str(CSTORE_MD_FILE_OP(cstore_md), (UINT8 *)CSTORE_FILE_UNZIP_OP)
+    && EC_TRUE == cstring_is_str_ignore_case(CSTORE_MD_METHOD(cstore_md), (UINT8 *)"PUT"))
+    {
+        if(EC_FALSE == cstore_unzip_file_handler(cstore_md_id))
+        {
+            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_content_handler: "
+                                                   "unzip file failed\n");
 
             cstore_content_send_response(cstore_md_id);
             return (EC_FALSE);
