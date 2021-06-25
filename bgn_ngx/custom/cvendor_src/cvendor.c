@@ -3056,6 +3056,34 @@ EC_BOOL cvendor_content_head_header_in_filter(const UINT32 cvendor_md_id)
                                                 "[cngx] set uri '%s' to http req done\n",
                                                 v);
         safe_free(v, LOC_CVENDOR_0050);
+
+        if(EC_TRUE == cngx_get_req_arg(r, &v) && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_in_filter: "
+                                                    "[cngx] get args '%s'\n",
+                                                    v);
+
+            if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), (const char *)"?"))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_header_in_filter: "
+                                                        "[cngx] set '?' failed\n");
+                safe_free(v, LOC_CVENDOR_0205);
+                return (EC_FALSE);
+            }
+
+            if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_head_header_in_filter: "
+                                                        "[cngx] set args '%s' failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0206);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_head_header_in_filter: "
+                                                    "[cngx] set args '%s' to http req done\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0207);
+        }
     }while(0);
 
     /*set range*/
@@ -4298,6 +4326,34 @@ EC_BOOL cvendor_content_direct_header_in_filter(const UINT32 cvendor_md_id)
                                                 "[cngx] set uri '%s' to http req done\n",
                                                 v);
         safe_free(v, LOC_CVENDOR_0097);
+
+        if(EC_TRUE == cngx_get_req_arg(r, &v) && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                    "[cngx] get args '%s'\n",
+                                                    v);
+
+            if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), (const char *)"?"))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                        "[cngx] set '?' failed\n");
+                safe_free(v, LOC_CVENDOR_0205);
+                return (EC_FALSE);
+            }
+
+            if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_direct_header_in_filter: "
+                                                        "[cngx] set args '%s' failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0206);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_direct_header_in_filter: "
+                                                    "[cngx] set args '%s' to http req done\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0207);
+        }
     }while(0);
 
     /*set range*/
@@ -6442,6 +6498,34 @@ EC_BOOL cvendor_content_repair_header_in_filter(const UINT32 cvendor_md_id)
                                                 "[cngx] set uri '%s' to http req done\n",
                                                 v);
         safe_free(v, LOC_CVENDOR_0148);
+
+        if(EC_TRUE == cngx_get_req_arg(r, &v) && NULL_PTR != v)
+        {
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_in_filter: "
+                                                    "[cngx] get args '%s'\n",
+                                                    v);
+
+            if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), (const char *)"?"))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_header_in_filter: "
+                                                        "[cngx] set '?' failed\n");
+                safe_free(v, LOC_CVENDOR_0205);
+                return (EC_FALSE);
+            }
+
+            if(EC_FALSE == chttp_req_set_uri(CVENDOR_MD_CHTTP_REQ(cvendor_md), v))
+            {
+                dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_repair_header_in_filter: "
+                                                        "[cngx] set args '%s' failed\n",
+                                                        v);
+                safe_free(v, LOC_CVENDOR_0206);
+                return (EC_FALSE);
+            }
+            dbg_log(SEC_0175_CVENDOR, 9)(LOGSTDOUT, "[DEBUG] cvendor_content_repair_header_in_filter: "
+                                                    "[cngx] set args '%s' to http req done\n",
+                                                    v);
+            safe_free(v, LOC_CVENDOR_0207);
+        }
     }while(0);
 
     /*set range*/
