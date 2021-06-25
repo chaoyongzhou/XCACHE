@@ -48,7 +48,7 @@ server {
     listen  80;
     server_name *.storecfg.com;
 
-    location ~ /storecfg {
+    location ~ /storecfg/ {
         content_by_bgn cstorecfg;
     }
 
@@ -1278,7 +1278,7 @@ STATIC_CAST EC_BOOL __cstorecfg_bucket_add(const UINT32 cstorecfg_md_id, const C
                                               "load tmp file: '%.*s'\n",
                                               (uint32_t)buf_size, buf);
 
-    t = c_str_make("location ~ /%s{", (char *)CSTORECFG_MD_BUCKET_NAME_STR(cstorecfg_md));
+    t = c_str_make("location ~ /%s/{", (char *)CSTORECFG_MD_BUCKET_NAME_STR(cstorecfg_md));
     if(NULL_PTR == t)
     {
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:__cstorecfg_bucket_add: "
@@ -1315,7 +1315,7 @@ STATIC_CAST EC_BOOL __cstorecfg_bucket_add(const UINT32 cstorecfg_md_id, const C
     cfg_size --;
 
     cfg_size += snprintf(cfg + cfg_size, cfg_max_size - cfg_size,
-                         "location ~ /%s{%.*s}"
+                         "location ~ /%s/{%.*s}"
                          "}", /*location block close-terminator*/
                          (char *)CSTORECFG_MD_BUCKET_NAME_STR(cstorecfg_md),
                          CSTORECFG_NODE_CFG_LEN(cstorecfg_node),
@@ -1407,7 +1407,7 @@ STATIC_CAST EC_BOOL __cstorecfg_bucket_delete(const UINT32 cstorecfg_md_id)
                                               "load tmp file: '%.*s'\n",
                                               (uint32_t)buf_size, buf);
 
-    t = c_str_make("location ~ /%s{", (char *)CSTORECFG_MD_BUCKET_NAME_STR(cstorecfg_md));
+    t = c_str_make("location ~ /%s/{", (char *)CSTORECFG_MD_BUCKET_NAME_STR(cstorecfg_md));
     if(NULL_PTR == t)
     {
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:__cstorecfg_bucket_delete: "
@@ -1549,7 +1549,7 @@ STATIC_CAST EC_BOOL __cstorecfg_bucket_modify(const UINT32 cstorecfg_md_id, cons
                                               "load tmp file: '%.*s'\n",
                                               (uint32_t)buf_size, buf);
 
-    t = c_str_make("location ~ /%s{", (char *)CSTORECFG_MD_BUCKET_NAME_STR(cstorecfg_md));
+    t = c_str_make("location ~ /%s/{", (char *)CSTORECFG_MD_BUCKET_NAME_STR(cstorecfg_md));
     if(NULL_PTR == t)
     {
         dbg_log(SEC_0172_CSTORECFG, 0)(LOGSTDOUT, "error:__cstorecfg_bucket_modify: "
@@ -1612,7 +1612,7 @@ STATIC_CAST EC_BOOL __cstorecfg_bucket_modify(const UINT32 cstorecfg_md_id, cons
     cfg_size --;
 
     cfg_size += snprintf(cfg + cfg_size, cfg_max_size - cfg_size,
-                         "location ~ /%s{%.*s}"
+                         "location ~ /%s/{%.*s}"
                          "}", /*location block close-terminator*/
                          (char *)CSTORECFG_MD_BUCKET_NAME_STR(cstorecfg_md),
                          CSTORECFG_NODE_CFG_LEN(cstorecfg_node),
