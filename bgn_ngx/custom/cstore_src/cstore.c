@@ -634,79 +634,6 @@ EC_BOOL cstore_parse_file_range(const UINT32 cstore_md_id)
 
     r = CSTORE_MD_NGX_HTTP_REQ(cstore_md);
 
-    /*---------------- parse header: Content-Range ----------------*/
-
-    /*[example] Content-Range: bytes 7-14/20*/
-    k = (const char *)"Content-Range";
-    if(EC_FALSE == cngx_get_header_in(r, k, &v))
-    {
-        dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_range: "
-                                               "[cngx] get '%s' failed\n",
-                                               k);
-        return (EC_FALSE);
-    }
-
-    if(NULL_PTR == v)
-    {
-        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_file_range: "
-                                               "[cngx] no '%s'\n",
-                                               k);
-        /*return (EC_TRUE);*/
-    }
-
-    if(NULL_PTR != v)
-    {
-        char   *segs[ 4 ];
-
-        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_file_range: "
-                                               "[cngx] get var '%s':'%s' done\n",
-                                               k, v);
-
-        if(4 != c_str_split(v, (const char *)":-/ \t", (char **)segs, 4))
-        {
-            dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_file_range: "
-                                                   "[cngx] invalid %s\n",
-                                                   k);
-            safe_free(v, LOC_CSTORE_0019);
-            return (EC_FALSE);
-        }
-
-        if(0 != STRCASECMP("bytes", segs[0])
-        || EC_FALSE == c_str_is_digit(segs[1])
-        || EC_FALSE == c_str_is_digit(segs[2])
-        || EC_FALSE == c_str_is_digit(segs[3]))
-        {
-            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_range: "
-                                                   "[cngx] invald '%s': %s %s-%s/%s\n",
-                                                   k, segs[0], segs[1], segs[2], segs[3]);
-            safe_free(v, LOC_CSTORE_0020);
-            return (EC_FALSE);
-        }
-
-        CSTORE_MD_FILE_S_OFFSET(cstore_md) = c_str_to_word(segs[1]);
-        CSTORE_MD_FILE_E_OFFSET(cstore_md) = c_str_to_word(segs[2]);
-        CSTORE_MD_FILE_SIZE(cstore_md)     = c_str_to_word(segs[3]);
-
-        if(CSTORE_MD_FILE_S_OFFSET(cstore_md) > CSTORE_MD_FILE_E_OFFSET(cstore_md)
-        || CSTORE_MD_FILE_SIZE(cstore_md)     < CSTORE_MD_FILE_E_OFFSET(cstore_md))
-        {
-            dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_range: "
-                                                   "[cngx] invald '%s': %s %s-%s/%s\n",
-                                                   k, segs[0], segs[1], segs[2], segs[3]);
-            safe_free(v, LOC_CSTORE_0021);
-            return (EC_FALSE);
-        }
-
-        safe_free(v, LOC_CSTORE_0022);
-
-        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_file_range: "
-                                               "[cngx] parsed range: [%ld, %ld]/%ld\n",
-                                               CSTORE_MD_FILE_S_OFFSET(cstore_md),
-                                               CSTORE_MD_FILE_E_OFFSET(cstore_md),
-                                               CSTORE_MD_FILE_SIZE(cstore_md));
-        /*return (EC_TRUE);*/
-    }
-
     /*---------------- parse header: Range ----------------*/
 
     /*[example] Range: bytes=7-14*/
@@ -2236,13 +2163,26 @@ EC_BOOL cstore_md5_file_handler(const UINT32 cstore_md_id)
         return (EC_FALSE);
     }
 
+    if(0 == CSTORE_MD_FILE_SIZE(cstore_md))
+    {
+        CSTORE_MD_FILE_SIZE(cstore_md)     = fsize;
+        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_md5_file_handler: "
+                                               "set '%s' file size = %ld\n",
+                                               (char *)CSTORE_MD_FILE_PATH_STR(cstore_md),
+                                               CSTORE_MD_FILE_SIZE(cstore_md));
+    }
+
     if(0 == CSTORE_MD_FILE_S_OFFSET(cstore_md)
-    && 0 == CSTORE_MD_FILE_E_OFFSET(cstore_md)
-    && 0 == CSTORE_MD_FILE_SIZE(cstore_md))
+    && 0 == CSTORE_MD_FILE_E_OFFSET(cstore_md))
     {
         CSTORE_MD_FILE_S_OFFSET(cstore_md) = 0;
         CSTORE_MD_FILE_E_OFFSET(cstore_md) = fsize - 1;
-        CSTORE_MD_FILE_SIZE(cstore_md)     = fsize;
+
+        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_md5_file_handler: "
+                                               "set file '%s' range [%ld, %ld]\n",
+                                               (char *)CSTORE_MD_FILE_PATH_STR(cstore_md),
+                                               CSTORE_MD_FILE_S_OFFSET(cstore_md),
+                                               CSTORE_MD_FILE_E_OFFSET(cstore_md));
     }
 
     data_size = CSTORE_MD_FILE_E_OFFSET(cstore_md) + 1 - CSTORE_MD_FILE_S_OFFSET(cstore_md);
@@ -2271,8 +2211,8 @@ EC_BOOL cstore_md5_file_handler(const UINT32 cstore_md_id)
                                            CSTORE_MD_FILE_SIZE(cstore_md),
                                            cmd5_digest_hex_str(&seg_md5sum));
 
-    cngx_set_header_out_kv(r, (const char *)"X-Content-Range",
-                               c_format_str("%ld-%ld/%ld",
+    cngx_set_header_out_kv(r, (const char *)"Content-Range",
+                               c_format_str("bytes %ld-%ld/%ld",
                                CSTORE_MD_FILE_S_OFFSET(cstore_md),
                                CSTORE_MD_FILE_E_OFFSET(cstore_md),
                                CSTORE_MD_FILE_SIZE(cstore_md)));
@@ -2483,7 +2423,7 @@ EC_BOOL cstore_download_file_handler(const UINT32 cstore_md_id)
                                            CSTORE_MD_FILE_SIZE(cstore_md));
 
     cngx_set_header_out_kv(r, (const char *)"Content-Range",
-                               c_format_str("%ld-%ld/%ld",
+                               c_format_str("bytes %ld-%ld/%ld",
                                CSTORE_MD_FILE_S_OFFSET(cstore_md),
                                CSTORE_MD_FILE_E_OFFSET(cstore_md),
                                CSTORE_MD_FILE_SIZE(cstore_md)));

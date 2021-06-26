@@ -2,7 +2,7 @@
 
 ########################################################################################################################
 # description:  download file from server
-# version    :  v1.6
+# version    :  v1.7
 # creator    :  chaoyong zhou
 #
 # History:
@@ -13,6 +13,7 @@
 #    5. 03/31/2021: v1.4, retire backup interface
 #    6. 03/31/2021: v1.5, download directory with ldir interface
 #    7. 06/01/2021: v1.6, support specific acl token of specific bucket
+#    8. 06/25/2021: v1.7, set Range in http request header but not Content-Range
 ########################################################################################################################
 
 use strict;
@@ -469,7 +470,6 @@ sub md5_remote_file_do
 {
     my $ua;
     my $url;
-    my $content_range;
     my $res;
     my $k;
 
@@ -490,11 +490,10 @@ sub md5_remote_file_do
 
     $url = &make_url("md5", $remote_file_name);
 
-    $content_range = sprintf("bytes %d-%d/%d", $s_offset, $e_offset, $file_size);
-
     $res = $ua->get($url,
                 'Host'          => &get_remote_host(),
-                'Content-Range' => $content_range);
+                'Range'         => sprintf("bytes=%d-%d", $s_offset, $e_offset),
+                'X-File-Size'   => $file_size);
 
     &echo(8, sprintf("[DEBUG] md5_remote_file_do: status : %d\n", $res->code));
     &echo(9, sprintf("[DEBUG] md5_remote_file_do: headers: %s\n", $res->headers_as_string));
@@ -540,7 +539,6 @@ sub download_remote_file_do
 {
     my $ua;
     my $url;
-    my $content_range;
     my $res;
 
     my $local_file_name;
@@ -562,12 +560,11 @@ sub download_remote_file_do
 
     $url = &make_url("download", $remote_file_name);
 
-    $content_range = sprintf("bytes %d-%d/%d", $s_offset, $e_offset, $file_size);
-
     $res = $ua->get($url,
                 'Content-Type'  => "text/html; charset=utf-8",
                 'Host'          => &get_remote_host(),
-                'Content-Range' => $content_range);
+                'Range'         => sprintf("bytes=%d-%d", $s_offset, $e_offset),
+                'X-File-Size'   => $file_size);
 
     &echo(8, sprintf("[DEBUG] download_remote_file_do: status : %d\n", $res->code));
     &echo(9, sprintf("[DEBUG] download_remote_file_do: headers: %s\n", $res->headers_as_string));
@@ -577,7 +574,7 @@ sub download_remote_file_do
                      $s_offset, $e_offset, $file_size,
                      $res->code));
 
-    if(200 != $res->code)
+    if(200 != $res->code && 206 != $res->code)
     {
         return "false";
     }
@@ -770,7 +767,6 @@ sub override_local_file_do
 {
     my $ua;
     my $url;
-    my $content_range;
     my $res;
 
     my $local_file_name;
@@ -813,12 +809,12 @@ sub override_local_file_do
     $e_offset = $e_offset - 1;
 
     $url = &make_url("download", $remote_file_name);
-    $content_range = sprintf("bytes %d-%d/%d", $s_offset, $e_offset, $remote_file_size);
 
     $res = $ua->get($url,
                 'Content-Type'  => "text/html; charset=utf-8",
                 'Host'          => &get_remote_host(),
-                'Content-Range' => $content_range);
+                'Range'         => sprintf("bytes=%d-%d", $s_offset, $e_offset),
+                'X-File-Size'   => $remote_file_size);
 
     &echo(8, sprintf("[DEBUG] override_local_file_do: status : %d\n", $res->code));
     &echo(9, sprintf("[DEBUG] override_local_file_do: headers: %s\n", $res->headers_as_string));

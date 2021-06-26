@@ -2,7 +2,7 @@
 
 ########################################################################################################################
 # description:  upload file to server
-# version    :  v1.7
+# version    :  v1.8
 # creator    :  chaoyong zhou
 #
 # History:
@@ -14,6 +14,7 @@
 #    6. 03/31/2021: v1.5, support complete interface which push file to backend storage
 #    7. 06/01/2021: v1.6, support specific acl token of specific bucket
 #    8. 06/01/2021: v1.7, fix merge remote file handler which not need carry on data
+#    9. 06/25/2021: v1.8, set Range in http request header but not Content-Range
 ########################################################################################################################
 
 use strict;
@@ -366,7 +367,8 @@ sub md5_remote_file_do
 
     $res = $ua->get($url,
                 'Host'          => &get_remote_host(),
-                'Content-Range' => "bytes ${s_offset}-${e_offset}/${file_size}");
+                'Range'         => "bytes=${s_offset}-${e_offset}",
+                "X-File-Size"   => ${file_size});
 
     &echo(8, sprintf("[DEBUG] md5_remote_file_do: status : %d\n", $res->code));
     &echo(9, sprintf("[DEBUG] md5_remote_file_do: headers: %s\n", $res->headers_as_string));
@@ -434,7 +436,8 @@ sub upload_remote_file_do
                 'Content-Type'  => "text/html; charset=utf-8",
                 Content         => $data,
                 'Host'          => &get_remote_host(),
-                'Content-Range' => "bytes ${s_offset}-${e_offset}/${file_size}");
+                'Range'         => "bytes=${s_offset}-${e_offset}",
+                "X-File-Size"   => ${file_size});
 
     &echo(8, sprintf("[DEBUG] upload_remote_file_do: status : %d\n", $res->code));
     &echo(9, sprintf("[DEBUG] upload_remote_file_do: headers: %s\n", $res->headers_as_string));
@@ -475,7 +478,8 @@ sub merge_remote_file_do
     $res = $ua->put($url,
                 'Content-Type'  => "text/html; charset=utf-8",
                 'Host'          => &get_remote_host(),
-                'Content-Range' => "bytes ${s_offset}-${e_offset}/${file_size}");
+                'Range'         => "bytes=${s_offset}-${e_offset}",
+                'X-File-Size'   => "${file_size}");
 
     &echo(8, sprintf("[DEBUG] merge_remote_file_do: status : %d\n", $res->code));
     &echo(9, sprintf("[DEBUG] merge_remote_file_do: headers: %s\n", $res->headers_as_string));
@@ -518,7 +522,8 @@ sub override_remote_file_do
                 'Content-Type'  => "text/html; charset=utf-8",
                 Content         => $data,
                 'Host'          => &get_remote_host(),
-                'Content-Range' => "bytes ${s_offset}-${e_offset}/${file_size}");
+                'Range'         => "bytes=${s_offset}-${e_offset}",
+                'X-File-Size'   => ${file_size});
 
     &echo(8, sprintf("[DEBUG] override_remote_file_do: status : %d\n", $res->code));
     &echo(9, sprintf("[DEBUG] override_remote_file_do: headers: %s\n", $res->headers_as_string));

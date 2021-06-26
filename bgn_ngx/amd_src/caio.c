@@ -42,6 +42,12 @@ static const CAIO_CFG g_caio_cfg_tbl[] = {
     {(const char *)"256K"  , (const char *)"CAIO_256K_MODEL", CAIO_256K_BLOCK_SIZE_NBIT,  CAIO_256K_BLOCK_SIZE_NBYTE, CAIO_256K_BLOCK_SIZE_MASK },
     {(const char *)"512K"  , (const char *)"CAIO_512K_MODEL", CAIO_512K_BLOCK_SIZE_NBIT,  CAIO_512K_BLOCK_SIZE_NBYTE, CAIO_512K_BLOCK_SIZE_MASK },
     {(const char *)"1M"    , (const char *)"CAIO_001M_MODEL", CAIO_001M_BLOCK_SIZE_NBIT,  CAIO_001M_BLOCK_SIZE_NBYTE, CAIO_001M_BLOCK_SIZE_MASK },
+    {(const char *)"2M"    , (const char *)"CAIO_002M_MODEL", CAIO_002M_BLOCK_SIZE_NBIT,  CAIO_002M_BLOCK_SIZE_NBYTE, CAIO_002M_BLOCK_SIZE_MASK },
+    {(const char *)"4M"    , (const char *)"CAIO_004M_MODEL", CAIO_004M_BLOCK_SIZE_NBIT,  CAIO_004M_BLOCK_SIZE_NBYTE, CAIO_004M_BLOCK_SIZE_MASK },
+    {(const char *)"8M"    , (const char *)"CAIO_008M_MODEL", CAIO_008M_BLOCK_SIZE_NBIT,  CAIO_008M_BLOCK_SIZE_NBYTE, CAIO_008M_BLOCK_SIZE_MASK },
+    {(const char *)"16M"   , (const char *)"CAIO_016M_MODEL", CAIO_016M_BLOCK_SIZE_NBIT,  CAIO_016M_BLOCK_SIZE_NBYTE, CAIO_016M_BLOCK_SIZE_MASK },
+    {(const char *)"32M"   , (const char *)"CAIO_032M_MODEL", CAIO_032M_BLOCK_SIZE_NBIT,  CAIO_032M_BLOCK_SIZE_NBYTE, CAIO_032M_BLOCK_SIZE_MASK },
+    {(const char *)"64M"   , (const char *)"CAIO_064M_MODEL", CAIO_064M_BLOCK_SIZE_NBIT,  CAIO_064M_BLOCK_SIZE_NBYTE, CAIO_064M_BLOCK_SIZE_MASK },
 };
 
 static const UINT32 g_caio_cfg_len = sizeof(g_caio_cfg_tbl)/sizeof(g_caio_cfg_tbl[ 0 ]);
