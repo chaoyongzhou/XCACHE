@@ -9677,6 +9677,12 @@ EC_BOOL cvendor_content_orig_set_store(const UINT32 cvendor_md_id)
         CHTTP_STORE_NEED_LOG_FLAG(chttp_store)    = BIT_TRUE;
     }
 
+    if(EC_TRUE == cngx_is_orig_merge_switch_off(r))
+    {
+        /*force to disable merge procedure*/
+        CHTTP_STORE_MERGE_FLAG(chttp_store)       = BIT_FALSE;
+    }
+
     if(EC_FALSE == cngx_set_store(r, chttp_store))
     {
         dbg_log(SEC_0175_CVENDOR, 0)(LOGSTDOUT, "error:cvendor_content_orig_set_store: "

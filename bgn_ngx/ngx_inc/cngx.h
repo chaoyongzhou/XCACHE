@@ -93,6 +93,7 @@ extern "C"{
 #define  CNGX_VAR_ORIG_EXPIRES_DEFAULT_NMIN       ("c_orig_expires_default_nmin")/*default: 1440, i.e., one day*/
 #define  CNGX_VAR_ORIG_KEEPALIVE_SWITCH           ("c_orig_keepalive_switch")    /*default: on*/
 #define  CNGX_VAR_ORIG_TIMEOUT_NSEC               ("c_orig_timeout_nsec")        /*default: 20 sec defined by CHTTP_SOCKET_TIMEOUT_NSEC*/
+#define  CNGX_VAR_ORIG_MERGE_SWITCH               ("c_orig_merge_switch")        /*default:on*/
 
 #define  CNGX_VAR_ORIG_INTERCEPT_ERRORS_SWITCH    ("c_orig_intercept_errors_switch")/*default: off. if switch on, intercept errors (status >= 300)*/
 
@@ -250,6 +251,8 @@ EC_BOOL cngx_is_force_orig_switch_on(ngx_http_request_t *r);
 EC_BOOL cngx_is_direct_ims_switch_on(ngx_http_request_t *r);
 
 EC_BOOL cngx_is_merge_header_switch_on(ngx_http_request_t *r);
+
+EC_BOOL cngx_is_orig_merge_switch_off(ngx_http_request_t *r);
 
 EC_BOOL cngx_is_orig_keepalive_switch_on(ngx_http_request_t *r);
 
