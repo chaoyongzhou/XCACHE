@@ -1902,6 +1902,19 @@ uint32_t cxfsnp_insert_no_lock(CXFSNP *cxfsnp, const uint32_t path_len, const ui
             path_seg_len = cxfsnp_path_seg_len(path, path_len, path_seg_beg);
             path_seg_end = path_seg_beg + path_seg_len + 1;
 
+            /*
+             * the 2nd hash compute path seg and result is set to CXFSNPRB_NODE_DATA
+             * which would be compared in nprb tree searching.
+             *
+             * therefore, if one path seg len is more than 63B, its kname is its md5 value
+             * and if the other path seg is equal to md5 value, its kname is same as md5 value,
+             * they are not matched due to its CXFSNPRB_NODE_DATA is different.
+             *
+             * long-path-seg, kname = md5(long-path-seg), data = SecondHash(kname)
+             * short-path-seg = md5(long-path-seg), kname = short-path-seg , data = SecondHash(kname)
+             * => data is different
+             *
+             */
             path_seg_2nd_hash = CXFSNP_2ND_CHASH_ALGO_COMPUTE(cxfsnp, path_seg_len, path_seg_beg);
 
             if(path_len <= (uint32_t)(path_seg_end - path)) /*last seg*/

@@ -2,7 +2,7 @@
 
 ########################################################################################################################
 # description:  download file from server
-# version    :  v1.7
+# version    :  v1.8
 # creator    :  chaoyong zhou
 #
 # History:
@@ -14,6 +14,7 @@
 #    6. 03/31/2021: v1.5, download directory with ldir interface
 #    7. 06/01/2021: v1.6, support specific acl token of specific bucket
 #    8. 06/25/2021: v1.7, set Range in http request header but not Content-Range
+#    9. 06/30/2021: v1.8, support preload feature
 ########################################################################################################################
 
 use strict;
@@ -30,10 +31,11 @@ my $g_log_level     = 1; # default log level
 my $g_acl_token;
 my $g_expired_nsec  = 15;
 my $g_ua_agent      = "Mozilla/8.0";
+my $g_preload_flag;
 
 my $g_autoflush_flag;
 my $g_usage =
-    "$0 [sync=on] des=<local file> src=<remote file> [ip=<server server ip[:port]>] [host=<hostname>] [token=<acl token>] [timeout=<seconds>] [step=<nbytes>] [loglevel=<1..9>] [verbose=on|off]";
+    "$0 [sync=on] des=<local file> src=<remote file> [ip=<server server ip[:port]>] [host=<hostname>] [token=<acl token>] [timeout=<seconds>] [step=<nbytes>] [loglevel=<1..9>] [preload=on|off] [verbose=on|off]";
 my $verbose;
 
 my $paras_config = {};
@@ -49,9 +51,10 @@ if( defined($verbose) && $verbose =~/on/i )
 
 $g_src_host     = $$paras_config{"host"}        || "store.demo.com";# default server domain
 $g_src_ip       = $$paras_config{"ip"};
-$g_acl_token    = $$paras_config{"token"}       || "0123456789abcdef0123456789abcdef"; # default token
+$g_acl_token    = $$paras_config{"token"}       || "7630173c26e0db83b42d220b240ad03c"; # default token
 $g_timeout_nsec = $$paras_config{"timeout"}     || 60;              # default timeout in seconds
 $g_step_nbytes  = $$paras_config{"step"}        || 2 << 20;         # default segment size in bytes
+$g_preload_flag = $$paras_config{"preload"}     || "off";           # default not preload request
 
 if(defined($$paras_config{"loglevel"}))
 {
@@ -257,20 +260,37 @@ sub download_file_entrance
         }
     }
 
-    $status = &download_file($local_file_name, $remote_file_name);
-    if($status =~ /false/i)
+    if($g_preload_flag =~ /on/i)
     {
-        &echo(0, sprintf("error:download_file_entrance: %s:%s:download '%s' -> '%s' failed\n",
-                         &get_remote_host(), &get_remote_ip(), $remote_file_name,
-                         $local_file_name));
-        return 1; # fail
+        $status = &preload_file($remote_file_name);
+        if($status =~ /false/i)
+        {
+            &echo(0, sprintf("error:download_file_entrance: %s:%s:preload '%s' failed\n",
+                             &get_remote_host(), &get_remote_ip(), $remote_file_name));
+            return 1; # fail
+        }
+
+        &echo(1, sprintf("[DEBUG] download_file_entrance: preload %s:%s:'%s' succ\n",
+                         &get_remote_host(), &get_remote_ip(), $remote_file_name));
     }
 
-    &echo(1, sprintf("[DEBUG] download_file_entrance: download %s:%s:'%s' -> '%s' succ\n",
-                     &get_remote_host(), &get_remote_ip(), $remote_file_name,
-                     $local_file_name));
+    if($g_preload_flag =~ /off/i || (defined($verbose) && $verbose =~ /on/i))
+    {
+        $status = &download_file($local_file_name, $remote_file_name);
+        if($status =~ /false/i)
+        {
+            &echo(0, sprintf("error:download_file_entrance: %s:%s:download '%s' -> '%s' failed\n",
+                             &get_remote_host(), &get_remote_ip(), $remote_file_name,
+                             $local_file_name));
+            return 1; # fail
+        }
 
-    if( defined($verbose) && $verbose =~/on/i )
+        &echo(1, sprintf("[DEBUG] download_file_entrance: download %s:%s:'%s' -> '%s' succ\n",
+                         &get_remote_host(), &get_remote_ip(), $remote_file_name,
+                         $local_file_name));
+    }
+
+    if(defined($verbose) && $verbose =~ /on/i)
     {
         my $remote_file_size;
         my $remote_file_md5;
@@ -593,6 +613,54 @@ sub download_remote_file_do
     return "true";
 }
 
+################################################################################################################
+# $status = pull_remote_file_do($remote_file_name, $s_offset, $e_offset, $file_size)
+################################################################################################################
+sub pull_remote_file_do
+{
+    my $ua;
+    my $url;
+    my $res;
+
+    my $remote_file_name;
+    my $s_offset;
+    my $e_offset;
+    my $file_size;
+
+    my $status;
+
+    ($remote_file_name, $s_offset, $e_offset, $file_size) = @_;
+
+    $ua = LWP::UserAgent->new;
+
+    $ua->agent($g_ua_agent);
+    $ua->timeout($g_timeout_nsec);
+
+    $e_offset = $e_offset - 1;
+
+    $url = &make_url("download", $remote_file_name);
+
+    $res = $ua->put($url,
+                'Content-Type'  => "text/html; charset=utf-8",
+                'Host'          => &get_remote_host(),
+                'Range'         => sprintf("bytes=%d-%d", $s_offset, $e_offset),
+                'X-File-Size'   => $file_size);
+
+    &echo(8, sprintf("[DEBUG] pull_remote_file_do: status : %d\n", $res->code));
+    &echo(9, sprintf("[DEBUG] pull_remote_file_do: headers: %s\n", $res->headers_as_string));
+
+    &echo(2, sprintf("[DEBUG] pull_remote_file_do: %s, %d-%d/%d => %d\n",
+                     $remote_file_name,
+                     $s_offset, $e_offset, $file_size,
+                     $res->code));
+
+    if(200 != $res->code && 206 != $res->code)
+    {
+        return "false";
+    }
+
+    return "true";
+}
 
 ################################################################################################################
 # $bool = dump_local_file_part_do($local_file_name, $s_offset, $e_offset, $remote_file_size)
@@ -1225,6 +1293,63 @@ sub override_file
 }
 
 ################################################################################################################
+# ($bool, $s_offset) = pull_file($remote_file_name, $s_offset, $e_offset, $remote_file_size)
+################################################################################################################
+sub pull_file
+{
+    my $status;
+
+    my $remote_file_name;
+    my $s_offset;
+    my $e_offset;
+
+    my $s_offset_t;
+    my $e_offset_t;
+
+    my $remote_file_size;
+
+    ($remote_file_name, $s_offset, $e_offset, $remote_file_size) = @_;
+
+    $s_offset_t = $s_offset;
+
+
+    while($s_offset_t < $e_offset && $s_offset_t < $remote_file_size)
+    {
+        $e_offset_t = $s_offset_t + $g_step_nbytes;
+        if($e_offset_t > $e_offset)
+        {
+            $e_offset_t = $e_offset;
+        }
+        if($e_offset_t > $remote_file_size)
+        {
+            $e_offset_t = $remote_file_size;
+        }
+
+        $status = &pull_remote_file_do($remote_file_name,
+                                       $s_offset_t, $e_offset_t, $remote_file_size);
+        if($status =~ /false/i)
+        {
+            &echo(0, sprintf("error:pull_file: download %s %d-%d/%d failed\n",
+                             $remote_file_name, $s_offset_t, $e_offset_t,
+                             $remote_file_size));
+
+            return ("false", $s_offset_t);
+        }
+        &echo(9, sprintf("[DEBUG] pull_file: download %s %d-%d/%d done\n",
+                         $remote_file_name, $s_offset_t, $e_offset_t, $remote_file_size));
+
+        &echo(1, sprintf("[DEBUG] pull_file: pull %s, %d-%d/%d => complete %.2f%%\n",
+                         $remote_file_name,
+                         $s_offset_t, $e_offset_t, $remote_file_size,
+                         100.0 * ($e_offset_t + 0.0) / ($remote_file_size + 0.0)));
+
+        $s_offset_t = $e_offset_t;
+    }
+
+    return ("true", $s_offset_t);
+}
+
+################################################################################################################
 # $bool = download_file($local_file_name, $remote_file_name)
 ################################################################################################################
 sub download_file
@@ -1402,6 +1527,69 @@ sub download_file
 }
 
 ################################################################################################################
+# $bool = preload_file($remote_file_name)
+################################################################################################################
+sub preload_file
+{
+    my $status;
+
+    my $remote_file_name;
+
+    my $remote_file_size;
+    my $remote_file_md5;
+
+    my $local_file_md5;
+
+    my $s_offset;
+    my $e_offset;
+
+    ($remote_file_name) = @_;
+
+    ($status, $remote_file_size) = &size_remote_file_do($remote_file_name);
+    if(200 != $status)
+    {
+        &echo(0, sprintf("error:preload_file: not found %s\n", $remote_file_name));
+        return "false";
+    }
+
+    &echo(9, sprintf("[DEBUG] preload_file: remote file size: %d\n",
+                     $remote_file_size));
+
+    $s_offset = 0;
+
+    # optimize: alignment
+    if(0 != ($s_offset % $g_step_nbytes)) # keep useless branch
+    {
+        $e_offset = $s_offset + $g_step_nbytes - ($s_offset % $g_step_nbytes);
+        if($e_offset > $remote_file_size)
+        {
+            $e_offset = $remote_file_size;
+        }
+
+        ($status, $s_offset) = &pull_file($remote_file_name,
+                                          $s_offset, $e_offset, $remote_file_size);
+        if($status =~ /false/i)
+        {
+            &echo(0, sprintf("error:preload_file: file %s, append seg failed, s_offset = %d\n",
+                             $remote_file_name, $s_offset));
+            return "false";
+        }
+    }
+
+    ($status, $s_offset) = &pull_file($remote_file_name,
+                                      $s_offset, $remote_file_size, $remote_file_size);
+    if($status =~ /false/i)
+    {
+        &echo(0, sprintf("error:preload_file: file %s, append failed, s_offset = %d\n",
+                         $remote_file_name, $s_offset));
+        return "false";
+    }
+
+    &echo(1, sprintf("[DEBUG] preload_file: preload %s done\n", $remote_file_name));
+    return "true";
+}
+
+################################################################################################################
 # $url = make_url($op, $remote_path)
 ################################################################################################################
 sub make_url
@@ -1419,14 +1607,14 @@ sub make_url
     {
         $md5  = md5_hex(sprintf("%s@%s%s@%s", $g_acl_token, $op, $remote_path, $time));
 
-        &echo(2, sprintf("[DEBUG] make_url: %s@%s%s@%s => md5 %s\n",
+        &echo(9, sprintf("[DEBUG] make_url: %s@%s%s@%s => md5 %s\n",
                         $g_acl_token, $op, $remote_path, $time, $md5));
     }
     else
     {
         $md5  = md5_hex(sprintf("%s@%s/%s@%s", $g_acl_token, $op, $remote_path, $time));
 
-        &echo(2, sprintf("[DEBUG] make_url: %s@%s/%s@%s => md5 %s\n",
+        &echo(9, sprintf("[DEBUG] make_url: %s@%s/%s@%s => md5 %s\n",
                         $g_acl_token, $op, $remote_path, $time, $md5));
     }
 
