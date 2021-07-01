@@ -641,7 +641,7 @@ EC_BOOL cstore_parse_file_range(const UINT32 cstore_md_id)
     if(EC_FALSE == cngx_get_header_in(r, k, &v))
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_range: "
-                                               "[cngx] get '%s' failed\n",
+                                               "get '%s' failed\n",
                                                k);
         return (EC_FALSE);
     }
@@ -649,7 +649,7 @@ EC_BOOL cstore_parse_file_range(const UINT32 cstore_md_id)
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_file_range: "
-                                               "[cngx] no '%s'\n",
+                                               "no '%s'\n",
                                                k);
         /*return (EC_TRUE);*/
     }
@@ -659,13 +659,13 @@ EC_BOOL cstore_parse_file_range(const UINT32 cstore_md_id)
         char   *segs[ 4 ];
 
         dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_file_range: "
-                                               "[cngx] get var '%s':'%s' done\n",
+                                               "get header '%s':'%s' done\n",
                                                k, v);
 
         if(3 != c_str_split(v, (const char *)"=- \t", (char **)segs, 4))
         {
             dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_file_range: "
-                                                   "[cngx] invalid %s\n",
+                                                   "invalid %s\n",
                                                    k);
             safe_free(v, LOC_CSTORE_0019);
             return (EC_FALSE);
@@ -676,7 +676,7 @@ EC_BOOL cstore_parse_file_range(const UINT32 cstore_md_id)
         || EC_FALSE == c_str_is_digit(segs[2]))
         {
             dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_range: "
-                                                   "[cngx] invald '%s': %s=%s-%s\n",
+                                                   "invald '%s': %s=%s-%s\n",
                                                    k, segs[0], segs[1], segs[2]);
             safe_free(v, LOC_CSTORE_0020);
             return (EC_FALSE);
@@ -688,7 +688,7 @@ EC_BOOL cstore_parse_file_range(const UINT32 cstore_md_id)
         if(CSTORE_MD_FILE_S_OFFSET(cstore_md) > CSTORE_MD_FILE_E_OFFSET(cstore_md))
         {
             dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_range: "
-                                                   "[cngx] invald '%s': %s=%s-%s\n",
+                                                   "invald '%s': %s=%s-%s\n",
                                                    k, segs[0], segs[1], segs[2]);
             safe_free(v, LOC_CSTORE_0021);
             return (EC_FALSE);
@@ -697,7 +697,7 @@ EC_BOOL cstore_parse_file_range(const UINT32 cstore_md_id)
         safe_free(v, LOC_CSTORE_0022);
 
         dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_file_range: "
-                                               "[cngx] parsed range: [%ld, %ld]\n",
+                                               "parsed range: [%ld, %ld]\n",
                                                CSTORE_MD_FILE_S_OFFSET(cstore_md),
                                                CSTORE_MD_FILE_E_OFFSET(cstore_md));
         /*return (EC_TRUE);*/
@@ -733,7 +733,7 @@ EC_BOOL cstore_parse_file_size(const UINT32 cstore_md_id)
     if(EC_FALSE == cngx_get_header_in(r, k, &v))
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_size: "
-                                               "[cngx] get '%s' failed\n",
+                                               "get '%s' failed\n",
                                                k);
         return (EC_FALSE);
     }
@@ -741,7 +741,7 @@ EC_BOOL cstore_parse_file_size(const UINT32 cstore_md_id)
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_file_size: "
-                                               "[cngx] no '%s'\n",
+                                               "no '%s'\n",
                                                k);
         return (EC_TRUE);
     }
@@ -749,13 +749,13 @@ EC_BOOL cstore_parse_file_size(const UINT32 cstore_md_id)
     if(NULL_PTR != v)
     {
         dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_file_size: "
-                                               "[cngx] get var '%s':'%s' done\n",
+                                               "get header '%s':'%s' done\n",
                                                k, v);
 
         if(EC_FALSE == c_str_is_digit(v))
         {
             dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_size: "
-                                                   "[cngx] invald '%s':'%s'\n",
+                                                   "invald '%s':'%s'\n",
                                                    k, v);
             safe_free(v, LOC_CSTORE_0023);
             return (EC_FALSE);
@@ -766,7 +766,7 @@ EC_BOOL cstore_parse_file_size(const UINT32 cstore_md_id)
         safe_free(v, LOC_CSTORE_0024);
 
         dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_file_size: "
-                                               "[cngx] parsed file size: %ld\n",
+                                               "parsed file size: %ld\n",
                                                CSTORE_MD_FILE_SIZE(cstore_md));
         return (EC_TRUE);
     }
@@ -801,7 +801,7 @@ EC_BOOL cstore_parse_segment_size(const UINT32 cstore_md_id)
     if(EC_FALSE == cngx_get_header_in(r, k, &v))
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_segment_size: "
-                                               "[cngx] get '%s' failed\n",
+                                               "get '%s' failed\n",
                                                k);
         return (EC_FALSE);
     }
@@ -809,7 +809,7 @@ EC_BOOL cstore_parse_segment_size(const UINT32 cstore_md_id)
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_segment_size: "
-                                               "[cngx] no '%s'\n",
+                                               "no '%s'\n",
                                                k);
         return (EC_TRUE);
     }
@@ -817,13 +817,13 @@ EC_BOOL cstore_parse_segment_size(const UINT32 cstore_md_id)
     if(NULL_PTR != v)
     {
         dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_segment_size: "
-                                               "[cngx] get var '%s':'%s' done\n",
+                                               "get header '%s':'%s' done\n",
                                                k, v);
 
         if(EC_FALSE == c_str_is_digit(v))
         {
             dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_segment_size: "
-                                                   "[cngx] invald '%s':'%s'\n",
+                                                   "invald '%s':'%s'\n",
                                                    k, v);
             safe_free(v, LOC_CSTORE_0025);
             return (EC_FALSE);
@@ -834,7 +834,7 @@ EC_BOOL cstore_parse_segment_size(const UINT32 cstore_md_id)
         safe_free(v, LOC_CSTORE_0026);
 
         dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_segment_size: "
-                                               "[cngx] parsed segment size: %ld\n",
+                                               "parsed segment size: %ld\n",
                                                CSTORE_MD_SEGMENT_SIZE(cstore_md));
         return (EC_TRUE);
     }
@@ -870,7 +870,7 @@ EC_BOOL cstore_parse_file_md5(const UINT32 cstore_md_id)
     if(EC_FALSE == cngx_get_header_in(r, k, &v))
     {
         dbg_log(SEC_0173_CSTORE, 0)(LOGSTDOUT, "error:cstore_parse_file_md5: "
-                                               "[cngx] get '%s' failed\n",
+                                               "get '%s' failed\n",
                                                k);
         return (EC_FALSE);
     }
@@ -878,13 +878,13 @@ EC_BOOL cstore_parse_file_md5(const UINT32 cstore_md_id)
     if(NULL_PTR == v)
     {
         dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_file_md5: "
-                                               "[cngx] no '%s'\n",
+                                               "no '%s'\n",
                                                k);
         return (EC_TRUE);
     }
 
     dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_parse_file_md5: "
-                                           "[cngx] parsed '%s':'%s'\n",
+                                           "parsed '%s':'%s'\n",
                                            k, v);
 
     CSTORE_MD_FILE_MD5(cstore_md) = cstring_new((UINT8 *)v, LOC_CSTORE_0027);
@@ -2257,6 +2257,12 @@ EC_BOOL cstore_download_file_handler(const UINT32 cstore_md_id)
                                                "no file name\n");
         cstore_set_ngx_rc(cstore_md_id, NGX_HTTP_BAD_REQUEST, LOC_CSTORE_0102);
         return (EC_FALSE);
+    }
+
+    if(0 < CSTORE_MD_FILE_SIZE(cstore_md)
+    && CSTORE_MD_FILE_SIZE(cstore_md) <= CSTORE_MD_FILE_E_OFFSET(cstore_md))
+    {
+        CSTORE_MD_FILE_E_OFFSET(cstore_md) = CSTORE_MD_FILE_SIZE(cstore_md) - 1;
     }
 
     if(CSTORE_MD_FILE_S_OFFSET(cstore_md) > CSTORE_MD_FILE_E_OFFSET(cstore_md))

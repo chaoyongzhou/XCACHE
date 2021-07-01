@@ -2,7 +2,7 @@
 
 ########################################################################################################################
 # description:  download file from server
-# version    :  v1.8
+# version    :  v1.9
 # creator    :  chaoyong zhou
 #
 # History:
@@ -15,6 +15,7 @@
 #    7. 06/01/2021: v1.6, support specific acl token of specific bucket
 #    8. 06/25/2021: v1.7, set Range in http request header but not Content-Range
 #    9. 06/30/2021: v1.8, support preload feature
+#   10. 07/01/2021: v1.9, operation md5 support response status 206
 ########################################################################################################################
 
 use strict;
@@ -51,7 +52,7 @@ if( defined($verbose) && $verbose =~/on/i )
 
 $g_src_host     = $$paras_config{"host"}        || "store.demo.com";# default server domain
 $g_src_ip       = $$paras_config{"ip"};
-$g_acl_token    = $$paras_config{"token"}       || "7630173c26e0db83b42d220b240ad03c"; # default token
+$g_acl_token    = $$paras_config{"token"}       || "0123456789abcdef0123456789abcdef"; # default token
 $g_timeout_nsec = $$paras_config{"timeout"}     || 60;              # default timeout in seconds
 $g_step_nbytes  = $$paras_config{"step"}        || 2 << 20;         # default segment size in bytes
 $g_preload_flag = $$paras_config{"preload"}     || "off";           # default not preload request
@@ -1425,7 +1426,7 @@ sub download_file
         {
             ($status, $remote_file_md5) = &md5_remote_file_do($remote_file_name,
                                                         0, $local_file_size, $remote_file_size);
-            if(200 != $status)
+            if(200 != $status && 206 != $status)
             {
                 &echo(0, sprintf("error:download_file: md5 remote file %s, %d-%d/%d failed\n",
                                  $remote_file_name, 0, $local_file_size, $remote_file_size));
