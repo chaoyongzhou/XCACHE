@@ -3891,8 +3891,9 @@ EC_BOOL chttp_node_check_private_cache_control(CHTTP_NODE *chttp_node)
 void chttp_node_check_cacheable(CHTTP_NODE *chttp_node)
 {
     CHTTP_STORE *chttp_store;
+#if 0
     char        *v;
-
+#endif
     uint32_t     status_code;
     uint32_t     expires;
 
@@ -4052,6 +4053,7 @@ void chttp_node_check_cacheable(CHTTP_NODE *chttp_node)
         }
     }
 #endif
+#if 0
     /*private specification*/
     v = chttp_node_get_header(chttp_node, (const char *)"Content-Length");/*http request: ["Range"] = "bytes=0-1"*/
     if(NULL_PTR != v)
@@ -4063,7 +4065,7 @@ void chttp_node_check_cacheable(CHTTP_NODE *chttp_node)
             return;
         }
     }
-
+#endif
     CHTTP_STORE_CACHE_CTRL(chttp_store) = CHTTP_STORE_CACHE_BOTH;
     dbg_log(SEC_0149_CHTTP, 9)(LOGSTDOUT, "[DEBUG] chttp_node_check_cacheable: [8] set CHTTP_STORE_CACHE_BOTH\n");
     return;
