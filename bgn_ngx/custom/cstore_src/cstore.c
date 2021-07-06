@@ -326,9 +326,10 @@ EC_BOOL cstore_set_ngx_rc(const UINT32 cstore_md_id, const ngx_int_t rc, const U
     cstore_md = CSTORE_MD_GET(cstore_md_id);
 
     /*do not override*/
-    if(NGX_OK != CSTORE_MD_NGX_RC(cstore_md))
+    if(NGX_OK != CSTORE_MD_NGX_RC(cstore_md)
+    && NGX_HTTP_OK != CSTORE_MD_NGX_RC(cstore_md))
     {
-        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_override_ngx_rc: "
+        dbg_log(SEC_0173_CSTORE, 9)(LOGSTDOUT, "[DEBUG] cstore_set_ngx_rc: "
                                                "ignore rc %ld due to its %ld now\n",
                                                rc, CSTORE_MD_NGX_RC(cstore_md));
         return (EC_TRUE);
