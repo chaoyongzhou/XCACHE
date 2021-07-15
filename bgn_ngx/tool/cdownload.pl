@@ -2,7 +2,7 @@
 
 ########################################################################################################################
 # description:  download file from server
-# version    :  v1.9
+# version    :  v2.0
 # creator    :  chaoyong zhou
 #
 # History:
@@ -16,6 +16,7 @@
 #    8. 06/25/2021: v1.7, set Range in http request header but not Content-Range
 #    9. 06/30/2021: v1.8, support preload feature
 #   10. 07/01/2021: v1.9, operation md5 support response status 206
+#   11. 07/15/2021: v2.0, embrace file name in system command
 ########################################################################################################################
 
 use strict;
@@ -127,7 +128,7 @@ sub download_dir_entrance
 
     if(! -d $local_dir_name)
     {
-        if(0 != system(sprintf("mkdir -p %s", $local_dir_name)))
+        if(0 != system(sprintf("mkdir -p '%s'", $local_dir_name)))
         {
             &echo(0, sprintf("error:download_dir_entrance: mkdir local dir '%s' failed\n",
                              $local_dir_name));
@@ -181,7 +182,7 @@ sub download_dir_entrance
         $local_basedir_name = dirname($local_file_name);
         if(! -d $local_basedir_name)
         {
-            if(0 != system(sprintf("mkdir -p %s", $local_basedir_name)))
+            if(0 != system(sprintf("mkdir -p '%s'", $local_basedir_name)))
             {
                 &echo(0, sprintf("error:download_dir_entrance: make local basedir '%s' failed\n",
                                  $local_basedir_name));
@@ -818,7 +819,7 @@ sub merge_local_file_do
     $local_file_part_name = sprintf("%s.part_%d_%d_%d",
                                     $local_file_name, $s_offset, $e_offset, $remote_file_size);
 
-    system(sprintf("cat %s >> %s", $local_file_part_name, $local_file_name));
+    system(sprintf("cat '%s' >> '%s'", $local_file_part_name, $local_file_name));
     unlink($local_file_part_name);
 
     &echo(2, sprintf("[DEBUG] merge_local_file_do: append local file '%s' %d-%d done\n",
