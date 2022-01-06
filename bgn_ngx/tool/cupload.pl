@@ -2,7 +2,7 @@
 
 ########################################################################################################################
 # description:  upload file to server
-# version    :  v1.8
+# version    :  v1.9
 # creator    :  chaoyong zhou
 #
 # History:
@@ -15,6 +15,7 @@
 #    7. 06/01/2021: v1.6, support specific acl token of specific bucket
 #    8. 06/01/2021: v1.7, fix merge remote file handler which not need carry on data
 #    9. 06/25/2021: v1.8, set Range in http request header but not Content-Range
+#   10. 01/06/2022: v1.9, not compare whole file md5 but segments for huge file scenario
 ########################################################################################################################
 
 use strict;
@@ -26,6 +27,9 @@ my $g_des_host;
 my $g_des_ip;
 my $g_timeout_nsec;
 my $g_step_nbytes;
+my $g_big_step_nbytes;
+my $g_small_step_nbytes;
+my $g_huge_file_size;
 my $g_log_level     = 1; # default log level
 my $g_acl_token;
 my $g_expired_nsec  = 15;
@@ -52,6 +56,10 @@ $g_des_ip       = $$paras_config{"ip"};
 $g_acl_token    = $$paras_config{"token"}       || "0123456789abcdef0123456789abcdef"; # default token
 $g_timeout_nsec = $$paras_config{"timeout"}     || 60;              # default timeout in seconds
 $g_step_nbytes  = $$paras_config{"step"}        || 2 << 20;         # default segment size in bytes
+
+$g_big_step_nbytes   = 32 * $g_step_nbytes;
+$g_small_step_nbytes = $g_step_nbytes;
+$g_huge_file_size    = 256 << 20; # default 256MB
 
 if(defined($$paras_config{"loglevel"}))
 {
@@ -673,7 +681,8 @@ sub md5_local_file_do
 
 ################################################################################################################
 # ($bool, $s_offset) = finger_start_seg_do($local_file_name, $remote_file_name,
-#                                          $local_file_size, $remote_file_size)
+#                                          $local_file_size, $remote_file_size,
+#                                          $s_offset, $step_nbytes)
 ################################################################################################################
 sub finger_start_seg_do
 {
@@ -689,13 +698,14 @@ sub finger_start_seg_do
 
     my $s_offset;
     my $e_offset;
+    my $step_nbytes;
 
-    ($local_file_name, $remote_file_name, $local_file_size, $remote_file_size) = @_;
+    ($local_file_name, $remote_file_name, $local_file_size, $remote_file_size, $s_offset, $step_nbytes) = @_;
 
-    $s_offset = 0;
+    #$s_offset = 0;
     while($s_offset < $local_file_size && $s_offset < $remote_file_size)
     {
-        $e_offset = $s_offset + $g_step_nbytes;
+        $e_offset = $s_offset + $step_nbytes;
 
         if($e_offset > $local_file_size)
         {
@@ -947,6 +957,8 @@ sub upload_file
     my $s_offset;
     my $e_offset;
 
+    my $step_nbytes;
+
     my $fp;
 
     ($local_file_name, $remote_file_name) = @_;
@@ -1004,7 +1016,8 @@ sub upload_file
         {
             $s_offset = 0;
         }
-        else # $local_file_size >= $remote_file_size && $remote_file_size > 0
+        # $local_file_size >= $remote_file_size && $remote_file_size > 0
+        elsif($local_file_size < $g_huge_file_size && $remote_file_size < $g_huge_file_size) # not huge file
         {
             ($status, $local_file_md5) = &md5_local_file_do($local_file_name,
                                                         0, $remote_file_size, $local_file_size);
@@ -1074,6 +1087,63 @@ sub upload_file
                 &echo(1, sprintf("[DEBUG] upload_file: file %s, override done, s_offset = %d\n",
                                  $local_file_name, $s_offset));
             }
+        }
+        else # huge file
+        {
+            $s_offset = 0;
+
+            # phase 1st: big step
+
+            $step_nbytes = $g_big_step_nbytes;
+
+            ($status, $s_offset) = &finger_start_seg_do($local_file_name, $remote_file_name,
+                                                        $local_file_size, $remote_file_size,
+                                                        $s_offset, $step_nbytes);
+
+            if($status =~ /false/i)
+            {
+                &echo(0, sprintf("error:upload_file: file %s, finger start seg failed, s_offset = %d\n",
+                                $local_file_name, $s_offset));
+                return "false";
+            }
+            &echo(1, sprintf("[DEBUG] upload_file: file %s, finger start seg done, s_offset = %d, step = %d\n",
+                             $local_file_name, $s_offset, $step_nbytes));
+
+            if($s_offset == $remote_file_size && $local_file_size == $remote_file_size)
+            {
+                &echo(2, sprintf("[DEBUG] upload_file: same file => succ\n"));
+                return "true";
+            }
+
+            # phase 2nd: small step
+
+            $step_nbytes = $g_small_step_nbytes;
+
+            ($status, $s_offset) = &finger_start_seg_do($local_file_name, $remote_file_name,
+                                                        $local_file_size, $remote_file_size,
+                                                        $s_offset, $step_nbytes);
+            if($status =~ /false/i)
+            {
+                &echo(0, sprintf("error:upload_file: file %s, finger start seg failed, s_offset = %d\n",
+                                $local_file_name, $s_offset));
+                return "false";
+            }
+            &echo(1, sprintf("[DEBUG] upload_file: file %s, finger start seg done, s_offset = %d, step = %d\n",
+                             $local_file_name, $s_offset, $step_nbytes));
+
+            # phase 3rd: override
+
+            ($status, $s_offset) = &override_file($local_file_name, $remote_file_name,
+                                                  $s_offset, $remote_file_size,
+                                                  $local_file_size, $remote_file_size);
+            if($status =~ /false/i)
+            {
+                &echo(0, sprintf("error:upload_file: file %s, override failed, s_offset = %d\n",
+                                 $local_file_name, $s_offset));
+                return ("false", );
+            }
+            &echo(1, sprintf("[DEBUG] upload_file: file %s, override done, s_offset = %d\n",
+                             $local_file_name, $s_offset));
         }
     }
     # remote file not exist
