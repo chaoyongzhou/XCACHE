@@ -16,7 +16,7 @@
 #define SEC_0006_LIST                       ((UINT32)(      6)) /*list                            */
 #define SEC_0007_CQUEUE                     ((UINT32)(      7)) /*cqueue                          */
 #define SEC_0008_CSTRKV                     ((UINT32)(      8)) /*cstrkv                          */
-#define SEC_0009_XXXXXXXXX                  ((UINT32)(      9)) /*-- obsolete --                  */
+#define SEC_0009_CUNIXPACKET                ((UINT32)(      9)) /*cunixpacket                     */
 #define SEC_0010_API                        ((UINT32)(     10)) /*api                             */
 #define SEC_0011_CDEVICE                    ((UINT32)(     11)) /*cdevice                         */
 #define SEC_0012_CBASE64CODE                ((UINT32)(     12)) /*cbase64code                     */

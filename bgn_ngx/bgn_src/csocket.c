@@ -2629,7 +2629,7 @@ EC_BOOL csocket_connect(const UINT32 srv_ipaddr, const UINT32 srv_port, const UI
     /* initialize the ip addr and port of server */
     if( EC_FALSE == csocket_client_addr_init( srv_ipaddr, srv_port, &srv_addr ) )
     {
-        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"error:csocket_connect: csocket_client_addr_init failed\n");
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"error:csocket_connect: init addr failed\n");
         return ( EC_FALSE );
     }
 
@@ -3909,7 +3909,7 @@ EC_BOOL csocket_unix_connect( const UINT32 srv_ipaddr, const UINT32 srv_port, co
     /* initialize the ip addr and port of server */
     if( EC_FALSE == csocket_unix_client_addr_init( srv_ipaddr, srv_port, &srv_addr, &srv_addr_len ) )
     {
-        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"error:csocket_unix_connect: csocket_client_addr_init failed\n");
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"error:csocket_unix_connect: init addr failed\n");
         return ( EC_FALSE );
     }
 
@@ -4051,6 +4051,352 @@ EC_BOOL csocket_unix_accept(const int srv_sockfd, int *conn_sockfd, const UINT32
 
     (*conn_sockfd) = new_sockfd;
 
+    return (EC_TRUE);
+}
+
+EC_BOOL csocket_unixpacket_optimize(int sockfd)
+{
+    EC_BOOL ret;
+
+    ret = EC_TRUE;
+
+    /* optimization 1: disalbe Nagle Algorithm */
+    if(0)
+    {
+        int flag;
+        flag = 1;
+        if( 0 != setsockopt(sockfd, CSOCKET_IPPROTO_TCP, CSOCKET_TCP_NODELAY, (char *)&flag, sizeof(flag)))
+        {
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unixpacket_optimize: "
+                                                    "sockfd %d failed to disable Nagle Algo\n",
+                                                    sockfd);
+            ret = EC_FALSE;
+        }
+    }
+
+#ifdef __linux__
+    /*optimization: quick ack*/
+    if(0)
+    {
+        int flag;
+        flag = 1;
+        if(0 != setsockopt(sockfd, CSOCKET_IPPROTO_TCP, TCP_QUICKACK, (char *) &flag, sizeof(flag)))
+        {
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_unixpacket_optimize: "
+                                                   "sockfd %d failed to enable QUICKACK\n",
+                                                   sockfd);
+            ret = EC_FALSE;
+        }
+    }
+#endif/*__linux__*/
+    /* optimization 2.1: when flag > 0, set SEND_BUFF size per packet - Flow Control*/
+    /* optimization 2.2: when flag = 0, the data buff to send will NOT copy to system buff but send out directly*/
+    if(1)
+    {
+        int flag;
+        flag = CSOCKET_SO_SNDBUFF_SIZE;
+        if(0 <= flag && 0 != setsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_SNDBUF, (char *)&flag, sizeof(flag)))
+        {
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unixpacket_optimize: "
+                                                    "sockfd %d failed to set SEND BUFF to %d\n",
+                                                    sockfd, flag);
+            ret = EC_FALSE;
+        }
+    }
+
+    /* optimization 3.1: when flag > 0, set RECV_BUFF size per packet - Flow Control*/
+    /* optimization 3.2: when flag = 0, the data buff to recv will NOT copy from system buff but recv in directly*/
+    if(1)
+    {
+        int flag;
+        flag = CSOCKET_SO_RCVBUFF_SIZE;
+        if(0 <= flag && 0 != setsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_RCVBUF, (char *)&flag, sizeof(flag)))
+        {
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unixpacket_optimize: "
+                                                    "sockfd %d failed to set RECV BUFF to %d\n",
+                                                    sockfd, flag);
+            ret = EC_FALSE;
+        }
+    }
+
+    /* optimization 4: set KEEPALIVE*/
+    /*note: CSOCKET_SO_KEEPALIVE is only for TCP protocol but not for UDP, hence some guys need to implement heartbeat mechanism */
+    /*in application level to cover both TCP and UDP*/
+    if(1)
+    {
+        int flag;
+
+        flag = 1;/*1: enable KEEPALIVE, 0: disable KEEPALIVE*/
+        if( 0 != setsockopt( sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_KEEPALIVE, (char *)&flag, sizeof(flag) ) )
+        {
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unixpacket_optimize: "
+                                                    "sockfd %d failed to set KEEPALIVE\n",
+                                                    sockfd);
+            ret = EC_FALSE;
+        }
+    }
+
+    /* optimization 5: set REUSEADDR*/
+    if(1)
+    {
+        int flag;
+        flag = 1;
+        if( 0 != setsockopt( sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_REUSEADDR, (char *)&flag, sizeof(flag) ) )
+        {
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unixpacket_optimize: "
+                                                    "sockfd %d failed to set REUSEADDR\n",
+                                                    sockfd);
+            ret = EC_FALSE;
+        }
+    }
+
+    /* optimization 6: set SEND TIMEOUT. NOTE: the timeout not working for socket connect op*/
+    if(0)
+    {
+        struct timeval timeout;
+        time_t usecs = CSOCKET_SO_SNDTIMEO_NSEC * 1000;
+
+        timeout.tv_sec  = usecs / 1000;
+        timeout.tv_usec = usecs % 1000;
+        if ( 0 != setsockopt( sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_SNDTIMEO, (char *)&timeout, sizeof(struct timeval) ) )
+        {
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unixpacket_optimize: "
+                                                    "sockfd %d failed to set SEND TIMEOUT to %ld usecs\n",
+                                                    sockfd, usecs);
+            ret = EC_FALSE;
+        }
+    }
+
+    /* optimization 7: set RECV TIMEOUT. NOTE: the timeout not working for socket connect op*/
+    if(0)
+    {
+        struct timeval timeout;
+        time_t usecs = CSOCKET_SO_RCVTIMEO_NSEC * 1000;
+
+        timeout.tv_sec  = usecs / 1000;
+        timeout.tv_usec = usecs % 1000;
+        if ( 0 != setsockopt( sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_RCVTIMEO, (char *)&timeout, sizeof(struct timeval) ) )
+        {
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_unixpacket_optimize: "
+                                                   "sockfd %d failed to set RECV TIMEOUT to %ld usecs\n",
+                                                   sockfd, usecs);
+            ret = EC_FALSE;
+        }
+    }
+
+    /* optimization 8: set NONBLOCK*/
+    if(0)
+    {
+        int flag;
+
+        flag = fcntl(sockfd, F_GETFL, 0);
+        fcntl(sockfd, F_SETFL, O_NONBLOCK | flag);
+    }
+
+    /*optimization 9: disable linger, i.e., send close socket, stop sending/recving at once*/
+    if(1)
+    {
+        struct linger linger_disable;
+        linger_disable.l_onoff  = 0; /*disable*/
+        linger_disable.l_linger = 0; /*stop after 0 second, i.e., stop at once*/
+
+        if( 0 != setsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_LINGER, (const char*)&linger_disable, sizeof(struct linger)))
+        {
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_unixpacket_optimize: "
+                                                   "sockfd %d failed to disable linger\n",
+                                                   sockfd);
+            ret = EC_FALSE;
+        }
+    }
+
+    /*optimization 10: sets the minimum number of bytes to process for socket input operations. The default value for CSOCKET_SO_RCVLOWAT is 1*/
+    if(0)
+    {
+        int  recv_lowat_size;
+
+        recv_lowat_size = CSOCKET_SO_RCVLOWAT_SIZE;
+        if(0 < recv_lowat_size && 0 != setsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_RCVLOWAT, (const char *) &recv_lowat_size, sizeof(int)))
+        {
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_unixpacket_optimize: "
+                                                   "sockfd %d failed to set CSOCKET_SO_RCVLOWAT to %d\n",
+                                                   sockfd, recv_lowat_size);
+            ret = EC_FALSE;
+        }
+    }
+
+    /*optimization 11: Sets the minimum number of bytes to process for socket output operations*/
+    if(0)
+    {
+        int  send_lowat_size;
+
+        send_lowat_size = CSOCKET_SO_SNDLOWAT_SIZE;
+        if(0 < send_lowat_size && 0 != setsockopt(sockfd, CSOCKET_SOL_SOCKET, CSOCKET_SO_SNDLOWAT, (const char *) &send_lowat_size, sizeof(int)))
+        {
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"warn:csocket_unixpacket_optimize: "
+                                                   "sockfd %d failed to set CSOCKET_SO_SNDLOWAT to %d\n",
+                                                   sockfd, send_lowat_size);
+            ret = EC_FALSE;
+        }
+    }
+
+    return (ret);
+}
+
+STATIC_CAST static EC_BOOL csocket_unixpacket_client_addr_init( const char *unix_domain_socket_path, struct sockaddr_un *srv_addr)
+{
+    srv_addr->sun_family      = AF_UNIX;
+
+    bzero(srv_addr->sun_path, sizeof(struct sockaddr_un));
+    strncpy(srv_addr->sun_path, unix_domain_socket_path, sizeof(srv_addr->sun_path) - 1);
+
+    return  ( EC_TRUE );
+}
+
+EC_BOOL csocket_unixpacket_connect( const char *unix_domain_socket_path, const UINT32 csocket_block_mode, int *client_sockfd )
+{
+    struct sockaddr_un srv_addr;
+
+    int sockfd;
+
+    /* initialize the ip addr and port of server */
+    if( EC_FALSE == csocket_unixpacket_client_addr_init( unix_domain_socket_path, &srv_addr ) )
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"error:csocket_unixpacket_connect: init addr failed\n");
+        return ( EC_FALSE );
+    }
+
+    /* create socket */
+    sockfd = csocket_open( AF_UNIX, SOCK_SEQPACKET, 0 );
+    if ( 0 > sockfd )
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_unixpacket_connect: open socket failed\n");
+        return ( EC_FALSE );
+    }
+
+    /* note: optimization must before connect at server side*/
+    if(EC_FALSE == csocket_unixpacket_optimize(sockfd))
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unixpacket_connect: sockfd %d failed in some optimization\n", sockfd);
+    }
+
+    /* connect to server, connect timeout is default 75s */
+    if(0 > connect(sockfd, (struct sockaddr *) &srv_addr, sizeof(srv_addr)) /*&& EINPROGRESS != errno && EINTR != errno*/)
+    {
+        int errcode;
+
+        errcode = errno;
+
+        switch(errcode)
+        {
+            case EACCES:
+                dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_connect: sockfd %d, write permission is denied on the socket file, or search permission is denied for one of the directories in the path prefix\n", sockfd);
+                break;
+
+            case EPERM:
+                dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_connect: sockfd %d, tried to connect to a broadcast address without having the socket broadcast flag enabled or the connection request failed because of a local firewall rule\n", sockfd);
+                break;
+
+            case EADDRINUSE:
+                dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_connect: sockfd %d, local address is already in use\n", sockfd);
+                break;
+
+            case EAFNOSUPPORT:
+                dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_connect: sockfd %d, The passed address not have the correct address family in its sa_family fiel\n", sockfd);
+                break;
+
+            case EADDRNOTAVAIL:
+                dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_connect: sockfd %d, non-existent interface was requested or the requested address was not local\n", sockfd);
+                break;
+
+            case EALREADY:
+                dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_connect: sockfd %d, the socket is non-blocking and a previous connection attempt has not yet been completed\n", sockfd);
+                break;
+
+            case EBADF:
+                dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_connect: sockfd %d, the file descriptor is not a valid index in the descriptor tabl\n", sockfd);
+                break;
+
+            case ECONNREFUSED:
+                dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_connect: sockfd %d, no one listening on unix domain socket %s\n", sockfd, unix_domain_socket_path);
+                break;
+
+            case EFAULT:
+                dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_connect: sockfd %d, the socket structure address is outside the user address space\n", sockfd);
+                break;
+
+            case EINPROGRESS:
+                dbg_log(SEC_0053_CSOCKET, 1)(LOGSTDOUT, "warn:csocket_unixpacket_connect: sockfd %d is in progress\n", sockfd);
+                if(CSOCKET_IS_NONBLOCK_MODE == csocket_block_mode)
+                {
+                    csocket_nonblock_enable(sockfd);
+                }
+                *client_sockfd = sockfd;
+                return ( EC_TRUE );
+
+            case EINTR:
+                dbg_log(SEC_0053_CSOCKET, 1)(LOGSTDOUT, "warn:csocket_unixpacket_connect: sockfd %d, the system call was interrupted by a signal that was caugh\n", sockfd);
+                if(CSOCKET_IS_NONBLOCK_MODE == csocket_block_mode)
+                {
+                    csocket_nonblock_enable(sockfd);
+                }
+                *client_sockfd = sockfd;
+                return ( EC_TRUE );
+
+            case EISCONN:
+                dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_connect: sockfd %d is already connected\n", sockfd);
+                break;
+
+            case ENETUNREACH:
+                dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_connect: sockfd %d, network is unreachabl\n", sockfd);
+                break;
+
+            case ENOTSOCK:
+                dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_connect: sockfd %d, the file descriptor is not associated with a socket\n", sockfd);
+                break;
+
+            case ETIMEDOUT:
+                dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_connect: sockfd %d, timeout while attempting connection. The server may be too busy to accept new connection\n", sockfd);
+                break;
+
+            case EHOSTDOWN:
+                dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_connect: sockfd %d, host down\n", sockfd);
+                break;
+
+            case EHOSTUNREACH:
+                dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_connect: sockfd %d, No route to host\n", sockfd);
+                break;
+
+            default:
+                dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_connect: sockfd %d, unknown errno = %d\n", sockfd, errcode);
+        }
+
+        /*os error checking by shell command: perror <errno>*/
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"error:csocket_unixpacket_connect: sockfd %d connect error, errno = %d, errstr = %s\n", sockfd, errcode, strerror(errcode));
+
+        close(sockfd);
+        return ( EC_FALSE );
+    }
+
+    *client_sockfd = sockfd;
+    return ( EC_TRUE );
+}
+
+EC_BOOL csocket_unixpacket_send(const int sockfd, const UINT8 *out_buff, const UINT32 out_buff_expect_len)
+{
+    UINT32 pos;
+
+    pos = 0;
+
+    while(pos < out_buff_expect_len)
+    {
+        if(EC_FALSE == csocket_isend(sockfd, out_buff, out_buff_expect_len, &pos))
+        {
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_send: isend on sockfd %d failed where expect %ld, pos %ld\n",
+                               sockfd, out_buff_expect_len, pos);
+            return (EC_FALSE);
+        }
+        //dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_send: out_buff_expect_len %ld, pos %ld\n", out_buff_expect_len, pos);
+    }
     return (EC_TRUE);
 }
 

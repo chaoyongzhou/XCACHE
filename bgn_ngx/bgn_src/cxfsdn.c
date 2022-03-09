@@ -1708,6 +1708,7 @@ EC_BOOL cxfsdn_check_space_used(CXFSDN *cxfsdn, const uint16_t disk_no, const ui
     return cxfspgv_check_space_used(CXFSDN_CXFSPGV(cxfsdn), disk_no, block_no, page_no);
 }
 
+
 #ifdef __cplusplus
 }
 #endif/*__cplusplus*/

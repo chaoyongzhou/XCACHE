@@ -295,6 +295,14 @@ EC_BOOL csocket_unix_connect( const UINT32 srv_ipaddr, const UINT32 srv_port, co
 
 EC_BOOL csocket_unix_accept(const int srv_sockfd, int *conn_sockfd, const UINT32 csocket_block_mode);
 
+
+EC_BOOL csocket_unixpacket_optimize(int sockfd);
+
+EC_BOOL csocket_unixpacket_connect( const char *unix_domain_socket_path, const UINT32 csocket_block_mode, int *client_sockfd );
+
+EC_BOOL csocket_unixpacket_send(const int sockfd, const UINT8 *out_buff, const UINT32 out_buff_expect_len);
+
+
 #endif/*_CSOCKET_H*/
 
 #ifdef __cplusplus

@@ -57,6 +57,9 @@ extern "C"{
 /*CSTORE Package Debug Switch*/
 #define CSTORE_DEBUG_SWITCH SWITCH_OFF
 
+/*CUNIXPACKET Package Debug Switch*/
+#define CUNIXPACKET_DEBUG_SWITCH SWITCH_OFF
+
 /*CFLV Package Debug Switch*/
 #define CFLV_DEBUG_SWITCH SWITCH_OFF
 
