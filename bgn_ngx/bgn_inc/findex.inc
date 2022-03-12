@@ -518,5 +518,12 @@
 #define                        FI_cxfsc_delete_file  ((UINT32) ((MD_CXFSC << (WORDSIZE/2)) + 10))
 #define                      FI_cxfsc_truncate_file  ((UINT32) ((MD_CXFSC << (WORDSIZE/2)) + 11))
 
+#define  FI_cunixpacket_agent_print_module_status  ((UINT32) ((MD_CUNIXPACKET << (WORDSIZE/2)) +  0))
+#define                FI_cunixpacket_agent_start  ((UINT32) ((MD_CUNIXPACKET << (WORDSIZE/2)) +  1))
+#define                  FI_cunixpacket_agent_end  ((UINT32) ((MD_CUNIXPACKET << (WORDSIZE/2)) +  2))
+#define       FI_cunixpacket_agent_process_packet  ((UINT32) ((MD_CUNIXPACKET << (WORDSIZE/2)) +  3))
+#define              FI_cunixpacket_agent_process  ((UINT32) ((MD_CUNIXPACKET << (WORDSIZE/2)) +  4))
+
+
 #endif/* _FINDEX_INC */
 

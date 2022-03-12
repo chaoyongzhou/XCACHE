@@ -300,8 +300,13 @@ EC_BOOL csocket_unixpacket_optimize(int sockfd);
 
 EC_BOOL csocket_unixpacket_connect( const char *unix_domain_socket_path, const UINT32 csocket_block_mode, int *client_sockfd );
 
-EC_BOOL csocket_unixpacket_send(const int sockfd, const UINT8 *out_buff, const UINT32 out_buff_expect_len);
+EC_BOOL csocket_unixpacket_listen(const char *unix_domain_socket_path, int *srv_sockfd);
 
+EC_BOOL csocket_unixpacket_accept(const int srv_sockfd, int *conn_sockfd, const UINT32 csocket_block_mode);
+
+EC_BOOL csocket_unixpacket_send(const int sockfd, const UINT8 *out_buff, const UINT32 out_buff_len, UINT32 *out_buff_pos);
+
+EC_BOOL csocket_unixpacket_recv(const int sockfd, UINT8 *in_buff, const UINT32 in_buff_len, UINT32 *in_buff_pos);
 
 #endif/*_CSOCKET_H*/
 

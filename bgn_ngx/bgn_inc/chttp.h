@@ -386,7 +386,7 @@ EC_BOOL chttp_node_encode_req_method(CHTTP_NODE *chttp_node, const CSTRING *meth
 
 EC_BOOL chttp_node_encode_req_header_kv(CHTTP_NODE *chttp_node, const CSTRKV *kv);
 
-EC_BOOL chttp_node_encode_req_param_kv(CHTTP_NODE *chttp_node, const CSTRKV *kv);
+EC_BOOL chttp_node_encode_req_param_kv(CHTTP_NODE *chttp_node, const CSTRKV *kv, const uint8_t *prefix);
 
 EC_BOOL chttp_node_encode_req_param(CHTTP_NODE *chttp_node, const CSTRKV_MGR *param);
 

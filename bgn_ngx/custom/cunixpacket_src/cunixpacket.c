@@ -9,6 +9,11 @@
 extern "C"{
 #endif/*__cplusplus*/
 
+/*----------------------------------------------------------------------------*\
+ *                             LOG RELAY                                      *
+ *              based on unix domain socket with unix packet                  *
+\*----------------------------------------------------------------------------*/
+
 #if (SWITCH_ON == NGX_BGN_SWITCH)
 
 #include "type.h"
@@ -53,10 +58,10 @@ server {
 
     client_body_in_file_only off;
     client_max_body_size 8m;
-    more_set_headers 'X-LogAgent: enabled';
+    more_set_headers 'X-LogRelay: enabled';
 
     location ~ /logs {
-        #set $c_acl_token 1234567890abcdefghijklmnopqrstuv;
+        set $c_acl_token 1234567890abcdefghijklmnopqrstuv;
         set $c_unixpacket_domain_socket_path "/opt/tmp/verender_logagent/unixpacket_v4.sock";
         set $c_unixpacket_domain_socket_timeout_nsec 1200;
         set $c_unixpacket_domain_socket_connect_nsec 10;
@@ -80,7 +85,7 @@ static EC_BOOL   g_cunixpacket_uds_list_destroy_register_flag = EC_FALSE;
 void cunixpacket_print_module_status(const UINT32 cunixpacket_md_id, LOG *log)
 {
     CUNIXPACKET_MD  *cunixpacket_md;
-    UINT32           this_cunixpacket_md_id;
+    UINT32                 this_cunixpacket_md_id;
 
     for( this_cunixpacket_md_id = 0; this_cunixpacket_md_id < CUNIXPACKET_MD_CAPACITY(); this_cunixpacket_md_id ++ )
     {
@@ -132,7 +137,7 @@ EC_BOOL cunixpacket_unreg()
 **/
 UINT32 cunixpacket_start(ngx_http_request_t *r)
 {
-    CUNIXPACKET_MD             *cunixpacket_md;
+    CUNIXPACKET_MD       *cunixpacket_md;
     UINT32                      cunixpacket_md_id;
 
     const char                 *k;
@@ -177,7 +182,7 @@ UINT32 cunixpacket_start(ngx_http_request_t *r)
         return (CMPI_ERROR_MODI);
     }
 
-    uds_path = cstring_new((UINT8 *)v, LOC_CUNIXPACKET_0001);
+    uds_path = cstring_new((UINT8 *)v, LOC_CUNIXPACKET_0006);
     if(NULL_PTR == uds_path)
     {
         dbg_log(SEC_0009_CUNIXPACKET, 0)(LOGSTDOUT, "error:cunixpacket_start: "
@@ -535,7 +540,7 @@ CUNIXPACKET_UDS_NODE *cunixpacket_uds_node_new()
 {
     CUNIXPACKET_UDS_NODE *cunixpacket_uds_node;
 
-    alloc_static_mem(MM_CUNIXPACKET_UDS_NODE, &cunixpacket_uds_node, LOC_CUNIXPACKET_0002);
+    alloc_static_mem(MM_CUNIXPACKET_UDS_NODE, &cunixpacket_uds_node, LOC_CUNIXPACKET_0007);
     if(NULL_PTR == cunixpacket_uds_node)
     {
         dbg_log(SEC_0009_CUNIXPACKET, 0)(LOGSTDOUT, "error:cunixpacket_uds_node_new: "
@@ -567,7 +572,7 @@ EC_BOOL cunixpacket_uds_node_init(CUNIXPACKET_UDS_NODE *cunixpacket_uds_node)
         CUNIXPACKET_UDS_NODE_CONNECT_TS(cunixpacket_uds_node)       = 0;
         CUNIXPACKET_UDS_NODE_EXPIRED_TS(cunixpacket_uds_node)       = 0;
 
-        clist_init(CUNIXPACKET_UDS_NODE_PACKET_LIST(cunixpacket_uds_node), MM_CBYTES, LOC_CUNIXPACKET_0003);
+        clist_init(CUNIXPACKET_UDS_NODE_PACKET_LIST(cunixpacket_uds_node), MM_CBYTES, LOC_CUNIXPACKET_0008);
     }
 
     return (EC_TRUE);
@@ -613,7 +618,7 @@ EC_BOOL cunixpacket_uds_node_free(CUNIXPACKET_UDS_NODE *cunixpacket_uds_node)
     if(NULL_PTR != cunixpacket_uds_node)
     {
         cunixpacket_uds_node_clean(cunixpacket_uds_node);
-        free_static_mem(MM_CUNIXPACKET_UDS_NODE, cunixpacket_uds_node, LOC_CUNIXPACKET_0004);
+        free_static_mem(MM_CUNIXPACKET_UDS_NODE, cunixpacket_uds_node, LOC_CUNIXPACKET_0009);
     }
 
     return (EC_TRUE);
@@ -728,7 +733,7 @@ EC_BOOL cunixpacket_uds_list_init()
 {
     if(NULL_PTR == g_cunixpacket_uds_list)
     {
-        g_cunixpacket_uds_list = clist_new(MM_CUNIXPACKET_UDS_NODE, LOC_CUNIXPACKET_0005);
+        g_cunixpacket_uds_list = clist_new(MM_CUNIXPACKET_UDS_NODE, LOC_CUNIXPACKET_0010);
 
         if(NULL_PTR == g_cunixpacket_uds_list)
         {
@@ -757,7 +762,7 @@ EC_BOOL cunixpacket_uds_list_destroy(const UINT32 UNUSED(none))
     {
         cunixpacket_uds_list_cleanup();
 
-        clist_free(g_cunixpacket_uds_list, LOC_CUNIXPACKET_0006);
+        clist_free(g_cunixpacket_uds_list, LOC_CUNIXPACKET_0011);
         g_cunixpacket_uds_list = NULL_PTR;
 
 
@@ -779,12 +784,12 @@ EC_BOOL cunixpacket_send_packet(CUNIXPACKET_UDS_NODE *cunixpacket_uds_node)
 {
     CBYTES                      *uds_packet_data;
     UINT32                       uds_packet_sent_len;
-    CUNIXPACKET_UDS_NODE        *cunixpacket_uds_node_t;
+    CUNIXPACKET_UDS_NODE  *cunixpacket_uds_node_t;
 
     /*check validity*/
     if(NULL_PTR == CUNIXPACKET_UDS_NODE_PATH(cunixpacket_uds_node))
     {
-        dbg_log(SEC_0009_CUNIXPACKET, 5)(LOGSTDOUT, "[DEBUG] cunixpacket_send_packet: "
+        dbg_log(SEC_0009_CUNIXPACKET, 0)(LOGSTDOUT, "error:cunixpacket_send_packet: "
                                                     "no uds path\n");
         return (EC_FALSE);
     }
@@ -839,7 +844,8 @@ EC_BOOL cunixpacket_send_packet(CUNIXPACKET_UDS_NODE *cunixpacket_uds_node)
 
         if(EC_FALSE == csocket_unixpacket_send(CUNIXPACKET_UDS_NODE_SOCKET(cunixpacket_uds_node),
                                                CBYTES_BUF(uds_packet_data),
-                                               CBYTES_LEN(uds_packet_data)))
+                                               CBYTES_LEN(uds_packet_data),
+                                               NULL_PTR))
         {
             dbg_log(SEC_0009_CUNIXPACKET, 0)(LOGSTDOUT, "error:cunixpacket_send_packet: "
                                                         "send unix domain socket packet %p:%ld failed\n",
@@ -902,12 +908,12 @@ EC_BOOL cunixpacket_send_packet(CUNIXPACKET_UDS_NODE *cunixpacket_uds_node)
 **/
 EC_BOOL cunixpacket_send_handler(const UINT32 cunixpacket_md_id)
 {
-    CUNIXPACKET_MD              *cunixpacket_md;
+    CUNIXPACKET_MD        *cunixpacket_md;
 
     ngx_http_request_t          *r;
     CBYTES                      *ngx_req_body;
 
-    CUNIXPACKET_UDS_NODE        *cunixpacket_uds_node;
+    CUNIXPACKET_UDS_NODE  *cunixpacket_uds_node;
 
 #if ( SWITCH_ON == CUNIXPACKET_DEBUG_SWITCH )
     if ( CUNIXPACKET_MD_ID_CHECK_INVALID(cunixpacket_md_id) )
@@ -926,9 +932,9 @@ EC_BOOL cunixpacket_send_handler(const UINT32 cunixpacket_md_id)
     /*check validity*/
     if(NULL_PTR == CUNIXPACKET_MD_UDS_PATH(cunixpacket_md))
     {
-        dbg_log(SEC_0009_CUNIXPACKET, 5)(LOGSTDOUT, "[DEBUG] cunixpacket_send_handler: "
+        dbg_log(SEC_0009_CUNIXPACKET, 0)(LOGSTDOUT, "error:cunixpacket_send_handler: "
                                                     "no uds path\n");
-        cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_NOT_FOUND, LOC_CUNIXPACKET_0007);
+        cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_NOT_FOUND, LOC_CUNIXPACKET_0012);
         return (EC_FALSE);
     }
 
@@ -937,7 +943,7 @@ EC_BOOL cunixpacket_send_handler(const UINT32 cunixpacket_md_id)
         dbg_log(SEC_0009_CUNIXPACKET, 0)(LOGSTDOUT, "error:cunixpacket_send_handler: "
                                                     "uds path '%s' access failed\n",
                                                     (char *)CUNIXPACKET_MD_UDS_PATH_STR(cunixpacket_md));
-        cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_NOT_FOUND, LOC_CUNIXPACKET_0008);
+        cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_NOT_FOUND, LOC_CUNIXPACKET_0013);
         return (EC_FALSE);
     }
 
@@ -949,7 +955,7 @@ EC_BOOL cunixpacket_send_handler(const UINT32 cunixpacket_md_id)
                                                     "push uds node (%s, %d) failed\n",
                                                     (char *)CUNIXPACKET_MD_UDS_PATH_STR(cunixpacket_md),
                                                     ERR_FD);
-        cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CUNIXPACKET_0009);
+        cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CUNIXPACKET_0014);
         return (EC_FALSE);
     }
 
@@ -972,7 +978,7 @@ EC_BOOL cunixpacket_send_handler(const UINT32 cunixpacket_md_id)
                                                         (char *)CUNIXPACKET_UDS_NODE_PATH_STR(cunixpacket_uds_node),
                                                         CUNIXPACKET_UDS_NODE_SOCKET(cunixpacket_uds_node),
                                                         k);
-            cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CUNIXPACKET_0010);
+            cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CUNIXPACKET_0015);
             return (EC_FALSE);
         }
 
@@ -998,7 +1004,7 @@ EC_BOOL cunixpacket_send_handler(const UINT32 cunixpacket_md_id)
                                                         (char *)CUNIXPACKET_UDS_NODE_PATH_STR(cunixpacket_uds_node),
                                                         CUNIXPACKET_UDS_NODE_SOCKET(cunixpacket_uds_node),
                                                         k);
-            cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CUNIXPACKET_0011);
+            cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CUNIXPACKET_0016);
             return (EC_FALSE);
         }
 
@@ -1036,7 +1042,7 @@ EC_BOOL cunixpacket_send_handler(const UINT32 cunixpacket_md_id)
                                                         (char *)CUNIXPACKET_UDS_NODE_PATH_STR(cunixpacket_uds_node),
                                                         CUNIXPACKET_UDS_NODE_SOCKET(cunixpacket_uds_node),
                                                         k);
-            cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CUNIXPACKET_0012);
+            cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CUNIXPACKET_0017);
             return (EC_FALSE);
         }
 
@@ -1071,7 +1077,7 @@ EC_BOOL cunixpacket_send_handler(const UINT32 cunixpacket_md_id)
             dbg_log(SEC_0009_CUNIXPACKET, 0)(LOGSTDOUT, "error:cunixpacket_send_handler: "
                                                         "get var '%s' failed\n",
                                                         k);
-            cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CUNIXPACKET_0013);
+            cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CUNIXPACKET_0018);
             return (EC_FALSE);
         }
 
@@ -1089,7 +1095,7 @@ EC_BOOL cunixpacket_send_handler(const UINT32 cunixpacket_md_id)
         dbg_log(SEC_0009_CUNIXPACKET, 0)(LOGSTDOUT, "error:cunixpacket_send_handler: "
                                                     "new ngx req body failed\n");
 
-        cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CUNIXPACKET_0014);
+        cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CUNIXPACKET_0019);
         return (EC_FALSE);
     }
 
@@ -1099,7 +1105,7 @@ EC_BOOL cunixpacket_send_handler(const UINT32 cunixpacket_md_id)
                                                     "read req body failed\n");
 
         cbytes_free(ngx_req_body);
-        cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CUNIXPACKET_0015);
+        cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_INTERNAL_SERVER_ERROR, LOC_CUNIXPACKET_0020);
         return (EC_FALSE);
     }
 
@@ -1109,7 +1115,7 @@ EC_BOOL cunixpacket_send_handler(const UINT32 cunixpacket_md_id)
                                                     "ngx req body is empty => give up\n");
 
         cbytes_free(ngx_req_body);
-        cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_OK, LOC_CUNIXPACKET_0016);
+        cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_OK, LOC_CUNIXPACKET_0021);
         return (EC_TRUE);
     }
 
@@ -1119,7 +1125,7 @@ EC_BOOL cunixpacket_send_handler(const UINT32 cunixpacket_md_id)
                                                 "cache data %ld bytes\n",
                                                 CBYTES_LEN(ngx_req_body));
 
-    cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_OK, LOC_CUNIXPACKET_0017);
+    cunixpacket_set_ngx_rc(cunixpacket_md_id, NGX_HTTP_OK, LOC_CUNIXPACKET_0022);
 
     return (EC_TRUE);
 }
@@ -1131,7 +1137,7 @@ EC_BOOL cunixpacket_send_handler(const UINT32 cunixpacket_md_id)
 **/
 EC_BOOL cunixpacket_content_handler(const UINT32 cunixpacket_md_id)
 {
-    CUNIXPACKET_MD              *cunixpacket_md;
+    CUNIXPACKET_MD        *cunixpacket_md;
 
     ngx_http_request_t          *r;
 
@@ -1174,7 +1180,7 @@ EC_BOOL cunixpacket_content_handler(const UINT32 cunixpacket_md_id)
 
 EC_BOOL cunixpacket_content_send_response(const UINT32 cunixpacket_md_id)
 {
-    CUNIXPACKET_MD                  *cunixpacket_md;
+    CUNIXPACKET_MD       *cunixpacket_md;
 
     ngx_http_request_t         *r;
     uint32_t                    flags;

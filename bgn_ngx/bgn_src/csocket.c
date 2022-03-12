@@ -4091,7 +4091,7 @@ EC_BOOL csocket_unixpacket_optimize(int sockfd)
 #endif/*__linux__*/
     /* optimization 2.1: when flag > 0, set SEND_BUFF size per packet - Flow Control*/
     /* optimization 2.2: when flag = 0, the data buff to send will NOT copy to system buff but send out directly*/
-    if(1)
+    if(0)
     {
         int flag;
         flag = CSOCKET_SO_SNDBUFF_SIZE;
@@ -4106,7 +4106,7 @@ EC_BOOL csocket_unixpacket_optimize(int sockfd)
 
     /* optimization 3.1: when flag > 0, set RECV_BUFF size per packet - Flow Control*/
     /* optimization 3.2: when flag = 0, the data buff to recv will NOT copy from system buff but recv in directly*/
-    if(1)
+    if(0)
     {
         int flag;
         flag = CSOCKET_SO_RCVBUFF_SIZE;
@@ -4185,7 +4185,7 @@ EC_BOOL csocket_unixpacket_optimize(int sockfd)
     }
 
     /* optimization 8: set NONBLOCK*/
-    if(0)
+    if(1)
     {
         int flag;
 
@@ -4242,28 +4242,14 @@ EC_BOOL csocket_unixpacket_optimize(int sockfd)
     return (ret);
 }
 
-STATIC_CAST static EC_BOOL csocket_unixpacket_client_addr_init( const char *unix_domain_socket_path, struct sockaddr_un *srv_addr)
-{
-    srv_addr->sun_family      = AF_UNIX;
-
-    bzero(srv_addr->sun_path, sizeof(struct sockaddr_un));
-    strncpy(srv_addr->sun_path, unix_domain_socket_path, sizeof(srv_addr->sun_path) - 1);
-
-    return  ( EC_TRUE );
-}
-
 EC_BOOL csocket_unixpacket_connect( const char *unix_domain_socket_path, const UINT32 csocket_block_mode, int *client_sockfd )
 {
-    struct sockaddr_un srv_addr;
+    struct sockaddr_un  srv_addr;
+    int                 sockfd;
 
-    int sockfd;
-
-    /* initialize the ip addr and port of server */
-    if( EC_FALSE == csocket_unixpacket_client_addr_init( unix_domain_socket_path, &srv_addr ) )
-    {
-        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"error:csocket_unixpacket_connect: init addr failed\n");
-        return ( EC_FALSE );
-    }
+    bzero(&srv_addr, sizeof(srv_addr));
+    srv_addr.sun_family = AF_UNIX;
+    strncpy(srv_addr.sun_path, unix_domain_socket_path, sizeof(srv_addr.sun_path) - 1);
 
     /* create socket */
     sockfd = csocket_open( AF_UNIX, SOCK_SEQPACKET, 0 );
@@ -4381,22 +4367,166 @@ EC_BOOL csocket_unixpacket_connect( const char *unix_domain_socket_path, const U
     return ( EC_TRUE );
 }
 
-EC_BOOL csocket_unixpacket_send(const int sockfd, const UINT8 *out_buff, const UINT32 out_buff_expect_len)
+EC_BOOL csocket_unixpacket_listen(const char *unix_domain_socket_path, int *srv_sockfd)
+{
+    struct sockaddr_un  srv_addr;
+    int                 sockfd;
+
+    unlink(unix_domain_socket_path);
+
+    bzero(&srv_addr, sizeof(srv_addr));
+    srv_addr.sun_family = AF_UNIX;
+    strncpy(srv_addr.sun_path, unix_domain_socket_path, sizeof(srv_addr.sun_path) - 1);
+
+    /* create socket */
+    sockfd = csocket_open( AF_UNIX, SOCK_SEQPACKET, 0 );
+    if ( 0 > sockfd )
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_unixpacket_listen: "
+                                                "tcp socket failed, errno = %d, errstr = %s\n",
+                                                errno, strerror(errno));
+        return ( EC_FALSE );
+    }
+
+
+    /* note: optimization must before listen at server side*/
+    if(EC_FALSE == csocket_unixpacket_optimize(sockfd))
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unixpacket_listen: "
+                                                "optimize sockfd %d failed\n",
+                                                sockfd);
+    }
+
+    //csocket_nonblock_disable(sockfd);
+
+    if ( 0 !=  bind( sockfd, (struct sockaddr *)&srv_addr, sizeof(srv_addr) ) )
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "error:csocket_unixpacket_listen: "
+                                                "bind failed, errno = %d, errstr = %s\n",
+                                                errno, strerror(errno));
+        close(sockfd);
+        return ( EC_FALSE );
+    }
+
+    /* create listen queues */
+    if( 0 !=  listen( sockfd, CSOCKET_BACKLOG) )/*SOMAXCONN = 128 is a system constant*/
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR,"error:csocket_unixpacket_listen: "
+                                               "listen failed, errno = %d, errstr = %s\n",
+                                               errno, strerror(errno));
+        close(sockfd);
+        return ( EC_FALSE );
+    }
+
+    *srv_sockfd = sockfd;
+
+    return ( EC_TRUE );
+}
+
+EC_BOOL csocket_unixpacket_accept(const int srv_sockfd, int *conn_sockfd, const UINT32 csocket_block_mode)
+{
+    int new_sockfd;
+
+    new_sockfd = accept(srv_sockfd, NULL_PTR/*client addr*/, NULL_PTR/*client addr len*/);
+    if( 0 > new_sockfd)
+    {
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == csocket_unixpacket_optimize(new_sockfd))
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDERR, "warn:csocket_unixpacket_accept: "
+                                                "optimize sockfd %d failed\n",
+                                                new_sockfd);
+    }
+
+    if(CSOCKET_IS_BLOCK_MODE == csocket_block_mode)
+    {
+        csocket_nonblock_disable(new_sockfd);
+    }
+
+    (*conn_sockfd) = new_sockfd;
+
+    return (EC_TRUE);
+}
+
+EC_BOOL csocket_unixpacket_send(const int sockfd, const UINT8 *out_buff, const UINT32 out_buff_len, UINT32 *out_buff_pos)
 {
     UINT32 pos;
 
-    pos = 0;
-
-    while(pos < out_buff_expect_len)
+    if(NULL_PTR == out_buff_pos)
     {
-        if(EC_FALSE == csocket_isend(sockfd, out_buff, out_buff_expect_len, &pos))
+        pos = 0;
+    }
+    else
+    {
+        pos = (*out_buff_pos);
+    }
+
+    while(pos < out_buff_len)
+    {
+        if(EC_FALSE == csocket_isend(sockfd, out_buff, out_buff_len, &pos))
         {
-            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_send: isend on sockfd %d failed where expect %ld, pos %ld\n",
-                               sockfd, out_buff_expect_len, pos);
+            dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_send: "
+                                                    "sockfd %d send len %ld failed => pos %ld\n",
+                                                    sockfd, out_buff_len, pos);
+
+            if(NULL_PTR != out_buff_pos)
+            {
+                (*out_buff_pos) = pos;
+            }
+
             return (EC_FALSE);
         }
-        //dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_send: out_buff_expect_len %ld, pos %ld\n", out_buff_expect_len, pos);
     }
+
+    if(NULL_PTR != out_buff_pos)
+    {
+        (*out_buff_pos) = pos;
+    }
+
+    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "[DEBUG] csocket_unixpacket_send: "
+                                            "sockfd %d send len %ld succ => pos %ld\n",
+                                            sockfd, out_buff_len, pos);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL csocket_unixpacket_recv(const int sockfd, UINT8 *in_buff, const UINT32 in_buff_len, UINT32 *in_buff_pos)
+{
+    UINT32 pos;
+
+    if(NULL_PTR == in_buff_pos)
+    {
+        pos = 0;
+    }
+    else
+    {
+        pos = (*in_buff_pos);
+    }
+
+    if(EC_FALSE == csocket_irecv(sockfd, in_buff, in_buff_len, &pos))
+    {
+        dbg_log(SEC_0053_CSOCKET, 0)(LOGSTDOUT, "error:csocket_unixpacket_recv: "
+                                                "sockfd %d recv len %ld failed => pos %ld\n",
+                                                sockfd, in_buff_len, pos);
+
+        if(NULL_PTR != in_buff_pos)
+        {
+            (*in_buff_pos) = pos;
+        }
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR != in_buff_pos)
+    {
+        (*in_buff_pos) = pos;
+    }
+
+    dbg_log(SEC_0053_CSOCKET, 5)(LOGSTDOUT, "[DEBUG] csocket_unixpacket_recv: "
+                                            "sockfd %d recv len %ld succ => pos %ld\n",
+                                            sockfd, in_buff_len, pos);
+
     return (EC_TRUE);
 }
 

@@ -1,0 +1,16 @@
+[Unit]
+Description=LOGAGENT
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/local/logagent/bin/logagent -tcid 10.10.10.10 -uds_path /opt/tmp/verender_logagent/unixpacket_v4.sock -logp /data/proclog/log/logagent -sconfig /usr/local/logagent/bin/config.xml -d
+#ExecStop=
+#Restart=always
+Restart=no
+TimeoutStartSec=120
+TimeoutStopSec=3600
+
+[Install]
+WantedBy=multi-user.target

@@ -138,6 +138,8 @@ void cparacfg_xfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
 
 void cparacfg_nbd_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level);
 
+void cparacfg_uds_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level);
+
 void cparacfg_ngx_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level);
 
 void cparacfg_amd_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level);

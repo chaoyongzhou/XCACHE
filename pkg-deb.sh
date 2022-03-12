@@ -5,6 +5,27 @@ verbose=${2:-off}
 work_dir=$(pwd)
 bgn_dir=bgn_ngx
 
+make_pkg_logagent()
+{
+   local version
+   local ret
+
+   version=$1
+
+   ln -s ${work_dir}/${bgn_dir}/build/logagent/debian/logagent-pkg-deb.sh .
+
+   bash logagent-pkg-deb.sh logagent ${version} ${bgn_dir} no
+   ret=$?
+
+   [ ! -f logagent-pkg-deb.sh ] || rm -f logagent-pkg-deb.sh
+
+   if [ $ret -ne 0 ]; then
+       echo "error:make logagent pkg failed"
+       exit 1
+   fi
+}
+
+
 make_pkg_xfs()
 {
    local version
@@ -141,6 +162,11 @@ ver=$(cat VERSION)
 
 echo "pkg: $pkg"
 echo "ver: $ver"
+
+if [ "$pkg" == "all" -o "$pkg" == "logagent" ]; then
+    echo "=> logagent"
+    make_pkg_logagent ${ver}
+fi
 
 if [ "$pkg" == "all" -o "$pkg" == "xfs" ]; then
     echo "=> xfs"

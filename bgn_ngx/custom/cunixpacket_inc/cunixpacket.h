@@ -9,6 +9,11 @@
 extern "C"{
 #endif/*__cplusplus*/
 
+/*----------------------------------------------------------------------------*\
+ *                             LOG RELAY                                      *
+ *              based on unix domain socket with unix packet                  *
+\*----------------------------------------------------------------------------*/
+
 #if (SWITCH_ON == NGX_BGN_SWITCH)
 
 #ifndef _CUNIXPACKET_H

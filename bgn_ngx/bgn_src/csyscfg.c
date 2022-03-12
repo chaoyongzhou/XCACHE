@@ -1144,9 +1144,33 @@ void cparacfg_nbd_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
     {
         c_ident_print(log, level);
         sys_print(log, "<nbdConfig");
-        sys_print(log, " deviceSize=\"ldf\""    , CPARACFG_CXFSNBD_DEVICE_SIZE(cparacfg));
-        sys_print(log, " blockSize=\"ldf\""     , CPARACFG_CXFSNBD_BLOCK_SIZE(cparacfg));
-        sys_print(log, " timeoutNsec=\"ldf\""   , CPARACFG_CXFSNBD_TIMEOUT_NSEC(cparacfg));
+        sys_print(log, " deviceSize=\"%ld\""    , CPARACFG_CXFSNBD_DEVICE_SIZE(cparacfg));
+        sys_print(log, " blockSize=\"%ld\""     , CPARACFG_CXFSNBD_BLOCK_SIZE(cparacfg));
+        sys_print(log, " timeoutNsec=\"%ld\""   , CPARACFG_CXFSNBD_TIMEOUT_NSEC(cparacfg));
+
+        sys_print(log, "/>\n");
+    }
+    return;
+}
+
+/*unix domain socket*/
+void cparacfg_uds_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
+{
+    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_TCID(cparacfg)))
+    {
+        c_ident_print(log, level);
+        sys_print(log, "<udsConfig");
+        sys_print(log, " server=\"%s\""         , CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_SERVER_STR(cparacfg));
+        sys_print(log, " domain=\"%s\""         , CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN_STR(cparacfg));
+        sys_print(log, " uri=\"%s\""            , CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_URI_STR(cparacfg));
+        sys_print(log, " op=\"%s\""             , CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_OP_STR(cparacfg));
+        sys_print(log, " token=\"%s\""          , CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN_STR(cparacfg));
+        sys_print(log, " expiredNsec=\"%ld\""   , CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_EXPIRED_NSEC(cparacfg));
+        sys_print(log, " packMaxSize=\"%u\""    , CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_MAX_SIZE(cparacfg));
+        sys_print(log, " packBufSize=\"%u\""    , CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_BUF_SIZE(cparacfg));
+        sys_print(log, " packCacheMaxNum=\"%u\"", CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_CACHE_MAX_NUM(cparacfg));
+        sys_print(log, " sentMaxNum=\"%u\""     , CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_SENT_MAX_NUM(cparacfg));
+        sys_print(log, " recvMaxNum=\"%u\""     , CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_RECV_MAX_NUM(cparacfg));
 
         sys_print(log, "/>\n");
     }
@@ -1224,6 +1248,7 @@ void cparacfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
     cparacfg_ngx_cfg_print_xml(log, cparacfg, level + 1);
     cparacfg_amd_cfg_print_xml(log, cparacfg, level + 1);
     cparacfg_nbd_cfg_print_xml(log, cparacfg, level + 1);
+    cparacfg_uds_cfg_print_xml(log, cparacfg, level + 1);
     cparacfg_ssl_cfg_print_xml (log, cparacfg, level + 1);
     cparacfg_log_cfg_print_xml(log, cparacfg, level + 1); /* change the order */
     c_ident_print(log, level);

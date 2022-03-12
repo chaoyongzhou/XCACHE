@@ -1569,6 +1569,25 @@ EC_BOOL cxml_parse_cparacfg_nbd_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     return (EC_TRUE);
 }
 
+/*unix domain socket*/
+EC_BOOL cxml_parse_cparacfg_uds_cfg(xmlNodePtr node, CPARACFG *cparacfg)
+{
+    __cxml_parse_tag_cstr(node, (const char *)"server"  , CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_SERVER_CSTR(cparacfg));
+    __cxml_parse_tag_cstr(node, (const char *)"domain"  , CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN_CSTR(cparacfg));
+    __cxml_parse_tag_cstr(node, (const char *)"uri"     , CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_URI_CSTR(cparacfg));
+    __cxml_parse_tag_cstr(node, (const char *)"op"      , CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_OP_CSTR(cparacfg));
+    __cxml_parse_tag_cstr(node, (const char *)"token"   , CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN_CSTR(cparacfg));
+
+    __cxml_parse_tag_uint32(node  , (const char *)"expiredNsec"    , &(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_EXPIRED_NSEC(cparacfg)));
+    __cxml_parse_tag_uint32_t(node, (const char *)"packMaxSize"    , &(CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_MAX_SIZE(cparacfg)));
+    __cxml_parse_tag_uint32_t(node, (const char *)"packBufSize"    , &(CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_BUF_SIZE(cparacfg)));
+    __cxml_parse_tag_uint32_t(node, (const char *)"packCacheMaxNum", &(CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_CACHE_MAX_NUM(cparacfg)));
+    __cxml_parse_tag_uint32_t(node, (const char *)"sentMaxNum"     , &(CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_SENT_MAX_NUM(cparacfg)));
+    __cxml_parse_tag_uint32_t(node, (const char *)"recvMaxNum"     , &(CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_RECV_MAX_NUM(cparacfg)));
+
+    return (EC_TRUE);
+}
+
 EC_BOOL cxml_parse_cparacfg_conn_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 {
     //__cxml_parse_tag_switch(node, (const char *)"keepaliveSwitch", &(CPARACFG_CONN_KEEPALIVE_SWITCH(cparacfg)));
@@ -1694,6 +1713,11 @@ EC_BOOL cxml_parse_cparacfg_para_cfg(xmlNodePtr node, CPARACFG *cparacfg)
         if(0 == xmlStrcmp(cur->name, (const xmlChar*)"nbdConfig"))
         {
             cxml_parse_cparacfg_nbd_cfg(cur, cparacfg);
+            continue;
+        }
+        if(0 == xmlStrcmp(cur->name, (const xmlChar*)"udsConfig"))
+        {
+            cxml_parse_cparacfg_uds_cfg(cur, cparacfg);
             continue;
         }
         if(0 == xmlStrcmp(cur->name, (const xmlChar*)"amdConfig"))

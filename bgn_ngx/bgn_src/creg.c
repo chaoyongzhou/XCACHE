@@ -43,6 +43,7 @@ extern "C"{
 #include "cxfsnbd.h"
 #include "cxfsnbdc.h"
 #include "cxfsc.h"
+#include "cunixpacket_agent.h"
 
 #include "cmd5.h"
 #include "cbuffer.h"
@@ -73,6 +74,7 @@ extern "C"{
 #include "cxfsnbd.inc"
 #include "cxfsnbdc.inc"
 #include "cxfsc.inc"
+#include "cunixpacket_agent.inc"
 #include "task.inc"
 
 TYPE_CONV_ITEM *creg_type_conv_item_new()
@@ -1003,6 +1005,9 @@ EC_BOOL creg_func_addr_vec_add_default(CVECTOR *func_addr_vec)
 
     creg_func_addr_vec_add(func_addr_vec, MD_CXFSC   ,  &g_cxfsc_func_addr_list_len  ,   (FUNC_ADDR_NODE *)g_cxfsc_func_addr_list  , FI_cxfsc_start   , FI_cxfsc_end    , ERR_FUNC_ID             , NULL_PTR                                   );
 
+#if (SWITCH_OFF == NGX_BGN_SWITCH)
+    creg_func_addr_vec_add(func_addr_vec, MD_CUNIXPACKET,  &g_cunixpacket_agent_func_addr_list_len  ,   (FUNC_ADDR_NODE *)g_cunixpacket_agent_func_addr_list  , FI_cunixpacket_agent_start   , FI_cunixpacket_agent_end    , ERR_FUNC_ID             , NULL_PTR                                   );
+#endif /*(SWITCH_OFF == NGX_BGN_SWITCH)*/
     return (EC_TRUE);
 }
 

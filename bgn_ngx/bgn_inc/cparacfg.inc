@@ -109,6 +109,19 @@ typedef struct
     UINT32    tdns_resolve_switch           ; /*TDNS_RESOLVE_SWITCH*/
     UINT32    tdns_resolve_timeout_nsec     ; /*TDNS resolve domain timeout in seconds*/
 
+    CSTRING   cunixpacket_agent_http_req_server_cstr;       /*CUNIXPACKET_AGENT_HTTP_REQ_SERVER*/
+    CSTRING   cunixpacket_agent_http_req_domain_cstr;       /*CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN*/
+    CSTRING   cunixpacket_agent_http_req_uri_cstr;          /*CUNIXPACKET_AGENT_HTTP_REQ_URI*/
+    CSTRING   cunixpacket_agent_http_req_op_cstr;           /*CUNIXPACKET_AGENT_HTTP_REQ_OP*/
+    CSTRING   cunixpacket_agent_http_req_acl_token_cstr;    /*CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN*/
+    UINT32    cunixpacket_agent_http_req_expired_nsec;      /*CUNIXPACKET_AGENT_HTTP_REQ_EXPIRED_NSEC*/
+    uint32_t  cunixpacket_agent_uds_packet_max_size;        /*CUNIXPACKET_AGENT_UDS_PACKET_MAX_SIZE*/
+    uint32_t  cunixpacket_agent_uds_packet_buf_size;        /*CUNIXPACKET_AGENT_UDS_PACKET_BUF_SIZE*/
+    uint32_t  cunixpacket_agent_uds_packet_cache_max_num;   /*CUNIXPACKET_AGENT_UDS_PACKET_CACHE_MAX_NUM*/
+    uint32_t  cunixpacket_agent_uds_packet_sent_max_num;    /*CUNIXPACKET_AGENT_UDS_PACKET_SENT_MAX_NUM*/
+    uint32_t  cunixpacket_agent_uds_packet_recv_max_num;    /*CUNIXPACKET_AGENT_UDS_PACKET_RECV_MAX_NUM*/
+    uint32_t  rsvd05;
+
     UINT32    camd_ssd_aio_req_max_num;    /*default: 8*/
     UINT32    camd_sata_aio_req_max_num;   /*default: 8*/
 
@@ -248,6 +261,18 @@ typedef struct
 #define CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR(cparacfg)           (&((cparacfg)->ssl_certificate_file_name_cstr))
 #define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR(cparacfg)           (&((cparacfg)->ssl_private_key_file_name_cstr))
 
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_SERVER_CSTR(cparacfg)           (&((cparacfg)->cunixpacket_agent_http_req_server_cstr))
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN_CSTR(cparacfg)           (&((cparacfg)->cunixpacket_agent_http_req_domain_cstr))
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_URI_CSTR(cparacfg)              (&((cparacfg)->cunixpacket_agent_http_req_uri_cstr))
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_OP_CSTR(cparacfg)               (&((cparacfg)->cunixpacket_agent_http_req_op_cstr))
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN_CSTR(cparacfg)        (&((cparacfg)->cunixpacket_agent_http_req_acl_token_cstr))
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_EXPIRED_NSEC(cparacfg)          ((cparacfg)->cunixpacket_agent_http_req_expired_nsec)
+#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_MAX_SIZE(cparacfg)            ((cparacfg)->cunixpacket_agent_uds_packet_max_size)
+#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_BUF_SIZE(cparacfg)            ((cparacfg)->cunixpacket_agent_uds_packet_buf_size)
+#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_CACHE_MAX_NUM(cparacfg)       ((cparacfg)->cunixpacket_agent_uds_packet_cache_max_num)
+#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_SENT_MAX_NUM(cparacfg)        ((cparacfg)->cunixpacket_agent_uds_packet_sent_max_num)
+#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_RECV_MAX_NUM(cparacfg)        ((cparacfg)->cunixpacket_agent_uds_packet_recv_max_num)
+
 #define CPARACFG_TDNS_RESOLVE_SWITCH(cparacfg)                      ((cparacfg)->tdns_resolve_switch)
 #define CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC(cparacfg)                ((cparacfg)->tdns_resolve_timeout_nsec)
 
@@ -323,6 +348,13 @@ typedef struct
 #define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_STR(cparacfg)            ((char *)cstring_get_str(CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR(cparacfg)))
 
 #define CPARACFG_TDNS_RESOLVE_SWITCH_STR(cparacfg)                  (c_switch_to_str(CPARACFG_TDNS_RESOLVE_SWITCH(cparacfg)))
+
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_SERVER_STR(cparacfg)    ((char *)cstring_get_str(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_SERVER_CSTR(cparacfg)))
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN_STR(cparacfg)    ((char *)cstring_get_str(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN_CSTR(cparacfg)))
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_URI_STR(cparacfg)       ((char *)cstring_get_str(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_URI_CSTR(cparacfg)))
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_OP_STR(cparacfg)        ((char *)cstring_get_str(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_OP_CSTR(cparacfg)))
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN_STR(cparacfg) ((char *)cstring_get_str(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN_CSTR(cparacfg)))
+
 #define CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH_STR(cparacfg)         (c_switch_to_str(CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH(cparacfg)))
 #define CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH_STR(cparacfg)          (c_switch_to_str(CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH(cparacfg)))
 #define CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH_STR(cparacfg)         (c_switch_to_str(CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH(cparacfg)))
@@ -471,6 +503,18 @@ typedef struct
 #define CPARACFG_TDNS_RESOLVE_SWITCH_DEF                         SWITCH_OFF
 #define CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC_DEF                   30 /*30 seconds*/
 
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_SERVER_CSTR_DEF      ((uint8_t *)"127.0.0.1:80")
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN_CSTR_DEF      ((uint8_t *)"www.logagent.com")
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_URI_CSTR_DEF         ((uint8_t *)"/logs")
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_OP_CSTR_DEF          ((uint8_t *)"log")
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN_CSTR_DEF   ((uint8_t *)"4d0c1b2513cb82263814e10bf2f136ed")
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_EXPIRED_NSEC_DEF     15
+#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_MAX_SIZE_DEF       ((uint32_t)( 4 << 10))
+#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_BUF_SIZE_DEF       ((uint32_t)(64 << 10))
+#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_CACHE_MAX_NUM_DEF  ((uint32_t)1024)
+#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_SENT_MAX_NUM_DEF   ((uint32_t)16)
+#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_RECV_MAX_NUM_DEF   ((uint32_t)256)
+
 #define CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM_DEF                    64
 #define CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM_DEF                   64
 #define CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH_DEF                SWITCH_ON
@@ -616,6 +660,18 @@ typedef struct
 
 #define    TDNS_RESOLVE_SWITCH                           CPARACFG_DEFAULT_MAP(CPARACFG_TDNS_RESOLVE_SWITCH)
 #define    TDNS_RESOLVE_TIMEOUT_NSEC                     CPARACFG_DEFAULT_MAP(CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC)
+
+#define    CUNIXPACKET_AGENT_HTTP_REQ_SERVER             CPARACFG_DEFAULT_STR_MAP(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_SERVER_CSTR)
+#define    CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN             CPARACFG_DEFAULT_STR_MAP(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN_CSTR)
+#define    CUNIXPACKET_AGENT_HTTP_REQ_URI                CPARACFG_DEFAULT_STR_MAP(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_URI_CSTR)
+#define    CUNIXPACKET_AGENT_HTTP_REQ_OP                 CPARACFG_DEFAULT_STR_MAP(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_OP_CSTR)
+#define    CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN          CPARACFG_DEFAULT_STR_MAP(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN_CSTR)
+#define    CUNIXPACKET_AGENT_HTTP_REQ_EXPIRED_NSEC       CPARACFG_DEFAULT_MAP(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_EXPIRED_NSEC)
+#define    CUNIXPACKET_AGENT_UDS_PACKET_MAX_SIZE         CPARACFG_DEFAULT_MAP(CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_BUF_SIZE)
+#define    CUNIXPACKET_AGENT_UDS_PACKET_BUF_SIZE         CPARACFG_DEFAULT_MAP(CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_BUF_SIZE)
+#define    CUNIXPACKET_AGENT_UDS_PACKET_CACHE_MAX_NUM    CPARACFG_DEFAULT_MAP(CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_CACHE_MAX_NUM)
+#define    CUNIXPACKET_AGENT_UDS_PACKET_SENT_MAX_NUM     CPARACFG_DEFAULT_MAP(CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_SENT_MAX_NUM)
+#define    CUNIXPACKET_AGENT_UDS_PACKET_RECV_MAX_NUM     CPARACFG_DEFAULT_MAP(CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_RECV_MAX_NUM)
 
 #define    CAMD_SSD_AIO_REQ_MAX_NUM                      CPARACFG_DEFAULT_MAP(CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM)
 #define    CAMD_SATA_AIO_REQ_MAX_NUM                     CPARACFG_DEFAULT_MAP(CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM)

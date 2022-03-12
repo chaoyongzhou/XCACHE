@@ -72,6 +72,8 @@ EC_BOOL cxml_parse_cparacfg_ngx_cfg(xmlNodePtr node, CPARACFG *cparacfg);
 
 EC_BOOL cxml_parse_cparacfg_nbd_cfg(xmlNodePtr node, CPARACFG *cparacfg);
 
+EC_BOOL cxml_parse_cparacfg_uds_cfg(xmlNodePtr node, CPARACFG *cparacfg);
+
 EC_BOOL cxml_parse_cparacfg_conn_cfg(xmlNodePtr node, CPARACFG *cparacfg);
 
 EC_BOOL cxml_parse_cparacfg_ssl_cfg(xmlNodePtr node, CPARACFG *cparacfg);

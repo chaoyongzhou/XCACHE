@@ -1,0 +1,15 @@
+Source: logagent
+Section: debug
+Priority: extra
+Maintainer: root <bgnvendor@n163.com>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.9.8
+Homepage: <insert the upstream URL, if relevant>
+#Vcs-Git: https://anonscm.debian.org/collab-maint/uk-deb-demo.git
+#Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/uk-deb-demo.git
+
+Package: logagent
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Randome Access File System (Raw Disk Version)
+ <insert long description, indented with spaces>

@@ -7981,7 +7981,7 @@ RETURN VALUE
 
 ***********************************************************************************************************************/
 
-    while(0) /*enabled for ctrans, disabled for cxfs*/
+    while(1) /*enabled for ctrans, disabled for cxfs (note: remove '-d' from service command)*/
     {
         pid_t     pid;
         int      *sync_status;

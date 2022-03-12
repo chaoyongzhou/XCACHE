@@ -7071,7 +7071,7 @@ EC_BOOL chttp_node_encode_req_header_kv(CHTTP_NODE *chttp_node, const CSTRKV *kv
     return (EC_TRUE);
 }
 
-EC_BOOL chttp_node_encode_req_param_kv(CHTTP_NODE *chttp_node, const CSTRKV *kv)
+EC_BOOL chttp_node_encode_req_param_kv(CHTTP_NODE *chttp_node, const CSTRKV *kv, const uint8_t *prefix)
 {
     const CSTRING *key;
     const CSTRING *val;
@@ -7079,7 +7079,7 @@ EC_BOOL chttp_node_encode_req_param_kv(CHTTP_NODE *chttp_node, const CSTRKV *kv)
     key = CSTRKV_KEY(kv);
     val = CSTRKV_VAL(kv);
 
-    if(EC_FALSE == chunk_mgr_append_data(CHTTP_NODE_SEND_BUF(chttp_node), (uint8_t *)"&",  1))
+    if(EC_FALSE == chunk_mgr_append_data(CHTTP_NODE_SEND_BUF(chttp_node), prefix, 1))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_encode_req_param_kv: encode prefix of ('%s', '%s') failed\n",
                             cstring_get_str(key), cstring_get_str(val));
@@ -7091,7 +7091,7 @@ EC_BOOL chttp_node_encode_req_param_kv(CHTTP_NODE *chttp_node, const CSTRKV *kv)
                             cstring_get_str(key), cstring_get_str(val));
         return (EC_FALSE);
     }
-    if(EC_FALSE == chunk_mgr_append_data(CHTTP_NODE_SEND_BUF(chttp_node), (uint8_t *)"=",  1))
+    if(EC_FALSE == chunk_mgr_append_data(CHTTP_NODE_SEND_BUF(chttp_node), (uint8_t *)"=", 1))
     {
         dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_encode_req_param_kv: encode seperator of ('%s', '%s') failed\n",
                             cstring_get_str(key), cstring_get_str(val));
@@ -7108,19 +7108,25 @@ EC_BOOL chttp_node_encode_req_param_kv(CHTTP_NODE *chttp_node, const CSTRKV *kv)
 
 EC_BOOL chttp_node_encode_req_param(CHTTP_NODE *chttp_node, const CSTRKV_MGR *param)
 {
-    CLIST_DATA *clist_data;
+    static const char   *param_prefix[2] = {"?", "&"};
+    CLIST_DATA          *clist_data;
+    uint64_t             param_idx;
 
+    param_idx = 0;
     CLIST_LOOP_NEXT(CSTRKV_MGR_LIST(param), clist_data)
     {
         CSTRKV *kv;
 
         kv = (CSTRKV *)CLIST_DATA_DATA(clist_data);
 
-        if(EC_FALSE == chttp_node_encode_req_param_kv(chttp_node, kv))
+        if(EC_FALSE == chttp_node_encode_req_param_kv(chttp_node, kv,
+                                   (const uint8_t *)param_prefix[ param_idx > 0 ? 1 : 0]))
         {
             dbg_log(SEC_0149_CHTTP, 0)(LOGSTDOUT, "error:chttp_node_encode_req_param: encode kv failed\n");
             return (EC_FALSE);
         }
+
+        param_idx ++;
     }
     return (EC_TRUE);
 }

@@ -184,7 +184,7 @@ extern "C"{
 #define                 MM_CSESSION_ITEM    ((UINT32)116)
 #define                        MM_CTIMET    ((UINT32)117)
 #define                     MM_SDISC_CFG    ((UINT32)118)
-#define                        MM_000119    ((UINT32)119) /*-- obsolete --*/
+#define        MM_CUNIXPACKET_AGENT_NODE    ((UINT32)119)
 #define                        MM_000120    ((UINT32)120) /*-- obsolete --*/
 #define                        MM_000121    ((UINT32)121) /*-- obsolete --*/
 #define                MM_COROUTINE_TASK    ((UINT32)122)
