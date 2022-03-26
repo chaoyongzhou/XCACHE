@@ -1592,7 +1592,7 @@ EC_BOOL cxml_parse_cparacfg_conn_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 {
     //__cxml_parse_tag_switch(node, (const char *)"keepaliveSwitch", &(CPARACFG_CONN_KEEPALIVE_SWITCH(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"connTimeoutNsec"        , &(CPARACFG_CONN_TIMEOUT_NSEC(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"timeoutMaxNumPerLoop"   , &(CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP(cparacfg)));
+    __cxml_parse_tag_uint32(node, (const char *)"timeoutMaxNumPerLoop"   , &(CPARACFG_CONN_TIMEOUT_MAX_NUM_PER_LOOP(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"cdnsTimeoutNsec"        , &(CPARACFG_CDNS_TIMEOUT_NSEC(cparacfg)));
 
     __cxml_parse_tag_switch(node, (const char *)"dnsCacheSwitch"         , &(CPARACFG_DNS_CACHE_SWITCH(cparacfg)));
@@ -1748,8 +1748,8 @@ EC_BOOL cxml_parse_cparacfg_of_specific(xmlNodePtr node, CPARACFG *cparacfg, con
      && (CMPI_ANY_RANK == cur_rank || rank == cur_rank)
      )
     {
-        CPARACFG_TCID(cparacfg) = tcid;
-        CPARACFG_RANK(cparacfg) = rank;
+        CPARACFG_THIS_TCID(cparacfg) = tcid;
+        CPARACFG_THIS_RANK(cparacfg) = rank;
         return cxml_parse_cparacfg_para_cfg(node, cparacfg);
     }
 
@@ -1844,7 +1844,7 @@ STATIC_CAST static CPARACFG *__cxml_parse_para_cfg_search_cparacfg_no_lock(CVECT
         CPARACFG *cparacfg;
 
         cparacfg = (CPARACFG *)cvector_get_no_lock(paras_cfg, pos);
-        if(tcid == CPARACFG_TCID(cparacfg) && rank == CPARACFG_RANK(cparacfg))
+        if(tcid == CPARACFG_THIS_TCID(cparacfg) && rank == CPARACFG_THIS_RANK(cparacfg))
         {
             return (cparacfg);
         }

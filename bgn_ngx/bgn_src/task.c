@@ -8354,6 +8354,24 @@ LOG * task_brd_default_init(int argc, char **argv)
         task_brd_default_abort();
     }
 
+    TASK_BRD_REG_TYPE(task_brd) = reg_type;
+    TASK_BRD_CPROC(task_brd)    = cproc;
+    TASK_BRD_COMM(task_brd)     = this_comm;
+    TASK_BRD_SIZE(task_brd)     = this_size;
+    TASK_BRD_TCID(task_brd)     = this_tcid;
+    TASK_BRD_RANK(task_brd)     = this_rank;
+
+    if(EC_FALSE == task_brd_shortcut_config(task_brd))
+    {
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: shortcut config failed\n");
+        task_brd_default_abort();
+    }
+
+    log_level_import(CPARACFG_LOG_LEVEL_TAB(TASK_BRD_CPARACFG(task_brd)), SEC_NONE_END);
+
+    /*bind cpu core*/
+    task_brd_bind_core(task_brd);
+
     /**
      *before open log file, initialized tcid,comm,rank info of task brd
      *due to log file will record pid and tcid info at the first line
@@ -8431,24 +8449,6 @@ LOG * task_brd_default_init(int argc, char **argv)
     /*register module type and module number per block*/
     cbc_new(MD_END); /*set the max number of supported modules*/
     cbc_md_reg(MD_SUPER,  1);
-
-    TASK_BRD_REG_TYPE(task_brd) = reg_type;
-    TASK_BRD_CPROC(task_brd)    = cproc;
-    TASK_BRD_COMM(task_brd)     = this_comm;
-    TASK_BRD_SIZE(task_brd)     = this_size;
-    TASK_BRD_TCID(task_brd)     = this_tcid;
-    TASK_BRD_RANK(task_brd)     = this_rank;
-
-    if(EC_FALSE == task_brd_shortcut_config(task_brd))
-    {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_brd_default_init: shortcut config failed\n");
-        task_brd_default_abort();
-    }
-
-    /*bind cpu core*/
-    task_brd_bind_core(task_brd);
-
-    log_level_import(CPARACFG_LOG_LEVEL_TAB(TASK_BRD_CPARACFG(task_brd)), SEC_NONE_END);
 
     TASK_BRD_SUPER_MD_ID(task_brd)  = super_start();/*each rank own one super module*/
     TASK_BRD_RANK_TBL(task_brd)     = task_rank_tbl_new(TASK_BRD_SIZE(task_brd));

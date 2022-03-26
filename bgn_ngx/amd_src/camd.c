@@ -3181,12 +3181,12 @@ CAMD_MD *camd_start(const char *camd_shm_root_dir,
 
     if(ERR_FD != sata_disk_fd && 0 != sata_disk_size)
     {
-        caio_add_disk(CAMD_MD_CAIO_MD(camd_md), sata_disk_fd, (const char *)"sata", &CAMD_SATA_AIO_REQ_MAX_NUM_RAW);
+        caio_add_disk(CAMD_MD_CAIO_MD(camd_md), sata_disk_fd, (const char *)"sata", &CAMD_SATA_AIO_REQ_MAX_NUM);
     }
 
     if(ERR_FD != sata_meta_fd && sata_meta_fd != sata_disk_fd)
     {
-        caio_add_disk(CAMD_MD_CAIO_MD(camd_md), sata_meta_fd, (const char *)"sata.meta", &CAMD_SATA_AIO_REQ_MAX_NUM_RAW);
+        caio_add_disk(CAMD_MD_CAIO_MD(camd_md), sata_meta_fd, (const char *)"sata.meta", &CAMD_SATA_AIO_REQ_MAX_NUM);
     }
 
     if(0 != mem_disk_size)
@@ -3264,11 +3264,11 @@ CAMD_MD *camd_start(const char *camd_shm_root_dir,
                 return (NULL_PTR);
             }
 
-            caio_add_disk(CAMD_MD_CAIO_MD(camd_md), ssd_disk_fd, (const char *)"ssd", &CAMD_SSD_AIO_REQ_MAX_NUM_RAW);
+            caio_add_disk(CAMD_MD_CAIO_MD(camd_md), ssd_disk_fd, (const char *)"ssd", &CAMD_SSD_AIO_REQ_MAX_NUM);
 
             if(ERR_FD != ssd_meta_fd && ssd_meta_fd != ssd_disk_fd)
             {
-                caio_add_disk(CAMD_MD_CAIO_MD(camd_md), ssd_meta_fd, (const char *)"ssd.meta", &CAMD_SSD_AIO_REQ_MAX_NUM_RAW);
+                caio_add_disk(CAMD_MD_CAIO_MD(camd_md), ssd_meta_fd, (const char *)"ssd.meta", &CAMD_SSD_AIO_REQ_MAX_NUM);
             }
 
             if(SWITCH_ON == CDC_BIND_AIO_SWITCH)

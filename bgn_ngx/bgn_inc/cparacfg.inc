@@ -19,349 +19,293 @@ extern "C"{
 
 #include "type.h"
 
+#define CPARACFG_THIS_TCID(cparacfg)                                     ((cparacfg)->node[  0]->u.data_word)
+#define CPARACFG_THIS_RANK(cparacfg)                                     ((cparacfg)->node[  1]->u.data_word)
+#define CPARACFG_PROC_CORE_ID(cparacfg)                                  ((cparacfg)->node[  2]->u.data_word)
+#define CPARACFG_TASK_REQ_THREAD_MAX_NUM(cparacfg)                       ((cparacfg)->node[  3]->u.data_word)
+#define CPARACFG_TASK_RSP_THREAD_MAX_NUM(cparacfg)                       ((cparacfg)->node[  4]->u.data_word)
+#define CPARACFG_CTHREAD_STACK_MAX_SIZE(cparacfg)                        ((cparacfg)->node[  5]->u.data_word)
+#define CPARACFG_CTHREAD_STACK_GUARD_SIZE(cparacfg)                      ((cparacfg)->node[  6]->u.data_word)
+#define CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg)                           ((cparacfg)->node[  7]->u.data_word)
+#define CPARACFG_TASK_LIVE_NSEC(cparacfg)                                ((cparacfg)->node[  8]->u.data_word)
+#define CPARACFG_TASK_ZOMBIE_NSEC(cparacfg)                              ((cparacfg)->node[  9]->u.data_word)
+#define CPARACFG_CSOCKET_SO_SNDBUFF_SIZE(cparacfg)                       ((cparacfg)->node[ 10]->u.data_int)
+#define CPARACFG_CSOCKET_SO_RCVBUFF_SIZE(cparacfg)                       ((cparacfg)->node[ 11]->u.data_int)
+#define CPARACFG_CSOCKET_SO_SNDLOWAT_SIZE(cparacfg)                      ((cparacfg)->node[ 12]->u.data_int)
+#define CPARACFG_CSOCKET_SO_RCVLOWAT_SIZE(cparacfg)                      ((cparacfg)->node[ 13]->u.data_int)
+#define CPARACFG_CSOCKET_SO_SNDTIMEO_NSEC(cparacfg)                      ((cparacfg)->node[ 14]->u.data_int)
+#define CPARACFG_CSOCKET_SO_RCVTIMEO_NSEC(cparacfg)                      ((cparacfg)->node[ 15]->u.data_int)
+#define CPARACFG_CSOCKET_SO_KEEPALIVE_SWITCH(cparacfg)                   ((cparacfg)->node[ 16]->u.data_switch)
+#define CPARACFG_CSOCKET_TCP_KEEPIDLE_NSEC(cparacfg)                     ((cparacfg)->node[ 17]->u.data_int)
+#define CPARACFG_CSOCKET_TCP_KEEPINTVL_NSEC(cparacfg)                    ((cparacfg)->node[ 18]->u.data_int)
+#define CPARACFG_CSOCKET_TCP_KEEPCNT_TIMES(cparacfg)                     ((cparacfg)->node[ 19]->u.data_int)
+#define CPARACFG_CSOCKET_UNIX_DOMAIN_SWITCH(cparacfg)                    ((cparacfg)->node[ 20]->u.data_switch)
+#define CPARACFG_CSOCKET_SEND_ONCE_MAX_SIZE(cparacfg)                    ((cparacfg)->node[ 21]->u.data_word)
+#define CPARACFG_CSOCKET_RECV_ONCE_MAX_SIZE(cparacfg)                    ((cparacfg)->node[ 22]->u.data_word)
+#define CPARACFG_CSOCKET_CNODE_NUM(cparacfg)                             ((cparacfg)->node[ 23]->u.data_word)
+#define CPARACFG_CSOCKET_HEARTBEAT_INTVL_NSEC(cparacfg)                  ((cparacfg)->node[ 24]->u.data_word)
+#define CPARACFG_FILE_LOG_MAX_RECORDS(cparacfg)                          ((cparacfg)->node[ 25]->u.data_word)
+#define CPARACFG_CEPOLL_EVENT_MAX_NUM(cparacfg)                          ((cparacfg)->node[ 26]->u.data_word)
+#define CPARACFG_SRV_ACCEPT_MAX_NUM(cparacfg)                            ((cparacfg)->node[ 27]->u.data_word)
+#define CPARACFG_CONN_TIMEOUT_NSEC(cparacfg)                             ((cparacfg)->node[ 28]->u.data_word)
+#define CPARACFG_CONN_TIMEOUT_MAX_NUM_PER_LOOP(cparacfg)                 ((cparacfg)->node[ 29]->u.data_word)
+#define CPARACFG_CDNS_TIMEOUT_NSEC(cparacfg)                             ((cparacfg)->node[ 30]->u.data_word)
+#define CPARACFG_DNS_CACHE_SWITCH(cparacfg)                              ((cparacfg)->node[ 31]->u.data_switch)
+#define CPARACFG_DNS_CACHE_EXPIRED_NSEC(cparacfg)                        ((cparacfg)->node[ 32]->u.data_word)
+#define CPARACFG_HIGH_PRECISION_TIME_SWITCH(cparacfg)                    ((cparacfg)->node[ 33]->u.data_switch)
+#define CPARACFG_CXFSNP_MAX_USED_RATIO(cparacfg)                         ((cparacfg)->node[ 34]->u.data_real)
+#define CPARACFG_CXFSDN_MAX_USED_RATIO(cparacfg)                         ((cparacfg)->node[ 35]->u.data_real)
+#define CPARACFG_CXFSNP_TRY_RETIRE_MAX_NUM(cparacfg)                     ((cparacfg)->node[ 36]->u.data_word)
+#define CPARACFG_CXFSNP_TRY_RECYCLE_MAX_NUM(cparacfg)                    ((cparacfg)->node[ 37]->u.data_word)
+#define CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH(cparacfg)                    ((cparacfg)->node[ 38]->u.data_switch)
+#define CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH(cparacfg)                    ((cparacfg)->node[ 39]->u.data_switch)
+#define CPARACFG_CXFSDN_CAMD_SWITCH(cparacfg)                            ((cparacfg)->node[ 40]->u.data_switch)
+#define CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg)                     ((cparacfg)->node[ 41]->u.data_word)
+#define CPARACFG_CXFS_LRU_MODEL_SWITCH(cparacfg)                         ((cparacfg)->node[ 42]->u.data_switch)
+#define CPARACFG_CXFS_FIFO_MODEL_SWITCH(cparacfg)                        ((cparacfg)->node[ 43]->u.data_switch)
+#define CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH(cparacfg)                     ((cparacfg)->node[ 44]->u.data_switch)
+#define CPARACFG_CXFS_CAMD_DISCARD_RATIO(cparacfg)                       ((cparacfg)->node[ 45]->u.data_word)
+#define CPARACFG_CXFSNBD_DEVICE_SIZE(cparacfg)                           ((cparacfg)->node[ 46]->u.data_word)
+#define CPARACFG_CXFSNBD_BLOCK_SIZE(cparacfg)                            ((cparacfg)->node[ 47]->u.data_word)
+#define CPARACFG_CXFSNBD_TIMEOUT_NSEC(cparacfg)                          ((cparacfg)->node[ 48]->u.data_word)
+#define CPARACFG_CMON_CONHASH_SWITCH(cparacfg)                           ((cparacfg)->node[ 49]->u.data_switch)
+#define CPARACFG_CMON_CONHASH_REPLICAS(cparacfg)                         ((cparacfg)->node[ 50]->u.data_u16)
+#define CPARACFG_CMON_MAGLEV_SWITCH(cparacfg)                            ((cparacfg)->node[ 51]->u.data_switch)
+#define CPARACFG_CMON_HOT_PATH_SWITCH(cparacfg)                          ((cparacfg)->node[ 52]->u.data_switch)
+#define CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg)                 ((cparacfg)->node[ 53]->u.data_u32)
+#define CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg)                        ((cparacfg)->node[ 54]->u.data_u32)
+#define CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP(cparacfg)                     ((cparacfg)->node[ 55]->u.data_u32)
+#define CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)                     ((cparacfg)->node[ 56]->u.data_u32)
+#define CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR(cparacfg)                ((cparacfg)->node[ 57]->u.data_cstr)
+#define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR(cparacfg)                ((cparacfg)->node[ 58]->u.data_cstr)
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_SERVER_CSTR(cparacfg)        ((cparacfg)->node[ 59]->u.data_cstr)
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN_CSTR(cparacfg)        ((cparacfg)->node[ 60]->u.data_cstr)
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_URI_CSTR(cparacfg)           ((cparacfg)->node[ 61]->u.data_cstr)
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_OP_CSTR(cparacfg)            ((cparacfg)->node[ 62]->u.data_cstr)
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN_CSTR(cparacfg)     ((cparacfg)->node[ 63]->u.data_cstr)
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_EXPIRED_NSEC(cparacfg)       ((cparacfg)->node[ 64]->u.data_word)
+#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_MAX_SIZE(cparacfg)         ((cparacfg)->node[ 65]->u.data_u32)
+#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_BUF_SIZE(cparacfg)         ((cparacfg)->node[ 66]->u.data_u32)
+#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_CACHE_MAX_NUM(cparacfg)    ((cparacfg)->node[ 67]->u.data_u32)
+#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_SENT_MAX_NUM(cparacfg)     ((cparacfg)->node[ 68]->u.data_u32)
+#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_RECV_MAX_NUM(cparacfg)     ((cparacfg)->node[ 69]->u.data_u32)
+#define CPARACFG_TDNS_RESOLVE_SWITCH(cparacfg)                           ((cparacfg)->node[ 70]->u.data_switch)
+#define CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC(cparacfg)                     ((cparacfg)->node[ 71]->u.data_word)
+#define CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM(cparacfg)                      ((cparacfg)->node[ 72]->u.data_word)
+#define CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM(cparacfg)                     ((cparacfg)->node[ 73]->u.data_word)
+#define CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH(cparacfg)                  ((cparacfg)->node[ 74]->u.data_switch)
+#define CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH(cparacfg)                   ((cparacfg)->node[ 75]->u.data_switch)
+#define CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH(cparacfg)                  ((cparacfg)->node[ 76]->u.data_switch)
+#define CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH(cparacfg)                   ((cparacfg)->node[ 77]->u.data_switch)
+#define CPARACFG_CMC_TRY_RETIRE_MAX_NUM(cparacfg)                        ((cparacfg)->node[ 78]->u.data_word)
+#define CPARACFG_CMC_TRY_RECYCLE_MAX_NUM(cparacfg)                       ((cparacfg)->node[ 79]->u.data_word)
+#define CPARACFG_CMC_SCAN_RETIRE_MAX_NUM(cparacfg)                       ((cparacfg)->node[ 80]->u.data_word)
+#define CPARACFG_CMC_FLOW_CONTROL_SWITCH(cparacfg)                       ((cparacfg)->node[ 81]->u.data_switch)
+#define CPARACFG_CMC_PROCESS_DEGRADE_MAX_NUM(cparacfg)                   ((cparacfg)->node[ 82]->u.data_word)
+#define CPARACFG_CMC_SCAN_DEGRADE_MAX_NUM(cparacfg)                      ((cparacfg)->node[ 83]->u.data_word)
+#define CPARACFG_CMC_DEGRADE_HI_RATIO(cparacfg)                          ((cparacfg)->node[ 84]->u.data_real)
+#define CPARACFG_CMC_DEGRADE_MD_RATIO(cparacfg)                          ((cparacfg)->node[ 85]->u.data_real)
+#define CPARACFG_CMC_DEGRADE_LO_RATIO(cparacfg)                          ((cparacfg)->node[ 86]->u.data_real)
+#define CPARACFG_CMC_LRU_MODEL_SWITCH(cparacfg)                          ((cparacfg)->node[ 87]->u.data_switch)
+#define CPARACFG_CMC_FIFO_MODEL_SWITCH(cparacfg)                         ((cparacfg)->node[ 88]->u.data_switch)
+#define CPARACFG_CDC_TRY_RETIRE_MAX_NUM(cparacfg)                        ((cparacfg)->node[ 89]->u.data_word)
+#define CPARACFG_CDC_TRY_RECYCLE_MAX_NUM(cparacfg)                       ((cparacfg)->node[ 90]->u.data_word)
+#define CPARACFG_CDC_SCAN_RETIRE_MAX_NUM(cparacfg)                       ((cparacfg)->node[ 91]->u.data_word)
+#define CPARACFG_CDC_READ_CACHE_SWITCH(cparacfg)                         ((cparacfg)->node[ 92]->u.data_switch)
+#define CPARACFG_CDC_FLOW_CONTROL_SWITCH(cparacfg)                       ((cparacfg)->node[ 93]->u.data_switch)
+#define CPARACFG_CDC_PROCESS_DEGRADE_MAX_NUM(cparacfg)                   ((cparacfg)->node[ 94]->u.data_word)
+#define CPARACFG_CDC_SCAN_DEGRADE_MAX_NUM(cparacfg)                      ((cparacfg)->node[ 95]->u.data_word)
+#define CPARACFG_CDC_DEGRADE_HI_RATIO(cparacfg)                          ((cparacfg)->node[ 96]->u.data_real)
+#define CPARACFG_CDC_DEGRADE_MD_RATIO(cparacfg)                          ((cparacfg)->node[ 97]->u.data_real)
+#define CPARACFG_CDC_DEGRADE_LO_RATIO(cparacfg)                          ((cparacfg)->node[ 98]->u.data_real)
+#define CPARACFG_CDC_LRU_MODEL_SWITCH(cparacfg)                          ((cparacfg)->node[ 99]->u.data_switch)
+#define CPARACFG_CDC_FIFO_MODEL_SWITCH(cparacfg)                         ((cparacfg)->node[100]->u.data_switch)
+
+#define CPARACFG_SSL_CERTIFICATE_FILE_NAME_STR(cparacfg)                 ((char *)cstring_get_str(CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR(cparacfg)))
+#define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_STR(cparacfg)                 ((char *)cstring_get_str(CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR(cparacfg)))
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_SERVER_STR(cparacfg)         ((char *)cstring_get_str(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_SERVER_CSTR(cparacfg)))
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN_STR(cparacfg)         ((char *)cstring_get_str(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN_CSTR(cparacfg)))
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_URI_STR(cparacfg)            ((char *)cstring_get_str(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_URI_CSTR(cparacfg)))
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_OP_STR(cparacfg)             ((char *)cstring_get_str(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_OP_CSTR(cparacfg)))
+#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN_STR(cparacfg)      ((char *)cstring_get_str(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN_CSTR(cparacfg)))
+
+#define CPARACFG_CSOCKET_SO_KEEPALIVE_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CSOCKET_SO_KEEPALIVE_SWITCH(cparacfg)))
+#define CPARACFG_CSOCKET_UNIX_DOMAIN_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CSOCKET_UNIX_DOMAIN_SWITCH(cparacfg)))
+#define CPARACFG_HIGH_PRECISION_TIME_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_HIGH_PRECISION_TIME_SWITCH(cparacfg)))
+#define CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH(cparacfg)))
+#define CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH(cparacfg)))
+#define CPARACFG_CXFSDN_CAMD_SWITCH_STR(cparacfg)                        (c_switch_to_str(CPARACFG_CXFSDN_CAMD_SWITCH(cparacfg)))
+#define CPARACFG_CXFS_LRU_MODEL_SWITCH_STR(cparacfg)                     (c_switch_to_str(CPARACFG_CXFS_LRU_MODEL_SWITCH(cparacfg)))
+#define CPARACFG_CXFS_FIFO_MODEL_SWITCH_STR(cparacfg)                    (c_switch_to_str(CPARACFG_CXFS_FIFO_MODEL_SWITCH(cparacfg)))
+#define CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH_STR(cparacfg)                 (c_switch_to_str(CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH(cparacfg)))
+#define CPARACFG_CMON_MAGLEV_SWITCH_STR(cparacfg)                        (c_switch_to_str(CPARACFG_CMON_MAGLEV_SWITCH(cparacfg)))
+#define CPARACFG_CMON_HOT_PATH_SWITCH_STR(cparacfg)                      (c_switch_to_str(CPARACFG_CMON_HOT_PATH_SWITCH(cparacfg)))
+#define CPARACFG_TDNS_RESOLVE_SWITCH_STR(cparacfg)                       (c_switch_to_str(CPARACFG_TDNS_RESOLVE_SWITCH(cparacfg)))
+#define CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH(cparacfg)))
+#define CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH(cparacfg)))
+#define CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH(cparacfg)))
+#define CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH(cparacfg)))
+#define CPARACFG_CMC_LRU_MODEL_SWITCH_STR(cparacfg)                      (c_switch_to_str(CPARACFG_CMC_LRU_MODEL_SWITCH(cparacfg)))
+#define CPARACFG_CMC_FIFO_MODEL_SWITCH_STR(cparacfg)                     (c_switch_to_str(CPARACFG_CMC_FIFO_MODEL_SWITCH(cparacfg)))
+#define CPARACFG_CDC_READ_CACHE_SWITCH_STR(cparacfg)                     (c_switch_to_str(CPARACFG_CDC_READ_CACHE_SWITCH(cparacfg)))
+#define CPARACFG_CDC_FLOW_CONTROL_SWITCH_STR(cparacfg)                   (c_switch_to_str(CPARACFG_CDC_FLOW_CONTROL_SWITCH(cparacfg)))
+#define CPARACFG_CDC_LRU_MODEL_SWITCH_STR(cparacfg)                      (c_switch_to_str(CPARACFG_CDC_LRU_MODEL_SWITCH(cparacfg)))
+#define CPARACFG_CDC_FIFO_MODEL_SWITCH_STR(cparacfg)                     (c_switch_to_str(CPARACFG_CDC_FIFO_MODEL_SWITCH(cparacfg)))
+#define CPARACFG_CMON_CONHASH_SWITCH_STR(cparacfg)                       (c_switch_to_str(CPARACFG_CMON_CONHASH_SWITCH(cparacfg)))
+#define CPARACFG_DNS_CACHE_SWITCH_STR(cparacfg)                          (c_switch_to_str(CPARACFG_DNS_CACHE_SWITCH(cparacfg)))
+
+#define CPARACFG_DEFAULT_GET()                                           (TASK_BRD_CPARACFG(task_brd_default_get()))
+
+#define THIS_TCID                                                        CPARACFG_THIS_TCID(CPARACFG_DEFAULT_GET())
+#define THIS_RANK                                                        CPARACFG_THIS_RANK(CPARACFG_DEFAULT_GET())
+#define PROC_CORE_ID                                                     CPARACFG_PROC_CORE_ID(CPARACFG_DEFAULT_GET())
+#define TASK_REQ_THREAD_MAX_NUM                                          CPARACFG_TASK_REQ_THREAD_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define TASK_RSP_THREAD_MAX_NUM                                          CPARACFG_TASK_RSP_THREAD_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CTHREAD_STACK_MAX_SIZE                                           CPARACFG_CTHREAD_STACK_MAX_SIZE(CPARACFG_DEFAULT_GET())
+#define CTHREAD_STACK_GUARD_SIZE                                         CPARACFG_CTHREAD_STACK_GUARD_SIZE(CPARACFG_DEFAULT_GET())
+#define TASK_SLOW_DOWN_MSEC                                              CPARACFG_TASK_SLOW_DOWN_MSEC(CPARACFG_DEFAULT_GET())
+#define TASK_LIVE_NSEC                                                   CPARACFG_TASK_LIVE_NSEC(CPARACFG_DEFAULT_GET())
+#define TASK_ZOMBIE_NSEC                                                 CPARACFG_TASK_ZOMBIE_NSEC(CPARACFG_DEFAULT_GET())
+#define CSOCKET_SO_SNDBUFF_SIZE                                          CPARACFG_CSOCKET_SO_SNDBUFF_SIZE(CPARACFG_DEFAULT_GET())
+#define CSOCKET_SO_RCVBUFF_SIZE                                          CPARACFG_CSOCKET_SO_RCVBUFF_SIZE(CPARACFG_DEFAULT_GET())
+#define CSOCKET_SO_SNDLOWAT_SIZE                                         CPARACFG_CSOCKET_SO_SNDLOWAT_SIZE(CPARACFG_DEFAULT_GET())
+#define CSOCKET_SO_RCVLOWAT_SIZE                                         CPARACFG_CSOCKET_SO_RCVLOWAT_SIZE(CPARACFG_DEFAULT_GET())
+#define CSOCKET_SO_SNDTIMEO_NSEC                                         CPARACFG_CSOCKET_SO_SNDTIMEO_NSEC(CPARACFG_DEFAULT_GET())
+#define CSOCKET_SO_RCVTIMEO_NSEC                                         CPARACFG_CSOCKET_SO_RCVTIMEO_NSEC(CPARACFG_DEFAULT_GET())
+#define CSOCKET_SO_KEEPALIVE_SWITCH                                      CPARACFG_CSOCKET_SO_KEEPALIVE_SWITCH(CPARACFG_DEFAULT_GET())
+#define CSOCKET_TCP_KEEPIDLE_NSEC                                        CPARACFG_CSOCKET_TCP_KEEPIDLE_NSEC(CPARACFG_DEFAULT_GET())
+#define CSOCKET_TCP_KEEPINTVL_NSEC                                       CPARACFG_CSOCKET_TCP_KEEPINTVL_NSEC(CPARACFG_DEFAULT_GET())
+#define CSOCKET_TCP_KEEPCNT_TIMES                                        CPARACFG_CSOCKET_TCP_KEEPCNT_TIMES(CPARACFG_DEFAULT_GET())
+#define CSOCKET_UNIX_DOMAIN_SWITCH                                       CPARACFG_CSOCKET_UNIX_DOMAIN_SWITCH(CPARACFG_DEFAULT_GET())
+#define CSOCKET_SEND_ONCE_MAX_SIZE                                       CPARACFG_CSOCKET_SEND_ONCE_MAX_SIZE(CPARACFG_DEFAULT_GET())
+#define CSOCKET_RECV_ONCE_MAX_SIZE                                       CPARACFG_CSOCKET_RECV_ONCE_MAX_SIZE(CPARACFG_DEFAULT_GET())
+#define CSOCKET_CNODE_NUM                                                CPARACFG_CSOCKET_CNODE_NUM(CPARACFG_DEFAULT_GET())
+#define CSOCKET_HEARTBEAT_INTVL_NSEC                                     CPARACFG_CSOCKET_HEARTBEAT_INTVL_NSEC(CPARACFG_DEFAULT_GET())
+#define FILE_LOG_MAX_RECORDS                                             CPARACFG_FILE_LOG_MAX_RECORDS(CPARACFG_DEFAULT_GET())
+#define CEPOLL_EVENT_MAX_NUM                                             CPARACFG_CEPOLL_EVENT_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define SRV_ACCEPT_MAX_NUM                                               CPARACFG_SRV_ACCEPT_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CONN_TIMEOUT_NSEC                                                CPARACFG_CONN_TIMEOUT_NSEC(CPARACFG_DEFAULT_GET())
+#define CONN_TIMEOUT_MAX_NUM_PER_LOOP                                    CPARACFG_CONN_TIMEOUT_MAX_NUM_PER_LOOP(CPARACFG_DEFAULT_GET())
+#define CDNS_TIMEOUT_NSEC                                                CPARACFG_CDNS_TIMEOUT_NSEC(CPARACFG_DEFAULT_GET())
+#define DNS_CACHE_SWITCH                                                 CPARACFG_DNS_CACHE_SWITCH(CPARACFG_DEFAULT_GET())
+#define DNS_CACHE_EXPIRED_NSEC                                           CPARACFG_DNS_CACHE_EXPIRED_NSEC(CPARACFG_DEFAULT_GET())
+#define HIGH_PRECISION_TIME_SWITCH                                       CPARACFG_HIGH_PRECISION_TIME_SWITCH(CPARACFG_DEFAULT_GET())
+#define CXFSNP_MAX_USED_RATIO                                            CPARACFG_CXFSNP_MAX_USED_RATIO(CPARACFG_DEFAULT_GET())
+#define CXFSDN_MAX_USED_RATIO                                            CPARACFG_CXFSDN_MAX_USED_RATIO(CPARACFG_DEFAULT_GET())
+#define CXFSNP_TRY_RETIRE_MAX_NUM                                        CPARACFG_CXFSNP_TRY_RETIRE_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CXFSNP_TRY_RECYCLE_MAX_NUM                                       CPARACFG_CXFSNP_TRY_RECYCLE_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CXFSNP_CACHE_IN_MEM_SWITCH                                       CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH(CPARACFG_DEFAULT_GET())
+#define CXFSDN_CACHE_IN_MEM_SWITCH                                       CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH(CPARACFG_DEFAULT_GET())
+#define CXFSDN_CAMD_SWITCH                                               CPARACFG_CXFSDN_CAMD_SWITCH(CPARACFG_DEFAULT_GET())
+#define CXFSDN_CAMD_MEM_DISK_SIZE                                        CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(CPARACFG_DEFAULT_GET())
+#define CXFS_LRU_MODEL_SWITCH                                            CPARACFG_CXFS_LRU_MODEL_SWITCH(CPARACFG_DEFAULT_GET())
+#define CXFS_FIFO_MODEL_SWITCH                                           CPARACFG_CXFS_FIFO_MODEL_SWITCH(CPARACFG_DEFAULT_GET())
+#define CXFS_CAMD_OVERHEAD_SWITCH                                        CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH(CPARACFG_DEFAULT_GET())
+#define CXFS_CAMD_DISCARD_RATIO                                          CPARACFG_CXFS_CAMD_DISCARD_RATIO(CPARACFG_DEFAULT_GET())
+#define CXFSNBD_DEVICE_SIZE                                              CPARACFG_CXFSNBD_DEVICE_SIZE(CPARACFG_DEFAULT_GET())
+#define CXFSNBD_BLOCK_SIZE                                               CPARACFG_CXFSNBD_BLOCK_SIZE(CPARACFG_DEFAULT_GET())
+#define CXFSNBD_TIMEOUT_NSEC                                             CPARACFG_CXFSNBD_TIMEOUT_NSEC(CPARACFG_DEFAULT_GET())
+#define CMON_CONHASH_SWITCH                                              CPARACFG_CMON_CONHASH_SWITCH(CPARACFG_DEFAULT_GET())
+#define CMON_CONHASH_REPLICAS                                            CPARACFG_CMON_CONHASH_REPLICAS(CPARACFG_DEFAULT_GET())
+#define CMON_MAGLEV_SWITCH                                               CPARACFG_CMON_MAGLEV_SWITCH(CPARACFG_DEFAULT_GET())
+#define CMON_HOT_PATH_SWITCH                                             CPARACFG_CMON_HOT_PATH_SWITCH(CPARACFG_DEFAULT_GET())
+#define NGX_LUA_OUTPUT_BLOCKING_LOWAT                                    CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(CPARACFG_DEFAULT_GET())
+#define NGX_EPOLL_TIMEOUT_MSEC                                           CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(CPARACFG_DEFAULT_GET())
+#define NGX_HTTP_REQ_NUM_PER_LOOP                                        CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP(CPARACFG_DEFAULT_GET())
+#define XFS_HTTP_REQ_NUM_PER_LOOP                                        CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(CPARACFG_DEFAULT_GET())
+#define SSL_CERTIFICATE_FILE_NAME_CSTR                                   CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR(CPARACFG_DEFAULT_GET())
+#define SSL_CERTIFICATE_FILE_NAME                                        ((char *)cstring_get_str(SSL_CERTIFICATE_FILE_NAME_CSTR))
+#define SSL_PRIVATE_KEY_FILE_NAME_CSTR                                   CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR(CPARACFG_DEFAULT_GET())
+#define SSL_PRIVATE_KEY_FILE_NAME                                        ((char *)cstring_get_str(SSL_PRIVATE_KEY_FILE_NAME_CSTR))
+#define CUNIXPACKET_AGENT_HTTP_REQ_SERVER_CSTR                           CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_SERVER_CSTR(CPARACFG_DEFAULT_GET())
+#define CUNIXPACKET_AGENT_HTTP_REQ_SERVER                                ((char *)cstring_get_str(CUNIXPACKET_AGENT_HTTP_REQ_SERVER_CSTR))
+#define CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN_CSTR                           CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN_CSTR(CPARACFG_DEFAULT_GET())
+#define CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN                                ((char *)cstring_get_str(CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN_CSTR))
+#define CUNIXPACKET_AGENT_HTTP_REQ_URI_CSTR                              CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_URI_CSTR(CPARACFG_DEFAULT_GET())
+#define CUNIXPACKET_AGENT_HTTP_REQ_URI                                   ((char *)cstring_get_str(CUNIXPACKET_AGENT_HTTP_REQ_URI_CSTR))
+#define CUNIXPACKET_AGENT_HTTP_REQ_OP_CSTR                               CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_OP_CSTR(CPARACFG_DEFAULT_GET())
+#define CUNIXPACKET_AGENT_HTTP_REQ_OP                                    ((char *)cstring_get_str(CUNIXPACKET_AGENT_HTTP_REQ_OP_CSTR))
+#define CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN_CSTR                        CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN_CSTR(CPARACFG_DEFAULT_GET())
+#define CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN                             ((char *)cstring_get_str(CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN_CSTR))
+#define CUNIXPACKET_AGENT_HTTP_REQ_EXPIRED_NSEC                          CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_EXPIRED_NSEC(CPARACFG_DEFAULT_GET())
+#define CUNIXPACKET_AGENT_UDS_PACKET_MAX_SIZE                            CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_MAX_SIZE(CPARACFG_DEFAULT_GET())
+#define CUNIXPACKET_AGENT_UDS_PACKET_BUF_SIZE                            CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_BUF_SIZE(CPARACFG_DEFAULT_GET())
+#define CUNIXPACKET_AGENT_UDS_PACKET_CACHE_MAX_NUM                       CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_CACHE_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CUNIXPACKET_AGENT_UDS_PACKET_SENT_MAX_NUM                        CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_SENT_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CUNIXPACKET_AGENT_UDS_PACKET_RECV_MAX_NUM                        CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_RECV_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define TDNS_RESOLVE_SWITCH                                              CPARACFG_TDNS_RESOLVE_SWITCH(CPARACFG_DEFAULT_GET())
+#define TDNS_RESOLVE_TIMEOUT_NSEC                                        CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC(CPARACFG_DEFAULT_GET())
+#define CAMD_SSD_AIO_REQ_MAX_NUM                                         CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CAMD_SATA_AIO_REQ_MAX_NUM                                        CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CAMD_SATA_DEGRADE_SSD_SWITCH                                     CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH(CPARACFG_DEFAULT_GET())
+#define CAMD_SSD_UPGRADE_MEM_SWITCH                                      CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH(CPARACFG_DEFAULT_GET())
+#define CAMD_SATA_UPGRADE_MEM_SWITCH                                     CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH(CPARACFG_DEFAULT_GET())
+#define CAMD_CHECK_PAGE_USED_SWITCH                                      CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH(CPARACFG_DEFAULT_GET())
+#define CMC_TRY_RETIRE_MAX_NUM                                           CPARACFG_CMC_TRY_RETIRE_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CMC_TRY_RECYCLE_MAX_NUM                                          CPARACFG_CMC_TRY_RECYCLE_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CMC_SCAN_RETIRE_MAX_NUM                                          CPARACFG_CMC_SCAN_RETIRE_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CMC_FLOW_CONTROL_SWITCH                                          CPARACFG_CMC_FLOW_CONTROL_SWITCH(CPARACFG_DEFAULT_GET())
+#define CMC_PROCESS_DEGRADE_MAX_NUM                                      CPARACFG_CMC_PROCESS_DEGRADE_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CMC_SCAN_DEGRADE_MAX_NUM                                         CPARACFG_CMC_SCAN_DEGRADE_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CMC_DEGRADE_HI_RATIO                                             CPARACFG_CMC_DEGRADE_HI_RATIO(CPARACFG_DEFAULT_GET())
+#define CMC_DEGRADE_MD_RATIO                                             CPARACFG_CMC_DEGRADE_MD_RATIO(CPARACFG_DEFAULT_GET())
+#define CMC_DEGRADE_LO_RATIO                                             CPARACFG_CMC_DEGRADE_LO_RATIO(CPARACFG_DEFAULT_GET())
+#define CMC_LRU_MODEL_SWITCH                                             CPARACFG_CMC_LRU_MODEL_SWITCH(CPARACFG_DEFAULT_GET())
+#define CMC_FIFO_MODEL_SWITCH                                            CPARACFG_CMC_FIFO_MODEL_SWITCH(CPARACFG_DEFAULT_GET())
+#define CDC_TRY_RETIRE_MAX_NUM                                           CPARACFG_CDC_TRY_RETIRE_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CDC_TRY_RECYCLE_MAX_NUM                                          CPARACFG_CDC_TRY_RECYCLE_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CDC_SCAN_RETIRE_MAX_NUM                                          CPARACFG_CDC_SCAN_RETIRE_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CDC_READ_CACHE_SWITCH                                            CPARACFG_CDC_READ_CACHE_SWITCH(CPARACFG_DEFAULT_GET())
+#define CDC_FLOW_CONTROL_SWITCH                                          CPARACFG_CDC_FLOW_CONTROL_SWITCH(CPARACFG_DEFAULT_GET())
+#define CDC_PROCESS_DEGRADE_MAX_NUM                                      CPARACFG_CDC_PROCESS_DEGRADE_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CDC_SCAN_DEGRADE_MAX_NUM                                         CPARACFG_CDC_SCAN_DEGRADE_MAX_NUM(CPARACFG_DEFAULT_GET())
+#define CDC_DEGRADE_HI_RATIO                                             CPARACFG_CDC_DEGRADE_HI_RATIO(CPARACFG_DEFAULT_GET())
+#define CDC_DEGRADE_MD_RATIO                                             CPARACFG_CDC_DEGRADE_MD_RATIO(CPARACFG_DEFAULT_GET())
+#define CDC_DEGRADE_LO_RATIO                                             CPARACFG_CDC_DEGRADE_LO_RATIO(CPARACFG_DEFAULT_GET())
+#define CDC_LRU_MODEL_SWITCH                                             CPARACFG_CDC_LRU_MODEL_SWITCH(CPARACFG_DEFAULT_GET())
+#define CDC_FIFO_MODEL_SWITCH                                            CPARACFG_CDC_FIFO_MODEL_SWITCH(CPARACFG_DEFAULT_GET())
+
 typedef struct
 {
-    UINT32    tcid; /*this cparacfg for which tcid*/
-    UINT32    rank; /*this cparacfg for which rank*/
+    const char              *macro_name;
+    const char              *data_type;
+    union
+    {
+        int                 data_int;
+        uint8_t             data_u8;
+        uint16_t            data_u16;
+        uint32_t            data_u32;
+        uint64_t            data_u64;
+        UINT32              data_word;
+        UINT32              data_switch;
+        REAL                data_real;
+        CSTRING            *data_cstr;
+    }u;
+}CPARACFG_NODE;
 
-    UINT32    proc_core_id; /*bind cpu core id*/
+#define CPARACFG_NODE_MACRO_NAME(cparacfg_node)             ((cparacfg_node)->macro_name)
+#define CPARACFG_NODE_TYPE_NAME(cparacfg_node)              ((cparacfg_node)->data_type)
+#define CPARACFG_NODE_DATA_INT(cparacfg_node)               ((cparacfg_node)->u.data_int)
+#define CPARACFG_NODE_DATA_U8(cparacfg_node)                ((cparacfg_node)->u.data_u8)
+#define CPARACFG_NODE_DATA_U16(cparacfg_node)               ((cparacfg_node)->u.data_u16)
+#define CPARACFG_NODE_DATA_U32(cparacfg_node)               ((cparacfg_node)->u.data_u32)
+#define CPARACFG_NODE_DATA_U64(cparacfg_node)               ((cparacfg_node)->u.data_u64)
+#define CPARACFG_NODE_DATA_WORD(cparacfg_node)              ((cparacfg_node)->u.data_word)
+#define CPARACFG_NODE_DATA_SWITCH(cparacfg_node)            ((cparacfg_node)->u.data_switch)
+#define CPARACFG_NODE_DATA_REAL(cparacfg_node)              ((cparacfg_node)->u.data_real)
+#define CPARACFG_NODE_DATA_CSTR(cparacfg_node)              ((cparacfg_node)->u.data_cstr)
 
-    UINT32    task_req_thread_max_num       ;
-    UINT32    task_rsp_thread_max_num       ;
-    UINT32    cthread_stack_max_size        ;
-    UINT32    cthread_stack_guard_size      ;
+#define CPARACFG_NODE_MAX_NUM   256
+typedef struct
+{
+    CPARACFG_NODE       *node[ CPARACFG_NODE_MAX_NUM ];
+    UINT32               log_level_tab[ SEC_NONE_END ] ;
 
-    UINT32    task_slow_down_msec           ;
-    UINT32    task_live_nsec                ;
-    UINT32    task_zombie_nsec              ;
-       int    csocket_so_sndbuff_size       ;/*for fwd rank only*/
-       int    csocket_so_rcvbuff_size       ;/*for fwd rank only*/
-       int    csocket_so_sndlowat_size      ;
-       int    csocket_so_rcvlowat_size      ;
-       int    csocket_so_sndtimeo_nsec      ;
-       int    csocket_so_rcvtimeo_nsec      ;
-
-    UINT32    csocket_so_keepalive_switch   ;
-       int    csocket_tcp_keepidle_nsec     ;
-       int    csocket_tcp_keepintvl_nsec    ;
-       int    csocket_tcp_keepcnt_times     ;
-       int    rsvd01;
-
-    UINT32    csocket_unix_domain_switch    ;
-
-    UINT32    csocket_send_once_max_size    ;/*for fwd rank only*/
-    UINT32    csocket_recv_once_max_size    ;/*for fwd rank only*/
-    UINT32    csocket_cnode_num             ;/*for fwd rank only*/
-    UINT32    csocket_heartbeat_intvl_nsec  ;/*for fwd rank only*/
-
-    UINT32    file_log_max_records          ;
-
-    UINT32    cepoll_event_max_num          ;/* CEPOLL_EVENT_MAX_NUM */
-    UINT32    srv_accept_max_num            ;/* SRV_ACCEPT_MAX_NUM */
-
-    //UINT32    conn_keepalive_switch         ;/*internal communication keepalive by hearbeat, http connection by checking data transfering*/
-    UINT32    conn_timeout_nsec             ;/*if no data tranfer in n seconds, shutdown the connection*/
-    UINT32    timeout_max_num_per_loop      ;/*once cepoll loop shutdown the timeout connections to the max num*/
-    UINT32    cdns_timeout_nsec             ;/*if no data tranfer in n seconds, shutdown the connection*/
-
-    UINT32    dns_cache_switch              ;/*dns resolver query dns cache if switch on*/
-    UINT32    dns_cache_expired_nsec        ;/*dns resolved result would be expired in nsec*/
-
-    UINT32    high_precision_time_switch    ;/*ONLY FOR DEBUG! give high precision in micro-second, reduce the affect of on-wall clock*/
-
-    REAL      cxfsnp_max_used_ratio         ; /* CXFSNP_MAX_USED_RATIO    */
-    REAL      cxfsdn_max_used_ratio         ; /* CXFSDN_MAX_USED_RATIO    */
-
-    UINT32    cxfsnp_try_retire_max_num     ; /* CXFSNP_TRY_RETIRE_MAX_NUM  */
-    UINT32    cxfsnp_try_recycle_max_num    ; /* CXFSNP_TRY_RECYCLE_MAX_NUM */
-    UINT32    cxfsnp_cache_in_mem_switch    ; /* CXFSNP_CACHE_IN_MEM_SWITCH */
-    UINT32    cxfsdn_cache_in_mem_switch    ; /* CXFSDN_CACHE_IN_MEM_SWITCH */
-
-    UINT32    cxfsdn_camd_switch            ; /* CXFSDN_CAMD_SWITCH*/
-    UINT32    cxfsdn_camd_mem_disk_size     ; /* CXFSDN_CAMD_MEM_DISK_SIZE   */
-
-    UINT32    cxfs_lru_model_switch         ; /* CXFS_LRU_MODEL_SWITCH */
-    UINT32    cxfs_fifo_model_switch        ; /* CXFS_FIFO_MODEL_SWITCH */
-
-    UINT32    cxfs_camd_overhead_switch     ; /* CXFS_CAMD_OVERHEAD_SWITCH */
-    UINT32    cxfs_camd_discard_ratio       ; /* CXFS_CAMD_DISCARD_RATIO */
-
-    UINT32    cxfsnbd_device_size           ; /*CXFSNBD_DEVICE_SIZE*/
-    UINT32    cxfsnbd_block_size            ; /*CXFSNBD_BLOCK_SIZE*/
-    UINT32    cxfsnbd_timeout_nsec          ; /*CXFSNBD_TIMEOUT_NSEC*/
-
-    uint16_t  rsvd03;
-    uint16_t  cmon_conhash_replicas         ; /* CMON_CONHASH_REPLICAS */
-    uint32_t  rsvd04;
-    UINT32    cmon_conhash_switch           ; /* CMON_CONHASH_SWITCH */
-    UINT32    cmon_maglev_switch            ; /* CMON_MAGLEV_SWITCH */
-
-    UINT32    cmon_hot_path_switch          ; /* CMON_HOT_PATH_SWITCH */
-
-    uint32_t  ngx_lua_output_blocking_lowat ; /* if buff to send is more than that, block for next sending;otherwise, return and prepare data for next sending*/
-    uint32_t  ngx_epoll_timeout_msec        ;
-
-    uint32_t  ngx_http_req_num_per_loop     ; /*0 means handle all http requests per loop*/
-    uint32_t  xfs_http_req_num_per_loop     ; /*0 means handle all http requests per loop*/
-    CSTRING   ssl_certificate_file_name_cstr;
-    CSTRING   ssl_private_key_file_name_cstr;
-
-    UINT32    tdns_resolve_switch           ; /*TDNS_RESOLVE_SWITCH*/
-    UINT32    tdns_resolve_timeout_nsec     ; /*TDNS resolve domain timeout in seconds*/
-
-    CSTRING   cunixpacket_agent_http_req_server_cstr;       /*CUNIXPACKET_AGENT_HTTP_REQ_SERVER*/
-    CSTRING   cunixpacket_agent_http_req_domain_cstr;       /*CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN*/
-    CSTRING   cunixpacket_agent_http_req_uri_cstr;          /*CUNIXPACKET_AGENT_HTTP_REQ_URI*/
-    CSTRING   cunixpacket_agent_http_req_op_cstr;           /*CUNIXPACKET_AGENT_HTTP_REQ_OP*/
-    CSTRING   cunixpacket_agent_http_req_acl_token_cstr;    /*CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN*/
-    UINT32    cunixpacket_agent_http_req_expired_nsec;      /*CUNIXPACKET_AGENT_HTTP_REQ_EXPIRED_NSEC*/
-    uint32_t  cunixpacket_agent_uds_packet_max_size;        /*CUNIXPACKET_AGENT_UDS_PACKET_MAX_SIZE*/
-    uint32_t  cunixpacket_agent_uds_packet_buf_size;        /*CUNIXPACKET_AGENT_UDS_PACKET_BUF_SIZE*/
-    uint32_t  cunixpacket_agent_uds_packet_cache_max_num;   /*CUNIXPACKET_AGENT_UDS_PACKET_CACHE_MAX_NUM*/
-    uint32_t  cunixpacket_agent_uds_packet_sent_max_num;    /*CUNIXPACKET_AGENT_UDS_PACKET_SENT_MAX_NUM*/
-    uint32_t  cunixpacket_agent_uds_packet_recv_max_num;    /*CUNIXPACKET_AGENT_UDS_PACKET_RECV_MAX_NUM*/
-    uint32_t  rsvd05;
-
-    UINT32    camd_ssd_aio_req_max_num;    /*default: 8*/
-    UINT32    camd_sata_aio_req_max_num;   /*default: 8*/
-
-    UINT32    camd_sata_degrade_ssd_switch;/*default: on*/
-
-    UINT32    camd_ssd_upgrade_mem_switch; /*default: on*/
-    UINT32    camd_sata_upgrade_mem_switch;/*default: on*/
-
-    UINT32    camd_check_page_used_switch; /*default: off*/
-
-    UINT32    cmc_try_retire_max_num;      /*default: 8*/
-    UINT32    cmc_try_recycle_max_num;     /*default: 128*/
-    UINT32    cmc_scan_retire_max_num;     /*default: 256*/
-
-    UINT32    cmc_flow_control_switch;     /*default: on*/
-    UINT32    cmc_process_degrade_max_num; /*default: 8*/
-    UINT32    cmc_scan_degrade_max_num;    /*default: 256*/
-
-    REAL      cmc_degrade_hi_ratio;        /*default: 0.90*/
-    REAL      cmc_degrade_md_ratio;        /*default: 0.85*/
-    REAL      cmc_degrade_lo_ratio;        /*default: 0.80*/
-
-    UINT32    cmc_lru_model_switch;        /* CMC_LRU_MODEL_SWITCH */
-    UINT32    cmc_fifo_model_switch;       /* CMC_FIFO_MODEL_SWITCH */
-
-    UINT32    cdc_try_retire_max_num;      /*default: 8*/
-    UINT32    cdc_try_recycle_max_num;     /*default: 128*/
-    UINT32    cdc_scan_retire_max_num;     /*default: 128*/
-
-    UINT32    cdc_read_cache_switch;       /*default: off*/
-    UINT32    cdc_flow_control_switch;     /*default: on*/
-    UINT32    cdc_process_degrade_max_num; /*default: 8*/
-    UINT32    cdc_scan_degrade_max_num;    /*default: 256*/
-
-    REAL      cdc_degrade_hi_ratio;        /*default: 0.90*/
-    REAL      cdc_degrade_md_ratio;        /*default: 0.85*/
-    REAL      cdc_degrade_lo_ratio;        /*default: 0.80*/
-
-    UINT32    cdc_lru_model_switch;        /* CDC_LRU_MODEL_SWITCH */
-    UINT32    cdc_fifo_model_switch;       /* CDC_FIFO_MODEL_SWITCH */
-
-    UINT32    log_level_tab[ SEC_NONE_END ] ;
 }CPARACFG;
 
-#define CPARACFG_TCID(cparacfg)                                     ((cparacfg)->tcid)
-#define CPARACFG_TCID_STR(cparacfg)                                 (c_word_to_ipv4(CPARACFG_TCID(cparacfg)))
-#define CPARACFG_RANK(cparacfg)                                     ((cparacfg)->rank)
+#define CPARACFG_NODE(cparacfg, idx)                        ((cparacfg)->node[ (idx) ])
+#define CPARACFG_LOG_LEVEL_TAB(cparacfg)                    ((cparacfg)->log_level_tab)
 
-#define CPARACFG_PROC_CORE_ID(cparacfg)                             ((cparacfg)->proc_core_id)
-
-#define CPARACFG_TASK_REQ_THREAD_MAX_NUM(cparacfg)                  ((cparacfg)->task_req_thread_max_num       )
-#define CPARACFG_TASK_RSP_THREAD_MAX_NUM(cparacfg)                  ((cparacfg)->task_rsp_thread_max_num       )
-#define CPARACFG_CTHREAD_STACK_MAX_SIZE(cparacfg)                   ((cparacfg)->cthread_stack_max_size        )
-#define CPARACFG_CTHREAD_STACK_GUARD_SIZE(cparacfg)                 ((cparacfg)->cthread_stack_guard_size      )
-
-#define CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg)                      ((cparacfg)->task_slow_down_msec           )
-#define CPARACFG_TASK_LIVE_NSEC(cparacfg)                           ((cparacfg)->task_live_nsec                )
-#define CPARACFG_TASK_ZOMBIE_NSEC(cparacfg)                         ((cparacfg)->task_zombie_nsec              )
-
-#define CPARACFG_CSOCKET_SO_SNDBUFF_SIZE(cparacfg)                  ((cparacfg)->csocket_so_sndbuff_size       )
-#define CPARACFG_CSOCKET_SO_RCVBUFF_SIZE(cparacfg)                  ((cparacfg)->csocket_so_rcvbuff_size       )
-
-#define CPARACFG_CSOCKET_SO_SNDLOWAT_SIZE(cparacfg)                 ((cparacfg)->csocket_so_sndlowat_size      )
-#define CPARACFG_CSOCKET_SO_RCVLOWAT_SIZE(cparacfg)                 ((cparacfg)->csocket_so_rcvlowat_size      )
-
-#define CPARACFG_CSOCKET_SO_SNDTIMEO_NSEC(cparacfg)                 ((cparacfg)->csocket_so_sndtimeo_nsec      )
-#define CPARACFG_CSOCKET_SO_RCVTIMEO_NSEC(cparacfg)                 ((cparacfg)->csocket_so_rcvtimeo_nsec      )
-
-#define CPARACFG_CSOCKET_SO_KEEPALIVE_SWITCH(cparacfg)              ((cparacfg)->csocket_so_keepalive_switch   )
-#define CPARACFG_CSOCKET_TCP_KEEPIDLE_NSEC(cparacfg)                ((cparacfg)->csocket_tcp_keepidle_nsec     )
-#define CPARACFG_CSOCKET_TCP_KEEPINTVL_NSEC(cparacfg)               ((cparacfg)->csocket_tcp_keepintvl_nsec    )
-#define CPARACFG_CSOCKET_TCP_KEEPCNT_TIMES(cparacfg)                ((cparacfg)->csocket_tcp_keepcnt_times     )
-
-#define CPARACFG_CSOCKET_UNIX_DOMAIN_SWITCH(cparacfg)               ((cparacfg)->csocket_unix_domain_switch    )
-
-#define CPARACFG_CSOCKET_SEND_ONCE_MAX_SIZE(cparacfg)               ((cparacfg)->csocket_send_once_max_size    )
-#define CPARACFG_CSOCKET_RECV_ONCE_MAX_SIZE(cparacfg)               ((cparacfg)->csocket_recv_once_max_size    )
-#define CPARACFG_CSOCKET_CNODE_NUM(cparacfg)                        ((cparacfg)->csocket_cnode_num             )
-
-#define CPARACFG_CSOCKET_HEARTBEAT_INTVL_NSEC(cparacfg)             ((cparacfg)->csocket_heartbeat_intvl_nsec  )
-#define CPARACFG_FILE_LOG_MAX_RECORDS(cparacfg)                     ((cparacfg)->file_log_max_records          )
-//#define CPARACFG_CONN_KEEPALIVE_SWITCH(cparacfg)                    ((cparacfg)->conn_keepalive_switch)
-
-#define CPARACFG_CEPOLL_EVENT_MAX_NUM(cparacfg)                     ((cparacfg)->cepoll_event_max_num)
-
-#define CPARACFG_SRV_ACCEPT_MAX_NUM(cparacfg)                       ((cparacfg)->srv_accept_max_num)
-
-#define CPARACFG_CONN_TIMEOUT_NSEC(cparacfg)                        ((cparacfg)->conn_timeout_nsec)
-#define CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP(cparacfg)                 ((cparacfg)->timeout_max_num_per_loop)
-#define CPARACFG_CDNS_TIMEOUT_NSEC(cparacfg)                        ((cparacfg)->cdns_timeout_nsec)
-#define CPARACFG_LOG_LEVEL_TAB(cparacfg)                            ((cparacfg)->log_level_tab)
-
-#define CPARACFG_DNS_CACHE_SWITCH(cparacfg)                         ((cparacfg)->dns_cache_switch)
-#define CPARACFG_DNS_CACHE_EXPIRED_NSEC(cparacfg)                   ((cparacfg)->dns_cache_expired_nsec)
-
-#define CPARACFG_HIGH_PRECISION_TIME_SWITCH(cparacfg)               ((cparacfg)->high_precision_time_switch)
-
-#define CPARACFG_CXFSNP_MAX_USED_RATIO(cparacfg)                    ((cparacfg)->cxfsnp_max_used_ratio)
-#define CPARACFG_CXFSDN_MAX_USED_RATIO(cparacfg)                    ((cparacfg)->cxfsdn_max_used_ratio)
-
-#define CPARACFG_CXFSNP_TRY_RETIRE_MAX_NUM(cparacfg)                ((cparacfg)->cxfsnp_try_retire_max_num)
-#define CPARACFG_CXFSNP_TRY_RECYCLE_MAX_NUM(cparacfg)               ((cparacfg)->cxfsnp_try_recycle_max_num)
-#define CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH(cparacfg)               ((cparacfg)->cxfsnp_cache_in_mem_switch)
-#define CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH(cparacfg)               ((cparacfg)->cxfsdn_cache_in_mem_switch)
-
-#define CPARACFG_CXFSDN_CAMD_SWITCH(cparacfg)                       ((cparacfg)->cxfsdn_camd_switch)
-#define CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg)                ((cparacfg)->cxfsdn_camd_mem_disk_size)
-
-#define CPARACFG_CXFS_LRU_MODEL_SWITCH(cparacfg)                    ((cparacfg)->cxfs_lru_model_switch)
-#define CPARACFG_CXFS_FIFO_MODEL_SWITCH(cparacfg)                   ((cparacfg)->cxfs_fifo_model_switch)
-
-#define CPARACFG_CXFS_LRU_MODEL_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CXFS_LRU_MODEL_SWITCH(cparacfg)))
-#define CPARACFG_CXFS_FIFO_MODEL_SWITCH_STR(cparacfg)               (c_switch_to_str(CPARACFG_CXFS_FIFO_MODEL_SWITCH(cparacfg)))
-
-#define CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH(cparacfg)                ((cparacfg)->cxfs_camd_overhead_switch)
-#define CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH_STR(cparacfg)            (c_switch_to_str(CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH(cparacfg)))
-
-#define CPARACFG_CXFS_CAMD_DISCARD_RATIO(cparacfg)                  ((cparacfg)->cxfs_camd_discard_ratio)
-
-#define CPARACFG_CXFSNBD_DEVICE_SIZE(cparacfg)                      ((cparacfg)->cxfsnbd_device_size)
-#define CPARACFG_CXFSNBD_BLOCK_SIZE(cparacfg)                       ((cparacfg)->cxfsnbd_block_size)
-#define CPARACFG_CXFSNBD_TIMEOUT_NSEC(cparacfg)                     ((cparacfg)->cxfsnbd_timeout_nsec)
-
-#define CPARACFG_CMON_CONHASH_SWITCH(cparacfg)                      ((cparacfg)->cmon_conhash_switch)
-#define CPARACFG_CMON_CONHASH_REPLICAS(cparacfg)                    ((cparacfg)->cmon_conhash_replicas)
-
-#define CPARACFG_CMON_MAGLEV_SWITCH(cparacfg)                       ((cparacfg)->cmon_maglev_switch)
-
-#define CPARACFG_CMON_HOT_PATH_SWITCH(cparacfg)                     ((cparacfg)->cmon_hot_path_switch)
-
-#define CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT(cparacfg)            ((cparacfg)->ngx_lua_output_blocking_lowat)
-#define CPARACFG_NGX_EPOLL_TIMEOUT_MSEC(cparacfg)                   ((cparacfg)->ngx_epoll_timeout_msec)
-
-#define CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP(cparacfg)                ((cparacfg)->ngx_http_req_num_per_loop)
-#define CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP(cparacfg)                ((cparacfg)->xfs_http_req_num_per_loop)
-
-#define CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR(cparacfg)           (&((cparacfg)->ssl_certificate_file_name_cstr))
-#define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR(cparacfg)           (&((cparacfg)->ssl_private_key_file_name_cstr))
-
-#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_SERVER_CSTR(cparacfg)           (&((cparacfg)->cunixpacket_agent_http_req_server_cstr))
-#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN_CSTR(cparacfg)           (&((cparacfg)->cunixpacket_agent_http_req_domain_cstr))
-#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_URI_CSTR(cparacfg)              (&((cparacfg)->cunixpacket_agent_http_req_uri_cstr))
-#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_OP_CSTR(cparacfg)               (&((cparacfg)->cunixpacket_agent_http_req_op_cstr))
-#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN_CSTR(cparacfg)        (&((cparacfg)->cunixpacket_agent_http_req_acl_token_cstr))
-#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_EXPIRED_NSEC(cparacfg)          ((cparacfg)->cunixpacket_agent_http_req_expired_nsec)
-#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_MAX_SIZE(cparacfg)            ((cparacfg)->cunixpacket_agent_uds_packet_max_size)
-#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_BUF_SIZE(cparacfg)            ((cparacfg)->cunixpacket_agent_uds_packet_buf_size)
-#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_CACHE_MAX_NUM(cparacfg)       ((cparacfg)->cunixpacket_agent_uds_packet_cache_max_num)
-#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_SENT_MAX_NUM(cparacfg)        ((cparacfg)->cunixpacket_agent_uds_packet_sent_max_num)
-#define CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_RECV_MAX_NUM(cparacfg)        ((cparacfg)->cunixpacket_agent_uds_packet_recv_max_num)
-
-#define CPARACFG_TDNS_RESOLVE_SWITCH(cparacfg)                      ((cparacfg)->tdns_resolve_switch)
-#define CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC(cparacfg)                ((cparacfg)->tdns_resolve_timeout_nsec)
-
-#define CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM(cparacfg)                 ((cparacfg)->camd_ssd_aio_req_max_num)
-#define CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM(cparacfg)                ((cparacfg)->camd_sata_aio_req_max_num)
-#define CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH(cparacfg)             ((cparacfg)->camd_sata_degrade_ssd_switch)
-
-#define CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH(cparacfg)              ((cparacfg)->camd_ssd_upgrade_mem_switch)
-#define CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH(cparacfg)             ((cparacfg)->camd_sata_upgrade_mem_switch)
-
-#define CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH(cparacfg)              ((cparacfg)->camd_check_page_used_switch)
-
-#define CPARACFG_CMC_TRY_RETIRE_MAX_NUM(cparacfg)                   ((cparacfg)->cmc_try_retire_max_num)
-#define CPARACFG_CMC_TRY_RECYCLE_MAX_NUM(cparacfg)                  ((cparacfg)->cmc_try_recycle_max_num)
-#define CPARACFG_CMC_SCAN_RETIRE_MAX_NUM(cparacfg)                  ((cparacfg)->cmc_scan_retire_max_num)
-
-#define CPARACFG_CMC_FLOW_CONTROL_SWITCH(cparacfg)                  ((cparacfg)->cmc_flow_control_switch)
-#define CPARACFG_CMC_PROCESS_DEGRADE_MAX_NUM(cparacfg)              ((cparacfg)->cmc_process_degrade_max_num)
-#define CPARACFG_CMC_SCAN_DEGRADE_MAX_NUM(cparacfg)                 ((cparacfg)->cmc_scan_degrade_max_num)
-
-#define CPARACFG_CMC_FLOW_CONTROL_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_CMC_FLOW_CONTROL_SWITCH(cparacfg)))
-
-#define CPARACFG_CMC_DEGRADE_HI_RATIO(cparacfg)                     ((cparacfg)->cmc_degrade_hi_ratio)
-#define CPARACFG_CMC_DEGRADE_MD_RATIO(cparacfg)                     ((cparacfg)->cmc_degrade_md_ratio)
-#define CPARACFG_CMC_DEGRADE_LO_RATIO(cparacfg)                     ((cparacfg)->cmc_degrade_lo_ratio)
-
-#define CPARACFG_CMC_LRU_MODEL_SWITCH(cparacfg)                     ((cparacfg)->cmc_lru_model_switch)
-#define CPARACFG_CMC_FIFO_MODEL_SWITCH(cparacfg)                    ((cparacfg)->cmc_fifo_model_switch)
-
-#define CPARACFG_CMC_LRU_MODEL_SWITCH_STR(cparacfg)                 (c_switch_to_str(CPARACFG_CMC_LRU_MODEL_SWITCH(cparacfg)))
-#define CPARACFG_CMC_FIFO_MODEL_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CMC_FIFO_MODEL_SWITCH(cparacfg)))
-
-#define CPARACFG_CDC_TRY_RETIRE_MAX_NUM(cparacfg)                   ((cparacfg)->cdc_try_retire_max_num)
-#define CPARACFG_CDC_TRY_RECYCLE_MAX_NUM(cparacfg)                  ((cparacfg)->cdc_try_recycle_max_num)
-#define CPARACFG_CDC_SCAN_RETIRE_MAX_NUM(cparacfg)                  ((cparacfg)->cdc_scan_retire_max_num)
-
-#define CPARACFG_CDC_READ_CACHE_SWITCH(cparacfg)                    ((cparacfg)->cdc_read_cache_switch)
-#define CPARACFG_CDC_FLOW_CONTROL_SWITCH(cparacfg)                  ((cparacfg)->cdc_flow_control_switch)
-#define CPARACFG_CDC_PROCESS_DEGRADE_MAX_NUM(cparacfg)              ((cparacfg)->cdc_process_degrade_max_num)
-#define CPARACFG_CDC_SCAN_DEGRADE_MAX_NUM(cparacfg)                 ((cparacfg)->cdc_scan_degrade_max_num)
-
-#define CPARACFG_CDC_READ_CACHE_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CDC_READ_CACHE_SWITCH(cparacfg)))
-#define CPARACFG_CDC_FLOW_CONTROL_SWITCH_STR(cparacfg)              (c_switch_to_str(CPARACFG_CDC_FLOW_CONTROL_SWITCH(cparacfg)))
-
-#define CPARACFG_CDC_DEGRADE_HI_RATIO(cparacfg)                     ((cparacfg)->cdc_degrade_hi_ratio)
-#define CPARACFG_CDC_DEGRADE_MD_RATIO(cparacfg)                     ((cparacfg)->cdc_degrade_md_ratio)
-#define CPARACFG_CDC_DEGRADE_LO_RATIO(cparacfg)                     ((cparacfg)->cdc_degrade_lo_ratio)
-
-#define CPARACFG_CDC_LRU_MODEL_SWITCH(cparacfg)                     ((cparacfg)->cdc_lru_model_switch)
-#define CPARACFG_CDC_FIFO_MODEL_SWITCH(cparacfg)                    ((cparacfg)->cdc_fifo_model_switch)
-
-#define CPARACFG_CDC_LRU_MODEL_SWITCH_STR(cparacfg)                 (c_switch_to_str(CPARACFG_CDC_LRU_MODEL_SWITCH(cparacfg)))
-#define CPARACFG_CDC_FIFO_MODEL_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CDC_FIFO_MODEL_SWITCH(cparacfg)))
-
-
-//#define CPARACFG_CONN_KEEPALIVE_SWITCH_STR(cparacfg)                (c_switch_to_str(CPARACFG_CONN_KEEPALIVE_SWITCH(cparacfg)))
-#define CPARACFG_HIGH_PRECISION_TIME_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_HIGH_PRECISION_TIME_SWITCH(cparacfg)))
-#define CPARACFG_CSOCKET_SO_KEEPALIVE_SWITCH_STR(cparacfg)          (c_switch_to_str(CPARACFG_CSOCKET_SO_KEEPALIVE_SWITCH(cparacfg)))
-
-#define CPARACFG_CSOCKET_UNIX_DOMAIN_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CSOCKET_UNIX_DOMAIN_SWITCH(cparacfg)))
-
-#define CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH(cparacfg)))
-#define CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH_STR(cparacfg)           (c_switch_to_str(CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH(cparacfg)))
-
-#define CPARACFG_CXFSDN_CAMD_SWITCH_STR(cparacfg)                   (c_switch_to_str(CPARACFG_CXFSDN_CAMD_SWITCH(cparacfg)))
-
-#define CPARACFG_CMON_CONHASH_SWITCH_STR(cparacfg)                  (c_switch_to_str(CPARACFG_CMON_CONHASH_SWITCH(cparacfg)))
-#define CPARACFG_CMON_MAGLEV_SWITCH_STR(cparacfg)                   (c_switch_to_str(CPARACFG_CMON_MAGLEV_SWITCH(cparacfg)))
-
-#define CPARACFG_CMON_HOT_PATH_SWITCH_STR(cparacfg)                 (c_switch_to_str(CPARACFG_CMON_HOT_PATH_SWITCH(cparacfg)))
-
-#define CPARACFG_SSL_CERTIFICATE_FILE_NAME_STR(cparacfg)            ((char *)cstring_get_str(CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR(cparacfg)))
-#define CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_STR(cparacfg)            ((char *)cstring_get_str(CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR(cparacfg)))
-
-#define CPARACFG_TDNS_RESOLVE_SWITCH_STR(cparacfg)                  (c_switch_to_str(CPARACFG_TDNS_RESOLVE_SWITCH(cparacfg)))
-
-#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_SERVER_STR(cparacfg)    ((char *)cstring_get_str(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_SERVER_CSTR(cparacfg)))
-#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN_STR(cparacfg)    ((char *)cstring_get_str(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN_CSTR(cparacfg)))
-#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_URI_STR(cparacfg)       ((char *)cstring_get_str(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_URI_CSTR(cparacfg)))
-#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_OP_STR(cparacfg)        ((char *)cstring_get_str(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_OP_CSTR(cparacfg)))
-#define CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN_STR(cparacfg) ((char *)cstring_get_str(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN_CSTR(cparacfg)))
-
-#define CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH_STR(cparacfg)         (c_switch_to_str(CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH(cparacfg)))
-#define CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH_STR(cparacfg)          (c_switch_to_str(CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH(cparacfg)))
-#define CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH_STR(cparacfg)         (c_switch_to_str(CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH(cparacfg)))
-
-#define CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH_STR(cparacfg)          (c_switch_to_str(CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH(cparacfg)))
-
-#define CPARACFG_DNS_CACHE_SWITCH_STR(cparacfg)                     (c_switch_to_str(CPARACFG_DNS_CACHE_SWITCH(cparacfg)))
 
 #define MEM_BUFF_128B ( 128      )
 #define MEM_BUFF_512B ( 512      )
@@ -421,6 +365,8 @@ typedef struct
 #define CTHREAD_STACK_GUARD_SIZE_008M ( 8388608 )
 
 /*------------------------------------------------- default value definition BEG -------------------------------------------------*/
+#define CPARACFG_THIS_TCID_DEF                                   CMPI_ERROR_TCID
+#define CPARACFG_THIS_RANK_DEF                                   CMPI_ERROR_RANK
 #define CPARACFG_PROC_CORE_ID_DEF                                CMPI_ERROR_CORE_ID
 
 #define CPARACFG_TASK_REQ_THREAD_MAX_NUM_DEF                     512
@@ -457,7 +403,7 @@ typedef struct
 #define CPARACFG_CONSOLE_TERM_SWITCH_DEF                         SWITCH_OFF
 
 #define CPARACFG_CONN_TIMEOUT_NSEC_DEF                           20
-#define CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP_DEF                    1024
+#define CPARACFG_CONN_TIMEOUT_MAX_NUM_PER_LOOP_DEF               1024
 #define CPARACFG_CDNS_TIMEOUT_NSEC_DEF                           3
 
 #define CPARACFG_DNS_CACHE_SWITCH_DEF                            SWITCH_ON
@@ -555,166 +501,8 @@ typedef struct
 #define CPARACFG_CDC_DEGRADE_MD_RATIO_DEF                        0.85
 #define CPARACFG_CDC_DEGRADE_LO_RATIO_DEF                        0.80
 
-#define CPARACFG_SET_DEFAULT(cparacfg, macro_name)  \
-            macro_name(cparacfg)  = macro_name##_DEF
-
-#define CPARACFG_SET_STR_DEFAULT(cparacfg, macro_name)  \
-            cstring_init(macro_name(cparacfg), macro_name##_DEF)
-
 /*------------------------------------------------- default value definition END -------------------------------------------------*/
 
-#define    CPARACFG_DEFAULT_GET()                        (TASK_BRD_CPARACFG(task_brd_default_get()))
-
-#define    CPARACFG_DEFAULT_SET(name, value)  do{CPARACFG_##name(CPARACFG_DEFAULT_GET()) = (value);}while(0)
-
-#define    CPARACFG_DEFAULT_MAP(macro_name) \
-                (NULL_PTR == CPARACFG_DEFAULT_GET() ? (macro_name##_DEF): macro_name(CPARACFG_DEFAULT_GET()))
-
-#define    CPARACFG_DEFAULT_RAW_MAP(macro_name) \
-                (macro_name(CPARACFG_DEFAULT_GET()))
-
-#define    CPARACFG_DEFAULT_STR_MAP(macro_name) \
-                (NULL_PTR == CPARACFG_DEFAULT_GET() ? (char *)(macro_name##_DEF): (char *)cstring_get_str(macro_name(CPARACFG_DEFAULT_GET())))
-
-#define    PROC_CORE_ID                                  CPARACFG_DEFAULT_MAP(CPARACFG_PROC_CORE_ID)
-
-#define    TASK_REQ_THREAD_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_TASK_REQ_THREAD_MAX_NUM)
-#define    TASK_RSP_THREAD_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_TASK_RSP_THREAD_MAX_NUM)
-
-#define    TASK_SLOW_DOWN_MSEC                           CPARACFG_DEFAULT_MAP(CPARACFG_TASK_SLOW_DOWN_MSEC)
-#define    TASK_LIVE_NSEC                                CPARACFG_DEFAULT_MAP(CPARACFG_TASK_LIVE_NSEC)
-#define    TASK_ZOMBIE_NSEC                              CPARACFG_DEFAULT_MAP(CPARACFG_TASK_ZOMBIE_NSEC)
-
-#define    CSOCKET_HEARTBEAT_INTVL_NSEC                  CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_HEARTBEAT_INTVL_NSEC)
-
-#define    CSOCKET_SO_SNDBUFF_SIZE                       CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_SO_SNDBUFF_SIZE)
-#define    CSOCKET_SO_RCVBUFF_SIZE                       CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_SO_RCVBUFF_SIZE)
-
-#define    CSOCKET_SO_SNDTIMEO_NSEC                      CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_SO_SNDTIMEO_NSEC)
-#define    CSOCKET_SO_RCVTIMEO_NSEC                      CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_SO_RCVTIMEO_NSEC)
-
-#define    CSOCKET_SO_RCVLOWAT_SIZE                      CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_SO_RCVLOWAT_SIZE)
-#define    CSOCKET_SO_SNDLOWAT_SIZE                      CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_SO_SNDLOWAT_SIZE)
-
-#define    CSOCKET_SO_KEEPALIVE_SWITCH                   CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_SO_KEEPALIVE_SWITCH)
-#define    CSOCKET_TCP_KEEPIDLE_NSEC                     CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_TCP_KEEPIDLE_NSEC)
-#define    CSOCKET_TCP_KEEPINTVL_NSEC                    CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_TCP_KEEPINTVL_NSEC)
-#define    CSOCKET_TCP_KEEPCNT_TIMES                     CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_TCP_KEEPCNT_TIMES)
-
-#define    CSOCKET_UNIX_DOMAIN_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_UNIX_DOMAIN_SWITCH)
-
-#define    CSOCKET_SEND_ONCE_MAX_SIZE                    CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_SEND_ONCE_MAX_SIZE)
-#define    CSOCKET_RECV_ONCE_MAX_SIZE                    CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_RECV_ONCE_MAX_SIZE)
-#define    CSOCKET_CNODE_NUM                             CPARACFG_DEFAULT_MAP(CPARACFG_CSOCKET_CNODE_NUM)
-
-#define    FILE_LOG_MAX_RECORDS                          CPARACFG_DEFAULT_MAP(CPARACFG_FILE_LOG_MAX_RECORDS)
-
-#define    CEPOLL_EVENT_MAX_NUM                          CPARACFG_DEFAULT_MAP(CPARACFG_CEPOLL_EVENT_MAX_NUM)
-
-#define    SRV_ACCEPT_MAX_NUM                            CPARACFG_DEFAULT_MAP(CPARACFG_SRV_ACCEPT_MAX_NUM)
-
-#define    CONN_TIMEOUT_NSEC                             CPARACFG_DEFAULT_MAP(CPARACFG_CONN_TIMEOUT_NSEC)
-#define    CONN_TIMEOUT_MAX_NUM_PER_LOOP                 CPARACFG_DEFAULT_MAP(CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP)
-#define    CDNS_TIMEOUT_NSEC                             CPARACFG_DEFAULT_MAP(CPARACFG_CDNS_TIMEOUT_NSEC)
-
-#define    DNS_CACHE_SWITCH                              CPARACFG_DEFAULT_MAP(CPARACFG_DNS_CACHE_SWITCH)
-#define    DNS_CACHE_EXPIRED_NSEC                        CPARACFG_DEFAULT_MAP(CPARACFG_DNS_CACHE_EXPIRED_NSEC)
-
-#define    HIGH_PRECISION_TIME_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_HIGH_PRECISION_TIME_SWITCH)
-
-#define    CXFSNP_MAX_USED_RATIO                         CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNP_MAX_USED_RATIO)
-#define    CXFSDN_MAX_USED_RATIO                         CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_MAX_USED_RATIO)
-
-#define    CXFSNP_TRY_RETIRE_MAX_NUM                     CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNP_TRY_RETIRE_MAX_NUM)
-#define    CXFSNP_TRY_RECYCLE_MAX_NUM                    CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNP_TRY_RECYCLE_MAX_NUM)
-#define    CXFSNP_CACHE_IN_MEM_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNP_CACHE_IN_MEM_SWITCH)
-#define    CXFSDN_CACHE_IN_MEM_SWITCH                    CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CACHE_IN_MEM_SWITCH)
-
-#define    CXFSDN_CAMD_SWITCH                            CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_SWITCH)
-#define    CXFSDN_CAMD_MEM_DISK_SIZE                     CPARACFG_DEFAULT_MAP(CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE)
-
-#define    CXFS_LRU_MODEL_SWITCH                         CPARACFG_DEFAULT_MAP(CPARACFG_CXFS_LRU_MODEL_SWITCH)
-#define    CXFS_FIFO_MODEL_SWITCH                        CPARACFG_DEFAULT_MAP(CPARACFG_CXFS_FIFO_MODEL_SWITCH)
-
-#define    CXFS_CAMD_OVERHEAD_SWITCH                     CPARACFG_DEFAULT_MAP(CPARACFG_CXFS_CAMD_OVERHEAD_SWITCH)
-#define    CXFS_CAMD_DISCARD_RATIO                       CPARACFG_DEFAULT_MAP(CPARACFG_CXFS_CAMD_DISCARD_RATIO)
-
-#define    CXFSNBD_DEVICE_SIZE                           CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNBD_DEVICE_SIZE)
-#define    CXFSNBD_BLOCK_SIZE                            CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNBD_BLOCK_SIZE)
-#define    CXFSNBD_TIMEOUT_NSEC                          CPARACFG_DEFAULT_MAP(CPARACFG_CXFSNBD_TIMEOUT_NSEC)
-
-#define    CMON_CONHASH_SWITCH                           CPARACFG_DEFAULT_MAP(CPARACFG_CMON_CONHASH_SWITCH)
-#define    CMON_CONHASH_REPLICAS                         CPARACFG_DEFAULT_MAP(CPARACFG_CMON_CONHASH_REPLICAS)
-#define    CMON_MAGLEV_SWITCH                            CPARACFG_DEFAULT_MAP(CPARACFG_CMON_MAGLEV_SWITCH)
-
-#define    CMON_HOT_PATH_SWITCH                          CPARACFG_DEFAULT_MAP(CPARACFG_CMON_HOT_PATH_SWITCH)
-
-#define    NGX_LUA_OUTPUT_BLOCKING_LOWAT                 CPARACFG_DEFAULT_MAP(CPARACFG_NGX_LUA_OUTPUT_BLOCKING_LOWAT)
-#define    NGX_EPOLL_TIMEOUT_MSEC                        CPARACFG_DEFAULT_MAP(CPARACFG_NGX_EPOLL_TIMEOUT_MSEC)
-
-#define    NGX_HTTP_REQ_NUM_PER_LOOP                     CPARACFG_DEFAULT_MAP(CPARACFG_NGX_HTTP_REQ_NUM_PER_LOOP)
-#define    XFS_HTTP_REQ_NUM_PER_LOOP                     CPARACFG_DEFAULT_MAP(CPARACFG_XFS_HTTP_REQ_NUM_PER_LOOP)
-
-#define    SSL_CERTIFICATE_FILE_NAME                     CPARACFG_DEFAULT_STR_MAP(CPARACFG_SSL_CERTIFICATE_FILE_NAME_CSTR)
-#define    SSL_PRIVATE_KEY_FILE_NAME                     CPARACFG_DEFAULT_STR_MAP(CPARACFG_SSL_PRIVATE_KEY_FILE_NAME_CSTR)
-
-#define    TDNS_RESOLVE_SWITCH                           CPARACFG_DEFAULT_MAP(CPARACFG_TDNS_RESOLVE_SWITCH)
-#define    TDNS_RESOLVE_TIMEOUT_NSEC                     CPARACFG_DEFAULT_MAP(CPARACFG_TDNS_RESOLVE_TIMEOUT_NSEC)
-
-#define    CUNIXPACKET_AGENT_HTTP_REQ_SERVER             CPARACFG_DEFAULT_STR_MAP(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_SERVER_CSTR)
-#define    CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN             CPARACFG_DEFAULT_STR_MAP(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_DOMAIN_CSTR)
-#define    CUNIXPACKET_AGENT_HTTP_REQ_URI                CPARACFG_DEFAULT_STR_MAP(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_URI_CSTR)
-#define    CUNIXPACKET_AGENT_HTTP_REQ_OP                 CPARACFG_DEFAULT_STR_MAP(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_OP_CSTR)
-#define    CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN          CPARACFG_DEFAULT_STR_MAP(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_ACL_TOKEN_CSTR)
-#define    CUNIXPACKET_AGENT_HTTP_REQ_EXPIRED_NSEC       CPARACFG_DEFAULT_MAP(CPARACFG_CUNIXPACKET_AGENT_HTTP_REQ_EXPIRED_NSEC)
-#define    CUNIXPACKET_AGENT_UDS_PACKET_MAX_SIZE         CPARACFG_DEFAULT_MAP(CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_BUF_SIZE)
-#define    CUNIXPACKET_AGENT_UDS_PACKET_BUF_SIZE         CPARACFG_DEFAULT_MAP(CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_BUF_SIZE)
-#define    CUNIXPACKET_AGENT_UDS_PACKET_CACHE_MAX_NUM    CPARACFG_DEFAULT_MAP(CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_CACHE_MAX_NUM)
-#define    CUNIXPACKET_AGENT_UDS_PACKET_SENT_MAX_NUM     CPARACFG_DEFAULT_MAP(CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_SENT_MAX_NUM)
-#define    CUNIXPACKET_AGENT_UDS_PACKET_RECV_MAX_NUM     CPARACFG_DEFAULT_MAP(CPARACFG_CUNIXPACKET_AGENT_UDS_PACKET_RECV_MAX_NUM)
-
-#define    CAMD_SSD_AIO_REQ_MAX_NUM                      CPARACFG_DEFAULT_MAP(CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM)
-#define    CAMD_SATA_AIO_REQ_MAX_NUM                     CPARACFG_DEFAULT_MAP(CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM)
-
-#define    CAMD_SSD_AIO_REQ_MAX_NUM_RAW                  CPARACFG_DEFAULT_RAW_MAP(CPARACFG_CAMD_SSD_AIO_REQ_MAX_NUM)
-#define    CAMD_SATA_AIO_REQ_MAX_NUM_RAW                 CPARACFG_DEFAULT_RAW_MAP(CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM)
-#define    CAMD_SATA_DEGRADE_SSD_SWITCH                  CPARACFG_DEFAULT_MAP(CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH)
-
-#define    CAMD_SSD_UPGRADE_MEM_SWITCH                   CPARACFG_DEFAULT_MAP(CPARACFG_CAMD_SSD_UPGRADE_MEM_SWITCH)
-#define    CAMD_SATA_UPGRADE_MEM_SWITCH                  CPARACFG_DEFAULT_MAP(CPARACFG_CAMD_SATA_UPGRADE_MEM_SWITCH)
-
-#define    CAMD_CHECK_PAGE_USED_SWITCH                   CPARACFG_DEFAULT_MAP(CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH)
-
-#define    CMC_TRY_RETIRE_MAX_NUM                        CPARACFG_DEFAULT_MAP(CPARACFG_CMC_TRY_RETIRE_MAX_NUM)
-#define    CMC_TRY_RECYCLE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CMC_TRY_RECYCLE_MAX_NUM)
-#define    CMC_SCAN_RETIRE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CMC_SCAN_RETIRE_MAX_NUM)
-
-#define    CMC_FLOW_CONTROL_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_CMC_FLOW_CONTROL_SWITCH)
-#define    CMC_PROCESS_DEGRADE_MAX_NUM                   CPARACFG_DEFAULT_MAP(CPARACFG_CMC_PROCESS_DEGRADE_MAX_NUM)
-#define    CMC_SCAN_DEGRADE_MAX_NUM                      CPARACFG_DEFAULT_MAP(CPARACFG_CMC_SCAN_DEGRADE_MAX_NUM)
-
-#define    CMC_DEGRADE_HI_RATIO                          CPARACFG_DEFAULT_MAP(CPARACFG_CMC_DEGRADE_HI_RATIO)
-#define    CMC_DEGRADE_MD_RATIO                          CPARACFG_DEFAULT_MAP(CPARACFG_CMC_DEGRADE_MD_RATIO)
-#define    CMC_DEGRADE_LO_RATIO                          CPARACFG_DEFAULT_MAP(CPARACFG_CMC_DEGRADE_LO_RATIO)
-
-#define    CMC_LRU_MODEL_SWITCH                          CPARACFG_DEFAULT_MAP(CPARACFG_CMC_LRU_MODEL_SWITCH)
-#define    CMC_FIFO_MODEL_SWITCH                         CPARACFG_DEFAULT_MAP(CPARACFG_CMC_FIFO_MODEL_SWITCH)
-
-#define    CDC_TRY_RETIRE_MAX_NUM                        CPARACFG_DEFAULT_MAP(CPARACFG_CDC_TRY_RETIRE_MAX_NUM)
-#define    CDC_TRY_RECYCLE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CDC_TRY_RECYCLE_MAX_NUM)
-#define    CDC_SCAN_RETIRE_MAX_NUM                       CPARACFG_DEFAULT_MAP(CPARACFG_CDC_SCAN_RETIRE_MAX_NUM)
-
-#define    CDC_READ_CACHE_SWITCH                         CPARACFG_DEFAULT_MAP(CPARACFG_CDC_READ_CACHE_SWITCH)
-#define    CDC_FLOW_CONTROL_SWITCH                       CPARACFG_DEFAULT_MAP(CPARACFG_CDC_FLOW_CONTROL_SWITCH)
-#define    CDC_PROCESS_DEGRADE_MAX_NUM                   CPARACFG_DEFAULT_MAP(CPARACFG_CDC_PROCESS_DEGRADE_MAX_NUM)
-#define    CDC_SCAN_DEGRADE_MAX_NUM                      CPARACFG_DEFAULT_MAP(CPARACFG_CDC_SCAN_DEGRADE_MAX_NUM)
-
-#define    CDC_DEGRADE_HI_RATIO                          CPARACFG_DEFAULT_MAP(CPARACFG_CDC_DEGRADE_HI_RATIO)
-#define    CDC_DEGRADE_MD_RATIO                          CPARACFG_DEFAULT_MAP(CPARACFG_CDC_DEGRADE_MD_RATIO)
-#define    CDC_DEGRADE_LO_RATIO                          CPARACFG_DEFAULT_MAP(CPARACFG_CDC_DEGRADE_LO_RATIO)
-
-#define    CDC_LRU_MODEL_SWITCH                          CPARACFG_DEFAULT_MAP(CPARACFG_CDC_LRU_MODEL_SWITCH)
-#define    CDC_FIFO_MODEL_SWITCH                         CPARACFG_DEFAULT_MAP(CPARACFG_CDC_FIFO_MODEL_SWITCH)
 
 #endif/*_CPARACFG_INC*/
 

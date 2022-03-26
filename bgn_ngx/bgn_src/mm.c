@@ -136,8 +136,8 @@ extern "C"{
 /* memory manager will manage all node blocks and node block manage its nodes.*/
 /* each memory manager manage only one type of node block */
 /* and all nodes in a certain node block has the same type */
-MM_MAN g_mem_manager[ MM_END ];
-EC_BOOL g_mem_init_flag = EC_FALSE;
+static MM_MAN g_mem_manager[ MM_END ];
+static EC_BOOL g_mem_init_flag = EC_FALSE;
 
 static MM_LOC g_mm_loc_tbl[] = {
 #include "loc_tbl.inc"
@@ -159,7 +159,6 @@ static MM_LOC g_mm_loc_tbl[] = {
 #define MAN_UNLOCK(pMan, __location__)         do{}while(0)
 #endif/*(SWITCH_ON == CROUTINE_SUPPORT_COROUTINE_SWITCH)*/
 #endif
-
 
 #define MM_ASSERT ASSERT
 #define MM_DEBUG  SWITCH_OFF
@@ -521,6 +520,8 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CMAGLEV                      ,"MM_CMAGLEV                      ",1         , sizeof(CMAGLEV)                    , LOC_MM_0233);
     MM_MGR_DEF(MM_CMAGLEV_RNODE                ,"MM_CMAGLEV_RNODE                ",1         , sizeof(CMAGLEV_RNODE)              , LOC_MM_0234);
     MM_MGR_DEF(MM_CMAGLEV_QNODE                ,"MM_CMAGLEV_QNODE                ",2         , sizeof(CMAGLEV_QNODE)              , LOC_MM_0235);
+
+    MM_MGR_DEF(MM_CPARACFG_NODE                ,"MM_CPARACFG_NODE                ",256       , sizeof(CPARACFG_NODE)              , LOC_MM_0235);
 
     return ( 0 );
 }
@@ -2194,8 +2195,6 @@ UINT32 mm_man_load_node_fetch(const UINT32 type, MM_MAN_LOAD_NODE *mm_man_load_n
 
     return (0);
 }
-
-
 
 #ifdef __cplusplus
 }

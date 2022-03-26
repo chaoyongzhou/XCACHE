@@ -1052,13 +1052,13 @@ void cparacfg_log_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
 
 void cparacfg_conn_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
 {
-    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_TCID(cparacfg)))
+    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_THIS_TCID(cparacfg)))
     {
         c_ident_print(log, level);
         sys_print(log, "<connConfig");
         //sys_print(log, " keepaliveSwitch=\"%s\""       , CPARACFG_CONN_KEEPALIVE_SWITCH_STR(cparacfg));
         sys_print(log, " connTimeoutNsec=\"%ld\""        , CPARACFG_CONN_TIMEOUT_NSEC(cparacfg));
-        sys_print(log, " timeoutMaxNumPerLoop=\"%ld\""   , CPARACFG_TIMEOUT_MAX_NUM_PER_LOOP(cparacfg));
+        sys_print(log, " timeoutMaxNumPerLoop=\"%ld\""   , CPARACFG_CONN_TIMEOUT_MAX_NUM_PER_LOOP(cparacfg));
         sys_print(log, " cdnsTimeoutNsec=\"%ld\""        , CPARACFG_CDNS_TIMEOUT_NSEC(cparacfg));
 
         sys_print(log, " dnsCacheSwitch=\"%ld\""         , CPARACFG_DNS_CACHE_SWITCH_STR(cparacfg));
@@ -1077,7 +1077,7 @@ void cparacfg_conn_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT3
 
 void cparacfg_ssl_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
 {
-    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_TCID(cparacfg)))
+    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_THIS_TCID(cparacfg)))
     {
         c_ident_print(log, level);
         sys_print(log, "<sslConfig");
@@ -1090,7 +1090,7 @@ void cparacfg_ssl_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
 
 void cparacfg_xfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
 {
-    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_TCID(cparacfg)))
+    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_THIS_TCID(cparacfg)))
     {
         c_ident_print(log, level);
         sys_print(log, "<xfsConfig");
@@ -1119,7 +1119,7 @@ void cparacfg_xfs_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
 
 void cparacfg_ngx_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
 {
-    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_TCID(cparacfg)))
+    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_THIS_TCID(cparacfg)))
     {
         c_ident_print(log, level);
         sys_print(log, "<ngxConfig");
@@ -1140,7 +1140,7 @@ void cparacfg_ngx_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
 
 void cparacfg_nbd_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
 {
-    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_TCID(cparacfg)))
+    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_THIS_TCID(cparacfg)))
     {
         c_ident_print(log, level);
         sys_print(log, "<nbdConfig");
@@ -1156,7 +1156,7 @@ void cparacfg_nbd_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
 /*unix domain socket*/
 void cparacfg_uds_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
 {
-    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_TCID(cparacfg)))
+    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_THIS_TCID(cparacfg)))
     {
         c_ident_print(log, level);
         sys_print(log, "<udsConfig");
@@ -1179,7 +1179,7 @@ void cparacfg_uds_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
 
 void cparacfg_amd_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
 {
-    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_TCID(cparacfg)))
+    if(EC_TRUE == task_brd_check_is_work_tcid(CPARACFG_THIS_TCID(cparacfg)))
     {
         c_ident_print(log, level);
         sys_print(log, "<amdConfig");
@@ -1188,7 +1188,7 @@ void cparacfg_amd_cfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32
         sys_print(log, " sataAioReqMaxNum=\"%ld\""       , CPARACFG_CAMD_SATA_AIO_REQ_MAX_NUM(cparacfg));
         sys_print(log, " sataDegradeSsdSwitch=\"%s\""    , CPARACFG_CAMD_SATA_DEGRADE_SSD_SWITCH_STR(cparacfg));
 
-        sys_print(log, " checkPageUsedSwitch=\"%s\""    , CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH_STR(cparacfg));
+        sys_print(log, " checkPageUsedSwitch=\"%s\""     , CPARACFG_CAMD_CHECK_PAGE_USED_SWITCH_STR(cparacfg));
 
         sys_print(log, " cmcTryRetireMaxNum=\"%ld\""     , CPARACFG_CMC_TRY_RETIRE_MAX_NUM(cparacfg));
         sys_print(log, " cmcTryRecycleMaxNum=\"%ld\""    , CPARACFG_CMC_TRY_RECYCLE_MAX_NUM(cparacfg));
@@ -1223,20 +1223,20 @@ void cparacfg_print_xml(LOG *log, const CPARACFG *cparacfg, const UINT32 level)
     if(CMPI_ERROR_CORE_ID == CPARACFG_PROC_CORE_ID(cparacfg))
     {
         sys_print(log, "<paraConfig tcid=\"%s\" rank=\"%ld\">\n",
-                        c_word_to_ipv4(CPARACFG_TCID(cparacfg)),
-                        CPARACFG_RANK(cparacfg));
+                        c_word_to_ipv4(CPARACFG_THIS_TCID(cparacfg)),
+                        CPARACFG_THIS_RANK(cparacfg));
     }
     else
     {
         sys_print(log, "<paraConfig tcid=\"%s\" rank=\"%ld\" core=\"%ld\">\n",
-                        c_word_to_ipv4(CPARACFG_TCID(cparacfg)),
-                        CPARACFG_RANK(cparacfg),
+                        c_word_to_ipv4(CPARACFG_THIS_TCID(cparacfg)),
+                        CPARACFG_THIS_RANK(cparacfg),
                         CPARACFG_PROC_CORE_ID(cparacfg));
     }
 
     cparacfg_thread_cfg_print_xml(log, cparacfg, level + 1);
 #if 0/*not release yet*/
-    if(CMPI_FWD_RANK == CPARACFG_RANK(cparacfg))
+    if(CMPI_FWD_RANK == CPARACFG_THIS_RANK(cparacfg))
     {
         cparacfg_csocket_cfg_print_xml(log, cparacfg, level + 1);
     }
@@ -1501,8 +1501,8 @@ CPARACFG *sys_cfg_search_cparacfg(const SYS_CFG *sys_cfg, const UINT32 tcid, con
             continue;
         }
 
-        if((tcid == CPARACFG_TCID(cparacfg) || CMPI_ANY_TCID == tcid)
-        && (rank == CPARACFG_RANK(cparacfg) || CMPI_ANY_RANK == rank))
+        if((tcid == CPARACFG_THIS_TCID(cparacfg) || CMPI_ANY_TCID == tcid)
+        && (rank == CPARACFG_THIS_RANK(cparacfg) || CMPI_ANY_RANK == rank))
         {
             CVECTOR_UNLOCK(paras_cfg, LOC_CSYSCFG_0042);
             return (cparacfg);

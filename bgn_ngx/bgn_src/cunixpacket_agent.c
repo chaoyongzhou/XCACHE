@@ -363,7 +363,7 @@ EC_BOOL cunixpacket_agent_accept(const UINT32 cunixpacket_agent_md_id)
 
         if(EC_FALSE == csocket_unixpacket_accept(
                                 CUNIXPACKET_AGENT_MD_UDS_LISTEN_SOCKET(cunixpacket_agent_md),
-                                &conn_socket, CSOCKET_IS_BLOCK_MODE))
+                                &conn_socket, CSOCKET_IS_NONBLOCK_MODE))
         {
             break;
         }

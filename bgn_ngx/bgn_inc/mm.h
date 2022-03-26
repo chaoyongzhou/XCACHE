@@ -185,7 +185,7 @@ extern "C"{
 #define                        MM_CTIMET    ((UINT32)117)
 #define                     MM_SDISC_CFG    ((UINT32)118)
 #define        MM_CUNIXPACKET_AGENT_NODE    ((UINT32)119)
-#define                        MM_000120    ((UINT32)120) /*-- obsolete --*/
+#define                 MM_CPARACFG_NODE    ((UINT32)120)
 #define                        MM_000121    ((UINT32)121) /*-- obsolete --*/
 #define                MM_COROUTINE_TASK    ((UINT32)122)
 #define                MM_COROUTINE_NODE    ((UINT32)123)
@@ -590,23 +590,6 @@ UINT32 reg_mm_man(const UINT32 mm_type, const char *mm_name, const UINT32 block_
 #define MM_LOC_LINE_NO(__location__)   (get_line_no_of_location(__location__))
 
 #if(SWITCH_ON == STATIC_MEM_TYPE_CHECK_SWITCH)
-static UINT8 *get_short_file_name(const UINT8 *long_file_name)
-{
-    UINT8 *pch;
-
-    pch = (UINT8 *)strrchr(long_file_name,'\\');
-    if ( 0 == pch)
-    {
-        pch = (UINT8 *)long_file_name;
-    }
-    else
-    {
-        pch ++;
-    }
-    return pch;
-}
-
-
 #define alloc_static_mem(mm_type, ppvoid, __location__) do{\
     UINT32  _static_mem_node_type_size;\
     EC_BOOL _static_mem_type_flag;\

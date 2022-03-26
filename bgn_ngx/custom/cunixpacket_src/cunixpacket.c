@@ -428,9 +428,10 @@ EC_BOOL cunixpacket_process(const UINT32 UNUSED(none))
         {
             /*expired*/
             dbg_log(SEC_0009_CUNIXPACKET, 5)(LOGSTDOUT, "[DEBUG] cunixpacket_process: "
-                                                        "expired uds node (%s, %d)\n",
+                                                        "expired uds node (%s, %d), discard packets %ld\n",
                                                         (char *)CUNIXPACKET_UDS_NODE_PATH_STR(cunixpacket_uds_node),
-                                                        CUNIXPACKET_UDS_NODE_SOCKET(cunixpacket_uds_node));
+                                                        CUNIXPACKET_UDS_NODE_SOCKET(cunixpacket_uds_node),
+                                                        clist_size(CUNIXPACKET_UDS_NODE_PACKET_LIST(cunixpacket_uds_node)));
             cunixpacket_uds_node_free(cunixpacket_uds_node);
             continue;
         }
