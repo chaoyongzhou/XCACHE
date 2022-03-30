@@ -14,6 +14,31 @@ extern "C"{
  *              based on unix domain socket with unix packet                  *
 \*----------------------------------------------------------------------------*/
 
+/*-------------------------------------------------------------------*\
+nginx server configuration example:
+===================================
+server {
+    listen  80;
+    server_name logrelay.test.com;
+
+    client_body_in_file_only off;
+    client_max_body_size 8m;
+
+    more_set_headers 'X-LogRelay: enabled';
+
+    location ~ /logs {
+        set $c_acl_token 1234567890abcdefghijklmnopqrstuv;
+        set $c_unixpacket_domain_socket_path "/opt/tmp/logrelay/unixpacket.sock";
+        set $c_unixpacket_domain_socket_timeout_nsec 1200; # default is 60
+        set $c_unixpacket_domain_socket_expired_nsec 600;  # default is 60
+        set $c_unixpacket_domain_socket_connect_nsec 10;   # default is 60
+        set $c_unixpacket_domain_socket_max_packets  10240;# default is 1024
+        access_by_bgn cacltime;
+        content_by_bgn cunixpacket;
+    }
+}
+\*-------------------------------------------------------------------*/
+
 #if (SWITCH_ON == NGX_BGN_SWITCH)
 
 #include "type.h"

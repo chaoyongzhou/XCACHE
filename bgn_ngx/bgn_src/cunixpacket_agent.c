@@ -54,7 +54,8 @@ extern "C"{
 /*-------------------------------------------------------------------*\
 config.xml example:
 ===================================
-//TODO:
+<udsConfig server="logagent.test.com:80" domain="logagent.test.com"
+    uri="/logs" op="log" token="1234567890abcdefghijklmnopqrstuv"/>
 \*-------------------------------------------------------------------*/
 
 STATIC_CAST EC_BOOL __cunixpacket_agent_recv_packet(CUNIXPACKET_AGENT_NODE *cunixpacket_agent_node);
