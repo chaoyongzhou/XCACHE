@@ -69,8 +69,11 @@ PMDK_LIB_DIR = $(PMDK_DIR)/lib
 PMDK_INC =
 PMDK_LIB =
 
-EXT_INC = $(XML2_INC) $(EXPAT_INC) $(PCRE_INC) $(READLINE_INC) $(NCURSES_INC) $(OPENSSL_INC) $(PMDK_INC)
-EXT_LIB = $(XML2_LIB) $(EXPAT_LIB) $(PCRE_LIB) $(READLINE_LIB) $(NCURSES_LIB) $(OPENSSL_LIB) $(PMDK_LIB) -lm -lrt -lpthread -lz -rdynamic -ldl
+FUSEC_INC = -I /usr/include/fuse3
+FUSEC_LIB = -dl /usr/lib/x86_64-linux-gnu/libfuse3.so
+
+EXT_INC = $(XML2_INC) $(EXPAT_INC) $(PCRE_INC) $(READLINE_INC) $(NCURSES_INC) $(OPENSSL_INC) $(PMDK_INC) $(FUSEC_INC)
+EXT_LIB = $(XML2_LIB) $(EXPAT_LIB) $(PCRE_LIB) $(READLINE_LIB) $(NCURSES_LIB) $(OPENSSL_LIB) $(PMDK_LIB) $(FUSEC_LIB) -lm -lrt -lpthread -lz -rdynamic -ldl
 #EXT_LIB = $(XML2_LIB) $(EXPAT_LIB) $(PCRE_LIB) $(READLINE_LIB) $(NCURSES_LIB) $(OPENSSL_LIB) $(PMDK_LIB) -lm -lrt -lpthread -lz -rdynamic -ldl -lndctl -ldaxctl
 BGN_SRC  = $(ROOT_DIR)/bgn_src
 BGN_INC  = -I $(ROOT_DIR)/bgn_inc
@@ -241,6 +244,7 @@ CMACRO = \
          -DCAMD_SSD_DISK_MAX_SIZE_NBITS=${DISK_004T_NBITS} \
          -DCAMD_PAGE_SIZE_NBITS=${PAGE_256K_NBITS} \
          -DPMDK_PMEM_SWITCH=SWITCH_OFF \
+         -DFUSE_USE_VERSION=310 \
 
 # C Language
 CC       = /usr/bin/gcc
@@ -271,6 +275,7 @@ NBD_OBJS = $(OBJ_DIR)/demo_nbd.o
 XFSNBD_OBJS = $(OBJ_DIR)/demo_xfsnbd.o
 XFSNBDC_OBJS = $(OBJ_DIR)/demo_xfsnbdc.o
 TRANS_OBJS = $(OBJ_DIR)/demo_trans.o
+FUSEC_OBJS = $(OBJ_DIR)/demo_fusec.o
 
 default: xfs xfsnbdc xfs_tool
 
@@ -282,6 +287,9 @@ libamd: $(AMD_OBJS)
 
 libjson: $(JSON_OBJS)
 	$(AR) $(LIB_DIR)/libjson.a $(JSON_OBJS)
+
+fusec: libbgn libamd libjson $(FUSEC_OBJS)
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/fusec $(FUSEC_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
 
 trans: libbgn libamd libjson $(TRANS_OBJS)
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/trans $(TRANS_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
@@ -306,6 +314,9 @@ bgn: libbgn $(REL_OBJS)
 
 link: $(REL_OBJS)
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/bgn $(REL_OBJS) $(BGN_INC) $(EXT_INC) $(BGN_LIB) $(EXT_LIB)
+
+test_cfuses: libbgn libamd libjson $(OBJ_DIR)/test_cfuses.o
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_cfuses.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
 
 test_local_ipv4: libbgn libamd libjson $(OBJ_DIR)/test_local_ipv4.o
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/test $(OBJ_DIR)/test_local_ipv4.o $(BGN_INC) $(AMD_INC) $(JSON_INC) $(TST_INC) $(BGN_LIB) $(AMD_LIB) $(JSON_LIB) $(EXT_LIB)

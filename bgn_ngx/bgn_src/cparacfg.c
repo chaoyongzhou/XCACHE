@@ -365,7 +365,7 @@ EC_BOOL cparacfg_node_clone(const CPARACFG_NODE *cparacfg_node_src, CPARACFG_NOD
 CPARACFG *cparacfg_new(const UINT32 this_tcid, const UINT32 this_rank)
 {
     CPARACFG *cparacfg;
-    alloc_static_mem(MM_CPARACFG, &cparacfg, LOC_CPARACFG_0001);
+    alloc_static_mem(MM_CPARACFG, &cparacfg, LOC_CPARACFG_0003);
     if(NULL_PTR != cparacfg)
     {
         cparacfg_init(cparacfg, this_tcid, this_rank);
@@ -399,7 +399,7 @@ EC_BOOL cparacfg_free(CPARACFG *cparacfg)
     if(NULL_PTR != cparacfg)
     {
         cparacfg_clean(cparacfg);
-        free_static_mem(MM_CPARACFG, cparacfg, LOC_CPARACFG_0002);
+        free_static_mem(MM_CPARACFG, cparacfg, LOC_CPARACFG_0004);
     }
     return (EC_TRUE);
 }
@@ -700,7 +700,7 @@ EC_BOOL cparacfg_add_node(CPARACFG *cparacfg, const UINT32 idx, const char *macr
 
     if(EC_TRUE == cparacfg_node_is_type(cparacfg_node, "CSTRING"))
     {
-        CPARACFG_NODE_DATA_CSTR(cparacfg_node) = cstring_new((UINT8 *)data, LOC_CPARACFG_0002);
+        CPARACFG_NODE_DATA_CSTR(cparacfg_node) = cstring_new((UINT8 *)data, LOC_CPARACFG_0005);
         if(NULL_PTR == CPARACFG_NODE_DATA_CSTR(cparacfg_node))
         {
             dbg_log(SEC_0052_CPARACFG, 0)(LOGSTDOUT, "error:cparacfg_add_node: "

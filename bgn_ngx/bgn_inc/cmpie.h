@@ -45,6 +45,7 @@ extern "C"{
 
 #include "ctdnssv.h"
 #include "cp2p.h"
+#include "cfuses.h"
 
 UINT32 cmpi_encode_uint8(const UINT32 comm, const UINT8 num, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
 UINT32 cmpi_encode_uint8_ptr(const UINT32 comm, const UINT8 *num, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
@@ -282,7 +283,6 @@ UINT32 cmpi_encode_cp2p_cmd(const UINT32 comm, const CP2P_CMD *cp2p_cmd, UINT8 *
 UINT32 cmpi_encode_cp2p_cmd_size(const UINT32 comm, const CP2P_CMD *cp2p_cmd, UINT32 *size);
 UINT32 cmpi_decode_cp2p_cmd(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CP2P_CMD *cp2p_cmd);
 
-#if 1
 UINT32 cmpi_encode_cxfsnp_inode(const UINT32 comm, const CXFSNP_INODE *cxfsnp_inode, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
 UINT32 cmpi_encode_cxfsnp_inode_size(const UINT32 comm, const CXFSNP_INODE *cxfsnp_inode, UINT32 *size);
 UINT32 cmpi_decode_cxfsnp_inode(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CXFSNP_INODE *cxfsnp_inode);
@@ -307,16 +307,13 @@ UINT32 cmpi_encode_cxfsnp_item(const UINT32 comm, const CXFSNP_ITEM *cxfsnp_item
 UINT32 cmpi_encode_cxfsnp_item_size(const UINT32 comm, const CXFSNP_ITEM *cxfsnp_item, UINT32 *size);
 UINT32 cmpi_decode_cxfsnp_item(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CXFSNP_ITEM *cxfsnp_item);
 
-#endif
-
-#if 1
 UINT32 cmpi_encode_cmon_node(const UINT32 comm, const CMON_NODE *cmon_node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
 UINT32 cmpi_encode_cmon_node_size(const UINT32 comm, const CMON_NODE *cmon_node, UINT32 *size);
 UINT32 cmpi_decode_cmon_node(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CMON_NODE *cmon_node);
 
-
-#endif
-
+UINT32 cmpi_encode_cfuses_arg(const UINT32 comm, const CFUSES_ARG *cfuses_arg, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
+UINT32 cmpi_encode_cfuses_arg_size(const UINT32 comm, const CFUSES_ARG *cfuses_arg, UINT32 *size);
+UINT32 cmpi_decode_cfuses_arg(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CFUSES_ARG *cfuses_arg);
 
 #endif/*_CMPIE_H*/
 

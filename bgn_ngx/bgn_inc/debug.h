@@ -50,9 +50,9 @@ extern "C"{
 #define                e_dbg_CSTRING_ptr    ((UINT32) 13)
 #define              e_dbg_TASKC_MGR_ptr    ((UINT32) 14)
 #define                    e_dbg_LOG_ptr    ((UINT32) 15)
-#define                  e_dbg_00016_ptr    ((UINT32) 16) /*-- obsolete --*/
+#define             e_dbg_CFUSES_ARG_ptr    ((UINT32) 16)
 #define                e_dbg_CVECTOR_ptr    ((UINT32) 17)
-#define                  e_dbg_00018_ptr    ((UINT32) 18) /*-- obsolete --*/
+#define                e_dbg_FUSE_DH_ptr    ((UINT32) 18)
 #define                  e_dbg_KBUFF_ptr    ((UINT32) 19)
 #define                  e_dbg_00020_ptr    ((UINT32) 20) /*-- obsolete --*/
 #define                  e_dbg_00021_ptr    ((UINT32) 21) /*-- obsolete --*/

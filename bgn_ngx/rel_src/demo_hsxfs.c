@@ -1066,7 +1066,7 @@ EC_BOOL __test_cxfs_parse_args(int argc, char **argv)
         }
     }
 
-     return (EC_FALSE);
+     return (EC_TRUE);
 }
 
 

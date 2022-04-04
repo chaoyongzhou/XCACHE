@@ -44,6 +44,7 @@ extern "C"{
 #include "cxfsnbdc.h"
 #include "cxfsc.h"
 #include "cunixpacket_agent.h"
+#include "cfuses.h"
 
 #include "cmd5.h"
 #include "cbuffer.h"
@@ -75,7 +76,9 @@ extern "C"{
 #include "cxfsnbdc.inc"
 #include "cxfsc.inc"
 #include "cunixpacket_agent.inc"
+#include "cfuses.inc"
 #include "task.inc"
+#include "cfuses.inc"
 
 TYPE_CONV_ITEM *creg_type_conv_item_new()
 {
@@ -307,6 +310,19 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* cmpi_encode_type_func  */(UINT32)cmpi_encode_cstring,
         /* cmpi_decode_type_func  */(UINT32)cmpi_decode_cstring,
         /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cstring_size
+    );
+
+    creg_type_conv_vec_add(type_conv_vec,
+        /* type                   */e_dbg_CFUSES_ARG_ptr,
+        /* type_sizeof            */sizeof(CFUSES_ARG *),
+        /* pointer_flag           */EC_TRUE,
+        /* var_mm_type            */MM_CFUSES_ARG,
+        /* init_type_func         */(UINT32)cfuses_arg_init,
+        /* clean_type_func        */(UINT32)cfuses_arg_clean,
+        /* free_type_func         */(UINT32)cfuses_arg_free,
+        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_cfuses_arg,
+        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_cfuses_arg,
+        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cfuses_arg_size
     );
 
     creg_type_conv_vec_add(type_conv_vec,
@@ -1008,6 +1024,9 @@ EC_BOOL creg_func_addr_vec_add_default(CVECTOR *func_addr_vec)
 #if (SWITCH_OFF == NGX_BGN_SWITCH)
     creg_func_addr_vec_add(func_addr_vec, MD_CUNIXPACKET,  &g_cunixpacket_agent_func_addr_list_len  ,   (FUNC_ADDR_NODE *)g_cunixpacket_agent_func_addr_list  , FI_cunixpacket_agent_start   , FI_cunixpacket_agent_end    , ERR_FUNC_ID             , NULL_PTR                                   );
 #endif /*(SWITCH_OFF == NGX_BGN_SWITCH)*/
+
+    creg_func_addr_vec_add(func_addr_vec, MD_CFUSES   ,  &g_cfuses_func_addr_list_len  ,   (FUNC_ADDR_NODE *)g_cfuses_func_addr_list  , FI_cfuses_start   , FI_cfuses_end    , ERR_FUNC_ID             , NULL_PTR                                   );
+
     return (EC_TRUE);
 }
 

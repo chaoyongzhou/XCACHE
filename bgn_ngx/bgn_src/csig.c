@@ -332,6 +332,12 @@ EC_BOOL csig_atexit_register(CSIG_ATEXIT_HANDLER atexit_handler, UINT32 arg)
     }
 
     task_brd = task_brd_default_get();
+    if(NULL_PTR == task_brd)
+    {
+        dbg_log(SEC_0014_CSIG, 0)(LOGSTDOUT, "error:csig_atexit_register: no default task_brd\n");
+        return (EC_FALSE);
+    }
+
     csig = TASK_BRD_CSIG(task_brd);
     if(NULL_PTR == csig)
     {
@@ -370,6 +376,12 @@ EC_BOOL csig_atexit_unregister(CSIG_ATEXIT_HANDLER atexit_handler, UINT32 arg)
     CLISTBASE_NODE  *clistbase_node_searched;
 
     task_brd = task_brd_default_get();
+    if(NULL_PTR == task_brd)
+    {
+        dbg_log(SEC_0014_CSIG, 0)(LOGSTDOUT, "error:csig_atexit_unregister: no default task_brd\n");
+        return (EC_FALSE);
+    }
+
     csig = TASK_BRD_CSIG(task_brd);
 
     csig_atexit_tmp.handler = atexit_handler;

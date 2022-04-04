@@ -31,14 +31,14 @@
 #define SEC_0021_CTDNSNPRB                  ((UINT32)(     21)) /*ctdnsnprb                       */
 #define SEC_0022_CTDNSNP                    ((UINT32)(     22)) /*ctdnsnp                         */
 #define SEC_0023_CMON                       ((UINT32)(     23)) /*cmon                            */
-#define SEC_0024_XXXXXX                     ((UINT32)(     24)) /*-- obsolete --                  */
+#define SEC_0024_CFUSES                     ((UINT32)(     24)) /*cfuses                          */
 #define SEC_0025_CSESSION                   ((UINT32)(     25)) /*csession                        */
 #define SEC_0026_CTDNS                      ((UINT32)(     26)) /*ctdns                           */
 #define SEC_0027_IPV4POOL                   ((UINT32)(     27)) /*ipv4pool                        */
 #define SEC_0028_CMD5                       ((UINT32)(     28)) /*cmd5                            */
 #define SEC_0029_CSEM                       ((UINT32)(     29)) /*csem                            */
 #define SEC_0030_CTDNSNPMGR                 ((UINT32)(     30)) /*ctdnsnpmgr                      */
-#define SEC_0031_XXXX                       ((UINT32)(     31)) /*-- obsolete --                  */
+#define SEC_0031_CFUSEC                     ((UINT32)(     31)) /*cfusec                          */
 #define SEC_0032_CDSK                       ((UINT32)(     32)) /*cdsk                            */
 #define SEC_0033_CRBUFF                     ((UINT32)(     33)) /*crbuff                          */
 #define SEC_0034_XXXXXX                     ((UINT32)(     34)) /*-- obsolete --                  */

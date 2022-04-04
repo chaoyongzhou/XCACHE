@@ -30,6 +30,9 @@ extern "C"{
 /*CXFSNBDC Package Debug Switch*/
 #define CXFSNBDC_DEBUG_SWITCH SWITCH_OFF
 
+/*CFUSES Package Debug Switch*/
+#define CFUSES_DEBUG_SWITCH SWITCH_OFF
+
 /*CMON Package Debug Switch*/
 #define CMON_DEBUG_SWITCH SWITCH_OFF
 
