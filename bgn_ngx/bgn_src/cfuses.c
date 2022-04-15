@@ -255,7 +255,7 @@ EC_BOOL cfuses_getattr(const UINT32 cfuses_md_id, const CSTRING *path, struct st
     res = lstat((char *)cstring_get_str(path), stat);
     if(0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
     }
 
     return (EC_TRUE);
@@ -300,14 +300,14 @@ EC_BOOL cfuses_readlink(const UINT32 cfuses_md_id, const CSTRING *path, CSTRING 
         dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_readlink: "
                                                "malloc %ld failed\n",
                                                bufsize);
-        (*ret) = -ENOMEM;
+        (*ret) = ENOMEM;
         return (EC_TRUE);
     }
 
 	res = readlink((char *)cstring_get_str(path), data, bufsize - 1);
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
     }
 
 	data[ res ] = '\0';
@@ -357,7 +357,7 @@ EC_BOOL cfuses_mknod(const UINT32 cfuses_md_id, const CSTRING *path, const UINT3
 	res = mknod((char *)cstring_get_str(path), (mode_t)mode, (dev_t)dev);
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
     }
 
     return (EC_TRUE);
@@ -396,7 +396,7 @@ EC_BOOL cfuses_mkdir(const UINT32 cfuses_md_id, const CSTRING *path, const UINT3
 	res = mkdir((char *)cstring_get_str(path), (mode_t)mode);
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
     }
 
     return (EC_TRUE);
@@ -430,7 +430,7 @@ EC_BOOL cfuses_unlink(const UINT32 cfuses_md_id, const CSTRING *path, int *ret)
 	res = unlink((char *)cstring_get_str(path));
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
     }
 
     return (EC_TRUE);
@@ -465,7 +465,7 @@ EC_BOOL cfuses_rmdir(const UINT32 cfuses_md_id, const CSTRING *path, int *ret)
 	res = rmdir((char *)cstring_get_str(path));
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
     }
 
     return (EC_TRUE);
@@ -499,7 +499,7 @@ EC_BOOL cfuses_symlink(const UINT32 cfuses_md_id, const CSTRING *from_path, cons
 	res = symlink((char *)cstring_get_str(from_path), (char *)cstring_get_str(to_path));
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
     }
 
     return (EC_TRUE);
@@ -533,7 +533,7 @@ EC_BOOL cfuses_rename(const UINT32 cfuses_md_id, const CSTRING *from_path, const
 	res = rename((char *)cstring_get_str(from_path), (char *)cstring_get_str(to_path));
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
     }
 
     return (EC_TRUE);
@@ -567,7 +567,7 @@ EC_BOOL cfuses_link(const UINT32 cfuses_md_id, const CSTRING *from_path, const C
 	res = link((char *)cstring_get_str(from_path), (char *)cstring_get_str(to_path));
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
     }
 
     return (EC_TRUE);
@@ -601,7 +601,7 @@ EC_BOOL cfuses_chmod(const UINT32 cfuses_md_id, const CSTRING *path, const UINT3
 	res = chmod((char *)cstring_get_str(path), (mode_t)mode);
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
     }
 
     return (EC_TRUE);
@@ -635,7 +635,7 @@ EC_BOOL cfuses_chown(const UINT32 cfuses_md_id, const CSTRING *path, const UINT3
 	res = lchown((char *)cstring_get_str(path), (uid_t)owner, (gid_t)group);
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
     }
 
     return (EC_TRUE);
@@ -669,7 +669,7 @@ EC_BOOL cfuses_truncate(const UINT32 cfuses_md_id, const CSTRING *path, const UI
 	res = truncate((char *)cstring_get_str(path), (off_t)length);
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
     }
 
     return (EC_TRUE);
@@ -706,7 +706,7 @@ EC_BOOL cfuses_utime(const UINT32 cfuses_md_id, const CSTRING *path, const struc
 	res = utime((char *)cstring_get_str(path), times);
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
     }
 
     return (EC_TRUE);
@@ -756,7 +756,7 @@ EC_BOOL cfuses_open(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32
 	res = open((char *)cstring_get_str(path), (int)flags);
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
 
         return (EC_TRUE);
     }
@@ -806,7 +806,7 @@ EC_BOOL cfuses_read(const UINT32 cfuses_md_id, const CSTRING *path, CBYTES *buf,
 	fd = open((char *)cstring_get_str(path), O_RDONLY);
 	if (0 > fd)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
 
         return (EC_TRUE);
     }
@@ -820,14 +820,14 @@ EC_BOOL cfuses_read(const UINT32 cfuses_md_id, const CSTRING *path, CBYTES *buf,
 
         close(fd);
 
-        (*ret) = -ENOMEM;
+        (*ret) = ENOMEM;
         return (EC_TRUE);
     }
 
 	res = pread(fd, data, (size_t)size, (off_t)offset);
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
         close(fd);
 
         safe_free(data, LOC_CFUSES_0003);
@@ -877,7 +877,7 @@ EC_BOOL cfuses_write(const UINT32 cfuses_md_id, const CSTRING *path, const CBYTE
 	fd = open((char *)cstring_get_str(path), O_WRONLY);
 	if (0 > fd)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
 
         return (EC_TRUE);
     }
@@ -885,7 +885,7 @@ EC_BOOL cfuses_write(const UINT32 cfuses_md_id, const CSTRING *path, const CBYTE
 	res = pwrite(fd, (void *)CBYTES_BUF(buf), (size_t)CBYTES_LEN(buf), (off_t)offset);
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
 
         close(fd);
         return (EC_TRUE);
@@ -930,7 +930,7 @@ EC_BOOL cfuses_statfs(const UINT32 cfuses_md_id, const CSTRING *path, struct sta
 	res = statvfs((char *)cstring_get_str(path), statfs);
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
 
         return (EC_TRUE);
     }
@@ -1099,7 +1099,7 @@ EC_BOOL cfuses_setxattr(const UINT32 cfuses_md_id, const CSTRING *path, const CS
 	                (int   )flags);
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
 
         return (EC_TRUE);
     }
@@ -1140,18 +1140,18 @@ EC_BOOL cfuses_getxattr(const UINT32 cfuses_md_id, const CSTRING *path, const CS
                                                "malloc %ld failed\n",
                                                size);
 
-        (*ret) = -ENOMEM;
+        (*ret) = ENOMEM;
         return (EC_TRUE);
     }
 
     /*ENOTSUP*/
 	res = lgetxattr((char *)cstring_get_str(path),
 	                (char *)cstring_get_str(name),
-	                (char *)data,
+	                (void *)data,
 	                (size_t)size);
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
 
         safe_free(data, LOC_CFUSES_0005);
         return (EC_TRUE);
@@ -1197,7 +1197,7 @@ EC_BOOL cfuses_listxattr(const UINT32 cfuses_md_id, const CSTRING *path, CBYTES 
                                                "malloc %ld failed\n",
                                                size);
 
-        (*ret) = -ENOMEM;
+        (*ret) = ENOMEM;
         return (EC_TRUE);
     }
 
@@ -1206,7 +1206,7 @@ EC_BOOL cfuses_listxattr(const UINT32 cfuses_md_id, const CSTRING *path, CBYTES 
 	                 (size_t)size);
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
         safe_free(data, LOC_CFUSES_0007);
         return (EC_TRUE);
     }
@@ -1248,7 +1248,7 @@ EC_BOOL cfuses_removexattr(const UINT32 cfuses_md_id, const CSTRING *path, const
 	                   (char *)cstring_get_str(name));
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
 
         return (EC_TRUE);
     }
@@ -1372,7 +1372,7 @@ EC_BOOL cfuses_access(const UINT32 cfuses_md_id, const CSTRING *path, const UINT
 	res = access((char *)cstring_get_str(path), (int)mask);
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
 
         return (EC_TRUE);
     }
@@ -1435,7 +1435,7 @@ EC_BOOL cfuses_ftruncate(const UINT32 cfuses_md_id, const CSTRING *path, const U
 	fd = open((char *)cstring_get_str(path), O_WRONLY);
 	if(0 > fd)
 	{
-	    (*ret) = -errno;
+	    (*ret) = errno;
 
 	    return (EC_TRUE);
 	}
@@ -1443,7 +1443,7 @@ EC_BOOL cfuses_ftruncate(const UINT32 cfuses_md_id, const CSTRING *path, const U
 	res = ftruncate(fd, (off_t)offset);
 	if(0 > res)
 	{
-	    (*ret) = -errno;
+	    (*ret) = errno;
 
 	    close(fd);
 	    return (EC_TRUE);
@@ -1551,7 +1551,7 @@ EC_BOOL cfuses_utimens(const UINT32 cfuses_md_id, const CSTRING *path, const str
 	res = utimensat(0, (char *)cstring_get_str(path), tv, AT_SYMLINK_NOFOLLOW);
 	if (0 > res)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
 
         return (EC_TRUE);
     }
@@ -1753,7 +1753,7 @@ EC_BOOL cfuses_fallocate(const UINT32 cfuses_md_id, const CSTRING *path, const U
 
 	if ((int)mode)
 	{
-	    (*ret) = -EOPNOTSUPP;
+	    (*ret) = EOPNOTSUPP;
 
 	    return (EC_TRUE);
 	}
@@ -1761,7 +1761,7 @@ EC_BOOL cfuses_fallocate(const UINT32 cfuses_md_id, const CSTRING *path, const U
 	fd = open((char *)cstring_get_str(path), O_WRONLY);
 	if(0 > fd)
 	{
-	    (*ret) = -errno;
+	    (*ret) = errno;
 
 	    return (EC_TRUE);
 	}
@@ -1808,7 +1808,7 @@ EC_BOOL cfuses_readdir(const UINT32 cfuses_md_id, const CSTRING *path, const UIN
     dp = opendir((char *)cstring_get_str(path));
     if(NULL_PTR == dp)
     {
-        (*ret) = -errno;
+        (*ret) = errno;
 
         return (EC_TRUE);
     }
@@ -1876,7 +1876,7 @@ EC_BOOL cfuses_readdir(const UINT32 cfuses_md_id, const CSTRING *path, const UIN
 
     if(0 != closedir(dp))
     {
-        (*ret) = -errno;
+        (*ret) = errno;
 
         return (EC_TRUE);
     }
