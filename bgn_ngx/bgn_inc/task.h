@@ -396,7 +396,7 @@ EC_BOOL task_brd_default_reg_mm(const UINT32 mm_type, const char *mm_name, const
 
 EC_BOOL task_brd_default_reg_conv(
              const UINT32 var_dbg_type, const UINT32 var_sizeof, const UINT32 var_pointer_flag, const UINT32 var_mm_type,
-             const UINT32 var_init_func, const UINT32 var_clean_func, const UINT32 var_free_func,
+             const UINT32 var_new_func, const UINT32 var_init_func, const UINT32 var_clean_func, const UINT32 var_free_func,
              const UINT32 var_encode_func, const UINT32 var_decode_func, const UINT32 var_encode_size
         );
 

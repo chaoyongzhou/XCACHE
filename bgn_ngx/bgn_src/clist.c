@@ -87,6 +87,37 @@ UINT32 clist_type_set(CLIST *clist, const UINT32 data_mm_type)
     return (0);
 }
 
+UINT32 clist_caller_set(CLIST *clist, const UINT32 choice, const UINT32 caller)
+{
+    switch(choice)
+    {
+        case CLIST_CODEC_ENCODER:
+            clist->data_encoder = (CLIST_DATA_ENCODER)(uintptr_t)caller;
+            return (0);
+        case CLIST_CODEC_ENCODER_SIZE:
+            clist->data_encoder_size = (CLIST_DATA_ENCODER_SIZE)(uintptr)caller;
+            return (0);
+        case CLIST_CODEC_DECODER:
+            clist->data_decoder = (CLIST_DATA_DECODER)(uintptr_t)caller;
+            return (0);
+        case CLIST_CODEC_NEW:
+            clist->data_new = (CLIST_DATA_NEW)(uintptr_t)caller;
+            return (0);
+        case CLIST_CODEC_INIT:
+            clist->data_init = (CLIST_DATA_INIT)(uintptr_t)caller;
+            return (0);
+        case CLIST_CODEC_CLEAN:
+            clist->data_clean = (CLIST_DATA_CLEAN)(uintptr_t)caller;
+            return (0);
+        case CLIST_CODEC_FREE:
+            clist->data_free = (CLIST_DATA_FREE)(uintptr_t)caller;
+            return (0);
+    }
+
+    dbg_log(SEC_0044_CLIST, 0)(LOGSTDOUT, "error:clist_caller_set: invalid choice %ld\n", choice);
+    return (-1);
+}
+
 void clist_codec_set(CLIST *clist, const UINT32 data_mm_type)
 {
     TYPE_CONV_ITEM *type_conv_item;
@@ -100,6 +131,7 @@ void clist_codec_set(CLIST *clist, const UINT32 data_mm_type)
         clist->data_encoder      = (CLIST_DATA_ENCODER     )TYPE_CONV_ITEM_VAR_ENCODE_FUNC(type_conv_item);
         clist->data_encoder_size = (CLIST_DATA_ENCODER_SIZE)TYPE_CONV_ITEM_VAR_ENCODE_SIZE(type_conv_item);
         clist->data_decoder      = (CLIST_DATA_DECODER     )TYPE_CONV_ITEM_VAR_DECODE_FUNC(type_conv_item);
+        clist->data_new          = (CLIST_DATA_NEW         )TYPE_CONV_ITEM_VAR_NEW_FUNC(type_conv_item);
         clist->data_init         = (CLIST_DATA_INIT        )TYPE_CONV_ITEM_VAR_INIT_FUNC(type_conv_item);
         clist->data_clean        = (CLIST_DATA_CLEAN       )TYPE_CONV_ITEM_VAR_CLEAN_FUNC(type_conv_item);
         clist->data_free         = (CLIST_DATA_FREE        )TYPE_CONV_ITEM_VAR_FREE_FUNC(type_conv_item);
@@ -109,6 +141,7 @@ void clist_codec_set(CLIST *clist, const UINT32 data_mm_type)
         clist->data_encoder      = NULL_PTR;
         clist->data_encoder_size = NULL_PTR;
         clist->data_decoder      = NULL_PTR;
+        clist->data_new          = NULL_PTR;
         clist->data_init         = NULL_PTR;
         clist->data_clean        = NULL_PTR;
         clist->data_free         = NULL_PTR;
@@ -129,6 +162,8 @@ void *clist_codec_get(const CLIST *clist, const UINT32 choice)
             return (void *)clist->data_encoder_size;
         case CLIST_CODEC_DECODER:
             return (void *)clist->data_decoder;
+        case CLIST_CODEC_NEW:
+            return (void *)clist->data_new;
         case CLIST_CODEC_INIT:
             return (void *)clist->data_init;
         case CLIST_CODEC_CLEAN:

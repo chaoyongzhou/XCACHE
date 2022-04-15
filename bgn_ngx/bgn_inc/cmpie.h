@@ -311,10 +311,6 @@ UINT32 cmpi_encode_cmon_node(const UINT32 comm, const CMON_NODE *cmon_node, UINT
 UINT32 cmpi_encode_cmon_node_size(const UINT32 comm, const CMON_NODE *cmon_node, UINT32 *size);
 UINT32 cmpi_decode_cmon_node(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CMON_NODE *cmon_node);
 
-UINT32 cmpi_encode_cfuses_arg(const UINT32 comm, const CFUSES_ARG *cfuses_arg, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_cfuses_arg_size(const UINT32 comm, const CFUSES_ARG *cfuses_arg, UINT32 *size);
-UINT32 cmpi_decode_cfuses_arg(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CFUSES_ARG *cfuses_arg);
-
 #endif/*_CMPIE_H*/
 
 #ifdef __cplusplus

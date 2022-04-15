@@ -464,7 +464,7 @@ EC_BOOL tasks_node_check(const TASKS_NODE *tasks_node, const CSOCKET_CNODE *csoc
 {
     if(TASKS_NODE_TCID(tasks_node) != CSOCKET_CNODE_TCID(csocket_cnode))
     {
-        dbg_log(SEC_0121_TASKS, 1)(LOGSTDOUT, "warn:tasks_node_check: "
+        dbg_log(SEC_0121_TASKS, 2)(LOGSTDOUT, "warn:tasks_node_check: "
                                               "tcid mismatched: %s <---> %s\n",
                                               TASKS_NODE_TCID_STR(tasks_node),
                                               CSOCKET_CNODE_TCID_STR(csocket_cnode));
@@ -473,7 +473,7 @@ EC_BOOL tasks_node_check(const TASKS_NODE *tasks_node, const CSOCKET_CNODE *csoc
 
     if(TASKS_NODE_COMM(tasks_node) != CSOCKET_CNODE_COMM(csocket_cnode))
     {
-        dbg_log(SEC_0121_TASKS, 1)(LOGSTDOUT, "warn:tasks_node_check: "
+        dbg_log(SEC_0121_TASKS, 2)(LOGSTDOUT, "warn:tasks_node_check: "
                                               "comm mismatched: %ld <---> %ld\n",
                                               TASKS_NODE_COMM(tasks_node),
                                               CSOCKET_CNODE_COMM(csocket_cnode));
@@ -482,7 +482,7 @@ EC_BOOL tasks_node_check(const TASKS_NODE *tasks_node, const CSOCKET_CNODE *csoc
 
     if(TASKS_NODE_SIZE(tasks_node) != CSOCKET_CNODE_SIZE(csocket_cnode))
     {
-        dbg_log(SEC_0121_TASKS, 1)(LOGSTDOUT, "warn:tasks_node_check: "
+        dbg_log(SEC_0121_TASKS, 2)(LOGSTDOUT, "warn:tasks_node_check: "
                                               "size mismatched: %ld <---> %ld\n",
                                               TASKS_NODE_SIZE(tasks_node),
                                               CSOCKET_CNODE_SIZE(csocket_cnode));
@@ -495,7 +495,7 @@ EC_BOOL tasks_node_check(const TASKS_NODE *tasks_node, const CSOCKET_CNODE *csoc
     {
         if(TASKS_NODE_SRVIPADDR(tasks_node) != CSOCKET_CNODE_IPADDR(csocket_cnode))
         {
-            dbg_log(SEC_0121_TASKS, 1)(LOGSTDOUT, "warn:tasks_node_check: "
+            dbg_log(SEC_0121_TASKS, 2)(LOGSTDOUT, "warn:tasks_node_check: "
                                                   "ipaddr mismatched: %s <---> %s\n",
                                                   TASKS_NODE_SRVIPADDR_STR(tasks_node),
                                                   CSOCKET_CNODE_IPADDR_STR(csocket_cnode));
@@ -505,7 +505,7 @@ EC_BOOL tasks_node_check(const TASKS_NODE *tasks_node, const CSOCKET_CNODE *csoc
 
     if(TASKS_NODE_SRVPORT(tasks_node) != CSOCKET_CNODE_SRVPORT(csocket_cnode))
     {
-        dbg_log(SEC_0121_TASKS, 1)(LOGSTDOUT, "warn:tasks_node_check: "
+        dbg_log(SEC_0121_TASKS, 2)(LOGSTDOUT, "warn:tasks_node_check: "
                                               "port mismatched: %ld <---> %ld\n",
                                               TASKS_NODE_SRVPORT(tasks_node),
                                               CSOCKET_CNODE_SRVPORT(csocket_cnode));
@@ -938,6 +938,16 @@ EC_BOOL tasks_node_heartbeat(CSOCKET_CNODE *csocket_cnode)
                     &recv_mod_node,
                     NULL_PTR, FI_super_heartbeat_none, CMPI_ERROR_MODI);
 
+    dbg_log(SEC_0121_TASKS, 1)(LOGSTDOUT, "[DEBUG] tasks_node_heartbeat: "
+                                          "sockfd %d, heartbeat (tcid %s, comm %ld, rank %ld) -> (tcid %s, comm %ld, rank %ld)\n",
+                                          CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                                          MOD_NODE_TCID_STR(&send_mod_node),
+                                          MOD_NODE_COMM(&send_mod_node),
+                                          MOD_NODE_RANK(&send_mod_node),
+                                          MOD_NODE_TCID_STR(&recv_mod_node),
+                                          MOD_NODE_COMM(&recv_mod_node),
+                                          MOD_NODE_RANK(&recv_mod_node));
+
     return (EC_TRUE);
 }
 
@@ -973,7 +983,7 @@ EC_BOOL tasks_node_set_callback(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_c
                                          (const char *)"tasks_node_heartbeat",
                                          (void *)csocket_cnode,
                                          (void *)tasks_node_heartbeat);
-        CSOCKET_CNODE_LOOPING(csocket_cnode) = BIT_TRUE; /*when timeout, not close it*/
+        CSOCKET_CNODE_LOOPING(csocket_cnode) = BIT_TRUE; /*deprecate: when timeout, not close it*/
 
         csocket_cnode_set_shutdown_callback(csocket_cnode,
                                          (const char *)"tasks_node_iclose",
@@ -1079,7 +1089,7 @@ EC_BOOL tasks_node_set_epoll(TASKS_NODE *tasks_node, CSOCKET_CNODE *csocket_cnod
 
     cepoll_set_shutdown(task_brd_default_get_cepoll(),
                        CSOCKET_CNODE_SOCKFD(csocket_cnode),
-                       (const char *)"csocket_cnode_iclose",
+                       (const char *)"csocket_cnode_ishutdown",
                        (CEPOLL_EVENT_HANDLER)csocket_cnode_ishutdown,
                        (void *)csocket_cnode);
 
@@ -1358,7 +1368,9 @@ EC_BOOL tasks_worker_node_trigger(TASKS_NODE *tasks_node)
         return (EC_FALSE);
     }
 
-    if(/*heartbeat_interval <= elapsed_time_from_last_update && */heartbeat_interval <= elapsed_time_from_last_send && (SWITCH_ON == RANK_HEARTBEAT_NODE_SWITCH))
+    if((SWITCH_ON == RANK_HEARTBEAT_NODE_SWITCH)
+    /*&& heartbeat_interval <= elapsed_time_from_last_update */
+    && heartbeat_interval <= elapsed_time_from_last_send)
     {
         MOD_NODE recv_mod_node;
         CLOAD_NODE *cload_node;
@@ -1421,7 +1433,9 @@ EC_BOOL tasks_worker_node_trigger(TASKS_NODE *tasks_node)
         return (EC_TRUE);
     }
 
-    if(/*heartbeat_interval <= elapsed_time_from_last_update && */heartbeat_interval <= elapsed_time_from_last_send && (SWITCH_OFF == RANK_HEARTBEAT_NODE_SWITCH))
+    if((SWITCH_OFF == RANK_HEARTBEAT_NODE_SWITCH)
+    /*&& heartbeat_interval <= elapsed_time_from_last_update*/
+    && heartbeat_interval <= elapsed_time_from_last_send)
     {
         MOD_NODE recv_mod_node;
 
@@ -1709,7 +1723,7 @@ EC_BOOL tasks_worker_check_connected_by_tcid(const TASKS_WORKER *tasks_worker, c
     tasks_node = tasks_worker_search_tasks_node_by_tcid(tasks_worker, tcid);
     if(NULL_PTR == tasks_node)
     {
-        dbg_log(SEC_0121_TASKS, 1)(LOGSTDOUT, "error:tasks_worker_check_connected_by_tcid: "
+        dbg_log(SEC_0121_TASKS, 2)(LOGSTDOUT, "error:tasks_worker_check_connected_by_tcid: "
                                               "failed to find tasks_node of tcid %s\n",
                                               c_word_to_ipv4(tcid));
         return (EC_FALSE);
@@ -1717,7 +1731,7 @@ EC_BOOL tasks_worker_check_connected_by_tcid(const TASKS_WORKER *tasks_worker, c
 
     if(EC_FALSE == tasks_node_is_connected(tasks_node))
     {
-        dbg_log(SEC_0121_TASKS, 1)(LOGSTDOUT, "warn:tasks_worker_check_connected_by_tcid: "
+        dbg_log(SEC_0121_TASKS, 2)(LOGSTDOUT, "warn:tasks_worker_check_connected_by_tcid: "
                                               "tcid %s is NOT connected\n",
                                               c_word_to_ipv4(tcid));
         return (EC_FALSE);
@@ -1751,7 +1765,7 @@ EC_BOOL tasks_worker_check_connected_by_ipaddr(const TASKS_WORKER *tasks_worker,
 
     if(EC_FALSE == tasks_node_is_connected(tasks_node))
     {
-        dbg_log(SEC_0121_TASKS, 1)(LOGSTDOUT, "warn:tasks_worker_checker_connected_by_ipaddr: "
+        dbg_log(SEC_0121_TASKS, 2)(LOGSTDOUT, "warn:tasks_worker_checker_connected_by_ipaddr: "
                                               "ipaddr %s is NOT connected\n",
                                               c_word_to_ipv4(ipaddr));
         return (EC_FALSE);
@@ -2206,7 +2220,7 @@ EC_BOOL tasks_worker_isend_node(TASKS_WORKER *tasks_worker, const UINT32 des_tci
 
         task_any_encode(TASK_NODE_ANY(task_node));
     }
-    dbg_log(SEC_0121_TASKS, 1)(LOGSTDOUT, "[DEBUG] tasks_worker_isend_node: "
+    dbg_log(SEC_0121_TASKS, 2)(LOGSTDOUT, "[DEBUG] tasks_worker_isend_node: "
                         "task_node %p (tcid %s,comm %ld,rank %ld,modi %ld) -> (tcid %s,comm %ld,rank %ld,modi %ld), "
                         "with priority %ld, type %ld, tag %ld, seqno %lx.%lx.%lx, subseqno %ld, func id %lx "
                         "OVER tasks_node %p (tcid %s comm %ld, %ld conn)\n",
@@ -2458,7 +2472,7 @@ EC_BOOL tasks_monitor_open(TASKS_MONITOR *tasks_monitor, const UINT32 tcid, cons
 
     if(EC_FALSE == csocket_client_start(srv_ipaddr, srv_port, CSOCKET_IS_NONBLOCK_MODE, &client_sockfd, &client_ipaddr, &client_port))
     {
-        dbg_log(SEC_0121_TASKS, 1)(LOGSTDOUT, "error:tasks_monitor_open: "
+        dbg_log(SEC_0121_TASKS, 2)(LOGSTDOUT, "error:tasks_monitor_open: "
                                               "failed to connect server %s:%ld\n",
                                               c_word_to_ipv4(srv_ipaddr), srv_port);
         return (EC_FALSE);
@@ -2466,7 +2480,7 @@ EC_BOOL tasks_monitor_open(TASKS_MONITOR *tasks_monitor, const UINT32 tcid, cons
 
     if(EC_FALSE == csocket_is_connected(client_sockfd))
     {
-        dbg_log(SEC_0121_TASKS, 1)(LOGSTDOUT, "error:tasks_monitor_open: "
+        dbg_log(SEC_0121_TASKS, 2)(LOGSTDOUT, "error:tasks_monitor_open: "
                                               "socket %d to server %s:%ld is not connected\n",
                                               client_sockfd, c_word_to_ipv4(srv_ipaddr), srv_port);
         csocket_client_end(client_sockfd);

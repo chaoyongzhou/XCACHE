@@ -69,11 +69,11 @@ PMDK_LIB_DIR = $(PMDK_DIR)/lib
 PMDK_INC =
 PMDK_LIB =
 
-FUSEC_INC = -I /usr/include/fuse3
-FUSEC_LIB = -dl /usr/lib/x86_64-linux-gnu/libfuse3.so
+FUSE_INC = -I /usr/include/fuse3
+FUSE_LIB = -dl /usr/lib/x86_64-linux-gnu/libfuse3.so
 
-EXT_INC = $(XML2_INC) $(EXPAT_INC) $(PCRE_INC) $(READLINE_INC) $(NCURSES_INC) $(OPENSSL_INC) $(PMDK_INC) $(FUSEC_INC)
-EXT_LIB = $(XML2_LIB) $(EXPAT_LIB) $(PCRE_LIB) $(READLINE_LIB) $(NCURSES_LIB) $(OPENSSL_LIB) $(PMDK_LIB) $(FUSEC_LIB) -lm -lrt -lpthread -lz -rdynamic -ldl
+EXT_INC = $(XML2_INC) $(EXPAT_INC) $(PCRE_INC) $(READLINE_INC) $(NCURSES_INC) $(OPENSSL_INC) $(PMDK_INC) $(FUSE_INC)
+EXT_LIB = $(XML2_LIB) $(EXPAT_LIB) $(PCRE_LIB) $(READLINE_LIB) $(NCURSES_LIB) $(OPENSSL_LIB) $(PMDK_LIB) $(FUSE_LIB) -lm -lrt -lpthread -lz -rdynamic -ldl
 #EXT_LIB = $(XML2_LIB) $(EXPAT_LIB) $(PCRE_LIB) $(READLINE_LIB) $(NCURSES_LIB) $(OPENSSL_LIB) $(PMDK_LIB) -lm -lrt -lpthread -lz -rdynamic -ldl -lndctl -ldaxctl
 BGN_SRC  = $(ROOT_DIR)/bgn_src
 BGN_INC  = -I $(ROOT_DIR)/bgn_inc
@@ -275,7 +275,7 @@ NBD_OBJS = $(OBJ_DIR)/demo_nbd.o
 XFSNBD_OBJS = $(OBJ_DIR)/demo_xfsnbd.o
 XFSNBDC_OBJS = $(OBJ_DIR)/demo_xfsnbdc.o
 TRANS_OBJS = $(OBJ_DIR)/demo_trans.o
-FUSEC_OBJS = $(OBJ_DIR)/demo_fusec.o
+FUSE_OBJS = $(OBJ_DIR)/demo_fuse.o
 
 default: xfs xfsnbdc xfs_tool
 
@@ -288,8 +288,8 @@ libamd: $(AMD_OBJS)
 libjson: $(JSON_OBJS)
 	$(AR) $(LIB_DIR)/libjson.a $(JSON_OBJS)
 
-fusec: libbgn libamd libjson $(FUSEC_OBJS)
-	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/fusec $(FUSEC_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
+fuse: libbgn libamd libjson $(FUSE_OBJS)
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/fuse $(FUSE_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
 
 trans: libbgn libamd libjson $(TRANS_OBJS)
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/trans $(TRANS_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)

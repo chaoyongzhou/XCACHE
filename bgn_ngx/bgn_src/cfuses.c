@@ -48,7 +48,10 @@ extern "C"{
     ((CMPI_ANY_MODI != (cfuses_md_id)) && ((NULL_PTR == CFUSES_MD_GET(cfuses_md_id)) || (0 == (CFUSES_MD_GET(cfuses_md_id)->usedcounter))))
 
 #define CFUSES_ASSERT(cond)     ASSERT(cond)
+#define CFUSES_DEBUG_CWD(func_name)   \
+    dbg_log(SEC_0024_CFUSES, 9)(LOGSTDOUT, "[DEBUG] " func_name ": cwd: %s\n", c_get_cwd())
 #define CFUSES_DEBUG_ENTER(func_name) \
+    CFUSES_DEBUG_CWD(func_name);    \
     dbg_log(SEC_0024_CFUSES, 9)(LOGSTDOUT, "[DEBUG] " func_name ": enter\n")
 #define CFUSES_DEBUG_LEAVE(func_name) \
     dbg_log(SEC_0024_CFUSES, 9)(LOGSTDOUT, "[DEBUG] " func_name ": leave\n")
@@ -108,19 +111,12 @@ UINT32 cfuses_free_module_static_mem(const UINT32 cfuses_md_id)
 * start CFUSES module
 *
 **/
-UINT32 cfuses_start(const CSTRING *mount_path)
+UINT32 cfuses_start(const CSTRING *mount_point)
 {
     CFUSES_MD       *cfuses_md;
     UINT32           cfuses_md_id;
-    char            *mount_path_str;
 
     cbc_md_reg(MD_CFUSES, 16);
-
-    mount_path_str = c_str_dup((const char *)cstring_get_str(mount_path));
-    if(NULL_PTR == mount_path_str)
-    {
-        return (CMPI_ERROR_MODI);
-    }
 
     cfuses_md_id = cbc_md_new(MD_CFUSES, sizeof(CFUSES_MD));
     if(CMPI_ERROR_MODI == cfuses_md_id)
@@ -131,14 +127,40 @@ UINT32 cfuses_start(const CSTRING *mount_path)
     /* initialize new one CFUSES module */
     cfuses_md = (CFUSES_MD *)cbc_md_get(MD_CFUSES, cfuses_md_id);
     cfuses_md->usedcounter   = 0;
-    CFUSES_MD_MOUNT_PATH(cfuses_md) = mount_path_str;
 
     /* create a new module node */
     init_static_mem();
 
+    CFUSES_MD_MOUNT_POINT(cfuses_md) = cstring_dup(mount_point);
+    if(NULL_PTR == CFUSES_MD_MOUNT_POINT(cfuses_md))
+    {
+        dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_start: "
+                                               "dup mount point %s failed\n",
+                                               (char *)cstring_get_str(mount_point));
+        cbc_md_free(MD_CFUSES, cfuses_md_id);
+        return (CMPI_ERROR_MODI);
+    }
+
     cfuses_md->usedcounter = 1;
 
     cfused_start();
+
+    if(0 != chroot((char *)CFUSES_MD_MOUNT_POINT_STR(cfuses_md)))
+    {
+        dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_start: "
+                                               "chroot to '%s' failed, "
+                                               "errno = %d, errstr = %s\n",
+                                               (char *)CFUSES_MD_MOUNT_POINT_STR(cfuses_md),
+                                               errno, strerror(errno));
+
+        cfuses_end(cfuses_md_id);
+
+        return (CMPI_ERROR_MODI);
+    }
+
+    dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "[DEBUG] cfuses_start: "
+                                           "chroot to '%s' done\n",
+                                           (char *)CFUSES_MD_MOUNT_POINT_STR(cfuses_md));
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)cfuses_end, cfuses_md_id);
 
@@ -184,16 +206,16 @@ void cfuses_end(const UINT32 cfuses_md_id)
         dbg_exit(MD_CFUSES, cfuses_md_id);
     }
 
-    if(NULL_PTR != CFUSES_MD_MOUNT_PATH(cfuses_md))
-    {
-        c_str_free(CFUSES_MD_MOUNT_PATH(cfuses_md));
-        CFUSES_MD_MOUNT_PATH(cfuses_md) = NULL_PTR;
-    }
-
     cfused_end();
 
     /* free module : */
     //cfuses_free_module_static_mem(cfuses_md_id);
+
+    if(NULL_PTR != CFUSES_MD_MOUNT_POINT(cfuses_md))
+    {
+        cstring_free(CFUSES_MD_MOUNT_POINT(cfuses_md));
+        CFUSES_MD_MOUNT_POINT(cfuses_md) = NULL_PTR;
+    }
 
     cfuses_md->usedcounter = 0;
 
@@ -206,528 +228,10 @@ void cfuses_end(const UINT32 cfuses_md_id)
     return ;
 }
 
-CFUSES_ARG *cfuses_arg_new()
-{
-    CFUSES_ARG *cfuses_arg;
-
-    alloc_static_mem(MM_CFUSES_ARG, &cfuses_arg, LOC_CFUSES_0001);
-    if(NULL_PTR == cfuses_arg)
-    {
-        dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_arg_new: no memory\n");
-        return (NULL_PTR);
-    }
-
-    cfuses_arg_init(cfuses_arg);
-    return (cfuses_arg);
-}
-
-EC_BOOL cfuses_arg_init(CFUSES_ARG *cfuses_arg)
-{
-    if(NULL_PTR != cfuses_arg)
-    {
-        BSET(cfuses_arg, 0x00, sizeof(CFUSES_ARG));
-
-        CFUSES_ARG_FLAG(cfuses_arg) = CFUSE_ARG_FLAG_ERR;
-    }
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cfuses_arg_clean(CFUSES_ARG *cfuses_arg)
-{
-    CFUSES_ASSERT(NULL_PTR != cfuses_arg);
-
-    switch(CFUSES_ARG_TYPE(cfuses_arg))
-    {
-        case CFUSES_ARG_TYPE_CHAR:
-        {
-            if(NULL_PTR != CFUSES_ARG_V_CHAR(cfuses_arg)
-            && CFUSE_ARG_FLAG_IS_ALLOC == CFUSES_ARG_FLAG(cfuses_arg))
-            {
-                c_str_free(CFUSES_ARG_V_CHAR(cfuses_arg));
-                CFUSES_ARG_V_CHAR(cfuses_arg) = NULL_PTR;
-            }
-            else
-            {
-                CFUSES_ARG_V_CHAR(cfuses_arg) = NULL_PTR;
-            }
-            break;
-        }
-        case CFUSES_ARG_TYPE_BYTE:
-        {
-            if(NULL_PTR != CFUSES_ARG_V_BYTE(cfuses_arg)
-            && CFUSE_ARG_FLAG_IS_ALLOC == CFUSES_ARG_FLAG(cfuses_arg))
-            {
-                safe_free(CFUSES_ARG_V_BYTE(cfuses_arg), LOC_CFUSES_0002);
-                CFUSES_ARG_V_BYTE(cfuses_arg) = NULL_PTR;
-            }
-            else
-            {
-                CFUSES_ARG_V_BYTE(cfuses_arg) = NULL_PTR;
-            }
-            break;
-        }
-        case CFUSES_ARG_TYPE_MODE:
-        {
-            break;
-        }
-        case CFUSES_ARG_TYPE_DEV:
-        {
-            break;
-        }
-        case CFUSES_ARG_TYPE_UID:
-        {
-            break;
-        }
-        case CFUSES_ARG_TYPE_GID:
-        {
-            break;
-        }
-        case CFUSES_ARG_TYPE_OFFT:
-        {
-            break;
-        }
-        case CFUSES_ARG_TYPE_SIZE:
-        {
-            break;
-        }
-        case CFUSES_ARG_TYPE_INT:
-        {
-            break;
-        }
-        case CFUSES_ARG_TYPE_LONG:
-        {
-            break;
-        }
-        case CFUSES_ARG_TYPE_UTIME:
-        {
-            if(NULL_PTR != CFUSES_ARG_V_UTIME(cfuses_arg)
-            && CFUSE_ARG_FLAG_IS_ALLOC == CFUSES_ARG_FLAG(cfuses_arg))
-            {
-                safe_free(CFUSES_ARG_V_UTIME(cfuses_arg), LOC_CFUSES_0003);
-                CFUSES_ARG_V_UTIME(cfuses_arg) = NULL_PTR;
-            }
-            else
-            {
-                CFUSES_ARG_V_UTIME(cfuses_arg) = NULL_PTR;
-            }
-            break;
-        }
-        case CFUSES_ARG_TYPE_STATVFS:
-        {
-            if(NULL_PTR != CFUSES_ARG_V_STATVFS(cfuses_arg)
-            && CFUSE_ARG_FLAG_IS_ALLOC == CFUSES_ARG_FLAG(cfuses_arg))
-            {
-                safe_free(CFUSES_ARG_V_STATVFS(cfuses_arg), LOC_CFUSES_0004);
-                CFUSES_ARG_V_STATVFS(cfuses_arg) = NULL_PTR;
-            }
-            else
-            {
-                CFUSES_ARG_V_STATVFS(cfuses_arg) = NULL_PTR;
-            }
-            break;
-        }
-        case CFUSES_ARG_TYPE_STAT:
-        {
-            if(NULL_PTR != CFUSES_ARG_V_STAT(cfuses_arg)
-            && CFUSE_ARG_FLAG_IS_ALLOC == CFUSES_ARG_FLAG(cfuses_arg))
-            {
-                safe_free(CFUSES_ARG_V_STAT(cfuses_arg), LOC_CFUSES_0005);
-                CFUSES_ARG_V_STAT(cfuses_arg) = NULL_PTR;
-            }
-            else
-            {
-                CFUSES_ARG_V_STAT(cfuses_arg) = NULL_PTR;
-            }
-            break;
-        }
-        case CFUSES_ARG_TYPE_TS:
-        {
-            break;
-        }
-        case CFUSES_ARG_TYPE_FUSE_DH:
-        {
-            if(NULL_PTR != CFUSES_ARG_V_FUSE_DH(cfuses_arg)
-            && CFUSE_ARG_FLAG_IS_ALLOC == CFUSES_ARG_FLAG(cfuses_arg))
-            {
-                c_fuse_dh_free(CFUSES_ARG_V_FUSE_DH(cfuses_arg));
-                CFUSES_ARG_V_FUSE_DH(cfuses_arg) = NULL_PTR;
-            }
-            else
-            {
-                CFUSES_ARG_V_FUSE_DH(cfuses_arg) = NULL_PTR;
-            }
-            break;
-        }
-        default:
-        {
-            dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_arg_clean: "
-                                                   "unknown type %ld\n",
-                                                   CFUSES_ARG_TYPE(cfuses_arg));
-            return (EC_FALSE);
-        }
-    }
-
-    BSET(cfuses_arg, 0x00, sizeof(CFUSES_ARG));
-    CFUSES_ARG_FLAG(cfuses_arg) = CFUSE_ARG_FLAG_ERR;
-
-    return (EC_TRUE);
-}
-
-EC_BOOL cfuses_arg_free(CFUSES_ARG *cfuses_arg)
-{
-    if(NULL_PTR != cfuses_arg)
-    {
-        cfuses_arg_clean(cfuses_arg);
-        free_static_mem(MM_CFUSES_ARG, cfuses_arg, LOC_CFUSES_0006);
-    }
-    return (EC_TRUE);
-}
-
-EC_BOOL cfuses_arg_set(CFUSES_ARG *cfuses_arg, const UINT32 type, const void *data, const UINT32 data_len)
-{
-    CFUSES_ASSERT(NULL_PTR != cfuses_arg);
-
-    CFUSES_ARG_TYPE(cfuses_arg) = type;
-    CFUSES_ARG_VLEN(cfuses_arg) = data_len;
-
-    switch(CFUSES_ARG_TYPE(cfuses_arg))
-    {
-        case CFUSES_ARG_TYPE_CHAR:
-        {
-            if(NULL_PTR == data)
-            {
-                CFUSES_ASSERT(0 == data_len);
-                CFUSES_ARG_V_CHAR(cfuses_arg) = NULL_PTR;
-                return (EC_TRUE);
-            }
-
-            CFUSES_ASSERT(strlen((const char *)data) == CFUSES_ARG_VLEN(cfuses_arg));
-
-            CFUSES_ARG_V_CHAR(cfuses_arg) = c_str_dup((const char *)data);
-            if(NULL_PTR == CFUSES_ARG_V_CHAR(cfuses_arg))
-            {
-                dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_arg_set: "
-                                                       "dup str '%s' failed\n",
-                                                       (const char *)data);
-                return (EC_FALSE);
-            }
-            CFUSES_ARG_FLAG(cfuses_arg) = CFUSE_ARG_FLAG_IS_ALLOC;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_BYTE:
-        {
-            if(NULL_PTR == data)
-            {
-                CFUSES_ASSERT(0 == data_len);
-                CFUSES_ARG_V_BYTE(cfuses_arg) = NULL_PTR;
-                return (EC_TRUE);
-            }
-
-            CFUSES_ARG_V_BYTE(cfuses_arg) = safe_malloc(data_len, LOC_CFUSES_0007);
-            if(NULL_PTR == CFUSES_ARG_V_BYTE(cfuses_arg))
-            {
-                dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_arg_set: "
-                                                       "malloc %ld bytes failed\n",
-                                                       data_len);
-                return (EC_FALSE);
-            }
-            BCOPY(data, CFUSES_ARG_V_BYTE(cfuses_arg), data_len);
-            CFUSES_ARG_FLAG(cfuses_arg) = CFUSE_ARG_FLAG_IS_ALLOC;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_MODE:
-        {
-            CFUSES_ARG_V_MODE(cfuses_arg) = (mode_t)(uintptr_t)data;
-            CFUSES_ASSERT(sizeof(mode_t) == data_len);
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_DEV:
-        {
-            CFUSES_ARG_V_DEV(cfuses_arg) = (dev_t)(uintptr_t)data;
-            CFUSES_ASSERT(sizeof(dev_t) == data_len);
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_UID:
-        {
-            CFUSES_ASSERT(sizeof(uid_t) == data_len);
-            CFUSES_ARG_V_UID(cfuses_arg) = (uid_t)(uintptr_t)data;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_GID:
-        {
-            CFUSES_ASSERT(sizeof(gid_t) == data_len);
-            CFUSES_ARG_V_GID(cfuses_arg) = (gid_t)(uintptr_t)data;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_OFFT:
-        {
-            CFUSES_ASSERT(sizeof(off_t) == data_len);
-            CFUSES_ARG_V_OFFT(cfuses_arg) = (off_t)(uintptr_t)data;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_SIZE:
-        {
-            CFUSES_ASSERT(sizeof(size_t) == data_len);
-            CFUSES_ARG_V_SIZE(cfuses_arg) = (size_t)(uintptr_t)data;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_INT:
-        {
-            CFUSES_ASSERT(sizeof(int) == data_len);
-            CFUSES_ARG_V_INT(cfuses_arg) = (int)(uintptr_t)data;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_LONG:
-        {
-            CFUSES_ASSERT(sizeof(long int) == data_len);
-            CFUSES_ARG_V_LONG(cfuses_arg) = (long int)(uintptr_t)data;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_UTIME:
-        {
-            CFUSES_ASSERT(sizeof(struct utimbuf) == data_len);
-            CFUSES_ARG_V_UTIME(cfuses_arg) = safe_malloc(sizeof(struct utimbuf), LOC_CFUSES_0008);
-            if(NULL_PTR == CFUSES_ARG_V_UTIME(cfuses_arg))
-            {
-                dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_arg_set: "
-                                                       "alloc type %ld failed\n",
-                                                       CFUSES_ARG_TYPE(cfuses_arg));
-                return (EC_FALSE);
-            }
-            CFUSES_ARG_FLAG(cfuses_arg) = CFUSE_ARG_FLAG_IS_ALLOC;
-
-            if(NULL_PTR != data)
-            {
-                BCOPY(data, (void *)CFUSES_ARG_V_UTIME(cfuses_arg), sizeof(struct utimbuf));
-            }
-            else
-            {
-                BSET((void *)CFUSES_ARG_V_UTIME(cfuses_arg), 0x00, data_len);
-            }
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_STATVFS:
-        {
-            CFUSES_ASSERT(sizeof(struct statvfs) == data_len);
-            CFUSES_ARG_V_STATVFS(cfuses_arg) = safe_malloc(sizeof(struct statvfs), LOC_CFUSES_0009);
-            if(NULL_PTR == CFUSES_ARG_V_STATVFS(cfuses_arg))
-            {
-                dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_arg_set: "
-                                                       "alloc type %ld failed\n",
-                                                       CFUSES_ARG_TYPE(cfuses_arg));
-                return (EC_FALSE);
-            }
-            CFUSES_ARG_FLAG(cfuses_arg) = CFUSE_ARG_FLAG_IS_ALLOC;
-
-            if(NULL_PTR != data)
-            {
-                BCOPY(data, (void *)CFUSES_ARG_V_STATVFS(cfuses_arg), sizeof(struct statvfs));
-            }
-            else
-            {
-                BSET((void *)CFUSES_ARG_V_STATVFS(cfuses_arg), 0x00, data_len);
-            }
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_STAT:
-        {
-            CFUSES_ASSERT(sizeof(struct stat) == data_len);
-            CFUSES_ARG_V_STAT(cfuses_arg) = safe_malloc(sizeof(struct stat), LOC_CFUSES_0010);
-            if(NULL_PTR == CFUSES_ARG_V_STAT(cfuses_arg))
-            {
-                dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_arg_set: "
-                                                       "alloc type %ld failed\n",
-                                                       CFUSES_ARG_TYPE(cfuses_arg));
-                return (EC_FALSE);
-            }
-            CFUSES_ARG_FLAG(cfuses_arg) = CFUSE_ARG_FLAG_IS_ALLOC;
-
-            if(NULL_PTR != data)
-            {
-                BCOPY(data, (void *)CFUSES_ARG_V_STAT(cfuses_arg), sizeof(struct stat));
-            }
-            else
-            {
-                BSET((void *)CFUSES_ARG_V_STAT(cfuses_arg), 0x00, data_len);
-            }
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_TS:
-        {
-            CFUSES_ASSERT(sizeof(struct timespec) == data_len);
-            if(NULL_PTR != data)
-            {
-                BCOPY(((struct timespec **)data)[0], (void *)CFUSES_ARG_V_TS_0(cfuses_arg), data_len);
-                BCOPY(((struct timespec **)data)[1], (void *)CFUSES_ARG_V_TS_1(cfuses_arg), data_len);
-            }
-            else
-            {
-                BSET((void *)CFUSES_ARG_V_TS_0(cfuses_arg), 0x00, data_len);
-                BSET((void *)CFUSES_ARG_V_TS_1(cfuses_arg), 0x00, data_len);
-            }
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_FUSE_DH:
-        {
-            dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_arg_set: "
-                                                   "should never reach here, type %ld\n",
-                                                   CFUSES_ARG_TYPE(cfuses_arg));
-            return (EC_FALSE);
-        }
-        default:
-        {
-            dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_arg_set: "
-                                                   "unknown type %ld\n",
-                                                   CFUSES_ARG_TYPE(cfuses_arg));
-            return (EC_FALSE);
-        }
-    }
-
-    dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_arg_set: "
-                                           "should never reach here, type %ld\n",
-                                           CFUSES_ARG_TYPE(cfuses_arg));
-    return (EC_FALSE);
-}
-
-EC_BOOL cfuses_arg_mount(CFUSES_ARG *cfuses_arg, const UINT32 type, const void *data, const UINT32 data_len)
-{
-    CFUSES_ASSERT(NULL_PTR != cfuses_arg);
-
-    CFUSES_ARG_TYPE(cfuses_arg) = type;
-    CFUSES_ARG_VLEN(cfuses_arg) = data_len;
-
-    switch(CFUSES_ARG_TYPE(cfuses_arg))
-    {
-        case CFUSES_ARG_TYPE_CHAR:
-        {
-            CFUSES_ASSERT(NULL_PTR == CFUSES_ARG_V_CHAR(cfuses_arg));
-            CFUSES_ARG_V_CHAR(cfuses_arg) = (char *)(uintptr_t)data;
-            CFUSES_ARG_FLAG(cfuses_arg)   = CFUSE_ARG_FLAG_IS_MOUNT;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_BYTE:
-        {
-            CFUSES_ASSERT(NULL_PTR == CFUSES_ARG_V_BYTE(cfuses_arg));
-            CFUSES_ARG_V_BYTE(cfuses_arg) = (char *)(uintptr_t)data;
-            CFUSES_ARG_FLAG(cfuses_arg)   = CFUSE_ARG_FLAG_IS_MOUNT;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_MODE:
-        {
-            CFUSES_ARG_V_MODE(cfuses_arg) = (mode_t)(uintptr_t)data;
-            CFUSES_ASSERT(sizeof(mode_t) == data_len);
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_DEV:
-        {
-            CFUSES_ARG_V_DEV(cfuses_arg) = (dev_t)(uintptr_t)data;
-            CFUSES_ASSERT(sizeof(dev_t) == data_len);
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_UID:
-        {
-            CFUSES_ASSERT(sizeof(uid_t) == data_len);
-            CFUSES_ARG_V_UID(cfuses_arg) = (uid_t)(uintptr_t)data;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_GID:
-        {
-            CFUSES_ASSERT(sizeof(gid_t) == data_len);
-            CFUSES_ARG_V_GID(cfuses_arg) = (gid_t)(uintptr_t)data;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_OFFT:
-        {
-            CFUSES_ASSERT(sizeof(off_t) == data_len);
-            CFUSES_ARG_V_OFFT(cfuses_arg) = (off_t)(uintptr_t)data;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_SIZE:
-        {
-            CFUSES_ASSERT(sizeof(size_t) == data_len);
-            CFUSES_ARG_V_SIZE(cfuses_arg) = (size_t)(uintptr_t)data;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_INT:
-        {
-            CFUSES_ASSERT(sizeof(int) == data_len);
-            CFUSES_ARG_V_INT(cfuses_arg) = (int)(uintptr_t)data;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_LONG:
-        {
-            CFUSES_ASSERT(sizeof(long int) == data_len);
-            CFUSES_ARG_V_LONG(cfuses_arg) = (long int)(uintptr_t)data;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_UTIME:
-        {
-            CFUSES_ASSERT(sizeof(struct utimbuf) == data_len);
-            CFUSES_ASSERT(NULL_PTR == CFUSES_ARG_V_UTIME(cfuses_arg));
-            CFUSES_ARG_V_UTIME(cfuses_arg) = (struct utimbuf *)(uintptr_t)data;
-            CFUSES_ARG_FLAG(cfuses_arg)    = CFUSE_ARG_FLAG_IS_MOUNT;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_STATVFS:
-        {
-            CFUSES_ASSERT(sizeof(struct statvfs) == data_len);
-            CFUSES_ASSERT(NULL_PTR == CFUSES_ARG_V_STATVFS(cfuses_arg));
-            CFUSES_ARG_V_STATVFS(cfuses_arg) = (struct statvfs *)(uintptr_t)data;
-            CFUSES_ARG_FLAG(cfuses_arg)     = CFUSE_ARG_FLAG_IS_MOUNT;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_STAT:
-        {
-            CFUSES_ASSERT(sizeof(struct stat) == data_len);
-            CFUSES_ASSERT(NULL_PTR == CFUSES_ARG_V_STAT(cfuses_arg));
-            CFUSES_ARG_V_STAT(cfuses_arg) = (struct stat *)(uintptr_t)data;
-            CFUSES_ARG_FLAG(cfuses_arg)   = CFUSE_ARG_FLAG_IS_MOUNT;
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_TS:
-        {
-            CFUSES_ASSERT(sizeof(struct timespec) == data_len);
-            if(NULL_PTR != data)
-            {
-                BCOPY(((struct timespec **)data)[0], (void *)CFUSES_ARG_V_TS_0(cfuses_arg), data_len);
-                BCOPY(((struct timespec **)data)[1], (void *)CFUSES_ARG_V_TS_1(cfuses_arg), data_len);
-            }
-            else
-            {
-                BSET((void *)CFUSES_ARG_V_TS_0(cfuses_arg), 0x00, data_len);
-                BSET((void *)CFUSES_ARG_V_TS_1(cfuses_arg), 0x00, data_len);
-            }
-            return (EC_TRUE);
-        }
-        case CFUSES_ARG_TYPE_FUSE_DH:
-        {
-            CFUSES_ASSERT(sizeof(struct fuse_dh) == data_len);
-            CFUSES_ASSERT(NULL_PTR == CFUSES_ARG_V_FUSE_DH(cfuses_arg));
-            CFUSES_ARG_V_FUSE_DH(cfuses_arg) = (struct fuse_dh *)(uintptr_t)data;
-            CFUSES_ARG_FLAG(cfuses_arg)   = CFUSE_ARG_FLAG_IS_MOUNT;
-            return (EC_TRUE);
-        }
-        default:
-        {
-            dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_arg_mount: "
-                                                   "unknown type %ld\n",
-                                                   CFUSES_ARG_TYPE(cfuses_arg));
-            return (EC_FALSE);
-        }
-    }
-
-    dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_arg_mount: "
-                                           "should never reach here, type %ld\n",
-                                           CFUSES_ARG_TYPE(cfuses_arg));
-    return (EC_FALSE);
-}
-
 /*int (*getattr) (const char *, struct stat *);*/
-EC_BOOL cfuses_getattr(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUSES_ARG *stat_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_getattr(const UINT32 cfuses_md_id, const CSTRING *path, struct stat *stat, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          res;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
@@ -741,21 +245,17 @@ EC_BOOL cfuses_getattr(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CF
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_STAT == CFUSES_ARG_TYPE(stat_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_getattr");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-    res = lstat(CFUSES_ARG_V_CHAR(path_arg), CFUSES_ARG_V_STAT(stat_arg));
+    res = lstat((char *)cstring_get_str(path), stat);
     if(0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
     }
 
     return (EC_TRUE);
@@ -770,10 +270,10 @@ EC_BOOL cfuses_getattr(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CF
  * for success.
  */
 /*int (*readlink) (const char *, char *, size_t);*/
-EC_BOOL cfuses_readlink(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUSES_ARG *buf_arg, const CFUSES_ARG *bufsize_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_readlink(const UINT32 cfuses_md_id, const CSTRING *path, CSTRING *buf, const UINT32 bufsize, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
+    char        *data;
     int          res;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
@@ -787,27 +287,32 @@ EC_BOOL cfuses_readlink(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, C
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_BYTE == CFUSES_ARG_TYPE(buf_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_SIZE == CFUSES_ARG_TYPE(bufsize_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_readlink");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	res = readlink(CFUSES_ARG_V_CHAR(path_arg),
-	                CFUSES_ARG_V_CHAR(buf_arg),
-	                CFUSES_ARG_V_LONG(bufsize_arg) - 1);
-	if (0 > res)
+    data = safe_calloc(bufsize, LOC_CFUSES_0001);
+    if(NULL_PTR == data)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_readlink: "
+                                               "malloc %ld failed\n",
+                                               bufsize);
+        (*ret) = -ENOMEM;
+        return (EC_TRUE);
     }
 
-	CFUSES_ARG_V_CHAR(buf_arg)[ res ] = '\0';
+	res = readlink((char *)cstring_get_str(path), data, bufsize - 1);
+	if (0 > res)
+    {
+        (*ret) = -errno;
+    }
+
+	data[ res ] = '\0';
+
+	cstring_set_str(buf, (const UINT8 *)data);
 
     return (EC_TRUE);
 }
@@ -826,10 +331,9 @@ EC_BOOL cfuses_readlink(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, C
  * regular files that will be called instead.
  */
 /*int (*mknod) (const char *, mode_t, dev_t);*/
-EC_BOOL cfuses_mknod(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, const CFUSES_ARG *mode_arg, const CFUSES_ARG *dev_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_mknod(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 mode, const UINT32 dev, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          res;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
@@ -843,22 +347,17 @@ EC_BOOL cfuses_mknod(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, cons
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_MODE == CFUSES_ARG_TYPE(mode_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_DEV  == CFUSES_ARG_TYPE(dev_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_mknod");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	res = mknod(CFUSES_ARG_V_CHAR(path_arg), CFUSES_ARG_V_MODE(mode_arg), CFUSES_ARG_V_DEV(mode_arg));
+	res = mknod((char *)cstring_get_str(path), (mode_t)mode, (dev_t)dev);
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
     }
 
     return (EC_TRUE);
@@ -871,10 +370,9 @@ EC_BOOL cfuses_mknod(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, cons
  * correct directory type bits use  mode|S_IFDIR
  * */
 /*int (*mkdir) (const char *, mode_t);*/
-EC_BOOL cfuses_mkdir(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, const CFUSES_ARG *mode_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_mkdir(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 mode, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          res;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
@@ -888,21 +386,17 @@ EC_BOOL cfuses_mkdir(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, cons
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_MODE == CFUSES_ARG_TYPE(mode_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_mkdir");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	res = mkdir(CFUSES_ARG_V_CHAR(path_arg), CFUSES_ARG_V_MODE(mode_arg));
+	res = mkdir((char *)cstring_get_str(path), (mode_t)mode);
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
     }
 
     return (EC_TRUE);
@@ -910,10 +404,9 @@ EC_BOOL cfuses_mkdir(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, cons
 
 /** Remove a file */
 /*int (*unlink) (const char *);*/
-EC_BOOL cfuses_unlink(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_unlink(const UINT32 cfuses_md_id, const CSTRING *path, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          res;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
@@ -927,20 +420,17 @@ EC_BOOL cfuses_unlink(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFU
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_unlink");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	res = unlink(CFUSES_ARG_V_CHAR(path_arg));
+	res = unlink((char *)cstring_get_str(path));
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
     }
 
     return (EC_TRUE);
@@ -948,10 +438,9 @@ EC_BOOL cfuses_unlink(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFU
 
 /** Remove a directory */
 /*int (*rmdir) (const char *);*/
-EC_BOOL cfuses_rmdir(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_rmdir(const UINT32 cfuses_md_id, const CSTRING *path, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          res;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
@@ -965,21 +454,18 @@ EC_BOOL cfuses_rmdir(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUS
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_rmdir");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
 
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	res = rmdir(CFUSES_ARG_V_CHAR(path_arg));
+	res = rmdir((char *)cstring_get_str(path));
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
     }
 
     return (EC_TRUE);
@@ -987,7 +473,7 @@ EC_BOOL cfuses_rmdir(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUS
 
 /** Create a symbolic link */
 /*int (*symlink) (const char *, const char *);*/
-EC_BOOL cfuses_symlink(const UINT32 cfuses_md_id, const CFUSES_ARG *from_path_arg, const CFUSES_ARG *to_path_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_symlink(const UINT32 cfuses_md_id, const CSTRING *from_path, const CSTRING *to_path, int *ret)
 {
     CFUSES_MD   *cfuses_md;
     int          res;
@@ -1003,21 +489,17 @@ EC_BOOL cfuses_symlink(const UINT32 cfuses_md_id, const CFUSES_ARG *from_path_ar
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(from_path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(to_path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_symlink");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	res = symlink(CFUSES_ARG_V_CHAR(from_path_arg), CFUSES_ARG_V_CHAR(to_path_arg));
+	res = symlink((char *)cstring_get_str(from_path), (char *)cstring_get_str(to_path));
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
     }
 
     return (EC_TRUE);
@@ -1025,7 +507,7 @@ EC_BOOL cfuses_symlink(const UINT32 cfuses_md_id, const CFUSES_ARG *from_path_ar
 
 /** Rename a file */
 /*int (*rename) (const char *, const char *);*/
-EC_BOOL cfuses_rename(const UINT32 cfuses_md_id, const CFUSES_ARG *from_path_arg, const CFUSES_ARG *to_path_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_rename(const UINT32 cfuses_md_id, const CSTRING *from_path, const CSTRING *to_path, int *ret)
 {
     CFUSES_MD   *cfuses_md;
     int          res;
@@ -1041,21 +523,17 @@ EC_BOOL cfuses_rename(const UINT32 cfuses_md_id, const CFUSES_ARG *from_path_arg
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(from_path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(to_path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_rename");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	res = rename(CFUSES_ARG_V_CHAR(from_path_arg), CFUSES_ARG_V_CHAR(to_path_arg));
+	res = rename((char *)cstring_get_str(from_path), (char *)cstring_get_str(to_path));
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
     }
 
     return (EC_TRUE);
@@ -1063,7 +541,7 @@ EC_BOOL cfuses_rename(const UINT32 cfuses_md_id, const CFUSES_ARG *from_path_arg
 
 /** Create a hard link to a file */
 /*int (*link) (const char *, const char *);*/
-EC_BOOL cfuses_link(const UINT32 cfuses_md_id, const CFUSES_ARG *from_path_arg, const CFUSES_ARG *to_path_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_link(const UINT32 cfuses_md_id, const CSTRING *from_path, const CSTRING *to_path, int *ret)
 {
     CFUSES_MD   *cfuses_md;
     int          res;
@@ -1079,21 +557,17 @@ EC_BOOL cfuses_link(const UINT32 cfuses_md_id, const CFUSES_ARG *from_path_arg, 
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(from_path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(to_path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_link");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	res = link(CFUSES_ARG_V_CHAR(from_path_arg), CFUSES_ARG_V_CHAR(to_path_arg));
+	res = link((char *)cstring_get_str(from_path), (char *)cstring_get_str(to_path));
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
     }
 
     return (EC_TRUE);
@@ -1101,10 +575,9 @@ EC_BOOL cfuses_link(const UINT32 cfuses_md_id, const CFUSES_ARG *from_path_arg, 
 
 /** Change the permission bits of a file */
 /*int (*chmod) (const char *, mode_t);*/
-EC_BOOL cfuses_chmod(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, const CFUSES_ARG *mod_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_chmod(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 mode, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          res;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
@@ -1118,21 +591,17 @@ EC_BOOL cfuses_chmod(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, cons
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_MODE == CFUSES_ARG_TYPE(mod_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_chmod");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	res = chmod(CFUSES_ARG_V_CHAR(path_arg), CFUSES_ARG_V_MODE(mod_arg));
+	res = chmod((char *)cstring_get_str(path), (mode_t)mode);
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
     }
 
     return (EC_TRUE);
@@ -1140,10 +609,9 @@ EC_BOOL cfuses_chmod(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, cons
 
 /** Change the owner and group of a file */
 /*int (*chown) (const char *, uid_t, gid_t);*/
-EC_BOOL cfuses_chown(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, const CFUSES_ARG *owner_arg, const CFUSES_ARG *group_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_chown(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 owner, const UINT32 group, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          res;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
@@ -1157,22 +625,17 @@ EC_BOOL cfuses_chown(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, cons
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_UID  == CFUSES_ARG_TYPE(owner_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_GID  == CFUSES_ARG_TYPE(group_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_chown");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	res = lchown(CFUSES_ARG_V_CHAR(path_arg), CFUSES_ARG_V_UID(owner_arg), CFUSES_ARG_V_GID(group_arg));
+	res = lchown((char *)cstring_get_str(path), (uid_t)owner, (gid_t)group);
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
     }
 
     return (EC_TRUE);
@@ -1180,10 +643,9 @@ EC_BOOL cfuses_chown(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, cons
 
 /** Change the size of a file */
 /*int (*truncate) (const char *, off_t);*/
-EC_BOOL cfuses_truncate(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, const CFUSES_ARG *length_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_truncate(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 length, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          res;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
@@ -1197,21 +659,17 @@ EC_BOOL cfuses_truncate(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, c
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_OFFT  == CFUSES_ARG_TYPE(length_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_truncate");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	res = truncate(CFUSES_ARG_V_CHAR(path_arg), CFUSES_ARG_V_SIZE(length_arg));
+	res = truncate((char *)cstring_get_str(path), (off_t)length);
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
     }
 
     return (EC_TRUE);
@@ -1222,10 +680,9 @@ EC_BOOL cfuses_truncate(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, c
  * Deprecated, use utimens() instead.
  */
 /*int (*utime) (const char *, struct utimbuf *);*/
-EC_BOOL cfuses_utime(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, const CFUSES_ARG *times_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_utime(const UINT32 cfuses_md_id, const CSTRING *path, const struct utimbuf *times, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          res;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
@@ -1239,21 +696,17 @@ EC_BOOL cfuses_utime(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, cons
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR  == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_UTIME == CFUSES_ARG_TYPE(times_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG  == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_utime");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	res = utime(CFUSES_ARG_V_CHAR(path_arg), CFUSES_ARG_V_UTIME(times_arg));
+	res = utime((char *)cstring_get_str(path), times);
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
     }
 
     return (EC_TRUE);
@@ -1277,10 +730,9 @@ EC_BOOL cfuses_utime(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, cons
  * Changed in version 2.2
  */
 /*int (*open) (const char *, struct fuse_file_info *);*/
-EC_BOOL cfuses_open(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUSES_ARG *flags_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_open(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 flags, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          res;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
@@ -1294,21 +746,17 @@ EC_BOOL cfuses_open(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUSE
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_INT  == CFUSES_ARG_TYPE(flags_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_open");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	res = open(CFUSES_ARG_V_CHAR(path_arg), CFUSES_ARG_V_INT(flags_arg));
+	res = open((char *)cstring_get_str(path), (int)flags);
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
 
         return (EC_TRUE);
     }
@@ -1330,10 +778,10 @@ EC_BOOL cfuses_open(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUSE
  * Changed in version 2.2
  */
 /*int (*read) (const char *, char *, size_t, off_t, struct fuse_file_info *);*/
-EC_BOOL cfuses_read(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUSES_ARG *buf_arg, const CFUSES_ARG *size_arg, const CFUSES_ARG *offset_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_read(const UINT32 cfuses_md_id, const CSTRING *path, CBYTES *buf, const UINT32 size, const UINT32 offset, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
+    void        *data;
     int          res;
     int          fd;
 
@@ -1348,39 +796,47 @@ EC_BOOL cfuses_read(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUSE
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_BYTE == CFUSES_ARG_TYPE(buf_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_SIZE == CFUSES_ARG_TYPE(size_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_OFFT == CFUSES_ARG_TYPE(offset_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_read");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	fd = open(CFUSES_ARG_V_CHAR(path_arg), O_RDONLY);
+	fd = open((char *)cstring_get_str(path), O_RDONLY);
 	if (0 > fd)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
 
         return (EC_TRUE);
     }
 
-	res = pread(fd,
-	            CFUSES_ARG_V_CHAR(buf_arg),
-	            CFUSES_ARG_V_SIZE(size_arg),
-	            CFUSES_ARG_V_OFFT(offset_arg));
+    data = safe_malloc(size, LOC_CFUSES_0002);
+    if(NULL_PTR == data)
+    {
+        dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_read: "
+                                               "malloc %ld failed\n",
+                                               size);
+
+        close(fd);
+
+        (*ret) = -ENOMEM;
+        return (EC_TRUE);
+    }
+
+	res = pread(fd, data, (size_t)size, (off_t)offset);
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
         close(fd);
+
+        safe_free(data, LOC_CFUSES_0003);
         return (EC_TRUE);
     }
 
-    CFUSES_ARG_V_LONG(ret_arg) = res;
+    cbytes_mount(buf, (UINT32)res, data, BIT_FALSE);
+
+    (*ret) = res;
 	close(fd);
     return (EC_TRUE);
 }
@@ -1394,10 +850,9 @@ EC_BOOL cfuses_read(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUSE
  * Changed in version 2.2
  */
 /*int (*write) (const char *, const char *, size_t, off_t, struct fuse_file_info *);*/
-EC_BOOL cfuses_write(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, const CFUSES_ARG *buf_arg, const CFUSES_ARG *size_arg, const CFUSES_ARG *offset_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_write(const UINT32 cfuses_md_id, const CSTRING *path, const CBYTES *buf, const UINT32 offset, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          res;
     int          fd;
 
@@ -1412,40 +867,31 @@ EC_BOOL cfuses_write(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, cons
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_BYTE == CFUSES_ARG_TYPE(buf_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_SIZE == CFUSES_ARG_TYPE(size_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_OFFT == CFUSES_ARG_TYPE(offset_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_write");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	fd = open(CFUSES_ARG_V_CHAR(path_arg), O_WRONLY);
+	fd = open((char *)cstring_get_str(path), O_WRONLY);
 	if (0 > fd)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
 
         return (EC_TRUE);
     }
 
-	res = pwrite(fd,
-	            CFUSES_ARG_V_CHAR(buf_arg),
-	            CFUSES_ARG_V_SIZE(size_arg),
-	            CFUSES_ARG_V_OFFT(offset_arg));
+	res = pwrite(fd, (void *)CBYTES_BUF(buf), (size_t)CBYTES_LEN(buf), (off_t)offset);
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
 
         close(fd);
         return (EC_TRUE);
     }
 
-    CFUSES_ARG_V_LONG(ret_arg) = res;
+    (*ret) = res;
 	close(fd);
     return (EC_TRUE);
 }
@@ -1458,10 +904,9 @@ EC_BOOL cfuses_write(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, cons
  * version 2.5
  */
 /*int (*statfs) (const char *, struct statvfs *);*/
-EC_BOOL cfuses_statfs(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUSES_ARG *statfs_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_statfs(const UINT32 cfuses_md_id, const CSTRING *path, struct statvfs *statfs, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          res;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
@@ -1475,21 +920,17 @@ EC_BOOL cfuses_statfs(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFU
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR   == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_STATVFS== CFUSES_ARG_TYPE(statfs_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG   == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_statfs");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	res = statvfs(CFUSES_ARG_V_CHAR(path_arg), CFUSES_ARG_V_STATVFS(statfs_arg));
+	res = statvfs((char *)cstring_get_str(path), statfs);
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
 
         return (EC_TRUE);
     }
@@ -1521,7 +962,7 @@ EC_BOOL cfuses_statfs(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFU
  * Changed in version 2.2
  */
 /*int (*flush) (const char *, struct fuse_file_info *);*/
-EC_BOOL cfuses_flush(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_flush(const UINT32 cfuses_md_id, const CSTRING *path, int *ret)
 {
     CFUSES_MD   *cfuses_md;
 
@@ -1536,15 +977,12 @@ EC_BOOL cfuses_flush(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUS
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_flush");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
     /*do nothing*/
 
@@ -1566,7 +1004,7 @@ EC_BOOL cfuses_flush(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUS
  * Changed in version 2.2
  */
 /*int (*release) (const char *, struct fuse_file_info *);*/
-EC_BOOL cfuses_release(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, const CFUSES_ARG *flag_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_release(const UINT32 cfuses_md_id, const CSTRING *path, int *ret)
 {
     CFUSES_MD   *cfuses_md;
 
@@ -1581,16 +1019,12 @@ EC_BOOL cfuses_release(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, co
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_INT  == CFUSES_ARG_TYPE(flag_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_release");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
     /*do nothing*/
 
@@ -1605,7 +1039,7 @@ EC_BOOL cfuses_release(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, co
  * Changed in version 2.2
  */
 /*int (*fsync) (const char *, int, struct fuse_file_info *);*/
-EC_BOOL cfuses_fsync(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, const CFUSES_ARG *datasync_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_fsync(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 datasync, int *ret)
 {
     CFUSES_MD   *cfuses_md;
 
@@ -1620,16 +1054,12 @@ EC_BOOL cfuses_fsync(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, cons
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_INT  == CFUSES_ARG_TYPE(datasync_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_fsync");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
     /*do nothing*/
 
@@ -1638,10 +1068,9 @@ EC_BOOL cfuses_fsync(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, cons
 
 /** Set extended attributes */
 /*int (*setxattr) (const char *, const char *, const char *, size_t, int);*/
-EC_BOOL cfuses_setxattr(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, const CFUSES_ARG *name_arg, const CFUSES_ARG *value_arg, const CFUSES_ARG *size_arg, const CFUSES_ARG *flags_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_setxattr(const UINT32 cfuses_md_id, const CSTRING *path, const CSTRING *name, const CBYTES *value, const UINT32 flags, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          res;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
@@ -1655,43 +1084,35 @@ EC_BOOL cfuses_setxattr(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, c
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(name_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(value_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_SIZE == CFUSES_ARG_TYPE(size_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_INT  == CFUSES_ARG_TYPE(flags_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_setxattr");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
     /*ENOTSUP*/
-	res = lsetxattr(CFUSES_ARG_V_CHAR(path_arg),
-	                CFUSES_ARG_V_CHAR(name_arg),
-	                CFUSES_ARG_V_CHAR(value_arg),
-	                CFUSES_ARG_V_SIZE(size_arg),
-	                CFUSES_ARG_V_INT(flags_arg));
+	res = lsetxattr((char *)cstring_get_str(path),
+	                (char *)cstring_get_str(name),
+	                (char *)CBYTES_BUF(value),
+	                (size_t)CBYTES_LEN(value),
+	                (int   )flags);
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
 
         return (EC_TRUE);
     }
-
 
     return (EC_TRUE);
 }
 
 /** Get extended attributes */
 /*int (*getxattr) (const char *, const char *, char *, size_t);*/
-EC_BOOL cfuses_getxattr(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, const CFUSES_ARG *name_arg, CFUSES_ARG *value_arg, const CFUSES_ARG *size_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_getxattr(const UINT32 cfuses_md_id, const CSTRING *path, const CSTRING *name, CBYTES *value, const UINT32 size, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
+    void        *data;
     int          res;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
@@ -1705,42 +1126,50 @@ EC_BOOL cfuses_getxattr(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, c
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(name_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(value_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_SIZE == CFUSES_ARG_TYPE(size_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_getxattr");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-    /*ENOTSUP*/
-	res = lgetxattr(CFUSES_ARG_V_CHAR(path_arg),
-	                CFUSES_ARG_V_CHAR(name_arg),
-	                CFUSES_ARG_V_CHAR(value_arg),
-	                CFUSES_ARG_V_SIZE(size_arg));
-	if (0 > res)
+    data = safe_calloc(size, LOC_CFUSES_0004);
+    if(NULL_PTR == data)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_getxattr: "
+                                               "malloc %ld failed\n",
+                                               size);
 
+        (*ret) = -ENOMEM;
         return (EC_TRUE);
     }
 
-    CFUSES_ARG_V_LONG(ret_arg) = res;
+    /*ENOTSUP*/
+	res = lgetxattr((char *)cstring_get_str(path),
+	                (char *)cstring_get_str(name),
+	                (char *)data,
+	                (size_t)size);
+	if (0 > res)
+    {
+        (*ret) = -errno;
+
+        safe_free(data, LOC_CFUSES_0005);
+        return (EC_TRUE);
+    }
+
+    (*ret) = res;
+
+    cbytes_mount(value, (UINT32)res, data, BIT_FALSE);
 
     return (EC_TRUE);
 }
 
 /** List extended attributes */
 /*int (*listxattr) (const char *, char *, size_t);*/
-EC_BOOL cfuses_listxattr(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUSES_ARG *list_arg, const CFUSES_ARG *size_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_listxattr(const UINT32 cfuses_md_id, const CSTRING *path, CBYTES *value_list, const UINT32 size, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
+    void        *data;
     int          res;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
@@ -1754,37 +1183,46 @@ EC_BOOL cfuses_listxattr(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, 
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(list_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_SIZE == CFUSES_ARG_TYPE(size_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_listxattr");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	res = llistxattr(CFUSES_ARG_V_CHAR(path_arg), CFUSES_ARG_V_CHAR(list_arg), CFUSES_ARG_V_SIZE(size_arg));
-	if (0 > res)
+    data = safe_calloc(size, LOC_CFUSES_0006);
+    if(NULL_PTR == data)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_listxattr: "
+                                               "malloc %ld failed\n",
+                                               size);
 
+        (*ret) = -ENOMEM;
         return (EC_TRUE);
     }
 
-    CFUSES_ARG_V_LONG(ret_arg) = res;
+	res = llistxattr((char *)cstring_get_str(path),
+	                 (char *)data,
+	                 (size_t)size);
+	if (0 > res)
+    {
+        (*ret) = -errno;
+        safe_free(data, LOC_CFUSES_0007);
+        return (EC_TRUE);
+    }
+
+    (*ret) = res;
+
+    cbytes_mount(value_list, (UINT32)res, data, BIT_FALSE);
 
     return (EC_TRUE);
 }
 
 /** Remove extended attributes */
 /*int (*removexattr) (const char *, const char *);*/
-EC_BOOL cfuses_removexattr(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, const CFUSES_ARG *name_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_removexattr(const UINT32 cfuses_md_id, const CSTRING *path, const CSTRING *name, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          res;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
@@ -1798,21 +1236,19 @@ EC_BOOL cfuses_removexattr(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(name_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
 
     CFUSES_DEBUG_ENTER("cfuses_removexattr");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	res = lremovexattr(CFUSES_ARG_V_CHAR(path_arg), CFUSES_ARG_V_CHAR(name_arg));
+	res = lremovexattr((char *)cstring_get_str(path),
+	                   (char *)cstring_get_str(name));
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
 
         return (EC_TRUE);
     }
@@ -1909,10 +1345,9 @@ EC_BOOL cfuses_removexattr(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg
  * Introduced in version 2.5
  */
 /*int (*access) (const char *, int);*/
-EC_BOOL cfuses_access(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, const CFUSES_ARG *mask_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_access(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 mask, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          res;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
@@ -1926,22 +1361,18 @@ EC_BOOL cfuses_access(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, con
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_INT  == CFUSES_ARG_TYPE(mask_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_access");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
     /*mask: R_OK|W_OK|X_OK|F_OK*/
-	res = access(CFUSES_ARG_V_CHAR(path_arg), CFUSES_ARG_V_INT(mask_arg));
+	res = access((char *)cstring_get_str(path), (int)mask);
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
 
         return (EC_TRUE);
     }
@@ -1977,10 +1408,9 @@ EC_BOOL cfuses_access(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, con
  * Introduced in version 2.5
  */
 /*int (*ftruncate) (const char *, off_t, struct fuse_file_info *);*/
-EC_BOOL cfuses_ftruncate(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, const CFUSES_ARG *offset_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_ftruncate(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 offset, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          fd;
     int          res;
 
@@ -1995,29 +1425,25 @@ EC_BOOL cfuses_ftruncate(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, 
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_OFFT == CFUSES_ARG_TYPE(offset_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_ftruncate");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	fd = open(CFUSES_ARG_V_CHAR(path_arg), O_WRONLY);
+	fd = open((char *)cstring_get_str(path), O_WRONLY);
 	if(0 > fd)
 	{
-	    CFUSES_ARG_V_LONG(ret_arg) = -errno;
+	    (*ret) = -errno;
 
 	    return (EC_TRUE);
 	}
 
-	res = ftruncate(fd, CFUSES_ARG_V_OFFT(offset_arg));
+	res = ftruncate(fd, (off_t)offset);
 	if(0 > res)
 	{
-	    CFUSES_ARG_V_LONG(ret_arg) = -errno;
+	    (*ret) = -errno;
 
 	    close(fd);
 	    return (EC_TRUE);
@@ -2093,11 +1519,12 @@ int (*lock) (const char *, struct fuse_file_info *, int cmd,
  * Introduced in version 2.6
  */
 /*int (*utimens) (const char *, const struct timespec tv[2]);*/
-EC_BOOL cfuses_utimens(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, const CFUSES_ARG *ts_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_utimens(const UINT32 cfuses_md_id, const CSTRING *path, const struct timespec *tv0, const struct timespec *tv1, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          res;
+
+    struct timespec tv[2];
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
     if ( CFUSES_MD_ID_CHECK_INVALID(cfuses_md_id) )
@@ -2110,22 +1537,21 @@ EC_BOOL cfuses_utimens(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, co
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_TS   == CFUSES_ARG_TYPE(ts_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_utimens");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
+
+    tv[0] = *tv0;
+    tv[1] = *tv1;
 
 	/* don't use utime/utimes since they follow symlinks */
-	res = utimensat(0, CFUSES_ARG_V_CHAR(path_arg), CFUSES_ARG_V_TS_BOTH(ts_arg), AT_SYMLINK_NOFOLLOW);
+	res = utimensat(0, (char *)cstring_get_str(path), tv, AT_SYMLINK_NOFOLLOW);
 	if (0 > res)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
 
         return (EC_TRUE);
     }
@@ -2301,10 +1727,9 @@ int (*flock) (const char *, struct fuse_file_info *, int op);
 int (*fallocate) (const char *, int, off_t, off_t,
 		  struct fuse_file_info *);
 */
-EC_BOOL cfuses_fallocate(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, const CFUSES_ARG *mode_arg, const CFUSES_ARG *offset_arg, const CFUSES_ARG *length_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_fallocate(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 mode, const UINT32 offset, const UINT32 length, int *ret)
 {
     CFUSES_MD   *cfuses_md;
-
     int          res;
     int          fd;
 
@@ -2319,55 +1744,44 @@ EC_BOOL cfuses_fallocate(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, 
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_INT  == CFUSES_ARG_TYPE(mode_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_OFFT == CFUSES_ARG_TYPE(offset_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_OFFT == CFUSES_ARG_TYPE(length_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_fallocate");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-	if (CFUSES_ARG_V_MODE(mode_arg))
+	if ((int)mode)
 	{
-	    CFUSES_ARG_V_LONG(ret_arg) = -EOPNOTSUPP;
+	    (*ret) = -EOPNOTSUPP;
 
 	    return (EC_TRUE);
 	}
 
-	fd = open(CFUSES_ARG_V_CHAR(path_arg), O_WRONLY);
+	fd = open((char *)cstring_get_str(path), O_WRONLY);
 	if(0 > fd)
 	{
-	    CFUSES_ARG_V_LONG(ret_arg) = -errno;
+	    (*ret) = -errno;
 
 	    return (EC_TRUE);
 	}
 
 
     /*ENOSUP*/
-	res = -posix_fallocate(fd,
-	                       CFUSES_ARG_V_OFFT(offset_arg),
-	                       CFUSES_ARG_V_OFFT(length_arg));
-    CFUSES_ARG_V_LONG(ret_arg) = res;
+	res = -posix_fallocate(fd, (off_t)offset, (off_t)length);
+    (*ret) = res;
 
 	close(fd);
     return (EC_TRUE);
 }
 
 /*int (*readdir) (const char *, void *, fuse_fill_dir_t, off_t, struct fuse_file_info *);*/
-/*note: buf_arg: IO, struct fuse_dh*/
-/*note: filler_arg: for test only*/
-EC_BOOL cfuses_readdir(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CFUSES_ARG *buf_arg, const CFUSES_ARG *filler_arg/*for test only*/, const CFUSES_ARG *offset_arg, const CFUSES_ARG *flags_arg, CFUSES_ARG *ret_arg)
+EC_BOOL cfuses_readdir(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 offset, const UINT32 flags, CLIST *dirnode_list, int *ret)
 {
     CFUSES_MD   *cfuses_md;
     DIR         *dp;
 
-    enum fuse_readdir_flags flags;
-    fuse_fill_dir_t         filler;
+    enum fuse_readdir_flags flags_t;
 
 #if (SWITCH_ON == CFUSES_DEBUG_SWITCH)
     if ( CFUSES_MD_ID_CHECK_INVALID(cfuses_md_id) )
@@ -2380,46 +1794,31 @@ EC_BOOL cfuses_readdir(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CF
     }
 #endif/*(SWITCH_ON == CFUSES_DEBUG_SWITCH)*/
 
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_CHAR    == CFUSES_ARG_TYPE(path_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_FUSE_DH == CFUSES_ARG_TYPE(buf_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG    == CFUSES_ARG_TYPE(filler_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_OFFT    == CFUSES_ARG_TYPE(offset_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_INT     == CFUSES_ARG_TYPE(flags_arg));
-    CFUSES_ASSERT(CFUSES_ARG_TYPE_LONG    == CFUSES_ARG_TYPE(ret_arg));
-
     CFUSES_DEBUG_ENTER("cfuses_readdir");
 
     cfuses_md = CFUSES_MD_GET(cfuses_md_id);
-
-
     (void)cfuses_md;
 
-    CFUSES_ARG_V_LONG(ret_arg) = 0;
+    (*ret) = 0;
 
-    flags = CFUSES_ARG_V_INT(flags_arg);
+    flags_t = (enum fuse_readdir_flags)flags;
 
-    /*for debug only!!!!*/
-    filler = (fuse_fill_dir_t)(uintptr_t)CFUSES_ARG_V_LONG(filler_arg);
-    CFUSES_ASSERT(NULL_PTR != filler);
+    clist_codec_set(dirnode_list, MM_DIRNODE);
 
-    dp = opendir(CFUSES_ARG_V_CHAR(path_arg));
+    dp = opendir((char *)cstring_get_str(path));
     if(NULL_PTR == dp)
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
 
         return (EC_TRUE);
     }
 
-    seekdir(dp, CFUSES_ARG_V_OFFT(offset_arg) - 1);
+    seekdir(dp, (off_t)offset - 1);
 
     while(1)
     {
         struct dirent              *entry;
-        struct stat                 st;
-        off_t                       nextoff;
-        enum fuse_fill_dir_flags    fill_flags;
-
-        fill_flags = 0;
+        struct dirnode             *dirnode;
 
         entry = readdir(dp);
         if(NULL_PTR == entry)
@@ -2427,31 +1826,57 @@ EC_BOOL cfuses_readdir(const UINT32 cfuses_md_id, const CFUSES_ARG *path_arg, CF
             break;
         }
 
-		if(flags & FUSE_READDIR_PLUS)
+        dirnode = c_dirnode_new();
+        if(NULL_PTR == dirnode)
+        {
+            dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_readdir: "
+                                                   "new dirnode failed\n");
+            break;
+        }
+
+        dirnode->flags = 0; /*enum fuse_fill_dir_flags*/
+
+        if(NULL_PTR != entry->d_name)
+        {
+            dirnode->name = c_str_dup(entry->d_name);
+            if(NULL_PTR == dirnode->name)
+            {
+                dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_readdir: "
+                                                       "dup d_name '%s' failed\n",
+                                                       entry->d_name);
+                c_dirnode_free(dirnode);
+                break;
+            }
+        }
+
+		if(flags_t & FUSE_READDIR_PLUS)
 		{
-			if(-1 != fstatat(dirfd(dp), entry->d_name, &st, AT_SYMLINK_NOFOLLOW))
+			if(-1 != fstatat(dirfd(dp), entry->d_name, &(dirnode->stat), AT_SYMLINK_NOFOLLOW))
 			{
-				fill_flags |= FUSE_FILL_DIR_PLUS;
+				dirnode->flags |= FUSE_FILL_DIR_PLUS;
             }
 		}
 
-		if(!(fill_flags & FUSE_FILL_DIR_PLUS))
+		if(!(dirnode->flags & FUSE_FILL_DIR_PLUS))
 		{
-			memset(&st, 0, sizeof(st));
-			st.st_ino  = entry->d_ino;
-			st.st_mode = entry->d_type << 12;
+			dirnode->stat.st_ino  = entry->d_ino;
+			dirnode->stat.st_mode = entry->d_type << 12;
 		}
 
-		nextoff = telldir(dp);
-        if(filler(CFUSES_ARG_V_FUSE_DH(buf_arg), entry->d_name, &st, nextoff, fill_flags))
-        {
-			break;
-		}
+		dirnode->offset = telldir(dp);
+
+		clist_push_back(dirnode_list, (void *)dirnode);
+
+        dbg_log(SEC_0024_CFUSES, 9)(LOGSTDOUT, "[DEBUG] cfuses_readdir: "
+                                               "push (name %s, offset %ld, flags %u)\n",
+                                               dirnode->name,
+                                               dirnode->offset,
+                                               dirnode->flags);
     }
 
     if(0 != closedir(dp))
     {
-        CFUSES_ARG_V_LONG(ret_arg) = -errno;
+        (*ret) = -errno;
 
         return (EC_TRUE);
     }

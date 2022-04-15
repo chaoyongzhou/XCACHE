@@ -50,14 +50,14 @@ extern "C"{
 #define                e_dbg_CSTRING_ptr    ((UINT32) 13)
 #define              e_dbg_TASKC_MGR_ptr    ((UINT32) 14)
 #define                    e_dbg_LOG_ptr    ((UINT32) 15)
-#define             e_dbg_CFUSES_ARG_ptr    ((UINT32) 16)
+#define                  e_dbg_00016_ptr    ((UINT32) 16) /*-- obsolete --*/
 #define                e_dbg_CVECTOR_ptr    ((UINT32) 17)
-#define                e_dbg_FUSE_DH_ptr    ((UINT32) 18)
+#define                  e_dbg_00018_ptr    ((UINT32) 18) /*-- obsolete --*/
 #define                  e_dbg_KBUFF_ptr    ((UINT32) 19)
-#define                  e_dbg_00020_ptr    ((UINT32) 20) /*-- obsolete --*/
-#define                  e_dbg_00021_ptr    ((UINT32) 21) /*-- obsolete --*/
-#define                  e_dbg_00022_ptr    ((UINT32) 22) /*-- obsolete --*/
-#define                  e_dbg_00023_ptr    ((UINT32) 23) /*-- obsolete --*/
+#define         e_dbg_struct_dirnode_ptr    ((UINT32) 20)
+#define            e_dbg_struct_stat_ptr    ((UINT32) 21)
+#define         e_dbg_struct_statvfs_ptr    ((UINT32) 22)
+#define         e_dbg_struct_utimbuf_ptr    ((UINT32) 23)
 #define          e_dbg_CSOCKET_CNODE_ptr    ((UINT32) 24)
 #define             e_dbg_TASKC_NODE_ptr    ((UINT32) 25)
 #define          e_dbg_CSYS_CPU_STAT_ptr    ((UINT32) 26)
@@ -69,7 +69,7 @@ extern "C"{
 #define          e_dbg_CSYS_ETH_STAT_ptr    ((UINT32) 32)
 #define          e_dbg_CSYS_DSK_STAT_ptr    ((UINT32) 33)
 #define       e_dbg_TASK_REPORT_NODE_ptr    ((UINT32) 34)
-#define                  e_dbg_00035_ptr    ((UINT32) 35) /*-- obsolete --*/
+#define        e_dbg_struct_timespec_ptr    ((UINT32) 35)
 #define                  e_dbg_00036_ptr    ((UINT32) 36) /*-- obsolete --*/
 #define                  e_dbg_00037_ptr    ((UINT32) 37) /*-- obsolete --*/
 #define             e_dbg_CLOAD_STAT_ptr    ((UINT32) 38)
@@ -214,6 +214,7 @@ typedef struct
     UINT32     var_mm_type;        /* the variable memory allocated for this variable. range: MM_TYPE */
     UINT32     str_mm_type;        /* the char buf memory allocated to accept the string format of this variable */
     UINT32     str_mm_size;        /* the num bytes of str_mm_type */
+    UINT32     new_type_func;      /* if mm type is MM_END, new the type variable and initalize it at the same time*/
     UINT32     init_type_func;     /* initialize the type variable. NOTE: set to zero if the var type is basic, such as UINT32, UINT16, etc.*/
     UINT32     clean_type_func;    /* clean the type variable without destroy the variable itself. NOTE: set to zero if the var type is basic, such as UINT32, UINT16, etc.*/
     UINT32     free_type_func;     /* free the type variable with destroy the variable itself. NOTE: set to zero if the var type is basic, such as UINT32, UINT16, etc.*/
@@ -234,6 +235,7 @@ typedef struct
 #define TYPE_CONV_ITEM_VAR_SIZEOF(type_conv_item)                   ((type_conv_item)->type_sizeof)
 #define TYPE_CONV_ITEM_VAR_POINTER_FLAG(type_conv_item)             ((type_conv_item)->pointer_flag)
 #define TYPE_CONV_ITEM_VAR_MM_TYPE(type_conv_item)                  ((type_conv_item)->var_mm_type)
+#define TYPE_CONV_ITEM_VAR_NEW_FUNC(type_conv_item)                 ((type_conv_item)->new_type_func)
 #define TYPE_CONV_ITEM_VAR_INIT_FUNC(type_conv_item)                ((type_conv_item)->init_type_func)
 #define TYPE_CONV_ITEM_VAR_CLEAN_FUNC(type_conv_item)               ((type_conv_item)->clean_type_func)
 #define TYPE_CONV_ITEM_VAR_FREE_FUNC(type_conv_item)                ((type_conv_item)->free_type_func)

@@ -82,6 +82,10 @@ EC_BOOL cstring_set_word(CSTRING *cstring, const UINT32 num);
 
 UINT32 cstring_get_word(const CSTRING *cstring);
 
+EC_BOOL cstring_mount(CSTRING *cstring, const UINT8 *str, const UINT32 len, const UINT32 capacity);
+
+EC_BOOL cstring_umount(CSTRING *cstring, UINT8 **str, UINT32 *len, UINT32 *capacity);
+
 EC_BOOL cstring_set_str(CSTRING *cstring, const UINT8 *str);
 
 EC_BOOL cstring_unset(CSTRING *cstring);

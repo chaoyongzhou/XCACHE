@@ -32,7 +32,7 @@ struct fuse_operations *cfusec_get_ops();
 * start CFUSEC module
 *
 **/
-EC_BOOL cfusec_start(const UINT32 cfuses_tcid, const UINT32 cfuses_rank, const UINT32 cfuses_modi);
+EC_BOOL cfusec_start(struct fuse_args *args, const UINT32 cfuses_tcid, const UINT32 cfuses_rank, const UINT32 cfuses_modi);
 
 /**
 *
@@ -41,7 +41,7 @@ EC_BOOL cfusec_start(const UINT32 cfuses_tcid, const UINT32 cfuses_rank, const U
 **/
 void cfusec_end();
 
-MOD_NODE *cfuses_get_remote_mod_node();
+MOD_NODE *cfusec_get_remote_mod_node();
 
 /*int (*getattr) (const char *, struct stat *);*/
 int cfusec_getattr(const char *path, struct stat *stat, struct fuse_file_info *fi);

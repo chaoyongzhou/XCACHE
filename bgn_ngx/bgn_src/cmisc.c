@@ -64,6 +64,9 @@ extern "C"{
 #define CMISC_BUFF_NUM ((UINT32) 256)
 #define CMISC_BUFF_LEN ((UINT32) 128)
 
+#define CMISC_PATH_NUM ((UINT32)    8)
+#define CMISC_PATH_LEN ((UINT32) 4096)
+
 #define CMISC_TM_NUM   ((UINT32) 256)
 
 #define CMISC_CMD_OUTPUT_LINE_MAX_SIZE       ((UINT32) 1 * 1024 * 1024)
@@ -77,6 +80,10 @@ extern "C"{
 static pthread_mutex_t g_cmisc_str_cmutex;
 static char g_str_buff[CMISC_BUFF_NUM][CMISC_BUFF_LEN];
 static UINT32 g_str_idx = 0;
+
+static pthread_mutex_t g_cmisc_path_cmutex;
+static char g_path_buff[CMISC_PATH_NUM][CMISC_PATH_LEN];
+static UINT32 g_path_idx = 0;
 
 static pthread_mutex_t g_cmisc_tm_cmutex;
 static CTM g_tm_tbl[CMISC_TM_NUM];
@@ -261,6 +268,7 @@ void c_env_init()
 EC_BOOL cmisc_init(UINT32 location)
 {
     c_mutex_init(&g_cmisc_str_cmutex, CMUTEX_PROCESS_PRIVATE, location);
+    c_mutex_init(&g_cmisc_path_cmutex, CMUTEX_PROCESS_PRIVATE, location);
     c_mutex_init(&g_cmisc_tm_cmutex, CMUTEX_PROCESS_PRIVATE, location);
     return (EC_TRUE);
 }
@@ -7947,6 +7955,19 @@ EC_BOOL c_get_ppid(pid_t *ppid)
 {
     (*ppid) = getppid();
     return (EC_TRUE);
+}
+
+/*get current working directory*/
+char *c_get_cwd()
+{
+    char *path_cache;
+
+    c_mutex_lock(&g_cmisc_path_cmutex, LOC_CMISC_0096);
+    path_cache = (char *)(g_path_buff[g_path_idx]);
+    g_path_idx = ((g_path_idx + 1) % (CMISC_PATH_NUM));
+    c_mutex_unlock(&g_cmisc_path_cmutex, LOC_CMISC_0097);
+
+    return getcwd(path_cache, CMISC_PATH_LEN);
 }
 
 EC_BOOL c_send_signal(pid_t pid, int sig)

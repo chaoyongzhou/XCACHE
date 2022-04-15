@@ -563,6 +563,8 @@ EC_BOOL c_get_pid(pid_t *pid);
 
 EC_BOOL c_get_ppid(pid_t *ppid);
 
+char *c_get_cwd();
+
 EC_BOOL c_send_signal(pid_t pid, int sig);
 
 uint32_t c_crc32_compute(const uint32_t in_crc32, const uint8_t *buf, const uint32_t size);

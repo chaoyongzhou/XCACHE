@@ -710,15 +710,18 @@ UINT32 cmpi_decode_cstring(const UINT32 comm, const UINT8 *in_buff, const UINT32
         return ((UINT32)0);
     }
 
-    if(EC_FALSE == cstring_expand_to(cstring, len + cstring->len + 1, LOC_CMPIE_0003))
+    if(len > cstring->len)
     {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cstring: failed to expand cstring with capaciy %ld and len %ld to size %ld\n",
-                        cstring->capacity, cstring->len, len + cstring->len + 1);
-        return ((UINT32)(-1));
+        if(EC_FALSE == cstring_expand_to(cstring, len + 1, LOC_CMPIE_0003))
+        {
+            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cstring: failed to expand cstring with capaciy %ld and len %ld to size %ld\n",
+                            cstring->capacity, cstring->len, len + 1);
+            return ((UINT32)(-1));
+        }
     }
 
-    cmpi_unpack(in_buff, in_buff_max_len, position, cstring->str + cstring->len, len, CMPI_UCHAR, comm);
-    cstring->len += len;
+    cmpi_unpack(in_buff, in_buff_max_len, position, cstring->str, len, CMPI_UCHAR, comm);
+    cstring->len = len;
     cstring->str[ cstring->len ] = '\0';
 
     //dbg_log(SEC_0035_CMPIE, 5)(LOGSTDOUT, "cmpi_decode_cstring: cstring: %lx, %s\n", cstring, (char *)cstring_get_str(cstring));
@@ -3001,6 +3004,8 @@ UINT32 cmpi_decode_clist(const UINT32 comm, const UINT8 *in_buff, const UINT32 i
 
     UINT32 pos;
     CLIST_DATA_DECODER data_decoder;
+    CLIST_DATA_NEW     data_new;
+    CLIST_DATA_INIT    data_init;
 
 #if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
     if ( NULL_PTR == in_buff )
@@ -3054,17 +3059,35 @@ UINT32 cmpi_decode_clist(const UINT32 comm, const UINT8 *in_buff, const UINT32 i
             data_decoder(comm, in_buff, in_buff_max_len, position, &data);
             clist_push_back(clist, (void *)data);/*add new one*/
         }
-    }
-    else/*non UINT32*/
-    {
-        CLIST_DATA_INIT    data_init;
 
-        data_init = (CLIST_DATA_INIT)clist_codec_get(clist, CLIST_CODEC_INIT);/*data_init may be null pointer*/
-        if(NULL_PTR == data_init)
+        return ((UINT32)0);
+    }
+
+    data_new = (CLIST_DATA_NEW)clist_codec_get(clist, CLIST_CODEC_NEW);/*data_new may be null pointer*/
+    if(NULL_PTR != data_new)
+    {
+        for(pos = 0; pos < num; pos ++)
         {
-            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_clist: clist %p data init is null\n", clist);
-            return ((UINT32)-1);
+            void * data;
+
+            data = data_new();
+            if(NULL_PTR == data)
+            {
+                dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_clist: [3] clist %p, size %ld, pos = %ld failed to new\n",
+                                    clist, clist->size, pos);
+                return ((UINT32)-1);
+            }
+
+            data_decoder(comm, in_buff, in_buff_max_len, position, data);
+            clist_push_back(clist, (void *)data);/*add new one*/
         }
+
+        return ((UINT32)0);
+    }
+
+    data_init = (CLIST_DATA_INIT)clist_codec_get(clist, CLIST_CODEC_INIT);/*data_init may be null pointer*/
+    if(NULL_PTR == data_init)
+    {
         /*alloc new item to accept the decoded result, and push the new item*/
         for(pos = 0; pos < num; pos ++)
         {
@@ -3081,9 +3104,10 @@ UINT32 cmpi_decode_clist(const UINT32 comm, const UINT8 *in_buff, const UINT32 i
             data_decoder(comm, in_buff, in_buff_max_len, position, data);
             clist_push_back(clist, (void *)data);/*add new one*/
         }
+
+        return ((UINT32)0);
     }
-    CMPI_DBG((LOGSTDOUT, "info:cmpi_decode_clist: leave: clist %p, type = %ld, num = %ld, size = %ld\n", clist, type, num, clist->size));
-    return ((UINT32)0);
+    return ((UINT32)-1);
 }
 
 UINT32 cmpi_encode_time_t(const UINT32 comm, const ctime_t time, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
@@ -4976,607 +5000,6 @@ UINT32 cmpi_decode_cmon_node(const UINT32 comm, const UINT8 *in_buff, const UINT
 }
 
 #endif
-
-#if 1
-UINT32 cmpi_encode_cfuses_arg(const UINT32 comm, const CFUSES_ARG *cfuses_arg, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
-{
-#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
-    if ( NULL_PTR == cfuses_arg )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cfuses_arg: cfuses_arg is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-    if ( NULL_PTR == out_buff )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cfuses_arg: out_buff is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-    if ( NULL_PTR == position )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_encode_cfuses_arg: position is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-#endif /* ENCODE_DEBUG_SWITCH */
-
-    cmpi_encode_uint32_t(comm, CFUSES_ARG_TYPE(cfuses_arg), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint32(comm, CFUSES_ARG_VLEN(cfuses_arg), out_buff, out_buff_max_len, position);
-
-    switch(CFUSES_ARG_TYPE(cfuses_arg))
-    {
-        case CFUSES_ARG_TYPE_CHAR:
-        {
-            UINT32    len;
-
-            if(NULL_PTR != CFUSES_ARG_V_CHAR(cfuses_arg))
-            {
-                len = strlen(CFUSES_ARG_V_CHAR(cfuses_arg));
-                ASSERT(len == CFUSES_ARG_VLEN(cfuses_arg));
-                cmpi_encode_uint32(comm, len, out_buff, out_buff_max_len, position);
-                cmpi_encode_uint8_array(comm, (UINT8 *)CFUSES_ARG_V_CHAR(cfuses_arg), len, out_buff, out_buff_max_len, position);
-            }
-            else
-            {
-                len = 0;
-                ASSERT(len == CFUSES_ARG_VLEN(cfuses_arg));
-                cmpi_encode_uint32(comm, len, out_buff, out_buff_max_len, position);
-            }
-            break;
-        }
-        case CFUSES_ARG_TYPE_BYTE:
-        {
-            UINT32    len;
-
-            if(NULL_PTR != CFUSES_ARG_V_BYTE(cfuses_arg))
-            {
-                len = CFUSES_ARG_VLEN(cfuses_arg);
-                cmpi_encode_uint32(comm, len, out_buff, out_buff_max_len, position);
-                cmpi_encode_uint8_array(comm, (UINT8 *)CFUSES_ARG_V_BYTE(cfuses_arg), len, out_buff, out_buff_max_len, position);
-            }
-            else
-            {
-                len = 0;
-                cmpi_encode_uint32(comm, len, out_buff, out_buff_max_len, position);
-            }
-            break;
-        }
-        case CFUSES_ARG_TYPE_MODE:
-        {
-            ASSERT(sizeof(mode_t) == CFUSES_ARG_VLEN(cfuses_arg));
-            cmpi_encode_uint8_array(comm, (UINT8 *)&CFUSES_ARG_V_MODE(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), out_buff, out_buff_max_len, position);
-            break;
-        }
-        case CFUSES_ARG_TYPE_DEV:
-        {
-            ASSERT(sizeof(dev_t) == CFUSES_ARG_VLEN(cfuses_arg));
-            cmpi_encode_uint8_array(comm, (UINT8 *)&CFUSES_ARG_V_DEV(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), out_buff, out_buff_max_len, position);
-            break;
-        }
-        case CFUSES_ARG_TYPE_UID:
-        {
-            ASSERT(sizeof(uid_t) == CFUSES_ARG_VLEN(cfuses_arg));
-            cmpi_encode_uint8_array(comm, (UINT8 *)&CFUSES_ARG_V_UID(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), out_buff, out_buff_max_len, position);
-            break;
-        }
-        case CFUSES_ARG_TYPE_GID:
-        {
-            ASSERT(sizeof(gid_t) == CFUSES_ARG_VLEN(cfuses_arg));
-            cmpi_encode_uint8_array(comm, (UINT8 *)&CFUSES_ARG_V_GID(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), out_buff, out_buff_max_len, position);
-            break;
-        }
-        case CFUSES_ARG_TYPE_OFFT:
-        {
-            ASSERT(sizeof(off_t) == CFUSES_ARG_VLEN(cfuses_arg));
-            cmpi_encode_uint8_array(comm, (UINT8 *)&CFUSES_ARG_V_OFFT(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), out_buff, out_buff_max_len, position);
-            break;
-        }
-        case CFUSES_ARG_TYPE_SIZE:
-        {
-            ASSERT(sizeof(size_t) == CFUSES_ARG_VLEN(cfuses_arg));
-            cmpi_encode_uint8_array(comm, (UINT8 *)&CFUSES_ARG_V_SIZE(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), out_buff, out_buff_max_len, position);
-            break;
-        }
-        case CFUSES_ARG_TYPE_INT:
-        {
-            ASSERT(sizeof(int) == CFUSES_ARG_VLEN(cfuses_arg));
-            cmpi_encode_uint8_array(comm, (UINT8 *)&CFUSES_ARG_V_INT(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), out_buff, out_buff_max_len, position);
-            break;
-        }
-        case CFUSES_ARG_TYPE_LONG:
-        {
-            ASSERT(sizeof(long int) == CFUSES_ARG_VLEN(cfuses_arg));
-            cmpi_encode_uint8_array(comm, (UINT8 *)&CFUSES_ARG_V_LONG(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), out_buff, out_buff_max_len, position);
-            break;
-        }
-        case CFUSES_ARG_TYPE_UTIME:
-        {
-            ASSERT(sizeof(struct utimbuf) == CFUSES_ARG_VLEN(cfuses_arg));
-            ASSERT(NULL_PTR != CFUSES_ARG_V_UTIME(cfuses_arg));
-            cmpi_encode_uint8_array(comm, (UINT8 *)CFUSES_ARG_V_UTIME(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), out_buff, out_buff_max_len, position);
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_STATVFS:
-        {
-            ASSERT(sizeof(struct statvfs) == CFUSES_ARG_VLEN(cfuses_arg));
-            ASSERT(NULL_PTR != CFUSES_ARG_V_STATVFS(cfuses_arg));
-            cmpi_encode_uint8_array(comm, (UINT8 *)CFUSES_ARG_V_STATVFS(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), out_buff, out_buff_max_len, position);
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_STAT:
-        {
-            ASSERT(sizeof(struct stat) == CFUSES_ARG_VLEN(cfuses_arg));
-            ASSERT(NULL_PTR != CFUSES_ARG_V_STAT(cfuses_arg));
-            cmpi_encode_uint8_array(comm, (UINT8 *)CFUSES_ARG_V_STAT(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), out_buff, out_buff_max_len, position);
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_TS:
-        {
-            ASSERT(sizeof(struct timespec) == CFUSES_ARG_VLEN(cfuses_arg));
-
-            cmpi_encode_uint8_array(comm, (UINT8 *)CFUSES_ARG_V_TS_0(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), out_buff, out_buff_max_len, position);
-            cmpi_encode_uint8_array(comm, (UINT8 *)CFUSES_ARG_V_TS_1(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), out_buff, out_buff_max_len, position);
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_FUSE_DH:
-        {
-            ASSERT(sizeof(struct fuse_dh) == CFUSES_ARG_VLEN(cfuses_arg));
-            ASSERT(NULL_PTR != CFUSES_ARG_V_FUSE_DH(cfuses_arg));
-            cmpi_encode_fuse_dh(comm, CFUSES_ARG_V_FUSE_DH(cfuses_arg), out_buff, out_buff_max_len, position);
-
-            break;
-        }
-        default:
-        {
-            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_encode_cfuses_arg: "
-                                                  "unknown type %ld\n",
-                                                  CFUSES_ARG_TYPE(cfuses_arg));
-            return ((UINT32)-1);
-        }
-    }
-
-    return ((UINT32)0);
-}
-
-UINT32 cmpi_encode_cfuses_arg_size(const UINT32 comm, const CFUSES_ARG *cfuses_arg, UINT32 *size)
-{
-    cmpi_encode_uint32_t_size(comm, CFUSES_ARG_TYPE(cfuses_arg), size);
-    cmpi_encode_uint32_size(comm, CFUSES_ARG_VLEN(cfuses_arg), size);
-
-    switch(CFUSES_ARG_TYPE(cfuses_arg))
-    {
-        case CFUSES_ARG_TYPE_CHAR:
-        {
-            UINT32    len;
-
-            if(NULL_PTR != CFUSES_ARG_V_CHAR(cfuses_arg))
-            {
-                len = strlen(CFUSES_ARG_V_CHAR(cfuses_arg));
-                ASSERT(len == CFUSES_ARG_VLEN(cfuses_arg));
-                cmpi_encode_uint32_size(comm, len, size);
-                cmpi_encode_uint8_array_size(comm, (UINT8 *)CFUSES_ARG_V_CHAR(cfuses_arg), len, size);
-            }
-            else
-            {
-                len = 0;
-                ASSERT(len == CFUSES_ARG_VLEN(cfuses_arg));
-                cmpi_encode_uint32_size(comm, len, size);
-            }
-            break;
-        }
-        case CFUSES_ARG_TYPE_BYTE:
-        {
-            UINT32    len;
-
-            if(NULL_PTR != CFUSES_ARG_V_BYTE(cfuses_arg))
-            {
-                len = strlen(CFUSES_ARG_V_BYTE(cfuses_arg));
-                ASSERT(len == CFUSES_ARG_VLEN(cfuses_arg));
-                cmpi_encode_uint32_size(comm, len, size);
-                cmpi_encode_uint8_array_size(comm, (UINT8 *)CFUSES_ARG_V_BYTE(cfuses_arg), len, size);
-            }
-            else
-            {
-                len = 0;
-                ASSERT(len == CFUSES_ARG_VLEN(cfuses_arg));
-                cmpi_encode_uint32_size(comm, len, size);
-            }
-            break;
-        }
-        case CFUSES_ARG_TYPE_MODE:
-        {
-            ASSERT(sizeof(mode_t) == CFUSES_ARG_VLEN(cfuses_arg));
-            cmpi_encode_uint8_array_size(comm, (UINT8 *)&CFUSES_ARG_V_MODE(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), size);
-            break;
-        }
-        case CFUSES_ARG_TYPE_DEV:
-        {
-            ASSERT(sizeof(dev_t) == CFUSES_ARG_VLEN(cfuses_arg));
-            cmpi_encode_uint8_array_size(comm, (UINT8 *)&CFUSES_ARG_V_DEV(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), size);
-            break;
-        }
-        case CFUSES_ARG_TYPE_UID:
-        {
-            ASSERT(sizeof(uid_t) == CFUSES_ARG_VLEN(cfuses_arg));
-            cmpi_encode_uint8_array_size(comm, (UINT8 *)&CFUSES_ARG_V_UID(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), size);
-            break;
-        }
-        case CFUSES_ARG_TYPE_GID:
-        {
-            ASSERT(sizeof(gid_t) == CFUSES_ARG_VLEN(cfuses_arg));
-            cmpi_encode_uint8_array_size(comm, (UINT8 *)&CFUSES_ARG_V_GID(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), size);
-            break;
-        }
-        case CFUSES_ARG_TYPE_OFFT:
-        {
-            ASSERT(sizeof(off_t) == CFUSES_ARG_VLEN(cfuses_arg));
-            cmpi_encode_uint8_array_size(comm, (UINT8 *)&CFUSES_ARG_V_OFFT(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), size);
-            break;
-        }
-        case CFUSES_ARG_TYPE_SIZE:
-        {
-            ASSERT(sizeof(size_t) == CFUSES_ARG_VLEN(cfuses_arg));
-            cmpi_encode_uint8_array_size(comm, (UINT8 *)&CFUSES_ARG_V_SIZE(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), size);
-            break;
-        }
-        case CFUSES_ARG_TYPE_INT:
-        {
-            ASSERT(sizeof(int) == CFUSES_ARG_VLEN(cfuses_arg));
-            cmpi_encode_uint8_array_size(comm, (UINT8 *)&CFUSES_ARG_V_INT(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), size);
-            break;
-        }
-        case CFUSES_ARG_TYPE_LONG:
-        {
-            ASSERT(sizeof(long int) == CFUSES_ARG_VLEN(cfuses_arg));
-            cmpi_encode_uint8_array_size(comm, (UINT8 *)&CFUSES_ARG_V_LONG(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), size);
-            break;
-        }
-        case CFUSES_ARG_TYPE_UTIME:
-        {
-            ASSERT(sizeof(struct utimbuf) == CFUSES_ARG_VLEN(cfuses_arg));
-            ASSERT(NULL_PTR != CFUSES_ARG_V_UTIME(cfuses_arg));
-            cmpi_encode_uint8_array_size(comm, (UINT8 *)CFUSES_ARG_V_UTIME(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), size);
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_STATVFS:
-        {
-            ASSERT(sizeof(struct statvfs) == CFUSES_ARG_VLEN(cfuses_arg));
-            ASSERT(NULL_PTR != CFUSES_ARG_V_STATVFS(cfuses_arg));
-            cmpi_encode_uint8_array_size(comm, (UINT8 *)CFUSES_ARG_V_STATVFS(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), size);
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_STAT:
-        {
-            ASSERT(sizeof(struct stat) == CFUSES_ARG_VLEN(cfuses_arg));
-            ASSERT(NULL_PTR != CFUSES_ARG_V_STAT(cfuses_arg));
-            cmpi_encode_uint8_array_size(comm, (UINT8 *)CFUSES_ARG_V_STAT(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), size);
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_TS:
-        {
-            ASSERT(sizeof(struct timespec) == CFUSES_ARG_VLEN(cfuses_arg));
-            cmpi_encode_uint8_array_size(comm, (UINT8 *)CFUSES_ARG_V_TS_0(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), size);
-            cmpi_encode_uint8_array_size(comm, (UINT8 *)CFUSES_ARG_V_TS_1(cfuses_arg), CFUSES_ARG_VLEN(cfuses_arg), size);
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_FUSE_DH:
-        {
-            ASSERT(sizeof(struct fuse_dh) == CFUSES_ARG_VLEN(cfuses_arg));
-            ASSERT(NULL_PTR != CFUSES_ARG_V_FUSE_DH(cfuses_arg));
-            cmpi_encode_fuse_dh_size(comm, CFUSES_ARG_V_FUSE_DH(cfuses_arg), size);
-
-            break;
-        }
-        default:
-        {
-            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_encode_cfuses_arg_size: "
-                                                  "unknown type %ld\n",
-                                                  CFUSES_ARG_TYPE(cfuses_arg));
-            return ((UINT32)-1);
-        }
-    }
-
-    return ((UINT32)0);
-}
-
-UINT32 cmpi_decode_cfuses_arg(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, CFUSES_ARG *cfuses_arg)
-{
-#if ( SWITCH_ON == ENCODE_DEBUG_SWITCH )
-    if ( NULL_PTR == in_buff )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cfuses_arg: in_buff is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-    if ( NULL_PTR == position )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cfuses_arg: position is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-    if ( NULL_PTR == cfuses_arg )
-    {
-        dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT,"error:cmpi_decode_cfuses_arg: cfuses_arg is null.\n");
-        dbg_exit(MD_TBD, 0);
-    }
-#endif /* ENCODE_DEBUG_SWITCH */
-
-    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CFUSES_ARG_TYPE(cfuses_arg));
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &CFUSES_ARG_VLEN(cfuses_arg));
-
-    switch(CFUSES_ARG_TYPE(cfuses_arg))
-    {
-        case CFUSES_ARG_TYPE_CHAR:
-        {
-            UINT32    len;
-            UINT8    *data;
-
-            cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &len);
-            ASSERT(len == CFUSES_ARG_VLEN(cfuses_arg));
-            if(0 == len)
-            {
-                CFUSES_ARG_V_CHAR(cfuses_arg) = NULL_PTR;
-                break;
-            }
-
-            data = safe_malloc(len + 1, LOC_CMPIE_0021);
-            ASSERT(NULL_PTR != data);
-            cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
-            data[ len ] = 0x00;
-
-            CFUSES_ARG_V_CHAR(cfuses_arg) = (char *)data;
-            CFUSES_ARG_FLAG(cfuses_arg)   = CFUSE_ARG_FLAG_IS_ALLOC;
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_BYTE:
-        {
-            UINT32    len;
-            UINT8    *data;
-
-            cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &len);
-            ASSERT(len == CFUSES_ARG_VLEN(cfuses_arg));
-            if(0 == len)
-            {
-                CFUSES_ARG_V_BYTE(cfuses_arg) = NULL_PTR;
-                break;
-            }
-
-            data = safe_malloc(len, LOC_CMPIE_0022);
-            ASSERT(NULL_PTR != data);
-            cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
-
-            CFUSES_ARG_V_BYTE(cfuses_arg) = (char *)data;
-            CFUSES_ARG_FLAG(cfuses_arg)   = CFUSE_ARG_FLAG_IS_ALLOC;
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_MODE:
-        {
-            UINT32    len;
-            UINT8    *data;
-
-            ASSERT(sizeof(mode_t) == CFUSES_ARG_VLEN(cfuses_arg));
-
-            data = (UINT8 *)&CFUSES_ARG_V_MODE(cfuses_arg);
-            cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
-            ASSERT(sizeof(mode_t) == len);
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_DEV:
-        {
-            UINT32    len;
-            UINT8    *data;
-
-            ASSERT(sizeof(dev_t) == CFUSES_ARG_VLEN(cfuses_arg));
-
-            data = (UINT8 *)&CFUSES_ARG_V_DEV(cfuses_arg);
-            cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
-            ASSERT(sizeof(dev_t) == len);
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_UID:
-        {
-            UINT32    len;
-            UINT8    *data;
-
-            ASSERT(sizeof(uid_t) == CFUSES_ARG_VLEN(cfuses_arg));
-
-            data = (UINT8 *)&CFUSES_ARG_V_UID(cfuses_arg);
-            cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
-            ASSERT(sizeof(uid_t) == len);
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_GID:
-        {
-            UINT32    len;
-            UINT8    *data;
-
-            ASSERT(sizeof(gid_t) == CFUSES_ARG_VLEN(cfuses_arg));
-
-            data = (UINT8 *)&CFUSES_ARG_V_GID(cfuses_arg);
-            cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
-            ASSERT(sizeof(gid_t) == len);
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_OFFT:
-        {
-            UINT32    len;
-            UINT8    *data;
-
-            ASSERT(sizeof(off_t) == CFUSES_ARG_VLEN(cfuses_arg));
-
-            data = (UINT8 *)&CFUSES_ARG_V_OFFT(cfuses_arg);
-            cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
-            ASSERT(sizeof(off_t) == len);
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_SIZE:
-        {
-            UINT32    len;
-            UINT8    *data;
-
-            ASSERT(sizeof(size_t) == CFUSES_ARG_VLEN(cfuses_arg));
-
-            data = (UINT8 *)&CFUSES_ARG_V_SIZE(cfuses_arg);
-            cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
-            ASSERT(sizeof(size_t) == len);
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_INT:
-        {
-            UINT32    len;
-            UINT8    *data;
-
-            ASSERT(sizeof(int) == CFUSES_ARG_VLEN(cfuses_arg));
-
-            data = (UINT8 *)&CFUSES_ARG_V_INT(cfuses_arg);
-            cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
-            ASSERT(sizeof(int) == len);
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_LONG:
-        {
-            UINT32    len;
-            UINT8    *data;
-
-            ASSERT(sizeof(long int) == CFUSES_ARG_VLEN(cfuses_arg));
-
-            data = (UINT8 *)&CFUSES_ARG_V_LONG(cfuses_arg);
-            cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
-            ASSERT(sizeof(long int) == len);
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_UTIME:
-        {
-            UINT32    len;
-
-            ASSERT(sizeof(struct utimbuf) == CFUSES_ARG_VLEN(cfuses_arg));
-            if(NULL_PTR == CFUSES_ARG_V_UTIME(cfuses_arg))
-            {
-                CFUSES_ARG_V_UTIME(cfuses_arg) = safe_malloc(sizeof(struct utimbuf), LOC_CMPIE_0023);
-                if(NULL_PTR == CFUSES_ARG_V_UTIME(cfuses_arg))
-                {
-                    dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cfuses_arg: "
-                                                          "alloc type %ld failed\n",
-                                                          CFUSES_ARG_TYPE(cfuses_arg));
-                    return ((UINT32)-1);
-                }
-                CFUSES_ARG_FLAG(cfuses_arg) = CFUSE_ARG_FLAG_IS_ALLOC;
-            }
-
-            cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, (UINT8 *)CFUSES_ARG_V_UTIME(cfuses_arg), &len);
-            ASSERT(sizeof(struct utimbuf) == len);
-
-            break;
-        }
-        case CFUSES_ARG_TYPE_STATVFS:
-        {
-            UINT32    len;
-
-            ASSERT(sizeof(struct statvfs) == CFUSES_ARG_VLEN(cfuses_arg));
-            if(NULL_PTR == CFUSES_ARG_V_STATVFS(cfuses_arg))
-            {
-                CFUSES_ARG_V_STATVFS(cfuses_arg) = safe_malloc(sizeof(struct statvfs), LOC_CMPIE_0024);
-                if(NULL_PTR == CFUSES_ARG_V_STATVFS(cfuses_arg))
-                {
-                    dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cfuses_arg: "
-                                                          "alloc type %ld failed\n",
-                                                          CFUSES_ARG_TYPE(cfuses_arg));
-                    return ((UINT32)-1);
-                }
-                CFUSES_ARG_FLAG(cfuses_arg) = CFUSE_ARG_FLAG_IS_ALLOC;
-            }
-            cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, (UINT8 *)CFUSES_ARG_V_STATVFS(cfuses_arg), &len);
-            ASSERT(sizeof(struct statvfs) == len);
-
-            break;
-        }
-
-        case CFUSES_ARG_TYPE_STAT:
-        {
-            UINT32    len;
-
-            ASSERT(sizeof(struct stat) == CFUSES_ARG_VLEN(cfuses_arg));
-            if(NULL_PTR == CFUSES_ARG_V_STAT(cfuses_arg))
-            {
-                CFUSES_ARG_V_STAT(cfuses_arg) = safe_malloc(sizeof(struct stat), LOC_CMPIE_0025);
-                if(NULL_PTR == CFUSES_ARG_V_STAT(cfuses_arg))
-                {
-                    dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cfuses_arg: "
-                                                          "alloc type %ld failed\n",
-                                                          CFUSES_ARG_TYPE(cfuses_arg));
-                    return ((UINT32)-1);
-                }
-                CFUSES_ARG_FLAG(cfuses_arg) = CFUSE_ARG_FLAG_IS_ALLOC;
-            }
-            cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, (UINT8 *)CFUSES_ARG_V_STAT(cfuses_arg), &len);
-            ASSERT(sizeof(struct stat) == len);
-
-            break;
-        }
-
-        case CFUSES_ARG_TYPE_TS:
-        {
-            UINT32    len;
-
-            ASSERT(sizeof(struct timespec) == CFUSES_ARG_VLEN(cfuses_arg));
-
-            cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, (UINT8 *)CFUSES_ARG_V_TS_0(cfuses_arg), &len);
-            ASSERT(sizeof(struct timespec) == len);
-
-            cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, (UINT8 *)CFUSES_ARG_V_TS_1(cfuses_arg), &len);
-            ASSERT(sizeof(struct timespec) == len);
-
-            break;
-        }
-
-        case CFUSES_ARG_TYPE_FUSE_DH:
-        {
-            ASSERT(sizeof(struct fuse_dh) == CFUSES_ARG_VLEN(cfuses_arg));
-            if(NULL_PTR == CFUSES_ARG_V_FUSE_DH(cfuses_arg))
-            {
-                CFUSES_ARG_V_FUSE_DH(cfuses_arg) = c_fuse_dh_new();
-                if(NULL_PTR == CFUSES_ARG_V_FUSE_DH(cfuses_arg))
-                {
-                    dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cfuses_arg: "
-                                                          "alloc type %ld failed\n",
-                                                          CFUSES_ARG_TYPE(cfuses_arg));
-                    return ((UINT32)-1);
-                }
-                CFUSES_ARG_FLAG(cfuses_arg) = CFUSE_ARG_FLAG_IS_ALLOC;
-            }
-            cmpi_decode_fuse_dh(comm, in_buff, in_buff_max_len, position, CFUSES_ARG_V_FUSE_DH(cfuses_arg));
-
-            break;
-        }
-
-        default:
-        {
-            dbg_log(SEC_0035_CMPIE, 0)(LOGSTDOUT, "error:cmpi_decode_cfuses_arg: "
-                                                  "unknown type %ld\n",
-                                                  CFUSES_ARG_TYPE(cfuses_arg));
-            return ((UINT32)-1);
-        }
-    }
-
-    return ((UINT32)0);
-}
-
-#endif
-
 
 #ifdef __cplusplus
 }

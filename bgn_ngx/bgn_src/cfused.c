@@ -44,16 +44,87 @@ void cfused_start()
     if(EC_FALSE == cfused_init_flag)
     {
         creg_type_conv_vec_add(TASK_BRD_TYPE_CONV_VEC(task_brd_default_get()),
-            /* type                   */e_dbg_FUSE_DH_ptr,
-            /* type_sizeof            */sizeof(struct fuse_dh *),
+            /* type                   */e_dbg_int_ptr,
+            /* type_sizeof            */sizeof(int *),
             /* pointer_flag           */EC_TRUE,
-            /* var_mm_type            */MM_FUSE_DH,
-            /* init_type_func         */(UINT32)c_fuse_dh_init,
-            /* clean_type_func        */(UINT32)c_fuse_dh_clean,
-            /* free_type_func         */(UINT32)c_fuse_dh_free,
-            /* cmpi_encode_type_func  */(UINT32)cmpi_encode_fuse_dh,
-            /* cmpi_decode_type_func  */(UINT32)cmpi_decode_fuse_dh,
-            /* cmpi_encode_type_size  */(UINT32)cmpi_encode_fuse_dh_size
+            /* var_mm_type            */MM_END,
+            /* new_type_func          */(UINT32)c_i32_new,
+            /* init_type_func         */(UINT32)c_i32_init,
+            /* clean_type_func        */(UINT32)c_i32_clean,
+            /* free_type_func         */(UINT32)c_i32_free,
+            /* cmpi_encode_type_func  */(UINT32)cmpi_encode_i32,
+            /* cmpi_decode_type_func  */(UINT32)cmpi_decode_i32,
+            /* cmpi_encode_type_size  */(UINT32)cmpi_encode_i32_size
+        );
+
+        creg_type_conv_vec_add(TASK_BRD_TYPE_CONV_VEC(task_brd_default_get()),
+            /* type                   */e_dbg_struct_stat_ptr,
+            /* type_sizeof            */sizeof(struct stat *),
+            /* pointer_flag           */EC_TRUE,
+            /* var_mm_type            */MM_END,
+            /* new_type_func          */(UINT32)c_stat_new,
+            /* init_type_func         */(UINT32)c_stat_init,
+            /* clean_type_func        */(UINT32)c_stat_clean,
+            /* free_type_func         */(UINT32)c_stat_free,
+            /* cmpi_encode_type_func  */(UINT32)cmpi_encode_stat,
+            /* cmpi_decode_type_func  */(UINT32)cmpi_decode_stat,
+            /* cmpi_encode_type_size  */(UINT32)cmpi_encode_stat_size
+        );
+
+        creg_type_conv_vec_add(TASK_BRD_TYPE_CONV_VEC(task_brd_default_get()),
+            /* type                   */e_dbg_struct_statvfs_ptr,
+            /* type_sizeof            */sizeof(struct statvfs *),
+            /* pointer_flag           */EC_TRUE,
+            /* var_mm_type            */MM_END,
+            /* new_type_func          */(UINT32)c_statvfs_new,
+            /* init_type_func         */(UINT32)c_statvfs_init,
+            /* clean_type_func        */(UINT32)c_statvfs_clean,
+            /* free_type_func         */(UINT32)c_statvfs_free,
+            /* cmpi_encode_type_func  */(UINT32)cmpi_encode_statvfs,
+            /* cmpi_decode_type_func  */(UINT32)cmpi_decode_statvfs,
+            /* cmpi_encode_type_size  */(UINT32)cmpi_encode_statvfs_size
+        );
+
+        creg_type_conv_vec_add(TASK_BRD_TYPE_CONV_VEC(task_brd_default_get()),
+            /* type                   */e_dbg_struct_timespec_ptr,
+            /* type_sizeof            */sizeof(struct timespec *),
+            /* pointer_flag           */EC_TRUE,
+            /* var_mm_type            */MM_END,
+            /* new_type_func          */(UINT32)c_timespec_new,
+            /* init_type_func         */(UINT32)c_timespec_init,
+            /* clean_type_func        */(UINT32)c_timespec_clean,
+            /* free_type_func         */(UINT32)c_timespec_free,
+            /* cmpi_encode_type_func  */(UINT32)cmpi_encode_timespec,
+            /* cmpi_decode_type_func  */(UINT32)cmpi_decode_timespec,
+            /* cmpi_encode_type_size  */(UINT32)cmpi_encode_timespec_size
+        );
+
+        creg_type_conv_vec_add(TASK_BRD_TYPE_CONV_VEC(task_brd_default_get()),
+            /* type                   */e_dbg_struct_utimbuf_ptr,
+            /* type_sizeof            */sizeof(struct utimbuf *),
+            /* pointer_flag           */EC_TRUE,
+            /* var_mm_type            */MM_END,
+            /* new_type_func          */(UINT32)c_utimbuf_new,
+            /* init_type_func         */(UINT32)c_utimbuf_init,
+            /* clean_type_func        */(UINT32)c_utimbuf_clean,
+            /* free_type_func         */(UINT32)c_utimbuf_free,
+            /* cmpi_encode_type_func  */(UINT32)cmpi_encode_utimbuf,
+            /* cmpi_decode_type_func  */(UINT32)cmpi_decode_utimbuf,
+            /* cmpi_encode_type_size  */(UINT32)cmpi_encode_utimbuf_size
+        );
+
+        creg_type_conv_vec_add(TASK_BRD_TYPE_CONV_VEC(task_brd_default_get()),
+            /* type                   */e_dbg_struct_dirnode_ptr,
+            /* type_sizeof            */sizeof(struct dirnode *),
+            /* pointer_flag           */EC_TRUE,
+            /* var_mm_type            */MM_DIRNODE,
+            /* new_type_func          */(UINT32)c_dirnode_new,
+            /* init_type_func         */(UINT32)c_dirnode_init,
+            /* clean_type_func        */(UINT32)c_dirnode_clean,
+            /* free_type_func         */(UINT32)c_dirnode_free,
+            /* cmpi_encode_type_func  */(UINT32)cmpi_encode_dirnode,
+            /* cmpi_decode_type_func  */(UINT32)cmpi_decode_dirnode,
+            /* cmpi_encode_type_size  */(UINT32)cmpi_encode_dirnode_size
         );
 
         cfused_init_flag = EC_TRUE;
@@ -67,898 +138,518 @@ void cfused_end()
     return;
 }
 
-struct fuse_dh *c_fuse_dh_new()
+
+#if 1
+int *c_i32_new()
 {
-    struct fuse_dh  *dh;
-	dh = (struct fuse_dh *)malloc(sizeof(struct fuse_dh));
-	if (NULL_PTR == dh)
-	{
-		return (NULL_PTR);
-	}
+    int *i32;
 
-    c_fuse_dh_init(dh);
-
-	return (dh);
-}
-
-EC_BOOL c_fuse_dh_init(struct fuse_dh *dh)
-{
-    if(NULL_PTR != dh)
+    i32 = safe_malloc(sizeof(int), LOC_CFUSED_0001);
+    if(NULL_PTR == i32)
     {
-    	memset(dh, 0, sizeof(struct fuse_dh));
-    	dh->fuse        = NULL_PTR;
-    	dh->contents    = NULL_PTR;
-    	dh->first       = NULL_PTR;
-    	dh->len         = 0;
-    	dh->filled      = 0;
-    	dh->nodeid      = 0;
-    	pthread_mutex_init(&dh->lock, NULL);
+        dbg_log(SEC_0034_CFUSED, 0)(LOGSTDOUT, "error:c_i32_new: no memory\n");
+        return (NULL_PTR);
     }
-    return (EC_TRUE);
+
+    c_i32_init(i32);
+    return (i32);
 }
 
-EC_BOOL c_fuse_dh_clean(struct fuse_dh *dh)
+EC_BOOL c_i32_init(int *i32)
 {
-    if(NULL_PTR != dh)
+    if(NULL_PTR != i32)
     {
-        struct fuse_direntry *de;
-
-    	pthread_mutex_lock(&dh->lock);
-    	pthread_mutex_unlock(&dh->lock);
-    	pthread_mutex_destroy(&dh->lock);
-
-        /*free_direntries(dh->first);*/
-        de = dh->first;
-    	while (de)
-    	{
-    		struct fuse_direntry *next = de->next;
-    		free(de->name);
-    		free(de);
-    		de = next;
-	    }
-	    dh->first = NULL_PTR;
-
-	    if(NULL_PTR != dh->fuse)
-	    {
-	        c_fuse_free(dh->fuse);
-	        dh->fuse = NULL_PTR;
-	    }
-
-        if(NULL_PTR != dh->contents)
-        {
-    	    free(dh->contents);
-    	    dh->contents = NULL_PTR;
-    	}
-    	dh->size = 0;
-	}
-
-	return (EC_TRUE);
-}
-
-EC_BOOL c_fuse_dh_free(struct fuse_dh *dh)
-{
-    if(NULL_PTR != dh)
-    {
-        c_fuse_dh_clean(dh);
-    	free(dh);
-	}
-
-	return (EC_TRUE);
-}
-
-struct fuse *c_fuse_new()
-{
-    struct fuse *f;
-
-	f = (struct fuse *)calloc(1, sizeof(struct fuse));
-	if (NULL_PTR == f)
-	{
-		return (NULL_PTR);
-	}
-
-    c_fuse_init(f);
-
-	return (f);
-}
-
-EC_BOOL c_fuse_init(struct fuse *f)
-{
-    if(NULL_PTR != f)
-    {
-    	INIT_LIST_BASE_HEAD(&f->partial_slabs);
-    	INIT_LIST_BASE_HEAD(&f->full_slabs);
-    	INIT_LIST_BASE_HEAD(&f->lru_table);
+        (*i32) = 0;
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL c_fuse_clean(struct fuse *f)
+EC_BOOL c_i32_clean(int *i32)
 {
-    if(NULL_PTR != f)
+    if(NULL_PTR != i32)
     {
-        if(NULL_PTR != f->id_table.array)
-        {
-    	    free(f->id_table.array);
-    	    f->id_table.array = NULL_PTR;
-    	}
-
-    	if(NULL_PTR != f->name_table.array)
-    	{
-    	    free(f->name_table.array);
-    	    f->name_table.array = NULL_PTR;
-    	}
-
-        if(NULL_PTR != f->fs)
-        {
-    	    free(f->fs);
-    	    f->fs = NULL_PTR;
-    	}
-
-    	if(NULL_PTR != f->conf.modules)
-    	{
-    	    free(f->conf.modules);
-    	    f->conf.modules = NULL_PTR;
-    	}
+        (*i32) = 0;
     }
 
     return (EC_TRUE);
 }
 
-EC_BOOL c_fuse_free(struct fuse *f)
+EC_BOOL c_i32_free(int *i32)
 {
-    if(NULL_PTR != f)
+    if(NULL_PTR != i32)
     {
-        c_fuse_clean(f);
-        free(f);
+        c_i32_clean(i32);
+        safe_free(i32, LOC_CFUSED_0002);
     }
-
     return (EC_TRUE);
 }
 
-UINT32 cmpi_encode_fuse_direntry(const UINT32 comm, const struct fuse_direntry *de, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+
+UINT32 cmpi_encode_i32(const UINT32 comm, const int *i32, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
 {
-    UINT32  len;
-    UINT8  *data;
-
-    len  = sizeof(struct stat);
-    data = (UINT8 *)&de->stat;
-    cmpi_encode_uint8_array(comm, data, len, out_buff, out_buff_max_len, position);
-
-    len  = strlen(de->name);
-    data = (UINT8 *)de->name;
-    cmpi_encode_uint32(comm, len, out_buff, out_buff_max_len, position);
-    cmpi_encode_uint8_array(comm, data, len, out_buff, out_buff_max_len, position);
-
+    cmpi_encode_uint8_array(comm, (UINT8 *)i32, sizeof(int), out_buff, out_buff_max_len, position);
     return ((UINT32)0);
 }
 
-UINT32 cmpi_encode_fuse_direntry_size(const UINT32 comm, const struct fuse_direntry *de, UINT32 *size)
+UINT32 cmpi_encode_i32_size(const UINT32 comm, const int *i32, UINT32 *size)
 {
-    UINT32  len;
-    UINT8  *data;
-
-    len  = sizeof(struct stat);
-    data = (UINT8 *)&de->stat;
-    cmpi_encode_uint8_array_size(comm, data, len, size);
-
-    len  = strlen(de->name);
-    data = (UINT8 *)de->name;
-    cmpi_encode_uint32_size(comm, len, size);
-    cmpi_encode_uint8_array_size(comm, data, len, size);
-
+    cmpi_encode_uint8_array_size(comm, (UINT8 *)i32, sizeof(int), size);
     return ((UINT32)0);
 }
 
-UINT32 cmpi_decode_fuse_direntry(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct fuse_direntry *de)
+UINT32 cmpi_decode_i32(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, int *i32)
 {
-    UINT32  len;
-    UINT8  *data;
-
-    data = (UINT8 *)&de->stat;
-    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
-    ASSERT(len == sizeof(struct stat));
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &len);
-    data = malloc(len + 1);
-    ASSERT(NULL_PTR != data);
-    data[ len ] = 0x00;
-    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
-    de->name = (char *)data;
-
-    de->next = NULL_PTR;
-
-    return ((UINT32)0);
-}
-
-UINT32 cmpi_encode_fuse_dh(const UINT32 comm, const struct fuse_dh *dh, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
-{
-    UINT32      num;
-    uint64_t    nodeid;
-
-    struct fuse_direntry    *de;
-
-    ASSERT(NULL_PTR != dh->fuse);
-    cmpi_encode_fuse(comm, dh->fuse, out_buff, out_buff_max_len, position);
-
-    num = dh->len;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    num = dh->needlen;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    num = dh->filled;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    num = dh->size;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    num = dh->error;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    nodeid = dh->nodeid;
-    cmpi_encode_uint64(comm, nodeid, out_buff, out_buff_max_len, position);
-
-    num = dh->size;
-    cmpi_encode_uint8_array(comm, (UINT8 *)dh->contents, num, out_buff, out_buff_max_len, position);
-
-    for(de = dh->first, num = 0; NULL_PTR != de; de = de->next, num ++)
-    {
-        /*do nothing*/
-    }
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    for(de = dh->first; NULL_PTR != de; de = de->next)
-    {
-        cmpi_encode_fuse_direntry(comm, de, out_buff, out_buff_max_len, position);
-    }
-
-    return ((UINT32)0);
-}
-
-UINT32 cmpi_encode_fuse_dh_size(const UINT32 comm, const struct fuse_dh *dh, UINT32 *size)
-{
-    UINT32      num;
-    uint64_t    nodeid;
-
-    struct fuse_direntry    *de;
-
-    ASSERT(NULL_PTR != dh->fuse);
-    cmpi_encode_fuse_size(comm, dh->fuse, size);
-
-    num = dh->len;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    num = dh->needlen;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    num = dh->filled;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    num = dh->size;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    num = dh->error;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    nodeid = dh->nodeid;
-    cmpi_encode_uint64_size(comm, nodeid, size);
-
-    num = dh->size;
-    cmpi_encode_uint8_array_size(comm, (UINT8 *)dh->contents, num, size);
-
-    for(de = dh->first, num = 0; NULL_PTR != de; de = de->next, num ++)
-    {
-        /*do nothing*/
-    }
-    cmpi_encode_uint32_size(comm, num, size);
-
-    for(de = dh->first; NULL_PTR != de; de = de->next)
-    {
-        cmpi_encode_fuse_direntry_size(comm, de, size);
-    }
-
-    return ((UINT32)0);
-}
-
-UINT32 cmpi_decode_fuse_dh(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct fuse_dh *dh)
-{
-    UINT32      num;
-    uint64_t    nodeid;
-    char       *contents;
-
-    struct fuse_direntry    *de;
-
-    if(NULL_PTR == dh->fuse)
-    {
-        dh->fuse = c_fuse_new();
-        ASSERT(NULL_PTR != dh->fuse);
-    }
-    cmpi_decode_fuse(comm, in_buff, in_buff_max_len, position, dh->fuse);
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    dh->len = (unsigned)num;
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    dh->needlen = (unsigned)num;
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    dh->filled = (int)num;
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    dh->size = (unsigned)num;
-
-    contents = (char *)realloc(dh->contents, dh->size);
-    ASSERT(NULL_PTR != contents);
-    dh->contents = contents;
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    dh->error = (int)num;
-
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &nodeid);
-    dh->nodeid = nodeid;
-
-    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, (UINT8 *)dh->contents, &num);
-    ASSERT(num == (UINT32)dh->size);
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-
-    if(NULL_PTR == dh->last)
-    {
-        dh->last = &dh->first;
-    }
-
-    for(;num -- > 0;)
-    {
-        de = calloc(1, sizeof(struct fuse_direntry));
-        cmpi_decode_fuse_direntry(comm, in_buff, in_buff_max_len, position,de);
-
-    	*dh->last = de;
-    	dh->last = &de->next;
-    }
-
-    return ((UINT32)0);
-}
-
-UINT32 cmpi_encode_fuse_node(const UINT32 comm, const struct node *node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
-{
-    UINT32      num;
     UINT32      len;
-    UINT8      *data;
-    uint64_t    u64;
-
-    u64 = node->nodeid;
-    cmpi_encode_uint64(comm, u64, out_buff, out_buff_max_len, position);
-
-    num = node->generation;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    num = node->refctr;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    data = (UINT8 *)(node->name);
-    len  = strlen(node->name);
-    cmpi_encode_uint32(comm, len, out_buff, out_buff_max_len, position);
-    cmpi_encode_uint8_array(comm, data, len, out_buff, out_buff_max_len, position);
-
-    u64 = node->nlookup;
-    cmpi_encode_uint64(comm, u64, out_buff, out_buff_max_len, position);
-
-    num = node->open_count;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    data = (UINT8 *)&(node->stat_updated);
-    len  = sizeof(struct timespec);
-    cmpi_encode_uint8_array(comm, data, len, out_buff, out_buff_max_len, position);
-
-    data = (UINT8 *)&(node->mtime);
-    len  = sizeof(struct timespec);
-    cmpi_encode_uint8_array(comm, data, len, out_buff, out_buff_max_len, position);
-
-    u64 = node->size;
-    cmpi_encode_uint64(comm, u64, out_buff, out_buff_max_len, position);
-
-    num = node->is_hidden;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    num = node->cache_valid;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    num = node->treelock;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    data = (UINT8 *)(node->inline_name);
-    len  = 32;
-    cmpi_encode_uint8_array(comm, data, len, out_buff, out_buff_max_len, position);
+    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, (UINT8 *)i32, &len);
+    ASSERT(sizeof(int) == len);
 
     return ((UINT32)0);
 }
+#endif
 
-UINT32 cmpi_encode_fuse_node_size(const UINT32 comm, const struct node *node, UINT32 *size)
+
+#if 1
+struct stat *c_stat_new()
 {
-    UINT32      num;
-    UINT32      len;
-    UINT8      *data;
-    uint64_t    u64;
+    struct stat *stat;
 
-    u64 = node->nodeid;
-    cmpi_encode_uint64_size(comm, u64, size);
+    stat = safe_malloc(sizeof(struct stat), LOC_CFUSED_0003);
+    if(NULL_PTR == stat)
+    {
+        dbg_log(SEC_0034_CFUSED, 0)(LOGSTDOUT, "error:c_stat_new: no memory\n");
+        return (NULL_PTR);
+    }
 
-    num = node->generation;
-    cmpi_encode_uint32_size(comm, num, size);
+    c_stat_init(stat);
+    return (stat);
+}
 
-    num = node->refctr;
-    cmpi_encode_uint32_size(comm, num, size);
+EC_BOOL c_stat_init(struct stat *stat)
+{
+    if(NULL_PTR != stat)
+    {
+        BSET(stat, 0x00, sizeof(struct stat));
+    }
 
-    data = (UINT8 *)(node->name);
-    len  = strlen(node->name);
-    cmpi_encode_uint32_size(comm, len, size);
-    cmpi_encode_uint8_array_size(comm, data, len, size);
+    return (EC_TRUE);
+}
 
-    u64 = node->nlookup;
-    cmpi_encode_uint64_size(comm, u64, size);
+EC_BOOL c_stat_clean(struct stat *stat)
+{
+    if(NULL_PTR != stat)
+    {
+        BSET(stat, 0x00, sizeof(struct stat));
+    }
 
-    num = node->open_count;
-    cmpi_encode_uint32_size(comm, num, size);
+    return (EC_TRUE);
+}
 
-    data = (UINT8 *)&(node->stat_updated);
-    len  = sizeof(struct timespec);
-    cmpi_encode_uint8_array_size(comm, data, len, size);
+EC_BOOL c_stat_free(struct stat *stat)
+{
+    if(NULL_PTR != stat)
+    {
+        c_stat_clean(stat);
+        safe_free(stat, LOC_CFUSED_0004);
+    }
+    return (EC_TRUE);
+}
 
-    data = (UINT8 *)&(node->mtime);
-    len  = sizeof(struct timespec);
-    cmpi_encode_uint8_array_size(comm, data, len, size);
 
-    u64 = node->size;
-    cmpi_encode_uint64_size(comm, u64, size);
-
-    num = node->is_hidden;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    num = node->cache_valid;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    num = node->treelock;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    data = (UINT8 *)(node->inline_name);
-    len  = 32;
-    cmpi_encode_uint8_array_size(comm, data, len, size);
-
+UINT32 cmpi_encode_stat(const UINT32 comm, const struct stat *stat, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+    cmpi_encode_uint8_array(comm, (UINT8 *)stat, sizeof(struct stat), out_buff, out_buff_max_len, position);
     return ((UINT32)0);
 }
 
-UINT32 cmpi_decode_fuse_node(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct node *node)
+UINT32 cmpi_encode_stat_size(const UINT32 comm, const struct stat *stat, UINT32 *size)
 {
-    UINT32      num;
+    cmpi_encode_uint8_array_size(comm, (UINT8 *)stat, sizeof(struct stat), size);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_stat(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct stat *stat)
+{
     UINT32      len;
-    UINT8      *data;
-    uint64_t    u64;
+    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, (UINT8 *)stat, &len);
+    ASSERT(sizeof(struct stat) == len);
 
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &u64);
-    node->nodeid = u64;
+    return ((UINT32)0);
+}
+#endif
 
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    node->generation = (unsigned int)num;
 
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    node->refctr = (int)num;
+#if 1
+struct statvfs *c_statvfs_new()
+{
+    struct statvfs *statvfs;
 
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &len);
-    data = malloc(len + 1);
-    ASSERT(NULL_PTR != data);
-    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
-    data[ len ] = 0x00;
+    statvfs = safe_malloc(sizeof(struct statvfs), LOC_CFUSED_0005);
+    if(NULL_PTR == statvfs)
+    {
+        dbg_log(SEC_0034_CFUSED, 0)(LOGSTDOUT, "error:c_statvfs_new: no memory\n");
+        return (NULL_PTR);
+    }
 
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &u64);
-    node->nlookup = u64;
+    c_statvfs_init(statvfs);
+    return (statvfs);
+}
 
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    node->open_count = (int)num;
+EC_BOOL c_statvfs_init(struct statvfs *statvfs)
+{
+    if(NULL_PTR != statvfs)
+    {
+        BSET(statvfs, 0x00, sizeof(struct statvfs));
+    }
 
-    data = (UINT8 *)&(node->stat_updated);
-    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
+    return (EC_TRUE);
+}
+
+EC_BOOL c_statvfs_clean(struct statvfs *statvfs)
+{
+    if(NULL_PTR != statvfs)
+    {
+        BSET(statvfs, 0x00, sizeof(struct statvfs));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_statvfs_free(struct statvfs *statvfs)
+{
+    if(NULL_PTR != statvfs)
+    {
+        c_statvfs_clean(statvfs);
+        safe_free(statvfs, LOC_CFUSED_0006);
+    }
+    return (EC_TRUE);
+}
+
+
+UINT32 cmpi_encode_statvfs(const UINT32 comm, const struct statvfs *statvfs, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+    cmpi_encode_uint8_array(comm, (UINT8 *)statvfs, sizeof(struct statvfs), out_buff, out_buff_max_len, position);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_statvfs_size(const UINT32 comm, const struct statvfs *statvfs, UINT32 *size)
+{
+    cmpi_encode_uint8_array_size(comm, (UINT8 *)statvfs, sizeof(struct statvfs), size);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_statvfs(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct statvfs *statvfs)
+{
+    UINT32      len;
+    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, (UINT8 *)statvfs, &len);
+    ASSERT(sizeof(struct statvfs) == len);
+
+    return ((UINT32)0);
+}
+#endif
+
+#if 1
+struct timespec *c_timespec_new()
+{
+    struct timespec *timespec;
+
+    timespec = safe_malloc(sizeof(struct timespec), LOC_CFUSED_0007);
+    if(NULL_PTR == timespec)
+    {
+        dbg_log(SEC_0034_CFUSED, 0)(LOGSTDOUT, "error:c_timespec_new: no memory\n");
+        return (NULL_PTR);
+    }
+
+    c_timespec_init(timespec);
+    return (timespec);
+}
+
+EC_BOOL c_timespec_init(struct timespec *timespec)
+{
+    if(NULL_PTR != timespec)
+    {
+        BSET(timespec, 0x00, sizeof(struct timespec));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_timespec_clean(struct timespec *timespec)
+{
+    if(NULL_PTR != timespec)
+    {
+        BSET(timespec, 0x00, sizeof(struct timespec));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_timespec_free(struct timespec *timespec)
+{
+    if(NULL_PTR != timespec)
+    {
+        c_timespec_clean(timespec);
+        safe_free(timespec, LOC_CFUSED_0008);
+    }
+    return (EC_TRUE);
+}
+
+
+UINT32 cmpi_encode_timespec(const UINT32 comm, const struct timespec *timespec, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+    cmpi_encode_uint8_array(comm, (UINT8 *)timespec, sizeof(struct timespec), out_buff, out_buff_max_len, position);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_timespec_size(const UINT32 comm, const struct timespec *timespec, UINT32 *size)
+{
+    cmpi_encode_uint8_array_size(comm, (UINT8 *)timespec, sizeof(struct timespec), size);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_timespec(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct timespec *timespec)
+{
+    UINT32      len;
+    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, (UINT8 *)timespec, &len);
     ASSERT(sizeof(struct timespec) == len);
 
-    data = (UINT8 *)&(node->mtime);
+    return ((UINT32)0);
+}
+#endif
+
+
+#if 1
+struct utimbuf *c_utimbuf_new()
+{
+    struct utimbuf *utimbuf;
+
+    utimbuf = safe_malloc(sizeof(struct utimbuf), LOC_CFUSED_0009);
+    if(NULL_PTR == utimbuf)
+    {
+        dbg_log(SEC_0034_CFUSED, 0)(LOGSTDOUT, "error:c_utimbuf_new: no memory\n");
+        return (NULL_PTR);
+    }
+
+    c_utimbuf_init(utimbuf);
+    return (utimbuf);
+}
+
+EC_BOOL c_utimbuf_init(struct utimbuf *utimbuf)
+{
+    if(NULL_PTR != utimbuf)
+    {
+        BSET(utimbuf, 0x00, sizeof(struct utimbuf));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_utimbuf_clean(struct utimbuf *utimbuf)
+{
+    if(NULL_PTR != utimbuf)
+    {
+        BSET(utimbuf, 0x00, sizeof(struct utimbuf));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_utimbuf_free(struct utimbuf *utimbuf)
+{
+    if(NULL_PTR != utimbuf)
+    {
+        c_utimbuf_clean(utimbuf);
+        safe_free(utimbuf, LOC_CFUSED_0010);
+    }
+    return (EC_TRUE);
+}
+
+
+UINT32 cmpi_encode_utimbuf(const UINT32 comm, const struct utimbuf *utimbuf, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+    cmpi_encode_uint8_array(comm, (UINT8 *)utimbuf, sizeof(struct utimbuf), out_buff, out_buff_max_len, position);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_utimbuf_size(const UINT32 comm, const struct utimbuf *utimbuf, UINT32 *size)
+{
+    cmpi_encode_uint8_array_size(comm, (UINT8 *)utimbuf, sizeof(struct utimbuf), size);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_utimbuf(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct utimbuf *utimbuf)
+{
+    UINT32      len;
+    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, (UINT8 *)utimbuf, &len);
+    ASSERT(sizeof(struct utimbuf) == len);
+
+    return ((UINT32)0);
+}
+#endif
+
+
+#if 1
+struct dirnode *c_dirnode_new()
+{
+    struct dirnode *dirnode;
+
+    dirnode = safe_malloc(sizeof(struct dirnode), LOC_CFUSED_0011);
+    if(NULL_PTR == dirnode)
+    {
+        dbg_log(SEC_0034_CFUSED, 0)(LOGSTDOUT, "error:c_dirnode_new: no memory\n");
+        return (NULL_PTR);
+    }
+
+    c_dirnode_init(dirnode);
+    return (dirnode);
+}
+
+EC_BOOL c_dirnode_init(struct dirnode *dirnode)
+{
+    if(NULL_PTR != dirnode)
+    {
+        dirnode->name      = NULL_PTR;
+        dirnode->offset    = 0;
+        dirnode->flags     = 0;
+        BSET(&(dirnode->stat), 0x00, sizeof(struct stat));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_dirnode_clean(struct dirnode *dirnode)
+{
+    if(NULL_PTR != dirnode)
+    {
+        if(NULL_PTR != dirnode->name)
+        {
+            c_str_free(dirnode->name);
+            dirnode->name     = NULL_PTR;
+        }
+
+        dirnode->offset    = 0;
+        dirnode->flags     = 0;
+
+        BSET(&(dirnode->stat), 0x00, sizeof(struct stat));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL c_dirnode_free(struct dirnode *dirnode)
+{
+    if(NULL_PTR != dirnode)
+    {
+        c_dirnode_clean(dirnode);
+        safe_free(dirnode, LOC_CFUSED_0012);
+    }
+    return (EC_TRUE);
+}
+
+UINT32 cmpi_encode_dirnode(const UINT32 comm, const struct dirnode *dirnode, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+    UINT32      num;
+    UINT32      len;
+    UINT8      *data;
+    uint32_t    u32;
+
+    if(NULL_PTR != dirnode->name)
+    {
+        len  = strlen(dirnode->name);
+        data = (UINT8 *)(dirnode->name);
+        cmpi_encode_uint32(comm, len, out_buff, out_buff_max_len, position);
+        cmpi_encode_uint8_array(comm, data, len, out_buff, out_buff_max_len, position);
+    }
+    else
+    {
+        len = 0;
+        cmpi_encode_uint32(comm, len, out_buff, out_buff_max_len, position);
+    }
+
+    len  = sizeof(struct stat);
+    data = (UINT8 *)&(dirnode->stat);
+    cmpi_encode_uint8_array(comm, data, len, out_buff, out_buff_max_len, position);
+
+    num = (UINT32)(dirnode->offset);
+    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
+
+    u32 = dirnode->flags;
+    cmpi_encode_uint32_t(comm, u32, out_buff, out_buff_max_len, position);
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_dirnode_size(const UINT32 comm, const struct dirnode *dirnode, UINT32 *size)
+{
+    UINT32      num;
+    UINT32      len;
+    UINT8      *data;
+    uint32_t    u32;
+
+    if(NULL_PTR != dirnode->name)
+    {
+        len  = strlen(dirnode->name);
+        data = (UINT8 *)(dirnode->name);
+        cmpi_encode_uint32_size(comm, len, size);
+        cmpi_encode_uint8_array_size(comm, data, len, size);
+    }
+    else
+    {
+        len = 0;
+        cmpi_encode_uint32_size(comm, len, size);
+    }
+
+    len  = sizeof(struct stat);
+    data = (UINT8 *)&(dirnode->stat);
+    cmpi_encode_uint8_array_size(comm, data, len, size);
+
+    num = (UINT32)(dirnode->offset);
+    cmpi_encode_uint32_size(comm, num, size);
+
+    u32 = dirnode->flags;
+    cmpi_encode_uint32_t_size(comm, u32, size);
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_dirnode(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct dirnode *dirnode)
+{
+    UINT32      num;
+    UINT32      len;
+    UINT8      *data;
+    uint32_t    u32;
+
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &len);
+    if(0 != len)
+    {
+        data = safe_malloc(len + 1, LOC_CFUSED_0013);
+        num  = len;
+        ASSERT(NULL_PTR != data);
+        cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
+        ASSERT(num == len);
+        data[ len ] = 0x00;
+
+        dirnode->name = (char *)data;
+    }
+    else
+    {
+        dirnode->name = NULL_PTR;
+    }
+
+    data = (UINT8 *)&(dirnode->stat);
     cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
-    ASSERT(sizeof(struct timespec) == len);
-
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &u64);
-    node->size = (off_t)u64;
+    ASSERT(sizeof(struct stat) == len);
 
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    node->is_hidden = (unsigned int)num;
+    dirnode->offset = (off_t)num;
 
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    node->cache_valid = (unsigned int)num;
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    node->treelock = (int)num;
-
-    data = (UINT8 *)(node->inline_name);
-    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
-    ASSERT(32 == len);
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &u32);
+    dirnode->flags = u32;
 
     return ((UINT32)0);
 }
 
-UINT32 cmpi_encode_fuse_node_table(const UINT32 comm, const struct node_table *node_table, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
-{
-    UINT32      num;
-    size_t      idx;
-
-    num = node_table->use;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    num = node_table->size;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    num = node_table->split;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    for(idx = 0; idx < node_table->size; idx ++)
-    {
-        struct node * node;
-
-        node = node_table->array[ idx ];
-        if(NULL_PTR != node)
-        {
-            num = EC_TRUE;
-            cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-            cmpi_encode_fuse_node(comm, node, out_buff, out_buff_max_len, position);
-        }
-        else
-        {
-            num = EC_FALSE;
-            cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-        }
-    }
-
-    return ((UINT32)0);
-}
-
-UINT32 cmpi_encode_fuse_node_table_size(const UINT32 comm, const struct node_table *node_table, UINT32 *size)
-{
-    UINT32      num;
-    size_t      idx;
-
-    num = node_table->use;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    num = node_table->size;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    num = node_table->split;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    for(idx = 0; idx < node_table->size; idx ++)
-    {
-        struct node * node;
-
-        node = node_table->array[ idx ];
-        if(NULL_PTR != node)
-        {
-            num = EC_TRUE;
-            cmpi_encode_uint32_size(comm, num, size);
-            cmpi_encode_fuse_node_size(comm, node, size);
-        }
-        else
-        {
-            num = EC_FALSE;
-            cmpi_encode_uint32_size(comm, num, size);
-        }
-    }
-
-    return ((UINT32)0);
-}
-
-UINT32 cmpi_decode_fuse_node_table(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct node_table *node_table)
-{
-    UINT32      num;
-    size_t      idx;
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    node_table->use = (size_t)num;
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    node_table->size = (size_t)num;
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    node_table->split = (size_t)num;
-
-    node_table->array = calloc(node_table->size, sizeof(struct node *));
-    ASSERT(NULL_PTR != node_table->array);
-
-    for(idx = 0; idx < node_table->size; idx ++)
-    {
-        struct node * node;
-
-        cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-        if(EC_FALSE == num)
-        {
-            node_table->array[ idx ] = NULL_PTR;
-            continue;
-        }
-
-        node = (struct node *) calloc(1, sizeof(struct node));
-        ASSERT(NULL_PTR != node);
-        cmpi_decode_fuse_node(comm, in_buff, in_buff_max_len, position, node);
-        node_table->array[ idx ] = node;
-    }
-
-    return ((UINT32)0);
-}
-
-STATIC_CAST size_t __cmpi_fuse_node_table_locate(const struct node_table *node_table, struct node * node)
-{
-    size_t      idx;
-
-    for(idx = 0; idx < node_table->size; idx ++)
-    {
-        if(NULL_PTR != node_table->array[ idx ]
-        && node == node_table->array[ idx ])
-        {
-            return (idx);
-        }
-    }
-
-    return ((size_t)~0);
-}
-
-UINT32 cmpi_encode_fuse(const UINT32 comm, const struct fuse *f, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
-{
-    UINT32      num;
-    REAL        real;
-    uint64_t    n64;
-
-    size_t      idx;
-    size_t      name_idx;
-    size_t      id_next_idx;
-    size_t      name_next_idx;
-
-    const struct node_table   *id_node_table;
-    const struct node_table   *name_node_table;
-
-    num = f->conf.use_ino;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    num = f->conf.readdir_ino;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    num = f->conf.auto_cache;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    num = f->conf.remember;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    real = f->conf.entry_timeout;
-    cmpi_encode_real(comm, &real, out_buff, out_buff_max_len, position);
-
-    real = f->conf.attr_timeout;
-    cmpi_encode_real(comm, &real, out_buff, out_buff_max_len, position);
-
-    n64 = f->ctr;
-    cmpi_encode_uint64(comm, n64, out_buff, out_buff_max_len, position);
-
-    num = f->generation;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    id_node_table = &(f->id_table);
-    cmpi_encode_fuse_node_table(comm, id_node_table, out_buff, out_buff_max_len, position);
-
-    name_node_table = &(f->name_table);
-    //cmpi_encode_fuse_node_table(comm, name_node_table, out_buff, out_buff_max_len, position);
-
-    ASSERT(name_node_table->use == id_node_table->use);
-    num = name_node_table->use;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    ASSERT(name_node_table->size == id_node_table->size);
-    num = name_node_table->size;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    ASSERT(name_node_table->split == id_node_table->split);
-    num = name_node_table->split;
-    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-    for(idx = 0; idx < name_node_table->size; idx ++)
-    {
-        struct node * name_node;
-
-        name_node = name_node_table->array[ idx ];
-        if(NULL_PTR == name_node)
-        {
-            num = ((size_t)~0);
-            cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-            cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-            cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-        }
-        else
-        {
-            name_idx = __cmpi_fuse_node_table_locate(id_node_table, name_node);
-            ASSERT(((size_t)~0) != name_idx);
-
-            name_next_idx = __cmpi_fuse_node_table_locate(id_node_table, name_node->name_next);
-            ASSERT(((size_t)~0) != name_next_idx);
-
-            id_next_idx   = __cmpi_fuse_node_table_locate(id_node_table  , name_node->id_next);
-            ASSERT(((size_t)~0) != id_next_idx);
-
-            /*{name_idx, name_next_idx, id_next_idx}*/
-            num = name_idx;
-            cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-            num = name_next_idx;
-            cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-
-            num = id_next_idx;
-            cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
-        }
-    }
-
-    return ((UINT32)0);
-}
-
-UINT32 cmpi_encode_fuse_size(const UINT32 comm, const struct fuse *f, UINT32 *size)
-{
-    UINT32      num;
-    REAL        real;
-    uint64_t    n64;
-
-    size_t      idx;
-
-    const struct node_table   *id_node_table;
-    const struct node_table   *name_node_table;
-
-    num = f->conf.use_ino;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    num = f->conf.readdir_ino;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    num = f->conf.auto_cache;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    num = f->conf.remember;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    real = f->conf.entry_timeout;
-    cmpi_encode_real_size(comm, &real, size);
-
-    real = f->conf.attr_timeout;
-    cmpi_encode_real_size(comm, &real, size);
-
-    n64 = f->ctr;
-    cmpi_encode_uint64_size(comm, n64, size);
-
-    num = f->generation;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    id_node_table = &(f->id_table);
-    cmpi_encode_fuse_node_table_size(comm, id_node_table, size);
-
-    name_node_table = &(f->name_table);
-    //cmpi_encode_fuse_node_table_size(comm, node_table, size);
-
-    ASSERT(name_node_table->use == id_node_table->use);
-    num = name_node_table->use;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    ASSERT(name_node_table->size == id_node_table->size);
-    num = name_node_table->size;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    ASSERT(name_node_table->split == id_node_table->split);
-    num = name_node_table->split;
-    cmpi_encode_uint32_size(comm, num, size);
-
-    for(idx = 0; idx < name_node_table->size; idx ++)
-    {
-        /*{name_idx, name_next_idx, id_next_idx}*/
-        num = idx; /*any thing*/
-        cmpi_encode_uint32_size(comm, num, size);
-
-        num = idx;/*any thing*/
-        cmpi_encode_uint32_size(comm, num, size);
-
-        num = idx;/*any thing*/
-        cmpi_encode_uint32_size(comm, num, size);
-    }
-
-    return ((UINT32)0);
-}
-
-UINT32 cmpi_decode_fuse(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct fuse *f)
-{
-    UINT32      num;
-    REAL        real;
-    uint64_t    n64;
-
-    size_t      idx;
-    size_t      name_idx;
-    size_t      id_next_idx;
-    size_t      name_next_idx;
-
-    struct node_table   *id_node_table;
-    struct node_table   *name_node_table;
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    f->conf.use_ino = (int)num;
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    f->conf.readdir_ino = (int)num;
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    f->conf.auto_cache = (int)num;
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    f->conf.remember = (int)num;
-
-    cmpi_decode_real(comm, in_buff, in_buff_max_len, position, &real);
-    f->conf.entry_timeout = real;
-
-    cmpi_decode_real(comm, in_buff, in_buff_max_len, position, &real);
-    f->conf.attr_timeout = real;
-
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &n64);
-    f->ctr = n64;
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    f->generation = (unsigned)num;
-
-    id_node_table = &(f->id_table);
-    cmpi_decode_fuse_node_table(comm, in_buff, in_buff_max_len, position, id_node_table);
-
-    name_node_table = &(f->name_table);
-    //cmpi_decode_fuse_node_table(comm, in_buff, in_buff_max_len, position, node_table);
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    ASSERT((UINT32)id_node_table->use == num);
-    name_node_table->use = (size_t)num;
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    ASSERT((UINT32)id_node_table->size == num);
-    name_node_table->size = (size_t)num;
-
-    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-    ASSERT((UINT32)id_node_table->split == num);
-    name_node_table->split = (size_t)num;
-
-    name_node_table->array = calloc(name_node_table->size, sizeof(struct node *));
-    ASSERT(NULL_PTR != name_node_table->array);
-
-    for(idx = 0; idx < name_node_table->size; idx ++)
-    {
-        struct node     *node;
-        /*{name_idx, name_next_idx, id_next_idx}*/
-
-        cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-        name_idx = (size_t)num;
-
-        cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-        name_next_idx = (size_t)num;
-
-        cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
-        id_next_idx = (size_t)num;
-
-        if((UINT32)((size_t)~0) == name_idx
-        && (UINT32)((size_t)~0) == name_next_idx
-        && (UINT32)((size_t)~0) == id_next_idx)
-        {
-            continue;
-        }
-
-        node = id_node_table->array[ name_idx ];
-        ASSERT(NULL_PTR != node);
-
-        name_node_table->array[ idx ] = node;
-        node->name_next = id_node_table->array[ name_next_idx ];
-        node->id_next   = id_node_table->array[ id_next_idx ];
-    }
-
-    return ((UINT32)0);
-}
+#endif
 
 #ifdef __cplusplus
 }

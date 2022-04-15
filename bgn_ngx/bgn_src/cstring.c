@@ -510,6 +510,37 @@ EC_BOOL cstring_get_char(const CSTRING *cstring, const UINT32 pos, UINT8 *pch)
     return (EC_TRUE);
 }
 
+EC_BOOL cstring_mount(CSTRING *cstring, const UINT8 *str, const UINT32 len, const UINT32 capacity)
+{
+    cstring->str      = (UINT8 *)str;
+    cstring->len      = len;
+    cstring->capacity = len + 1;
+    return (EC_TRUE);
+}
+
+EC_BOOL cstring_umount(CSTRING *cstring, UINT8 **str, UINT32 *len, UINT32 *capacity)
+{
+    if(NULL_PTR != str)
+    {
+        (*str) = cstring->str;
+    }
+    cstring->str = NULL_PTR;
+
+    if(NULL_PTR != len)
+    {
+        (*len) = cstring->len;
+    }
+    cstring->len = 0;
+
+    if(NULL_PTR != capacity)
+    {
+        (*capacity) = cstring->capacity;
+    }
+    cstring->capacity = 0;
+    return (EC_TRUE);
+}
+
+
 EC_BOOL cstring_set_str(CSTRING *cstring, const UINT8 *str)
 {
     //cstring_clean(cstring);

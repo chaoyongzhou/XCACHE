@@ -20,9 +20,10 @@ extern "C"{
 #define CLIST_CODEC_ENCODER         ((UINT32) 1)
 #define CLIST_CODEC_ENCODER_SIZE    ((UINT32) 2)
 #define CLIST_CODEC_DECODER         ((UINT32) 3)
-#define CLIST_CODEC_INIT            ((UINT32) 4)
-#define CLIST_CODEC_CLEAN           ((UINT32) 5)
-#define CLIST_CODEC_FREE            ((UINT32) 6)
+#define CLIST_CODEC_NEW             ((UINT32) 4)
+#define CLIST_CODEC_INIT            ((UINT32) 5)
+#define CLIST_CODEC_CLEAN           ((UINT32) 6)
+#define CLIST_CODEC_FREE            ((UINT32) 7)
 #define CLIST_CODEC_ERROR           ((UINT32)-1)
 
 #define CLIST_CHECKER_DEFAULT       ((CLIST_RETVAL_CHECKER)clist_checker_default)
@@ -47,6 +48,7 @@ typedef struct
     UINT32  (*data_encoder)(const UINT32, const void *, UINT8 *, const UINT32, UINT32 *);
     UINT32  (*data_encoder_size)(const UINT32, const void *, UINT32 *);
     UINT32  (*data_decoder)(const UINT32, const UINT8 *, const UINT32, UINT32 *, void *);
+    void *  (*data_new)();
     EC_BOOL (*data_init)(void *);
     EC_BOOL (*data_clean)(void *);
     EC_BOOL (*data_free)(void *);
@@ -69,6 +71,7 @@ typedef EC_BOOL (*CLIST_DATA_MODI_CLEANER)(const UINT32, void *);
 typedef UINT32  (*CLIST_DATA_ENCODER)(const UINT32, const void *, UINT8 *, const UINT32, UINT32 *);
 typedef UINT32  (*CLIST_DATA_ENCODER_SIZE)(const UINT32, const void *, UINT32 *);
 typedef UINT32  (*CLIST_DATA_DECODER)(const UINT32, const UINT8 *, const UINT32, UINT32 *, void *);
+typedef void *  (*CLIST_DATA_NEW)();
 typedef EC_BOOL (*CLIST_DATA_INIT)(void *);
 typedef EC_BOOL (*CLIST_DATA_CLEAN)(void *);
 typedef EC_BOOL (*CLIST_DATA_FREE)(void *);
@@ -145,6 +148,8 @@ EC_BOOL clist_checker_default(const void * retval);
 UINT32 clist_type(const CLIST *clist);
 
 UINT32 clist_type_set(CLIST *clist, const UINT32 data_mm_type);
+
+UINT32 clist_caller_set(CLIST *clist, const UINT32 choice, const UINT32 caller);
 
 void   clist_codec_set(CLIST *clist, const UINT32 data_mm_type);
 

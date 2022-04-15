@@ -100,6 +100,7 @@ EC_BOOL creg_type_conv_item_init(TYPE_CONV_ITEM *type_conv_item)
     TYPE_CONV_ITEM_VAR_SIZEOF(type_conv_item)       = 0;
     TYPE_CONV_ITEM_VAR_POINTER_FLAG(type_conv_item) = EC_FALSE;
     TYPE_CONV_ITEM_VAR_MM_TYPE(type_conv_item)      = MM_END;
+    TYPE_CONV_ITEM_VAR_NEW_FUNC(type_conv_item)     = 0;
     TYPE_CONV_ITEM_VAR_INIT_FUNC(type_conv_item)    = 0;
     TYPE_CONV_ITEM_VAR_CLEAN_FUNC(type_conv_item)   = 0;
     TYPE_CONV_ITEM_VAR_FREE_FUNC(type_conv_item)    = 0;
@@ -116,6 +117,7 @@ EC_BOOL creg_type_conv_item_clean(TYPE_CONV_ITEM *type_conv_item)
     TYPE_CONV_ITEM_VAR_SIZEOF(type_conv_item)       = 0;
     TYPE_CONV_ITEM_VAR_POINTER_FLAG(type_conv_item) = EC_FALSE;
     TYPE_CONV_ITEM_VAR_MM_TYPE(type_conv_item)      = MM_END;
+    TYPE_CONV_ITEM_VAR_NEW_FUNC(type_conv_item)     = 0;
     TYPE_CONV_ITEM_VAR_INIT_FUNC(type_conv_item)    = 0;
     TYPE_CONV_ITEM_VAR_CLEAN_FUNC(type_conv_item)   = 0;
     TYPE_CONV_ITEM_VAR_FREE_FUNC(type_conv_item)    = 0;
@@ -166,12 +168,14 @@ TYPE_CONV_ITEM *creg_type_conv_vec_get(CVECTOR *type_conv_vec, const UINT32 var_
 
 EC_BOOL creg_type_conv_vec_add(CVECTOR *type_conv_vec,
                                          const UINT32 var_dbg_type, const UINT32 var_sizeof, const UINT32 var_pointer_flag, const UINT32 var_mm_type,
-                                         const UINT32 var_init_func, const UINT32 var_clean_func, const UINT32 var_free_func,
+                                         const UINT32 var_new_func, const UINT32 var_init_func, const UINT32 var_clean_func, const UINT32 var_free_func,
                                          const UINT32 var_encode_func, const UINT32 var_decode_func, const UINT32 var_encode_size
                                          )
 {
     TYPE_CONV_ITEM *type_conv_item;
     UINT32 pos;
+
+    ASSERT(0 != var_new_func || MM_END != var_mm_type);
 
     if(NULL_PTR != cvector_get(type_conv_vec, var_dbg_type))
     {
@@ -195,6 +199,7 @@ EC_BOOL creg_type_conv_vec_add(CVECTOR *type_conv_vec,
     TYPE_CONV_ITEM_VAR_SIZEOF(type_conv_item)       = var_sizeof;
     TYPE_CONV_ITEM_VAR_POINTER_FLAG(type_conv_item) = var_pointer_flag;
     TYPE_CONV_ITEM_VAR_MM_TYPE(type_conv_item)      = var_mm_type;
+    TYPE_CONV_ITEM_VAR_NEW_FUNC(type_conv_item)     = var_new_func;
     TYPE_CONV_ITEM_VAR_INIT_FUNC(type_conv_item)    = var_init_func;
     TYPE_CONV_ITEM_VAR_CLEAN_FUNC(type_conv_item)   = var_clean_func;
     TYPE_CONV_ITEM_VAR_FREE_FUNC(type_conv_item)    = var_free_func;
@@ -213,6 +218,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(UINT32),
         /* pointer_flag           */EC_FALSE,
         /* var_mm_type            */MM_UINT32,
+        /* new_type_func          */0,
         /* init_type_func         */0,/*(UINT32)dbg_init_uint32_ptr*/
         /* clean_type_func        */0,/*(UINT32)dbg_clean_uint32_ptr*/
         /* free_type_func         */0,/*(UINT32)dbg_free_uint32_ptr*/
@@ -226,6 +232,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(UINT16),
         /* pointer_flag           */EC_FALSE,
         /* var_mm_type            */MM_UINT16,
+        /* new_type_func          */0,
         /* init_type_func         */0,
         /* clean_type_func        */0,
         /* free_type_func         */0,
@@ -239,6 +246,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(UINT8),
         /* pointer_flag           */EC_FALSE,
         /* var_mm_type            */MM_UINT8,
+        /* new_type_func          */0,
         /* init_type_func         */0,
         /* clean_type_func        */0,
         /* free_type_func         */0,
@@ -252,6 +260,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(UINT32),
         /* pointer_flag           */EC_FALSE,
         /* var_mm_type            */MM_UINT32,
+        /* new_type_func          */0,
         /* init_type_func         */0,
         /* clean_type_func        */0,
         /* free_type_func         */0,
@@ -265,6 +274,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(EC_BOOL),
         /* pointer_flag           */EC_FALSE,
         /* var_mm_type            */MM_UINT32,
+        /* new_type_func          */0,
         /* init_type_func         */0,
         /* clean_type_func        */0,
         /* free_type_func         */0,
@@ -278,6 +288,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(REAL *),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_REAL,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)real_init,
         /* clean_type_func        */(UINT32)real_clean,
         /* free_type_func         */(UINT32)real_free,
@@ -291,6 +302,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(MOD_MGR *),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_MOD_MGR,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)mod_mgr_init,
         /* clean_type_func        */(UINT32)mod_mgr_clean,
         /* free_type_func         */(UINT32)mod_mgr_free,
@@ -304,6 +316,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CSTRING *),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CSTRING,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cstring_init_0,
         /* clean_type_func        */(UINT32)cstring_clean,
         /* free_type_func         */(UINT32)cstring_free,
@@ -313,23 +326,11 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
     );
 
     creg_type_conv_vec_add(type_conv_vec,
-        /* type                   */e_dbg_CFUSES_ARG_ptr,
-        /* type_sizeof            */sizeof(CFUSES_ARG *),
-        /* pointer_flag           */EC_TRUE,
-        /* var_mm_type            */MM_CFUSES_ARG,
-        /* init_type_func         */(UINT32)cfuses_arg_init,
-        /* clean_type_func        */(UINT32)cfuses_arg_clean,
-        /* free_type_func         */(UINT32)cfuses_arg_free,
-        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_cfuses_arg,
-        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_cfuses_arg,
-        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cfuses_arg_size
-    );
-
-    creg_type_conv_vec_add(type_conv_vec,
         /* type                   */e_dbg_TASKC_MGR_ptr,
         /* type_sizeof            */sizeof(TASKC_MGR *),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_TASKC_MGR,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)taskc_mgr_init,
         /* clean_type_func        */(UINT32)taskc_mgr_clean,
         /* free_type_func         */(UINT32)taskc_mgr_free,
@@ -343,6 +344,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(UINT32),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_UINT32,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)dbg_init_uint32_ptr,
         /* clean_type_func        */(UINT32)dbg_clean_uint32_ptr,
         /* free_type_func         */(UINT32)dbg_free_uint32_ptr,
@@ -356,6 +358,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(LOG),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_LOG,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)log_init,
         /* clean_type_func        */(UINT32)log_clean,
         /* free_type_func         */(UINT32)log_free,
@@ -369,6 +372,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CVECTOR),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CVECTOR,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cvector_init_0,
         /* clean_type_func        */(UINT32)cvector_clean_0,
         /* free_type_func         */(UINT32)cvector_free_0,
@@ -382,6 +386,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(KBUFF),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_KBUFF,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)kbuff_init_0,
         /* clean_type_func        */(UINT32)kbuff_clean_0,
         /* free_type_func         */(UINT32)kbuff_free_0,
@@ -395,6 +400,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CSOCKET_CNODE),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CSOCKET_CNODE,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)csocket_cnode_init,
         /* clean_type_func        */(UINT32)csocket_cnode_clean,
         /* free_type_func         */(UINT32)csocket_cnode_free,
@@ -408,6 +414,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(TASKC_NODE),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_TASKC_NODE,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)taskc_node_init,
         /* clean_type_func        */(UINT32)taskc_node_clean,
         /* free_type_func         */(UINT32)taskc_node_free,
@@ -421,6 +428,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CSYS_CPU_STAT),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CSYS_CPU_STAT,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)csys_cpu_stat_init,
         /* clean_type_func        */(UINT32)csys_cpu_stat_clean,
         /* free_type_func         */(UINT32)csys_cpu_stat_free,
@@ -434,6 +442,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(MM_MAN_OCCUPY_NODE),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_MM_MAN_OCCUPY_NODE,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)mm_man_occupy_node_init,
         /* clean_type_func        */(UINT32)mm_man_occupy_node_clean,
         /* free_type_func         */(UINT32)mm_man_occupy_node_free,
@@ -447,6 +456,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(MM_MAN_LOAD_NODE),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_MM_MAN_LOAD_NODE,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)mm_man_load_node_init,
         /* clean_type_func        */(UINT32)mm_man_load_node_clean,
         /* free_type_func         */(UINT32)mm_man_load_node_free,
@@ -460,6 +470,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(MM_MOD_NODE),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_MOD_NODE,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)mod_node_init,
         /* clean_type_func        */(UINT32)mod_node_clean,
         /* free_type_func         */(UINT32)mod_node_free,
@@ -473,6 +484,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CPROC_MODULE_STAT),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CPROC_MODULE_STAT,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cproc_module_stat_init,
         /* clean_type_func        */(UINT32)cproc_module_stat_clean,
         /* free_type_func         */(UINT32)cproc_module_stat_free,
@@ -486,6 +498,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CRANK_THREAD_STAT),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CRANK_THREAD_STAT,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)crank_thread_stat_init,
         /* clean_type_func        */(UINT32)crank_thread_stat_clean,
         /* free_type_func         */(UINT32)crank_thread_stat_free,
@@ -499,6 +512,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CSYS_ETH_STAT),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CSYS_ETH_STAT,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)csys_eth_stat_init,
         /* clean_type_func        */(UINT32)csys_eth_stat_clean,
         /* free_type_func         */(UINT32)csys_eth_stat_free,
@@ -511,6 +525,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CSYS_DSK_STAT),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CSYS_DSK_STAT,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)csys_dsk_stat_init,
         /* clean_type_func        */(UINT32)csys_dsk_stat_clean,
         /* free_type_func         */(UINT32)csys_dsk_stat_free,
@@ -523,6 +538,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(TASK_REPORT_NODE),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_TASK_REPORT_NODE,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)task_report_node_init,
         /* clean_type_func        */(UINT32)task_report_node_clean,
         /* free_type_func         */(UINT32)task_report_node_free,
@@ -535,6 +551,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CLOAD_STAT),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CLOAD_STAT,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cload_stat_init,
         /* clean_type_func        */(UINT32)cload_stat_clean,
         /* free_type_func         */(UINT32)cload_stat_free,
@@ -547,6 +564,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CLOAD_NODE),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CLOAD_NODE,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cload_node_init_0,
         /* clean_type_func        */(UINT32)cload_node_clean,
         /* free_type_func         */(UINT32)cload_node_free,
@@ -559,6 +577,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CLOAD_MGR),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CLIST,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cload_mgr_init,
         /* clean_type_func        */(UINT32)cload_mgr_clean,
         /* free_type_func         */(UINT32)cload_mgr_free,
@@ -571,6 +590,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CBYTES),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CBYTES,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cbytes_init,
         /* clean_type_func        */(UINT32)cbytes_clean,
         /* free_type_func         */(UINT32)cbytes_free,
@@ -583,6 +603,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CBYTES),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CBYTES,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cbytes_init,
         /* clean_type_func        */(UINT32)cbytes_clean,
         /* free_type_func         */(UINT32)cbytes_free,
@@ -595,6 +616,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(MOD_NODE),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_MOD_NODE,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)mod_node_init,
         /* clean_type_func        */(UINT32)mod_node_clean,
         /* free_type_func         */(UINT32)mod_node_free,
@@ -607,6 +629,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CTIMET),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CTIMET,
+        /* new_type_func          */0,
         /* init_type_func         */0,
         /* clean_type_func        */0,
         /* free_type_func         */0,
@@ -619,6 +642,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CSESSION_NODE),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CSESSION_NODE,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)csession_node_init,
         /* clean_type_func        */(UINT32)csession_node_clean,
         /* free_type_func         */(UINT32)csession_node_free,
@@ -631,6 +655,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CSESSION_ITEM),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CSESSION_ITEM,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)csession_item_init,
         /* clean_type_func        */(UINT32)csession_item_clean,
         /* free_type_func         */(UINT32)csession_item_free,
@@ -643,6 +668,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CLIST),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CLIST,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)clist_init_0,
         /* clean_type_func        */(UINT32)clist_clean_0,
         /* free_type_func         */(UINT32)clist_free_0,
@@ -655,6 +681,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CXFSNP_KEY),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CXFSNP_KEY,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cxfsnp_key_init,
         /* clean_type_func        */(UINT32)cxfsnp_key_clean,
         /* free_type_func         */(UINT32)cxfsnp_key_free,
@@ -667,6 +694,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CXFSNP_ITEM),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CXFSNP_ITEM,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cxfsnp_item_init,
         /* clean_type_func        */(UINT32)cxfsnp_item_clean,
         /* free_type_func         */(UINT32)cxfsnp_item_free,
@@ -679,6 +707,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CXFSNP_FNODE),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CXFSNP_FNODE,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cxfsnp_fnode_init,
         /* clean_type_func        */(UINT32)cxfsnp_fnode_clean,
         /* free_type_func         */(UINT32)cxfsnp_fnode_free,
@@ -691,6 +720,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CMON_NODE),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CMON_NODE,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cmon_node_init,
         /* clean_type_func        */(UINT32)cmon_node_clean,
         /* free_type_func         */(UINT32)cmon_node_free,
@@ -703,6 +733,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(uint64_t),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_UINT64,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)dbg_init_uint64_ptr,
         /* clean_type_func        */(UINT32)dbg_clean_uint64_ptr,
         /* free_type_func         */(UINT32)dbg_free_uint64_ptr,
@@ -715,6 +746,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CMD5_DIGEST),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CMD5_DIGEST,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cmd5_digest_init,
         /* clean_type_func        */(UINT32)cmd5_digest_clean,
         /* free_type_func         */(UINT32)cmd5_digest_free,
@@ -727,6 +759,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CBUFFER),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CBUFFER,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cbuffer_init,
         /* clean_type_func        */(UINT32)cbuffer_clean,
         /* free_type_func         */(UINT32)cbuffer_free,
@@ -740,6 +773,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CSTRKV),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CSTRKV,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cstrkv_init_0,
         /* clean_type_func        */(UINT32)cstrkv_clean,
         /* free_type_func         */(UINT32)cstrkv_free,
@@ -753,6 +787,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CSTRKV_MGR),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CSTRKV_MGR,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cstrkv_mgr_init,
         /* clean_type_func        */(UINT32)cstrkv_mgr_clean,
         /* free_type_func         */(UINT32)cstrkv_mgr_free,
@@ -766,6 +801,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CHTTP_REQ),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CHTTP_REQ,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)chttp_req_init,
         /* clean_type_func        */(UINT32)chttp_req_clean,
         /* free_type_func         */(UINT32)chttp_req_free,
@@ -779,6 +815,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CHTTP_RSP),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CHTTP_RSP,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)chttp_rsp_init,
         /* clean_type_func        */(UINT32)chttp_rsp_clean,
         /* free_type_func         */(UINT32)chttp_rsp_free,
@@ -792,6 +829,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CHTTP_STAT),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CHTTP_STAT,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)chttp_stat_init,
         /* clean_type_func        */(UINT32)chttp_stat_clean,
         /* free_type_func         */(UINT32)chttp_stat_free,
@@ -805,6 +843,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CHTTP_STORE),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CHTTP_STORE,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)chttp_store_init,
         /* clean_type_func        */(UINT32)chttp_store_clean,
         /* free_type_func         */(UINT32)chttp_store_free,
@@ -818,6 +857,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(TASKS_NODE),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_TASKS_NODE,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)tasks_node_init_0,
         /* clean_type_func        */(UINT32)tasks_node_clean,
         /* free_type_func         */(UINT32)tasks_node_free,
@@ -830,6 +870,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CTDNSSV_NODE_MGR),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CTDNSSV_NODE_MGR,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)ctdnssv_node_mgr_init,
         /* clean_type_func        */(UINT32)ctdnssv_node_mgr_clean,
         /* free_type_func         */(UINT32)ctdnssv_node_mgr_free,
@@ -842,6 +883,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CTDNSSV_NODE),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CTDNSSV_NODE,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)ctdnssv_node_init,
         /* clean_type_func        */(UINT32)ctdnssv_node_clean,
         /* free_type_func         */(UINT32)ctdnssv_node_free,
@@ -854,6 +896,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CP2P_FILE),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CP2P_FILE,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cp2p_file_init,
         /* clean_type_func        */(UINT32)cp2p_file_clean,
         /* free_type_func         */(UINT32)cp2p_file_free,
@@ -866,6 +909,7 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* type_sizeof            */sizeof(CP2P_CMD),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_CP2P_CMD,
+        /* new_type_func          */0,
         /* init_type_func         */(UINT32)cp2p_cmd_init,
         /* clean_type_func        */(UINT32)cp2p_cmd_clean,
         /* free_type_func         */(UINT32)cp2p_cmd_free,

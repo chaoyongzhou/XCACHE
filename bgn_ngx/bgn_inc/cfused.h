@@ -112,39 +112,86 @@ struct fuse {
 	pthread_t               prune_thread;
 };
 
+/*definition for readdir interface*/
+struct dirnode
+{
+    char                   *name;
+    struct stat             stat;
+    off_t                   offset;
+    uint32_t                flags;
+    uint32_t                rsvd;
+};
+
 void cfused_start();
 void cfused_end();
 
-struct fuse_dh *c_fuse_dh_new();
-EC_BOOL c_fuse_dh_init(struct fuse_dh *dh);
-EC_BOOL c_fuse_dh_clean(struct fuse_dh *dh);
-EC_BOOL c_fuse_dh_free(struct fuse_dh *dh);
+#if 1
+int *c_i32_new();
+EC_BOOL c_i32_init(int *i32);
+EC_BOOL c_i32_clean(int *i32);
+EC_BOOL c_i32_free(int *i32);
 
-struct fuse *c_fuse_new();
-EC_BOOL c_fuse_init(struct fuse *f);
-EC_BOOL c_fuse_clean(struct fuse *f);
-EC_BOOL c_fuse_free(struct fuse *f);
+UINT32 cmpi_encode_i32(const UINT32 comm, const int *i32, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
+UINT32 cmpi_encode_i32_size(const UINT32 comm, const int *i32, UINT32 *size);
+UINT32 cmpi_decode_i32(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, int *i32);
+#endif
 
-UINT32 cmpi_encode_fuse_direntry(const UINT32 comm, const struct fuse_direntry *de, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_fuse_direntry_size(const UINT32 comm, const struct fuse_direntry *de, UINT32 *size);
-UINT32 cmpi_decode_fuse_direntry(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct fuse_direntry *de);
+#if 1
+struct stat *c_stat_new();
+EC_BOOL c_stat_init(struct stat *stat);
+EC_BOOL c_stat_clean(struct stat *stat);
+EC_BOOL c_stat_free(struct stat *stat);
 
-UINT32 cmpi_encode_fuse_dh(const UINT32 comm, const struct fuse_dh *dh, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_fuse_dh_size(const UINT32 comm, const struct fuse_dh *dh, UINT32 *size);
-UINT32 cmpi_decode_fuse_dh(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct fuse_dh *dh);
+UINT32 cmpi_encode_stat(const UINT32 comm, const struct stat *stat, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
+UINT32 cmpi_encode_stat_size(const UINT32 comm, const struct stat *stat, UINT32 *size);
+UINT32 cmpi_decode_stat(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct stat *stat);
+#endif
 
-UINT32 cmpi_encode_fuse_node(const UINT32 comm, const struct node *node, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_fuse_node_size(const UINT32 comm, const struct node *node, UINT32 *size);
-UINT32 cmpi_decode_fuse_node(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct node *node);
 
-UINT32 cmpi_encode_fuse_node_table(const UINT32 comm, const struct node_table *node_table, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_fuse_node_table_size(const UINT32 comm, const struct node_table *node_table, UINT32 *size);
-UINT32 cmpi_decode_fuse_node_table(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct node_table *node_table);
+#if 1
+struct statvfs *c_statvfs_new();
+EC_BOOL c_statvfs_init(struct statvfs *statvfs);
+EC_BOOL c_statvfs_clean(struct statvfs *statvfs);
+EC_BOOL c_statvfs_free(struct statvfs *statvfs);
 
-UINT32 cmpi_encode_fuse(const UINT32 comm, const struct fuse *f, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
-UINT32 cmpi_encode_fuse_size(const UINT32 comm, const struct fuse *f, UINT32 *size);
-UINT32 cmpi_decode_fuse(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct fuse *f);
+UINT32 cmpi_encode_statvfs(const UINT32 comm, const struct statvfs *statvfs, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
+UINT32 cmpi_encode_statvfs_size(const UINT32 comm, const struct statvfs *statvfs, UINT32 *size);
+UINT32 cmpi_decode_statvfs(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct statvfs *statvfs);
+#endif
 
+#if 1
+struct timespec *c_timespec_new();
+EC_BOOL c_timespec_init(struct timespec *timespec);
+EC_BOOL c_timespec_clean(struct timespec *timespec);
+EC_BOOL c_timespec_free(struct timespec *timespec);
+
+UINT32 cmpi_encode_timespec(const UINT32 comm, const struct timespec *timespec, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
+UINT32 cmpi_encode_timespec_size(const UINT32 comm, const struct timespec *timespec, UINT32 *size);
+UINT32 cmpi_decode_timespec(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct timespec *timespec);
+#endif
+
+#if 1
+struct utimbuf *c_utimbuf_new();
+EC_BOOL c_utimbuf_init(struct utimbuf *utimbuf);
+EC_BOOL c_utimbuf_clean(struct utimbuf *utimbuf);
+EC_BOOL c_utimbuf_free(struct utimbuf *utimbuf);
+
+UINT32 cmpi_encode_utimbuf(const UINT32 comm, const struct utimbuf *utimbuf, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
+UINT32 cmpi_encode_utimbuf_size(const UINT32 comm, const struct utimbuf *utimbuf, UINT32 *size);
+UINT32 cmpi_decode_utimbuf(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct utimbuf *utimbuf);
+#endif
+
+
+#if 1
+struct dirnode *c_dirnode_new();
+EC_BOOL c_dirnode_init(struct dirnode *dirnode);
+EC_BOOL c_dirnode_clean(struct dirnode *dirnode);
+EC_BOOL c_dirnode_free(struct dirnode *dirnode);
+
+UINT32 cmpi_encode_dirnode(const UINT32 comm, const struct dirnode *dirnode, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position);
+UINT32 cmpi_encode_dirnode_size(const UINT32 comm, const struct dirnode *dirnode, UINT32 *size);
+UINT32 cmpi_decode_dirnode(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct dirnode *dirnode);
+#endif
 
 #endif /*_CFUSED_H*/
 

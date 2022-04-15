@@ -187,11 +187,11 @@ extern "C"{
 #define                     MM_SDISC_CFG    ((UINT32)118)
 #define        MM_CUNIXPACKET_AGENT_NODE    ((UINT32)119)
 #define                 MM_CPARACFG_NODE    ((UINT32)120)
-#define                    MM_CFUSES_ARG    ((UINT32)121)
+#define                        MM_000121    ((UINT32)121) /*-- obsolete --*/
 #define                MM_COROUTINE_TASK    ((UINT32)122)
 #define                MM_COROUTINE_NODE    ((UINT32)123)
 #define                MM_COROUTINE_POOL    ((UINT32)124)
-#define                       MM_FUSE_DH    ((UINT32)125)
+#define                       MM_DIRNODE    ((UINT32)125)
 #define                        MM_000126    ((UINT32)126) /*-- obsolete --*/
 #define                        MM_000127    ((UINT32)127) /*-- obsolete --*/
 #define                        MM_000128    ((UINT32)128) /*-- obsolete --*/

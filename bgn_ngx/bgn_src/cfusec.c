@@ -21,6 +21,7 @@ extern "C"{
 #include <x86_64-linux-gnu/sys/xattr.h>
 
 #include <fuse.h>
+#include <fuse_lowlevel.h>
 
 #include "type.h"
 #include "mm.h"
@@ -40,22 +41,6 @@ extern "C"{
 /*----------------------------------------------------------------------------*\
  *                             CFUSE CLIENT                                   *
 \*----------------------------------------------------------------------------*/
-
-#define CFUSEC_ASSERT(cond)     ASSERT(cond)
-
-#define CFUSEC_DEBUG_ENTER(func_name) \
-    dbg_log(SEC_0031_CFUSEC, 9)(LOGSTDOUT, "[DEBUG] " func_name ": enter\n")
-
-#define CFUSEC_DEBUG_LEAVE(func_name) \
-    dbg_log(SEC_0031_CFUSEC, 9)(LOGSTDOUT, "[DEBUG] " func_name ": leave\n")
-
-#define CFUSEC_DEBUG_INIT(param)    cfuses_arg_init(param)
-#define CFUSEC_DEBUG_CLEAN(param)   cfuses_arg_clean(param)
-
-static struct fuse_operations g_cfusec_op;
-static EC_BOOL  g_cfuses_mod_node_init_flag = EC_FALSE;
-static MOD_NODE g_cfuses_mod_node;
-
 #if 0
 /** Major version of FUSE library interface */
 #define FUSE_MAJOR_VERSION 3
@@ -557,6 +542,27 @@ struct fuse_operations {
 };
 #endif
 
+
+#define CFUSEC_ASSERT(cond)     ASSERT(cond)
+
+#define CFUSEC_DEBUG_ENTER(func_name) \
+    dbg_log(SEC_0031_CFUSEC, 9)(LOGSTDOUT, "[DEBUG] " func_name ": enter\n")
+
+#define CFUSEC_DEBUG_LEAVE(func_name) \
+    dbg_log(SEC_0031_CFUSEC, 9)(LOGSTDOUT, "[DEBUG] " func_name ": leave\n")
+
+
+static struct fuse_operations   g_cfusec_op;
+static EC_BOOL                  g_cfuses_mod_node_init_flag = EC_FALSE;
+static MOD_NODE                 g_cfuses_mod_node;
+static struct fuse             *g_fuse = NULL_PTR;
+
+extern int fuse_session_receive_buf(struct fuse_session *se, struct fuse_buf *buf);
+extern void fuse_session_process_buf(struct fuse_session *se, const struct fuse_buf *buf);
+
+STATIC_CAST EC_BOOL __cfusec_session_do(struct fuse_session *se);
+STATIC_CAST EC_BOOL __cfusec_session_launch(struct fuse_session *se);
+
 struct fuse_operations *cfusec_get_ops()
 {
     if(EC_FALSE == g_cfuses_mod_node_init_flag)
@@ -566,29 +572,198 @@ struct fuse_operations *cfusec_get_ops()
     return (&g_cfusec_op);
 }
 
+STATIC_CAST EC_BOOL __cfusec_session_do(struct fuse_session *se)
+{
+    int             res;
+    struct fuse_buf fbuf;
+
+    fbuf.mem = NULL_PTR;
+
+    if(fuse_session_exited(se))
+    {
+        fuse_session_reset(se);
+        task_brd_default_abort();
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "[DEBUG] __cfusec_session_do: receive\n");
+	res = fuse_session_receive_buf(se, &fbuf);
+	if(res == -EINTR)
+	{
+	    free(fbuf.mem);
+		return (EC_TRUE);
+	}
+	dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "[DEBUG] __cfusec_session_do: receive res %d\n", res);
+
+#if 0
+    if(0 != se->error)
+    {
+        free(fbuf.mem);
+
+        fuse_session_reset(se);
+        task_brd_default_abort();
+        return (EC_FALSE);
+    }
+#endif
+    if(0 > res)
+    {
+        free(fbuf.mem);
+
+        fuse_session_reset(se);
+        task_brd_default_abort();
+        return (EC_FALSE);
+    }
+
+    if(0 == res)
+    {
+        free(fbuf.mem);
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "[DEBUG] __cfusec_session_do: process, flags %d, mem %p\n",
+                                           fbuf.flags, fbuf.mem);
+    fuse_session_process_buf(se, &fbuf);
+    dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "[DEBUG] __cfusec_session_do: process done\n");
+
+    free(fbuf.mem);
+
+    task_brd_process_add(task_brd_default_get(),
+            (TASK_BRD_CALLBACK)__cfusec_session_launch,
+            (void *)se);
+	return (EC_TRUE);
+}
+
+STATIC_CAST EC_BOOL __cfusec_session_launch(struct fuse_session *se)
+{
+    coroutine_pool_load(TASK_BRD_CROUTINE_POOL(task_brd_default_get()),
+                        (UINT32)__cfusec_session_do, (UINT32)1, (UINT32)se);
+    return (EC_TRUE);
+}
+
+STATIC_CAST EC_BOOL __cfusec_fuse_free(struct fuse *fuse)
+{
+    if(NULL_PTR != fuse)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "[DEBUG] __cfusec_fuse_free: umount and destroy fuse\n");
+        fuse_unmount(fuse);
+        fuse_destroy(fuse);
+    }
+
+    return (EC_TRUE);
+}
+
+STATIC_CAST int __cfusec_fuse_new(struct fuse_args *args,
+            const struct fuse_operations *op,
+		    size_t op_size, void *user_data)
+{
+	struct fuse             *fuse;
+	struct fuse_cmdline_opts opts;
+
+	if(0 != fuse_parse_cmdline(args, &opts))
+	{
+	    return (1);
+    }
+
+	if(opts.show_version)
+	{
+	    printf("FUSE library version %s\n", fuse_pkgversion());
+	    fuse_lowlevel_version();
+
+    	free(opts.mountpoint);
+	    return (0);
+	}
+
+	if(opts.show_help)
+	{
+		if(args->argv[0][0] != '\0')
+		{
+			printf("usage: %s [options] <mountpoint>\n\n",
+			       args->argv[0]);
+        }
+		printf("FUSE options:\n");
+		fuse_cmdline_help();
+		fuse_lib_help(args);
+
+    	free(opts.mountpoint);
+		return (0);
+	}
+
+	if(!opts.show_help && !opts.mountpoint)
+	{
+		printf("error: no mountpoint specified\n");
+    	free(opts.mountpoint);
+    	return (2);
+	}
+
+	fuse = fuse_new(args, op, op_size, user_data);
+	if(NULL_PTR == fuse)
+	{
+    	free(opts.mountpoint);
+    	return (3);
+	}
+
+	if(0 != fuse_mount(fuse,opts.mountpoint))
+	{
+	    fuse_destroy(fuse);
+    	free(opts.mountpoint);
+
+    	return (4);
+	}
+
+	if(0 != fuse_daemonize(opts.foreground))
+	{
+	    fuse_unmount(fuse);
+
+	    fuse_destroy(fuse);
+    	free(opts.mountpoint);
+    	return (5);
+	}
+
+	free(opts.mountpoint);
+
+	if(opts.singlethread)
+	{
+	    g_fuse = fuse;
+
+	    csig_atexit_register((CSIG_ATEXIT_HANDLER)__cfusec_fuse_free, (UINT32)(uintptr_t)g_fuse);
+
+	    task_brd_process_add(task_brd_default_get(),
+                (TASK_BRD_CALLBACK)__cfusec_session_launch,
+                (void *)fuse->se);
+
+        return (0);
+    }
+
+    fuse_unmount(fuse);
+    fuse_destroy(fuse);
+
+	return (7);
+}
+
 /**
 *
 * start CFUSEC module
 *
 **/
-EC_BOOL cfusec_start(const UINT32 cfuses_tcid, const UINT32 cfuses_rank, const UINT32 cfuses_modi)
+EC_BOOL cfusec_start(struct fuse_args *args, const UINT32 cfuses_tcid, const UINT32 cfuses_rank, const UINT32 cfuses_modi)
 {
     if(EC_TRUE == g_cfuses_mod_node_init_flag)
     {
         dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "error:cfusec_start: "
-                                               "target cfuses (tcid %ld, rank %ld modi %ld) exist\n",
-                                               MOD_NODE_TCID(&g_cfuses_mod_node),
+                                               "target cfuses (tcid %s, rank %ld modi %ld) exist\n",
+                                               MOD_NODE_TCID_STR(&g_cfuses_mod_node),
                                                MOD_NODE_RANK(&g_cfuses_mod_node),
                                                MOD_NODE_MODI(&g_cfuses_mod_node));
         return (EC_FALSE);
     }
+
+    cbc_md_reg(MD_CFUSES, 16);
 
     MOD_NODE_TCID(&g_cfuses_mod_node) = cfuses_tcid;
     MOD_NODE_COMM(&g_cfuses_mod_node) = CMPI_ANY_COMM;
     MOD_NODE_RANK(&g_cfuses_mod_node) = cfuses_rank;
     MOD_NODE_MODI(&g_cfuses_mod_node) = cfuses_modi;
 
-#if 1
     BSET(&g_cfusec_op, 0x00, sizeof(g_cfusec_op));
 	g_cfusec_op.getattr	        = cfusec_getattr;
 	g_cfusec_op.readlink	    = cfusec_readlink;
@@ -632,15 +807,26 @@ EC_BOOL cfusec_start(const UINT32 cfuses_tcid, const UINT32 cfuses_rank, const U
 	g_cfusec_op.copy_file_range = NULL_PTR;
 	g_cfusec_op.lseek           = NULL_PTR;
 
-#endif
-
     g_cfuses_mod_node_init_flag = EC_TRUE;
+
+    if(0 != __cfusec_fuse_new(args, &g_cfusec_op, sizeof(g_cfusec_op), NULL_PTR))
+    {
+        fuse_opt_free_args(args);
+
+        cfusec_end();
+
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "error:cfusec_start: "
+                                               "start fuse failed\n");
+        return (EC_FALSE);
+    }
+
+    fuse_opt_free_args(args);
 
     cfused_start();
 
     dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "[DEBUG] cfusec_start: "
-                                           "set target cfuses (tcid %ld, rank %ld modi %ld)\n",
-                                           MOD_NODE_TCID(&g_cfuses_mod_node),
+                                           "set target cfuses (tcid %s, rank %ld modi %ld)\n",
+                                           MOD_NODE_TCID_STR(&g_cfuses_mod_node),
                                            MOD_NODE_RANK(&g_cfuses_mod_node),
                                            MOD_NODE_MODI(&g_cfuses_mod_node));
 
@@ -660,6 +846,9 @@ void cfusec_end()
                                                "target cfuses_md_id not exist\n");
         return;
     }
+
+    csig_atexit_unregister((CSIG_ATEXIT_HANDLER)__cfusec_fuse_free, (UINT32)(uintptr_t)g_fuse);
+    g_fuse = NULL_PTR;
 
     dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "[DEBUG] cfusec_end: "
                                            "unset target cfuses (tcid %ld, rank %ld modi %ld)\n",
@@ -681,7 +870,7 @@ void cfusec_end()
     return ;
 }
 
-MOD_NODE *cfuses_get_remote_mod_node()
+MOD_NODE *cfusec_get_remote_mod_node()
 {
     return &g_cfuses_mod_node;
 }
@@ -689,9 +878,7 @@ MOD_NODE *cfuses_get_remote_mod_node()
 /*int (*getattr) (const char *, struct stat *);*/
 int cfusec_getattr(const char *path, struct stat *stat, struct fuse_file_info *fi)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      stat_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
@@ -700,26 +887,14 @@ int cfusec_getattr(const char *path, struct stat *stat, struct fuse_file_info *f
 
     (void)fi;
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&stat_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg, CFUSES_ARG_TYPE_CHAR, (void *)path, strlen(path));
-    cfuses_arg_mount(&stat_arg, CFUSES_ARG_TYPE_STAT, (void *)stat, sizeof(struct stat));
-    cfuses_arg_mount(&ret_arg , CFUSES_ARG_TYPE_LONG, (void *)   0, sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_getattr, CMPI_ERROR_MODI, &path_arg, &stat_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&stat_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_getattr, CMPI_ERROR_MODI, &path_arg, stat, &res);
 
     return (res);
 }
@@ -727,43 +902,23 @@ int cfusec_getattr(const char *path, struct stat *stat, struct fuse_file_info *f
 /*int (*readlink) (const char *, char *, size_t);*/
 int cfusec_readlink(const char *path, char *buf, size_t size)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      buf_arg;
-    CFUSES_ARG      size_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
+    CSTRING         buf_arg;
 
     EC_BOOL         ret;
     int             res;
 
     CFUSEC_DEBUG_ENTER("cfusec_readlink");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&buf_arg);
-    CFUSEC_DEBUG_INIT(&size_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg, CFUSES_ARG_TYPE_CHAR, (void *)(uintptr_t)path  , strlen(path));
-    cfuses_arg_mount(&buf_arg , CFUSES_ARG_TYPE_BYTE, (void *)(uintptr_t)buf   , size);
-    cfuses_arg_mount(&size_arg, CFUSES_ARG_TYPE_SIZE, (void *)(uintptr_t)size  , sizeof(size_t));
-    cfuses_arg_mount(&ret_arg , CFUSES_ARG_TYPE_LONG, (void *)(uintptr_t)0     , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
+    cstring_mount(&buf_arg, (UINT8 *)buf, size - 1, size);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_readlink, CMPI_ERROR_MODI, &path_arg, &buf_arg, &size_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-    if(0 == CFUSES_ARG_V_LONG(&ret_arg))
-    {
-        STRCOPY(CFUSES_ARG_V_CHAR(&buf_arg), buf);
-    }
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&buf_arg);
-    CFUSEC_DEBUG_CLEAN(&size_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_readlink, CMPI_ERROR_MODI, &path_arg, &buf_arg, (UINT32)size, &res);
 
     return (res);
 }
@@ -771,39 +926,21 @@ int cfusec_readlink(const char *path, char *buf, size_t size)
 /*int (*mknod)       (const char *, mode_t, dev_t);*/
 int cfusec_mknod(const char *path, mode_t mode, dev_t dev)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      mode_arg;
-    CFUSES_ARG      dev_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
 
     CFUSEC_DEBUG_ENTER("cfusec_mknod");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&mode_arg);
-    CFUSEC_DEBUG_INIT(&dev_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg, CFUSES_ARG_TYPE_CHAR, (void *)(uintptr_t)path  , strlen(path));
-    cfuses_arg_mount(&mode_arg, CFUSES_ARG_TYPE_MODE, (void *)(uintptr_t)mode  , sizeof(mode_t));
-    cfuses_arg_mount(&dev_arg , CFUSES_ARG_TYPE_DEV , (void *)(uintptr_t)dev   , sizeof(dev_t));
-    cfuses_arg_mount(&ret_arg , CFUSES_ARG_TYPE_LONG, (void *)(uintptr_t)0     , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_mknod, CMPI_ERROR_MODI, &path_arg, &mode_arg, &dev_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&mode_arg);
-    CFUSEC_DEBUG_CLEAN(&dev_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_mknod, CMPI_ERROR_MODI, &path_arg, (UINT32)mode, (UINT32)dev, &res);
 
     return (res);
 }
@@ -811,35 +948,21 @@ int cfusec_mknod(const char *path, mode_t mode, dev_t dev)
 /*int (*mkdir) (const char *, mode_t);*/
 int cfusec_mkdir(const char *path, mode_t mode)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      mode_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
 
     CFUSEC_DEBUG_ENTER("cfusec_mkdir");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&mode_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg, CFUSES_ARG_TYPE_CHAR, (void *)(uintptr_t)path  , strlen(path));
-    cfuses_arg_mount(&mode_arg, CFUSES_ARG_TYPE_MODE, (void *)(uintptr_t)mode  , sizeof(mode_t));
-    cfuses_arg_mount(&ret_arg , CFUSES_ARG_TYPE_LONG, (void *)(uintptr_t)0     , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_mkdir, CMPI_ERROR_MODI, &path_arg, &mode_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&mode_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_mkdir, CMPI_ERROR_MODI, &path_arg, (UINT32)mode, &res);
 
     return (res);
 }
@@ -847,31 +970,21 @@ int cfusec_mkdir(const char *path, mode_t mode)
 /*int (*unlink) (const char *);*/
 int cfusec_unlink(const char *path)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
 
     CFUSEC_DEBUG_ENTER("cfusec_unlink");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg, CFUSES_ARG_TYPE_CHAR, (void *)(uintptr_t)path  , strlen(path));
-    cfuses_arg_mount(&ret_arg , CFUSES_ARG_TYPE_LONG, (void *)(uintptr_t)0     , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_unlink, CMPI_ERROR_MODI, &path_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_unlink, CMPI_ERROR_MODI, &path_arg, &res);
 
     return (res);
 }
@@ -879,31 +992,21 @@ int cfusec_unlink(const char *path)
 /*int (*rmdir) (const char *);*/
 int cfusec_rmdir(const char *path)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
 
     CFUSEC_DEBUG_ENTER("cfusec_rmdir");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg, CFUSES_ARG_TYPE_CHAR, (void *)(uintptr_t)path  , strlen(path));
-    cfuses_arg_mount(&ret_arg , CFUSES_ARG_TYPE_LONG, (void *)(uintptr_t)0     , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_rmdir, CMPI_ERROR_MODI, &path_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_rmdir, CMPI_ERROR_MODI, &path_arg, &res);
 
     return (res);
 }
@@ -912,35 +1015,23 @@ int cfusec_rmdir(const char *path)
 /*int (*symlink) (const char *, const char *);*/
 int cfusec_symlink(const char *src_path, const char *des_path)
 {
-    CFUSES_ARG      src_path_arg;
-    CFUSES_ARG      des_path_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         src_path_arg;
+    CSTRING         des_path_arg;
 
     EC_BOOL         ret;
     int             res;
 
     CFUSEC_DEBUG_ENTER("cfusec_symlink");
 
-    CFUSEC_DEBUG_INIT(&src_path_arg);
-    CFUSEC_DEBUG_INIT(&des_path_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&src_path_arg, CFUSES_ARG_TYPE_CHAR, (void *)(uintptr_t)src_path, strlen(src_path));
-    cfuses_arg_mount(&des_path_arg, CFUSES_ARG_TYPE_CHAR, (void *)(uintptr_t)des_path, strlen(des_path));
-    cfuses_arg_mount(&ret_arg     , CFUSES_ARG_TYPE_LONG, (void *)(uintptr_t)0       , sizeof(long int));
+    cstring_set_str(&src_path_arg, (UINT8 *)src_path);
+    cstring_set_str(&des_path_arg, (UINT8 *)des_path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_symlink, CMPI_ERROR_MODI, &src_path_arg, &des_path_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&src_path_arg);
-    CFUSEC_DEBUG_CLEAN(&des_path_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_symlink, CMPI_ERROR_MODI, &src_path_arg, &des_path_arg, &res);
 
     return (res);
 }
@@ -948,35 +1039,23 @@ int cfusec_symlink(const char *src_path, const char *des_path)
 /*int (*rename) (const char *, const char *, unsigned int flags);*/
 int cfusec_rename(const char *src_path, const char *des_path, unsigned int flags /*RENAME_EXCHANGE|RENAME_NOREPLACE*/)
 {
-    CFUSES_ARG      src_path_arg;
-    CFUSES_ARG      des_path_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         src_path_arg;
+    CSTRING         des_path_arg;
 
     EC_BOOL         ret;
     int             res;
 
     CFUSEC_DEBUG_ENTER("cfusec_rename");
 
-    CFUSEC_DEBUG_INIT(&src_path_arg);
-    CFUSEC_DEBUG_INIT(&des_path_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&src_path_arg, CFUSES_ARG_TYPE_CHAR, (void *)(uintptr_t)src_path, strlen(src_path));
-    cfuses_arg_mount(&des_path_arg, CFUSES_ARG_TYPE_CHAR, (void *)(uintptr_t)des_path, strlen(des_path));
-    cfuses_arg_mount(&ret_arg     , CFUSES_ARG_TYPE_LONG, (void *)(uintptr_t)0       , sizeof(long int));
+    cstring_set_str(&src_path_arg, (UINT8 *)src_path);
+    cstring_set_str(&des_path_arg, (UINT8 *)des_path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_rename, CMPI_ERROR_MODI, &src_path_arg, &des_path_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&src_path_arg);
-    CFUSEC_DEBUG_CLEAN(&des_path_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_rename, CMPI_ERROR_MODI, &src_path_arg, &des_path_arg, &res);
 
     return (res);
 }
@@ -985,35 +1064,23 @@ int cfusec_rename(const char *src_path, const char *des_path, unsigned int flags
 /*int (*link) (const char *, const char *);*/
 int cfusec_link(const char *src_path, const char *des_path)
 {
-    CFUSES_ARG      src_path_arg;
-    CFUSES_ARG      des_path_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         src_path_arg;
+    CSTRING         des_path_arg;
 
     EC_BOOL         ret;
     int             res;
 
     CFUSEC_DEBUG_ENTER("cfusec_link");
 
-    CFUSEC_DEBUG_INIT(&src_path_arg);
-    CFUSEC_DEBUG_INIT(&des_path_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&src_path_arg, CFUSES_ARG_TYPE_CHAR, (void *)(uintptr_t)src_path, strlen(src_path));
-    cfuses_arg_mount(&des_path_arg, CFUSES_ARG_TYPE_CHAR, (void *)(uintptr_t)des_path, strlen(des_path));
-    cfuses_arg_mount(&ret_arg     , CFUSES_ARG_TYPE_LONG, (void *)(uintptr_t)0       , sizeof(long int));
+    cstring_set_str(&src_path_arg, (UINT8 *)src_path);
+    cstring_set_str(&des_path_arg, (UINT8 *)des_path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_link, CMPI_ERROR_MODI, &src_path_arg, &des_path_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&src_path_arg);
-    CFUSEC_DEBUG_CLEAN(&des_path_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_link, CMPI_ERROR_MODI, &src_path_arg, &des_path_arg, &res);
 
     return (res);
 }
@@ -1022,9 +1089,7 @@ int cfusec_link(const char *src_path, const char *des_path)
 /*int (*chmod) (const char *, mode_t, struct fuse_file_info *fi);*/
 int cfusec_chmod(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      mode_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
@@ -1033,26 +1098,14 @@ int cfusec_chmod(const char *path, mode_t mode, struct fuse_file_info *fi)
 
     CFUSEC_DEBUG_ENTER("cfusec_chmod");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&mode_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg, CFUSES_ARG_TYPE_CHAR, (void *)(uintptr_t)path, strlen(path));
-    cfuses_arg_mount(&mode_arg, CFUSES_ARG_TYPE_MODE, (void *)(uintptr_t)mode, sizeof(mode_t));
-    cfuses_arg_mount(&ret_arg , CFUSES_ARG_TYPE_LONG, (void *)(uintptr_t)0   , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_chmod, CMPI_ERROR_MODI, &path_arg, &mode_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&mode_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_chmod, CMPI_ERROR_MODI, &path_arg, (UINT32)mode, &res);
 
     return (res);
 }
@@ -1061,10 +1114,7 @@ int cfusec_chmod(const char *path, mode_t mode, struct fuse_file_info *fi)
 /*int (*chown) (const char *, uid_t, gid_t);*/
 int cfusec_chown(const char *path, uid_t owner, gid_t group, struct fuse_file_info *fi)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      owner_arg;
-    CFUSES_ARG      group_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
@@ -1073,29 +1123,14 @@ int cfusec_chown(const char *path, uid_t owner, gid_t group, struct fuse_file_in
 
     CFUSEC_DEBUG_ENTER("cfusec_chown");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&owner_arg);
-    CFUSEC_DEBUG_INIT(&group_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg, CFUSES_ARG_TYPE_CHAR , (void *)(uintptr_t)path  , strlen(path));
-    cfuses_arg_mount(&owner_arg, CFUSES_ARG_TYPE_UID , (void *)(uintptr_t)owner , sizeof(uid_t));
-    cfuses_arg_mount(&group_arg, CFUSES_ARG_TYPE_GID , (void *)(uintptr_t)group , sizeof(gid_t));
-    cfuses_arg_mount(&ret_arg  , CFUSES_ARG_TYPE_LONG, (void *)(uintptr_t)0     , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_chown, CMPI_ERROR_MODI, &path_arg, &owner_arg, &group_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&owner_arg);
-    CFUSEC_DEBUG_CLEAN(&group_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_chown, CMPI_ERROR_MODI, &path_arg, (UINT32)owner, (UINT32)group, &res);
 
     return (res);
 }
@@ -1104,36 +1139,23 @@ int cfusec_chown(const char *path, uid_t owner, gid_t group, struct fuse_file_in
 /*int (*truncate) (const char *, off_t);*/
 int cfusec_truncate(const char *path, off_t length, struct fuse_file_info *fi)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      length_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
 
     (void)fi;
+
     CFUSEC_DEBUG_ENTER("cfusec_truncate");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&length_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg  , CFUSES_ARG_TYPE_CHAR, (void *)(uintptr_t)path  , strlen(path));
-    cfuses_arg_mount(&length_arg, CFUSES_ARG_TYPE_OFFT, (void *)(uintptr_t)length, sizeof(off_t));
-    cfuses_arg_mount(&ret_arg   , CFUSES_ARG_TYPE_LONG, (void *)(uintptr_t)0     , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_truncate, CMPI_ERROR_MODI, &path_arg, &length_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&length_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_truncate, CMPI_ERROR_MODI, &path_arg, (UINT32)length, &res);
 
     return (res);
 }
@@ -1145,35 +1167,21 @@ int cfusec_truncate(const char *path, off_t length, struct fuse_file_info *fi)
 /*int (*utime) (const char *, struct utimbuf *);*/
 int cfusec_utime(const char *path, /*const*/struct utimbuf *times)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      times_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
 
     CFUSEC_DEBUG_ENTER("cfusec_utime");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&times_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg , CFUSES_ARG_TYPE_CHAR , (void *)(uintptr_t)path   , strlen(path));
-    cfuses_arg_mount(&times_arg, CFUSES_ARG_TYPE_UTIME, (void *)(uintptr_t)times  , sizeof(struct utimbuf));
-    cfuses_arg_mount(&ret_arg  , CFUSES_ARG_TYPE_LONG , (void *)(uintptr_t)0      , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_utime, CMPI_ERROR_MODI, &path_arg, &times_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&times_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_utime, CMPI_ERROR_MODI, &path_arg, times, &res);
 
     return (res);
 }
@@ -1181,45 +1189,21 @@ int cfusec_utime(const char *path, /*const*/struct utimbuf *times)
 /*int (*open) (const char *, struct fuse_file_info *);*/
 int cfusec_open(const char *path, struct fuse_file_info *fi)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      flags_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
-    int             flags;
 
     CFUSEC_DEBUG_ENTER("cfusec_open");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&flags_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    if(NULL_PTR != fi)
-    {
-        flags = fi->flags;
-    }
-    else
-    {
-        flags = O_RDONLY;
-    }
-
-    cfuses_arg_mount(&path_arg , CFUSES_ARG_TYPE_CHAR, (void *)(uintptr_t)path  , strlen(path));
-    cfuses_arg_mount(&flags_arg, CFUSES_ARG_TYPE_INT , (void *)(uintptr_t)flags , sizeof(int));
-    cfuses_arg_mount(&ret_arg  , CFUSES_ARG_TYPE_LONG, (void *)(uintptr_t)0     , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_open, CMPI_ERROR_MODI, &path_arg, &flags_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&flags_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_open, CMPI_ERROR_MODI, &path_arg, (UINT32)(fi->flags), &res);
 
     return (res);
 }
@@ -1227,11 +1211,8 @@ int cfusec_open(const char *path, struct fuse_file_info *fi)
 /*int (*read) (const char *, char *, size_t, off_t, struct fuse_file_info *);*/
 int cfusec_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      buf_arg;
-    CFUSES_ARG      size_arg;
-    CFUSES_ARG      offset_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
+    CBYTES          buf_arg;
 
     EC_BOOL         ret;
     int             res;
@@ -1239,32 +1220,15 @@ int cfusec_read(const char *path, char *buf, size_t size, off_t offset, struct f
     (void)fi;
     CFUSEC_DEBUG_ENTER("cfusec_read");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&buf_arg);
-    CFUSEC_DEBUG_INIT(&size_arg);
-    CFUSEC_DEBUG_INIT(&offset_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg  , CFUSES_ARG_TYPE_CHAR, (void *)(uintptr_t)path  , strlen(path));
-    cfuses_arg_mount(&buf_arg   , CFUSES_ARG_TYPE_BYTE, (void *)(uintptr_t)buf   , size);
-    cfuses_arg_mount(&size_arg  , CFUSES_ARG_TYPE_SIZE, (void *)(uintptr_t)size  , sizeof(size_t));
-    cfuses_arg_mount(&offset_arg, CFUSES_ARG_TYPE_OFFT, (void *)(uintptr_t)offset, sizeof(off_t));
-    cfuses_arg_mount(&ret_arg   , CFUSES_ARG_TYPE_LONG, (void *)(uintptr_t)0     , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
+    cbytes_mount(&buf_arg, (UINT32)size, (UINT8 *)buf, BIT_FALSE);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_read, CMPI_ERROR_MODI, &path_arg, &buf_arg, &size_arg, &offset_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&buf_arg);
-    CFUSEC_DEBUG_CLEAN(&size_arg);
-    CFUSEC_DEBUG_CLEAN(&offset_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_read, CMPI_ERROR_MODI, &path_arg, &buf_arg, (UINT32)size, (UINT32)offset, &res);
 
     return (res);
 }
@@ -1272,11 +1236,8 @@ int cfusec_read(const char *path, char *buf, size_t size, off_t offset, struct f
 /*int (*write) (const char *, const char *, size_t, off_t, struct fuse_file_info *);*/
 int cfusec_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      buf_arg;
-    CFUSES_ARG      size_arg;
-    CFUSES_ARG      offset_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
+    CBYTES          buf_arg;
 
     EC_BOOL         ret;
     int             res;
@@ -1284,32 +1245,15 @@ int cfusec_write(const char *path, const char *buf, size_t size, off_t offset, s
     (void)fi;
     CFUSEC_DEBUG_ENTER("cfusec_write");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&buf_arg);
-    CFUSEC_DEBUG_INIT(&size_arg);
-    CFUSEC_DEBUG_INIT(&offset_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg  , CFUSES_ARG_TYPE_CHAR, (void *)(uintptr_t)path  , strlen(path));
-    cfuses_arg_mount(&buf_arg   , CFUSES_ARG_TYPE_BYTE, (void *)(uintptr_t)buf   , size);
-    cfuses_arg_mount(&size_arg  , CFUSES_ARG_TYPE_SIZE, (void *)(uintptr_t)size  , sizeof(size_t));
-    cfuses_arg_mount(&offset_arg, CFUSES_ARG_TYPE_OFFT, (void *)(uintptr_t)offset, sizeof(off_t));
-    cfuses_arg_mount(&ret_arg   , CFUSES_ARG_TYPE_LONG, (void *)(uintptr_t)0     , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
+    cbytes_mount(&buf_arg, (UINT32)size, (UINT8 *)buf, BIT_FALSE);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_write, CMPI_ERROR_MODI, &path_arg, &buf_arg, &size_arg, &offset_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&buf_arg);
-    CFUSEC_DEBUG_CLEAN(&size_arg);
-    CFUSEC_DEBUG_CLEAN(&offset_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_write, CMPI_ERROR_MODI, &path_arg, &buf_arg, (UINT32)offset, &res);
 
     return (res);
 }
@@ -1317,35 +1261,21 @@ int cfusec_write(const char *path, const char *buf, size_t size, off_t offset, s
 /*int (*statfs) (const char *, struct statvfs *);*/
 int cfusec_statfs(const char *path, struct statvfs *statvfs)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      statvfs_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
 
     CFUSEC_DEBUG_ENTER("cfusec_statfs");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&statvfs_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg   , CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)path   , strlen(path));
-    cfuses_arg_mount(&statvfs_arg, CFUSES_ARG_TYPE_STATVFS, (void *)(uintptr_t)statvfs, sizeof(struct statvfs));
-    cfuses_arg_mount(&ret_arg    , CFUSES_ARG_TYPE_LONG   , (void *)(uintptr_t)0      , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_statfs, CMPI_ERROR_MODI, &path_arg, &statvfs_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&statvfs_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_statfs, CMPI_ERROR_MODI, &path_arg, statvfs, &res);
 
     return (res);
 }
@@ -1353,8 +1283,7 @@ int cfusec_statfs(const char *path, struct statvfs *statvfs)
 /*int (*flush) (const char *, struct fuse_file_info *);*/
 int cfusec_flush(const char *path, struct fuse_file_info *fi)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
@@ -1362,23 +1291,14 @@ int cfusec_flush(const char *path, struct fuse_file_info *fi)
     (void)fi;
     CFUSEC_DEBUG_ENTER("cfusec_flush");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg   , CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)path  , strlen(path));
-    cfuses_arg_mount(&ret_arg    , CFUSES_ARG_TYPE_LONG   , (void *)(uintptr_t)0     , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_flush, CMPI_ERROR_MODI, &path_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_flush, CMPI_ERROR_MODI, &path_arg, &res);
 
     return (res);
 }
@@ -1386,9 +1306,7 @@ int cfusec_flush(const char *path, struct fuse_file_info *fi)
 /*int (*release) (const char *, struct fuse_file_info *);*/
 int cfusec_release(const char *path, struct fuse_file_info *fi)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      flag_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
@@ -1397,26 +1315,14 @@ int cfusec_release(const char *path, struct fuse_file_info *fi)
 
     CFUSEC_DEBUG_ENTER("cfusec_release");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&flag_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg   , CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)path  , strlen(path));
-    cfuses_arg_mount(&flag_arg   , CFUSES_ARG_TYPE_INT    , (void *)(uintptr_t)0     , sizeof(int));
-    cfuses_arg_mount(&ret_arg    , CFUSES_ARG_TYPE_LONG   , (void *)(uintptr_t)0     , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_release, CMPI_ERROR_MODI, &path_arg, &flag_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&flag_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_release, CMPI_ERROR_MODI, &path_arg, &res);
 
     return (res);
 }
@@ -1424,9 +1330,7 @@ int cfusec_release(const char *path, struct fuse_file_info *fi)
 /*int (*fsync) (const char *, int);*/
 int cfusec_fsync(const char * path, int sync, struct fuse_file_info *fi)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      sync_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
@@ -1434,24 +1338,14 @@ int cfusec_fsync(const char * path, int sync, struct fuse_file_info *fi)
     (void)fi;
     CFUSEC_DEBUG_ENTER("cfusec_fsync");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg   , CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)path  , strlen(path));
-    cfuses_arg_mount(&sync_arg   , CFUSES_ARG_TYPE_INT    , (void *)(uintptr_t)sync  , sizeof(int));
-    cfuses_arg_mount(&ret_arg    , CFUSES_ARG_TYPE_LONG   , (void *)(uintptr_t)0     , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_fsync, CMPI_ERROR_MODI, &path_arg, &sync_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_fsync, CMPI_ERROR_MODI, &path_arg, (UINT32)sync, &res);
 
     return (res);
 }
@@ -1460,47 +1354,25 @@ int cfusec_fsync(const char * path, int sync, struct fuse_file_info *fi)
 /*int (*setxattr) (const char *, const char *, const char *, size_t, int);*/
 int cfusec_setxattr(const char *path, const char *name, const char *value, size_t size, int flags)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      name_arg;
-    CFUSES_ARG      value_arg;
-    CFUSES_ARG      size_arg;
-    CFUSES_ARG      flags_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
+    CSTRING         name_arg;
+    CBYTES          value_arg;
 
     EC_BOOL         ret;
     int             res;
 
     CFUSEC_DEBUG_ENTER("cfusec_setxattr");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&name_arg);
-    CFUSEC_DEBUG_INIT(&value_arg);
-    CFUSEC_DEBUG_INIT(&size_arg);
-    CFUSEC_DEBUG_INIT(&flags_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg , CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)path    , strlen(path));
-    cfuses_arg_mount(&name_arg , CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)name    , strlen(name));
-    cfuses_arg_mount(&value_arg, CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)value   , size);
-    cfuses_arg_mount(&size_arg , CFUSES_ARG_TYPE_SIZE   , (void *)(uintptr_t)size    , sizeof(size_t));
-    cfuses_arg_mount(&flags_arg, CFUSES_ARG_TYPE_INT    , (void *)(uintptr_t)flags   , sizeof(int));
-    cfuses_arg_mount(&ret_arg  , CFUSES_ARG_TYPE_LONG   , (void *)(uintptr_t)0       , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
+    cstring_set_str(&name_arg, (UINT8 *)name);
+    cbytes_mount(&value_arg, (UINT32)size, (UINT8 *)value, BIT_FALSE);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_setxattr, CMPI_ERROR_MODI, &path_arg, &name_arg, &value_arg, &size_arg, &flags_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&name_arg);
-    CFUSEC_DEBUG_CLEAN(&value_arg);
-    CFUSEC_DEBUG_CLEAN(&size_arg);
-    CFUSEC_DEBUG_CLEAN(&flags_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_setxattr, CMPI_ERROR_MODI, &path_arg, &name_arg, &value_arg, (UINT32)flags, &res);
 
     return (res);
 }
@@ -1509,43 +1381,25 @@ int cfusec_setxattr(const char *path, const char *name, const char *value, size_
 /*int (*getxattr) (const char *, const char *, char *, size_t);*/
 int cfusec_getxattr(const char *path, const char *name, char *value, size_t size)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      name_arg;
-    CFUSES_ARG      value_arg;
-    CFUSES_ARG      size_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
+    CSTRING         name_arg;
+    CBYTES          value_arg;
 
     EC_BOOL         ret;
     int             res;
 
     CFUSEC_DEBUG_ENTER("cfusec_getxattr");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&name_arg);
-    CFUSEC_DEBUG_INIT(&value_arg);
-    CFUSEC_DEBUG_INIT(&size_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg , CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)path    , strlen(path));
-    cfuses_arg_mount(&name_arg , CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)name    , strlen(name));
-    cfuses_arg_mount(&value_arg, CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)value   , size);
-    cfuses_arg_mount(&size_arg , CFUSES_ARG_TYPE_SIZE   , (void *)(uintptr_t)size    , sizeof(size_t));
-    cfuses_arg_mount(&ret_arg  , CFUSES_ARG_TYPE_LONG   , (void *)(uintptr_t)0       , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
+    cstring_set_str(&name_arg, (UINT8 *)name);
+    cbytes_mount(&value_arg, (UINT32)size, (UINT8 *)value, BIT_FALSE);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_getxattr, CMPI_ERROR_MODI, &path_arg, &name_arg, &value_arg, &size_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&name_arg);
-    CFUSEC_DEBUG_CLEAN(&value_arg);
-    CFUSEC_DEBUG_CLEAN(&size_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_getxattr, CMPI_ERROR_MODI, &path_arg, &name_arg, &value_arg, (UINT32)size, &res);
 
     return (res);
 }
@@ -1554,39 +1408,23 @@ int cfusec_getxattr(const char *path, const char *name, char *value, size_t size
 /*int (*listxattr) (const char *, char *, size_t);*/
 int cfusec_listxattr(const char *path, char *list, size_t size)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      list_arg;
-    CFUSES_ARG      size_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
+    CBYTES          list_arg;
 
     EC_BOOL         ret;
     int             res;
 
     CFUSEC_DEBUG_ENTER("cfusec_listxattr");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&list_arg);
-    CFUSEC_DEBUG_INIT(&size_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg , CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)path    , strlen(path));
-    cfuses_arg_mount(&list_arg , CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)list    , size);
-    cfuses_arg_mount(&size_arg , CFUSES_ARG_TYPE_SIZE   , (void *)(uintptr_t)size    , sizeof(size_t));
-    cfuses_arg_mount(&ret_arg  , CFUSES_ARG_TYPE_LONG   , (void *)(uintptr_t)0       , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
+    cbytes_mount(&list_arg, (UINT32)size, (UINT8 *)list, BIT_FALSE);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_listxattr, CMPI_ERROR_MODI, &path_arg, &list_arg, &size_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&list_arg);
-    CFUSEC_DEBUG_CLEAN(&size_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_listxattr, CMPI_ERROR_MODI, &path_arg, &list_arg, (UINT32)size, &res);
 
     return (res);
 }
@@ -1595,35 +1433,23 @@ int cfusec_listxattr(const char *path, char *list, size_t size)
 /*int (*removexattr) (const char *, const char *);*/
 int cfusec_removexattr(const char *path, const char *name)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      name_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
+    CSTRING         name_arg;
 
     EC_BOOL         ret;
     int             res;
 
     CFUSEC_DEBUG_ENTER("cfusec_removexattr");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&name_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg , CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)path    , strlen(path));
-    cfuses_arg_mount(&name_arg , CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)name    , strlen(name));
-    cfuses_arg_mount(&ret_arg  , CFUSES_ARG_TYPE_LONG   , (void *)(uintptr_t)0       , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
+    cstring_set_str(&name_arg, (UINT8 *)name);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_removexattr, CMPI_ERROR_MODI, &path_arg, &name_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&name_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_removexattr, CMPI_ERROR_MODI, &path_arg, &name_arg, &res);
 
     return (res);
 }
@@ -1631,35 +1457,21 @@ int cfusec_removexattr(const char *path, const char *name)
 /*int (*access) (const char *, int);*/
 int cfusec_access(const char *path, int mask)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      mask_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
 
     CFUSEC_DEBUG_ENTER("cfusec_access");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&mask_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg , CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)path    , strlen(path));
-    cfuses_arg_mount(&mask_arg , CFUSES_ARG_TYPE_INT    , (void *)(uintptr_t)mask    , sizeof(int));
-    cfuses_arg_mount(&ret_arg  , CFUSES_ARG_TYPE_LONG   , (void *)(uintptr_t)0       , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_access, CMPI_ERROR_MODI, &path_arg, &mask_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&mask_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_access, CMPI_ERROR_MODI, &path_arg, (UINT32)mask, &res);
 
     return (res);
 }
@@ -1667,35 +1479,21 @@ int cfusec_access(const char *path, int mask)
 /*int (*ftruncate) (const char *, off_t, struct fuse_file_info *);*/
 int cfusec_ftruncate(const char *path, off_t offset)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      offset_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
 
     CFUSEC_DEBUG_ENTER("cfusec_ftruncate");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&offset_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg  , CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)path    , strlen(path));
-    cfuses_arg_mount(&offset_arg, CFUSES_ARG_TYPE_OFFT   , (void *)(uintptr_t)offset  , sizeof(off_t));
-    cfuses_arg_mount(&ret_arg   , CFUSES_ARG_TYPE_LONG   , (void *)(uintptr_t)0       , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_ftruncate, CMPI_ERROR_MODI, &path_arg, &offset_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&offset_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_ftruncate, CMPI_ERROR_MODI, &path_arg, (UINT32)offset, &res);
 
     return (res);
 }
@@ -1704,9 +1502,7 @@ int cfusec_ftruncate(const char *path, off_t offset)
 /*int (*utimens) (const char *, const struct timespec tv[2], struct fuse_file_info *fi);*/
 int cfusec_utimens(const char *path, const struct timespec ts[2], struct fuse_file_info *fi)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      ts_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
@@ -1715,26 +1511,14 @@ int cfusec_utimens(const char *path, const struct timespec ts[2], struct fuse_fi
 
     CFUSEC_DEBUG_ENTER("cfusec_utimens");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&ts_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg , CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)path    , strlen(path));
-    cfuses_arg_mount(&ts_arg   , CFUSES_ARG_TYPE_TS     , (void *)(uintptr_t)&ts     , sizeof(struct timespec));
-    cfuses_arg_mount(&ret_arg  , CFUSES_ARG_TYPE_LONG   , (void *)(uintptr_t)0       , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_utimens, CMPI_ERROR_MODI, &path_arg, &ts_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&ts_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_utimens, CMPI_ERROR_MODI, &path_arg, &ts[0], &ts[1], &res);
 
     return (res);
 }
@@ -1742,11 +1526,7 @@ int cfusec_utimens(const char *path, const struct timespec ts[2], struct fuse_fi
 /* int (*fallocate) (const char *, int, off_t, off_t, struct fuse_file_info *); */
 int cfusec_fallocate(const char * path, int mode, off_t offset, off_t length, struct fuse_file_info *fi)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      mode_arg;
-    CFUSES_ARG      offset_arg;
-    CFUSES_ARG      length_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
 
     EC_BOOL         ret;
     int             res;
@@ -1755,32 +1535,14 @@ int cfusec_fallocate(const char * path, int mode, off_t offset, off_t length, st
 
     CFUSEC_DEBUG_ENTER("cfusec_fallocate");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&mode_arg);
-    CFUSEC_DEBUG_INIT(&offset_arg);
-    CFUSEC_DEBUG_INIT(&length_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
-
-    cfuses_arg_mount(&path_arg  , CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)path    , strlen(path));
-    cfuses_arg_mount(&mode_arg  , CFUSES_ARG_TYPE_INT    , (void *)(uintptr_t)mode    , sizeof(int));
-    cfuses_arg_mount(&offset_arg, CFUSES_ARG_TYPE_OFFT   , (void *)(uintptr_t)offset  , sizeof(off_t));
-    cfuses_arg_mount(&length_arg, CFUSES_ARG_TYPE_OFFT   , (void *)(uintptr_t)length  , sizeof(off_t));
-    cfuses_arg_mount(&ret_arg   , CFUSES_ARG_TYPE_LONG   , (void *)(uintptr_t)0       , sizeof(long int));
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_fallocate, CMPI_ERROR_MODI, &path_arg, &mode_arg, &offset_arg, &length_arg, &ret_arg);
-
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
-
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&mode_arg);
-    CFUSEC_DEBUG_CLEAN(&offset_arg);
-    CFUSEC_DEBUG_CLEAN(&length_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+             FI_cfuses_fallocate, CMPI_ERROR_MODI, &path_arg, (UINT32)mode, (UINT32)offset, (UINT32)length, &res);
 
     return (res);
 }
@@ -1799,52 +1561,48 @@ int cfusec_opendir(const char *path, struct fuse_file_info *fi)
 /*int (*readdir) (const char *, void *, fuse_fill_dir_t, off_t, struct fuse_file_info *);*/
 int cfusec_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi, enum fuse_readdir_flags eflags)
 {
-    CFUSES_ARG      path_arg;
-    CFUSES_ARG      buf_arg;
-    CFUSES_ARG      filler_arg;
-    CFUSES_ARG      offset_arg;
-    CFUSES_ARG      flags_arg;
-    CFUSES_ARG      ret_arg;
+    CSTRING         path_arg;
+
+    CLIST           dirnode_list;
+    struct dirnode *dirnode;
 
     EC_BOOL         ret;
     int             res;
-    int             flags;
 
     (void)fi;
 
     CFUSEC_DEBUG_ENTER("cfusec_readdir");
 
-    CFUSEC_DEBUG_INIT(&path_arg);
-    CFUSEC_DEBUG_INIT(&buf_arg);
-    CFUSEC_DEBUG_INIT(&filler_arg);
-    CFUSEC_DEBUG_INIT(&offset_arg);
-    CFUSEC_DEBUG_INIT(&flags_arg);
-    CFUSEC_DEBUG_INIT(&ret_arg);
+    cstring_set_str(&path_arg, (UINT8 *)path);
 
-    flags = (int)eflags;
-
-    cfuses_arg_mount(&path_arg  , CFUSES_ARG_TYPE_CHAR   , (void *)(uintptr_t)path    , strlen(path));
-    cfuses_arg_mount(&buf_arg   , CFUSES_ARG_TYPE_FUSE_DH, (void *)(uintptr_t)buf     , sizeof(struct fuse_dh));
-    cfuses_arg_mount(&filler_arg, CFUSES_ARG_TYPE_LONG   , (void *)(uintptr_t)filler  , sizeof(long int));
-    cfuses_arg_mount(&offset_arg, CFUSES_ARG_TYPE_OFFT   , (void *)(uintptr_t)offset  , sizeof(off_t));
-    cfuses_arg_mount(&flags_arg , CFUSES_ARG_TYPE_INT    , (void *)(uintptr_t)flags   , sizeof(int));
-    cfuses_arg_mount(&ret_arg   , CFUSES_ARG_TYPE_LONG   , (void *)(uintptr_t)0       , sizeof(long int));
+    clist_init(&dirnode_list, MM_DIRNODE, LOC_CFUSEC_0001);
 
     ret = EC_FALSE;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
-             cfuses_get_remote_mod_node(),
+             cfusec_get_remote_mod_node(),
              &ret,
-             FI_cfuses_readdir, CMPI_ERROR_MODI, &path_arg, &buf_arg, &filler_arg, &offset_arg, &flags_arg, &ret_arg);
+             FI_cfuses_readdir, CMPI_ERROR_MODI, &path_arg, (UINT32)offset, (UINT32)eflags, &dirnode_list, &res);
 
-    res = (int)CFUSES_ARG_V_LONG(&ret_arg);
+    while(NULL_PTR != (dirnode = clist_pop_front(&dirnode_list)))
+    {
+        dbg_log(SEC_0031_CFUSEC, 9)(LOGSTDOUT, "[DEBUG] cfusec_readdir: "
+                                               "pop (name %s, offset %ld, flags %u)\n",
+                                               dirnode->name,
+                                               dirnode->offset,
+                                               dirnode->flags);
 
-    CFUSEC_DEBUG_CLEAN(&path_arg);
-    CFUSEC_DEBUG_CLEAN(&buf_arg);
-    CFUSEC_DEBUG_CLEAN(&filler_arg);
-    CFUSEC_DEBUG_CLEAN(&offset_arg);
-    CFUSEC_DEBUG_CLEAN(&flags_arg);
-    CFUSEC_DEBUG_CLEAN(&ret_arg);
+        if(filler(buf, dirnode->name, &(dirnode->stat), dirnode->offset,
+                    (enum fuse_fill_dir_flags)dirnode->flags))
+        {
+            c_dirnode_free(dirnode);
+            break;
+        }
+
+        c_dirnode_free(dirnode);
+    }
+
+    clist_clean(&dirnode_list, (CLIST_DATA_DATA_CLEANER)c_dirnode_free);
 
     return (res);
 }

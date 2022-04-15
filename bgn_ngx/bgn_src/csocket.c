@@ -334,16 +334,20 @@ EC_BOOL csocket_cnode_close(CSOCKET_CNODE *csocket_cnode)
 {
     ASSERT(NULL_PTR != csocket_cnode);
 
-    dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_cnode_close: close sockfd %d of csocket_cnode %p\n",
-                    CSOCKET_CNODE_SOCKFD(csocket_cnode), csocket_cnode);
-
-    if(BIT_TRUE == CSOCKET_CNODE_NONBLOCK(csocket_cnode))
+    if(CMPI_ERROR_SOCKFD != CSOCKET_CNODE_SOCKFD(csocket_cnode))
     {
-        cepoll_clear_node(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
-    }
-    csocket_close(CSOCKET_CNODE_SOCKFD(csocket_cnode));
-    CSOCKET_CNODE_SOCKFD(csocket_cnode) = CMPI_ERROR_SOCKFD;
+        dbg_log(SEC_0053_CSOCKET, 9)(LOGSTDOUT, "[DEBUG] csocket_cnode_close: "
+                                                "close sockfd %d of csocket_cnode %p\n",
+                                                CSOCKET_CNODE_SOCKFD(csocket_cnode),
+                                                csocket_cnode);
 
+        if(BIT_TRUE == CSOCKET_CNODE_NONBLOCK(csocket_cnode))
+        {
+            cepoll_clear_node(task_brd_default_get_cepoll(), CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        }
+        csocket_close(CSOCKET_CNODE_SOCKFD(csocket_cnode));
+        CSOCKET_CNODE_SOCKFD(csocket_cnode) = CMPI_ERROR_SOCKFD;
+    }
     csocket_cnode_free(csocket_cnode);
     return (EC_TRUE);
 }

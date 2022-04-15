@@ -41,7 +41,7 @@
 #define SEC_0031_CFUSEC                     ((UINT32)(     31)) /*cfusec                          */
 #define SEC_0032_CDSK                       ((UINT32)(     32)) /*cdsk                            */
 #define SEC_0033_CRBUFF                     ((UINT32)(     33)) /*crbuff                          */
-#define SEC_0034_XXXXXX                     ((UINT32)(     34)) /*-- obsolete --                  */
+#define SEC_0034_CFUSED                     ((UINT32)(     34)) /*cfused                          */
 #define SEC_0035_CMPIE                      ((UINT32)(     35)) /*cmpie                           */
 #define SEC_0036_XXXXXXX                    ((UINT32)(     36)) /*-- obsolete --                  */
 #define SEC_0037_CSBUFF                     ((UINT32)(     37)) /*csbuff                          */

@@ -39,7 +39,7 @@ TYPE_CONV_ITEM *creg_type_conv_vec_get(CVECTOR *type_conv_vec, const UINT32 var_
 
 EC_BOOL creg_type_conv_vec_add(CVECTOR *type_conv_vec,
                                          const UINT32 var_dbg_type, const UINT32 var_sizeof, const UINT32 var_pointer_flag, const UINT32 var_mm_type,
-                                         const UINT32 var_init_func, const UINT32 var_clean_func, const UINT32 var_free_func,
+                                         const UINT32 var_new_func, const UINT32 var_init_func, const UINT32 var_clean_func, const UINT32 var_free_func,
                                          const UINT32 var_encode_func, const UINT32 var_decode_func, const UINT32 var_encode_size
                                          );
 
