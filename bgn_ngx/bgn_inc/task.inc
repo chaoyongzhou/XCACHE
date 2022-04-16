@@ -570,6 +570,7 @@ typedef struct _TASK_BRD
     EC_BOOL      ngx_exiting_flag;
 
     CEVENTFD_NODE ceventfd_node;
+    volatile uint64_t ceventfd_counter; /*when counter >0, notify eventfd*/
 
     //EC_BOOL      dbg_flag;
     //UINT32       dbg_counter;
@@ -1023,6 +1024,7 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 #define TASK_BRD_CTIMEOUT_TREE(task_brd)                     (&((task_brd)->ctimeout_tree))
 
 #define TASK_BRD_CEVENTFD_NODE(task_brd)                     (&((task_brd)->ceventfd_node))
+#define TASK_BRD_CEVENTFD_COUNTER(task_brd)                  (&((task_brd)->ceventfd_counter))
 
 #define TASK_BRD_SEND_TASK_MGR_LIST_INIT(task_brd, location)           (clist_init(TASK_BRD_SEND_TASK_MGR_LIST(task_brd), MM_IGNORE, location))
 #define TASK_BRD_RECV_TASK_MGR_LIST_INIT(task_brd, location)           (clist_init(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), MM_IGNORE, location))

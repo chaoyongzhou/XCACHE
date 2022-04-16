@@ -204,6 +204,8 @@ typedef struct
 
 void   cthread_killme(void *args);
 
+EC_BOOL cthread_kill(CTHREAD_ID cthread_id, int signo);
+
 void * cthread_start(void *args);
 
 CTHREAD_ID cthread_new(const UINT32 flag, const char *name, const UINT32 start_routine_addr, const UINT32 core_id, const UINT32 para_num,...);

@@ -416,6 +416,10 @@ EC_BOOL task_brd_default_discovery();
 
 EC_BOOL task_brd_check_and_notify(TASK_BRD *task_brd);
 
+uint64_t task_brd_check_notify_counter(TASK_BRD *task_brd);
+uint64_t task_brd_inc_notify_counter(TASK_BRD *task_brd);
+uint64_t task_brd_dec_notify_counter(TASK_BRD *task_brd);
+
 EC_BOOL task_brd_notify(TASK_BRD *task_brd);
 
 EC_BOOL task_brd_default_notify();

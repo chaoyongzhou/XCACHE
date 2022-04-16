@@ -43,7 +43,7 @@
 #define SEC_0033_CRBUFF                     ((UINT32)(     33)) /*crbuff                          */
 #define SEC_0034_CFUSED                     ((UINT32)(     34)) /*cfused                          */
 #define SEC_0035_CMPIE                      ((UINT32)(     35)) /*cmpie                           */
-#define SEC_0036_XXXXXXX                    ((UINT32)(     36)) /*-- obsolete --                  */
+#define SEC_0036_CFUSEO                     ((UINT32)(     36)) /*cfuseo                          */
 #define SEC_0037_CSBUFF                     ((UINT32)(     37)) /*csbuff                          */
 #define SEC_0038_CRB                        ((UINT32)(     38)) /*crb                             */
 #define SEC_0039_CTDNSSVRB                  ((UINT32)(     39)) /*ctdnssvrb                       */

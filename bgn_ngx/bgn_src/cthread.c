@@ -189,6 +189,21 @@ void cthread_killme(void *args)
     return;
 }
 
+EC_BOOL cthread_kill(CTHREAD_ID cthread_id, int signo)
+{
+    if(0 != pthread_kill(cthread_id, signo))
+    {
+        dbg_log(SEC_0016_CTHREAD, 0)(LOGSTDOUT, "error:cthread_kill: "
+                                                "send signo %d to thread %ld failed, "
+                                                "errno = %d, errstr = %s\n",
+                                                signo, cthread_id,
+                                                errno, strerror(errno));
+        return (EC_FALSE);
+    }
+
+    return (EC_TRUE);
+}
+
 STATIC_CAST static EC_BOOL cthread_check_tcid_offset()
 {
     if(CTHREAD_GET_TID() != CTHREAD_FETCH_TID(pthread_self(), CTHREAD_TID_OFFSET))

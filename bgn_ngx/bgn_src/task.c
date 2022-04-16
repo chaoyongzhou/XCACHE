@@ -5939,6 +5939,7 @@ EC_BOOL task_brd_init(TASK_BRD          *task_brd,
     task_brd_process_init(task_brd);
 
     ceventfd_node_init(TASK_BRD_CEVENTFD_NODE(task_brd));
+    (*TASK_BRD_CEVENTFD_COUNTER(task_brd)) = 0;
 
     TASK_BRD_ENABLE_FLAG(task_brd) = EC_TRUE;
     TASK_BRD_RESET_FLAG(task_brd)  = EC_TRUE;/*default is to reset the down do_slave thread*/
@@ -13642,6 +13643,21 @@ EC_BOOL task_brd_check_and_notify(TASK_BRD *task_brd)
     return (EC_FALSE);
 }
 
+uint64_t task_brd_check_notify_counter(TASK_BRD *task_brd)
+{
+    return __sync_fetch_and_sub(TASK_BRD_CEVENTFD_COUNTER(task_brd), 0);
+}
+
+uint64_t task_brd_inc_notify_counter(TASK_BRD *task_brd)
+{
+    return __sync_fetch_and_add(TASK_BRD_CEVENTFD_COUNTER(task_brd), 1);
+}
+
+uint64_t task_brd_dec_notify_counter(TASK_BRD *task_brd)
+{
+    return __sync_fetch_and_sub(TASK_BRD_CEVENTFD_COUNTER(task_brd), 1);
+}
+
 EC_BOOL task_brd_notify(TASK_BRD *task_brd)
 {
     return ceventfd_node_notify(TASK_BRD_CEVENTFD_NODE(task_brd));
@@ -13920,6 +13936,12 @@ EC_BOOL do_slave_enhanced(TASK_BRD *task_brd)
 
         /*note: check and notify would push cpu util higher*/
         /*task_brd_check_and_notify(task_brd);*/
+
+        if(0 < task_brd_check_notify_counter(task_brd))
+        {
+            task_brd_dec_notify_counter(task_brd);
+            task_brd_notify(task_brd);
+        }
 
         /*handle epoll*/
         task_brd_epoll_do(task_brd);
