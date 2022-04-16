@@ -95,7 +95,7 @@ UINT32 clist_caller_set(CLIST *clist, const UINT32 choice, const UINT32 caller)
             clist->data_encoder = (CLIST_DATA_ENCODER)(uintptr_t)caller;
             return (0);
         case CLIST_CODEC_ENCODER_SIZE:
-            clist->data_encoder_size = (CLIST_DATA_ENCODER_SIZE)(uintptr)caller;
+            clist->data_encoder_size = (CLIST_DATA_ENCODER_SIZE)(uintptr_t)caller;
             return (0);
         case CLIST_CODEC_DECODER:
             clist->data_decoder = (CLIST_DATA_DECODER)(uintptr_t)caller;
