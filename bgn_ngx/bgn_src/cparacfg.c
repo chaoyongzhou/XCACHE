@@ -406,10 +406,16 @@ EC_BOOL cparacfg_free(CPARACFG *cparacfg)
 
 EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 this_rank)
 {
+    REAL        real;
+
     BSET((void *)cparacfg, 0x00, sizeof(CPARACFG));
 
     #define CPARACFG_ADD_NODE(cparacfg, idx, macro_name, type_name) \
-        cparacfg_add_node(cparacfg, idx, #macro_name, #type_name, (void *)(uint64_t)CPARACFG_##macro_name##_DEF)
+        cparacfg_add_node(cparacfg, idx, # macro_name, # type_name, (void *)(uintptr_t)CPARACFG_##macro_name##_DEF)
+
+    #define CPARACFG_ADD_REAL(cparacfg, idx, macro_name, type_name) \
+        real = CPARACFG_##macro_name##_DEF;                                       \
+        cparacfg_add_node(cparacfg, idx, # macro_name, # type_name, (void *)&real)  \
 
     CPARACFG_ADD_NODE(cparacfg,   0, THIS_TCID                                   , UINT32    );
     CPARACFG_ADD_NODE(cparacfg,   1, THIS_RANK                                   , UINT32    );
@@ -445,8 +451,8 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_ADD_NODE(cparacfg,  31, DNS_CACHE_SWITCH                            , SWITCH    );
     CPARACFG_ADD_NODE(cparacfg,  32, DNS_CACHE_EXPIRED_NSEC                      , UINT32    );
     CPARACFG_ADD_NODE(cparacfg,  33, HIGH_PRECISION_TIME_SWITCH                  , SWITCH    );
-    CPARACFG_ADD_NODE(cparacfg,  34, CXFSNP_MAX_USED_RATIO                       , REAL      );
-    CPARACFG_ADD_NODE(cparacfg,  35, CXFSDN_MAX_USED_RATIO                       , REAL      );
+    CPARACFG_ADD_REAL(cparacfg,  34, CXFSNP_MAX_USED_RATIO                       , REAL      );
+    CPARACFG_ADD_REAL(cparacfg,  35, CXFSDN_MAX_USED_RATIO                       , REAL      );
     CPARACFG_ADD_NODE(cparacfg,  36, CXFSNP_TRY_RETIRE_MAX_NUM                   , UINT32    );
     CPARACFG_ADD_NODE(cparacfg,  37, CXFSNP_TRY_RECYCLE_MAX_NUM                  , UINT32    );
     CPARACFG_ADD_NODE(cparacfg,  38, CXFSNP_CACHE_IN_MEM_SWITCH                  , SWITCH    );
@@ -495,9 +501,9 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_ADD_NODE(cparacfg,  81, CMC_FLOW_CONTROL_SWITCH                     , SWITCH    );
     CPARACFG_ADD_NODE(cparacfg,  82, CMC_PROCESS_DEGRADE_MAX_NUM                 , UINT32    );
     CPARACFG_ADD_NODE(cparacfg,  83, CMC_SCAN_DEGRADE_MAX_NUM                    , UINT32    );
-    CPARACFG_ADD_NODE(cparacfg,  84, CMC_DEGRADE_HI_RATIO                        , REAL      );
-    CPARACFG_ADD_NODE(cparacfg,  85, CMC_DEGRADE_MD_RATIO                        , REAL      );
-    CPARACFG_ADD_NODE(cparacfg,  86, CMC_DEGRADE_LO_RATIO                        , REAL      );
+    CPARACFG_ADD_REAL(cparacfg,  84, CMC_DEGRADE_HI_RATIO                        , REAL      );
+    CPARACFG_ADD_REAL(cparacfg,  85, CMC_DEGRADE_MD_RATIO                        , REAL      );
+    CPARACFG_ADD_REAL(cparacfg,  86, CMC_DEGRADE_LO_RATIO                        , REAL      );
     CPARACFG_ADD_NODE(cparacfg,  87, CMC_LRU_MODEL_SWITCH                        , SWITCH    );
     CPARACFG_ADD_NODE(cparacfg,  88, CMC_FIFO_MODEL_SWITCH                       , SWITCH    );
     CPARACFG_ADD_NODE(cparacfg,  89, CDC_TRY_RETIRE_MAX_NUM                      , UINT32    );
@@ -507,12 +513,13 @@ EC_BOOL cparacfg_init(CPARACFG *cparacfg, const UINT32 this_tcid, const UINT32 t
     CPARACFG_ADD_NODE(cparacfg,  93, CDC_FLOW_CONTROL_SWITCH                     , SWITCH    );
     CPARACFG_ADD_NODE(cparacfg,  94, CDC_PROCESS_DEGRADE_MAX_NUM                 , UINT32    );
     CPARACFG_ADD_NODE(cparacfg,  95, CDC_SCAN_DEGRADE_MAX_NUM                    , UINT32    );
-    CPARACFG_ADD_NODE(cparacfg,  96, CDC_DEGRADE_HI_RATIO                        , REAL      );
-    CPARACFG_ADD_NODE(cparacfg,  97, CDC_DEGRADE_MD_RATIO                        , REAL      );
-    CPARACFG_ADD_NODE(cparacfg,  98, CDC_DEGRADE_LO_RATIO                        , REAL      );
+    CPARACFG_ADD_REAL(cparacfg,  96, CDC_DEGRADE_HI_RATIO                        , REAL      );
+    CPARACFG_ADD_REAL(cparacfg,  97, CDC_DEGRADE_MD_RATIO                        , REAL      );
+    CPARACFG_ADD_REAL(cparacfg,  98, CDC_DEGRADE_LO_RATIO                        , REAL      );
     CPARACFG_ADD_NODE(cparacfg,  99, CDC_LRU_MODEL_SWITCH                        , SWITCH    );
     CPARACFG_ADD_NODE(cparacfg, 100, CDC_FIFO_MODEL_SWITCH                       , SWITCH    );
 
+    #undef CPARACFG_ADD_REAL
     #undef CPARACFG_ADD_NODE
 
     /*revise*/
@@ -685,7 +692,8 @@ EC_BOOL cparacfg_add_node(CPARACFG *cparacfg, const UINT32 idx, const char *macr
 
     if(EC_TRUE == cparacfg_node_is_type(cparacfg_node, "REAL"))
     {
-        CPARACFG_NODE_DATA_REAL(cparacfg_node) = (REAL)(uint64_t)data;
+        /*note: data is REAL pointer*/
+        CPARACFG_NODE_DATA_REAL(cparacfg_node) = *(REAL *)data;
 
         CPARACFG_NODE(cparacfg, idx) = cparacfg_node;
 
@@ -844,7 +852,7 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
         {
             sys_log(log, "[%3d] %32s = %u\n", idx,
                          CPARACFG_NODE_MACRO_NAME(cparacfg_node),
-                         CPARACFG_NODE_DATA_U32(cparacfg_node));
+                         CPARACFG_NODE_DATA_U8(cparacfg_node));
             continue;
         }
 
@@ -852,7 +860,7 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
         {
             sys_log(log, "[%3d] %32s = %u\n", idx,
                          CPARACFG_NODE_MACRO_NAME(cparacfg_node),
-                         CPARACFG_NODE_DATA_U32(cparacfg_node));
+                         CPARACFG_NODE_DATA_U16(cparacfg_node));
             continue;
         }
 
@@ -868,7 +876,7 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
         {
             sys_log(log, "[%3d] %32s = %lu\n", idx,
                          CPARACFG_NODE_MACRO_NAME(cparacfg_node),
-                         CPARACFG_NODE_DATA_U32(cparacfg_node));
+                         CPARACFG_NODE_DATA_U64(cparacfg_node));
             continue;
         }
 
@@ -876,7 +884,7 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
         {
             sys_log(log, "[%3d] %32s = %ld\n", idx,
                          CPARACFG_NODE_MACRO_NAME(cparacfg_node),
-                         CPARACFG_NODE_DATA_U32(cparacfg_node));
+                         CPARACFG_NODE_DATA_WORD(cparacfg_node));
             continue;
         }
 
@@ -884,7 +892,7 @@ void cparacfg_print(LOG *log, const CPARACFG *cparacfg)
         {
             sys_log(log, "[%3d] %32s = %.2f\n", idx,
                          CPARACFG_NODE_MACRO_NAME(cparacfg_node),
-                         CPARACFG_NODE_DATA_U32(cparacfg_node));
+                         CPARACFG_NODE_DATA_REAL(cparacfg_node));
             continue;
         }
 

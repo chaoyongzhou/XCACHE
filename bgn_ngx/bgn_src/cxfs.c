@@ -9128,7 +9128,7 @@ EC_BOOL cxfs_process_space(const UINT32 cxfs_md_id)
                                          "npp used ratio %.3f, dn used ratio %.3f\n",
                                          npp_used_ratio, dn_used_ratio);
 
-    if(CXFSNP_MAX_USED_RATIO <= npp_used_ratio)
+    if(CXFSNP_MAX_USED_RATIO < npp_used_ratio)
     {
         dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_process_space: "
                                              "npp used ratio %.3f >= %.3f => retire & recycle\n",
@@ -9138,7 +9138,7 @@ EC_BOOL cxfs_process_space(const UINT32 cxfs_md_id)
     }
 
     dn_used_ratio = cxfsdn_used_ratio(CXFS_MD_DN(cxfs_md));
-    if(CXFSDN_MAX_USED_RATIO <= dn_used_ratio)
+    if(CXFSDN_MAX_USED_RATIO < dn_used_ratio)
     {
         dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_process_space: "
                                              "dn used ratio %.3f >= %.3f => retire & recycle\n",

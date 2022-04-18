@@ -1859,6 +1859,7 @@ EC_BOOL cnbd_device_set(const UINT32 cnbd_md_id)
     return (EC_TRUE);
 }
 
+/*listen in a single thread*/
 EC_BOOL cnbd_device_listen(const UINT32 cnbd_md_id)
 {
     CNBD_MD  *cnbd_md;

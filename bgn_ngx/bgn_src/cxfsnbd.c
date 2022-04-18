@@ -972,6 +972,8 @@ EC_BOOL cxfsnbd_bucket_launch(const UINT32 cxfsnbd_md_id)
         return (EC_TRUE);
     }
 
+    /*exception*/
+
     dbg_log(SEC_0141_CXFSNBD, 0)(LOGSTDOUT, "error:cxfsnbd_launch:"
                                             "create bucket %s failed\n",
                                             (char *)CXFSNBD_MD_BUCKET_NAME_STR(cxfsnbd_md));
