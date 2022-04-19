@@ -951,14 +951,14 @@ char *c_word_to_bin_str(const word_t num)
 
 uint64_t c_chars_to_uint64_t(const char *str, const uint32_t len)
 {
-    uint64_t  c;            /* current char */
     uint64_t  negs;
     uint64_t  total;     /* current total */
-    UINT32    pos;
+    uint32_t  c;         /* current char */
+    uint32_t  pos;
 
     if( NULL_PTR == str)
     {
-        return ((UINT32)0);
+        return ((uint64_t)0);
     }
 
     total = 0;
@@ -972,12 +972,12 @@ uint64_t c_chars_to_uint64_t(const char *str, const uint32_t len)
             continue;
         }
 
-        c = (uint64_t)(str[ pos ]);
+        c = (uint32_t)(str[ pos ]);
 
         if(c < '0' || c > '9')
         {
             dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_chars_to_uint64_t: str %.*s found not digit char at pos %ld\n", len, str, pos);
-            return ((UINT32)0);
+            return ((uint64_t)0);
         }
         total = 10 * total + (c - '0');
     }
@@ -1105,6 +1105,11 @@ uint64_t c_space_size_str_to_uint64_t(const char *space_size_str)
     }
 
     unit = space_size_str[ len - 1 ];
+    if('B' == unit)
+    {
+        len --;
+        unit = space_size_str[ len - 1 ];
+    }
 
     switch (unit)
     {

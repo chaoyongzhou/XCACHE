@@ -128,6 +128,37 @@ STATIC_CAST static EC_BOOL __cxml_parse_tag_int(xmlNodePtr node, const char *tag
     return (EC_FALSE);
 }
 
+/*space size, e.g, 100, 100B, 100KB, 100MB, 100GB*/
+STATIC_CAST static EC_BOOL __cxml_parse_tag_space_uint32(xmlNodePtr node, const char *tag, UINT32 *data)
+{
+    if(xmlHasProp(node, (const xmlChar*)tag))
+    {
+        xmlChar *attr_val;
+
+        attr_val = xmlGetProp(node, (const xmlChar*)tag);
+        (*data) = (UINT32)c_space_size_str_to_uint64_t((char *)attr_val);
+        xmlFree(attr_val);
+
+        return (EC_TRUE);
+    }
+    return (EC_FALSE);
+}
+
+STATIC_CAST static EC_BOOL __cxml_parse_tag_space_uint32_t(xmlNodePtr node, const char *tag, uint32_t *data)
+{
+    if(xmlHasProp(node, (const xmlChar*)tag))
+    {
+        xmlChar *attr_val;
+
+        attr_val = xmlGetProp(node, (const xmlChar*)tag);
+        (*data) = (uint32_t)c_space_size_str_to_uint64_t((char *)attr_val);
+        xmlFree(attr_val);
+
+        return (EC_TRUE);
+    }
+    return (EC_FALSE);
+}
+
 STATIC_CAST static EC_BOOL __cxml_parse_tag_rank(xmlNodePtr node, const char *tag, UINT32 *rank)
 {
     return __cxml_parse_tag_uint32(node, tag, rank);
@@ -1479,8 +1510,8 @@ EC_BOOL cxml_parse_cparacfg_thread_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 {
     __cxml_parse_tag_uint32(node, (const char *)"maxReqThreadNum"          , &(CPARACFG_TASK_REQ_THREAD_MAX_NUM(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"maxRspThreadNum"          , &(CPARACFG_TASK_RSP_THREAD_MAX_NUM(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"maxStackSize"             , &(CPARACFG_CTHREAD_STACK_MAX_SIZE(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"stackGuardSize"           , &(CPARACFG_CTHREAD_STACK_GUARD_SIZE(cparacfg)));
+    __cxml_parse_tag_space_uint32(node, (const char *)"maxStackSize"             , &(CPARACFG_CTHREAD_STACK_MAX_SIZE(cparacfg)));
+    __cxml_parse_tag_space_uint32(node, (const char *)"stackGuardSize"           , &(CPARACFG_CTHREAD_STACK_GUARD_SIZE(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"taskSlowDownMsec"         , &(CPARACFG_TASK_SLOW_DOWN_MSEC(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"taskLiveNsec"             , &(CPARACFG_TASK_LIVE_NSEC(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"taskZombieNsec"           , &(CPARACFG_TASK_ZOMBIE_NSEC(cparacfg)));
@@ -1507,8 +1538,8 @@ EC_BOOL cxml_parse_cparacfg_csocket_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 
     __cxml_parse_tag_switch(node, (const char *)"unixDomainIpcSwitch" , &(CPARACFG_CSOCKET_UNIX_DOMAIN_SWITCH(cparacfg)));
 
-    __cxml_parse_tag_uint32(node, (const char *)"sendOnceMaxSize"   , &(CPARACFG_CSOCKET_SEND_ONCE_MAX_SIZE(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"recvOnceMaxSize"   , &(CPARACFG_CSOCKET_RECV_ONCE_MAX_SIZE(cparacfg)));
+    __cxml_parse_tag_space_uint32(node, (const char *)"sendOnceMaxSize", &(CPARACFG_CSOCKET_SEND_ONCE_MAX_SIZE(cparacfg)));
+    __cxml_parse_tag_space_uint32(node, (const char *)"recvOnceMaxSize", &(CPARACFG_CSOCKET_RECV_ONCE_MAX_SIZE(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"connectionNum"     , &(CPARACFG_CSOCKET_CNODE_NUM(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"heartbeatIntvlNsec", &(CPARACFG_CSOCKET_HEARTBEAT_INTVL_NSEC(cparacfg)));
 
@@ -1532,7 +1563,7 @@ EC_BOOL cxml_parse_cparacfg_xfs_cfg(xmlNodePtr node, CPARACFG *cparacfg)
     __cxml_parse_tag_uint32(node, (const char *)"xfsNpRecycleMaxNum", &(CPARACFG_CXFSNP_TRY_RECYCLE_MAX_NUM(cparacfg)));
 
     __cxml_parse_tag_switch(node, (const char *)"xfsDnAmdSwitch"       , &(CPARACFG_CXFSDN_CAMD_SWITCH(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"xfsDnAmdMemDiskSize"  , &(CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg)));
+    __cxml_parse_tag_space_uint32(node, (const char *)"xfsDnAmdMemDiskSize"  , &(CPARACFG_CXFSDN_CAMD_MEM_DISK_SIZE(cparacfg)));
 
     __cxml_parse_tag_switch(node, (const char *)"xfsLRUSwitch"        , &(CPARACFG_CXFS_LRU_MODEL_SWITCH(cparacfg)));
     __cxml_parse_tag_switch(node, (const char *)"xfsFIFOSwitch"       , &(CPARACFG_CXFS_FIFO_MODEL_SWITCH(cparacfg)));
@@ -1562,8 +1593,8 @@ EC_BOOL cxml_parse_cparacfg_ngx_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 
 EC_BOOL cxml_parse_cparacfg_nbd_cfg(xmlNodePtr node, CPARACFG *cparacfg)
 {
-    __cxml_parse_tag_uint32(node, (const char *)"deviceSize" , &(CPARACFG_CXFSNBD_DEVICE_SIZE(cparacfg)));
-    __cxml_parse_tag_uint32(node, (const char *)"blockSize" , &(CPARACFG_CXFSNBD_BLOCK_SIZE(cparacfg)));
+    __cxml_parse_tag_space_uint32(node, (const char *)"deviceSize" , &(CPARACFG_CXFSNBD_DEVICE_SIZE(cparacfg)));
+    __cxml_parse_tag_space_uint32(node, (const char *)"blockSize" , &(CPARACFG_CXFSNBD_BLOCK_SIZE(cparacfg)));
     __cxml_parse_tag_uint32(node, (const char *)"timeoutNsec", &(CPARACFG_CXFSNBD_TIMEOUT_NSEC(cparacfg)));
 
     return (EC_TRUE);
