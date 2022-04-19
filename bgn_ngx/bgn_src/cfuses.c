@@ -9,6 +9,8 @@
 extern "C"{
 #endif/*__cplusplus*/
 
+#if (SWITCH_ON == FUSE_SWITCH)
+
 #include <stddef.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -1356,6 +1358,7 @@ EC_BOOL cfuses_readdir(const UINT32 cfuses_md_id, const CSTRING *path, const UIN
     return (EC_TRUE);
 }
 
+#endif/*(SWITCH_ON == FUSE_SWITCH)*/
 
 #ifdef __cplusplus
 }

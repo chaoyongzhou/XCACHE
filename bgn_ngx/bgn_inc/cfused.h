@@ -12,6 +12,8 @@ extern "C"{
 #ifndef _CFUSED_H
 #define _CFUSED_H
 
+#if (SWITCH_ON == FUSE_SWITCH)
+
 #include "type.h"
 #include "mm.h"
 #include "log.h"
@@ -116,6 +118,8 @@ UINT32 cmpi_encode_dirnode(const UINT32 comm, const struct dirnode *dirnode, UIN
 UINT32 cmpi_encode_dirnode_size(const UINT32 comm, const struct dirnode *dirnode, UINT32 *size);
 UINT32 cmpi_decode_dirnode(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct dirnode *dirnode);
 #endif
+
+#endif/*(SWITCH_ON == FUSE_SWITCH)*/
 
 #endif /*_CFUSED_H*/
 

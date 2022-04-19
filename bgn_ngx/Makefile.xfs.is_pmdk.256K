@@ -241,6 +241,7 @@ CMACRO = \
          -DCAMD_SSD_DISK_MAX_SIZE_NBITS=${DISK_004T_NBITS} \
          -DCAMD_PAGE_SIZE_NBITS=${PAGE_256K_NBITS} \
          -DPMDK_PMEM_SWITCH=SWITCH_ON \
+         -DFUSE_SWITCH=SWITCH_OFF \
 
 # C Language
 CC       = /usr/bin/gcc

@@ -9,6 +9,8 @@
 extern "C"{
 #endif/*__cplusplus*/
 
+#if (SWITCH_ON == FUSE_SWITCH)
+
 #include <stddef.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -965,6 +967,8 @@ int cfusec_fsyncdir(const char *path, int datasync, struct fuse_file_info *fi)
     CFUSEC_DEBUG_ENTER("cfusec_fsyncdir");
     return (0);
 }
+
+#endif/*(SWITCH_ON == FUSE_SWITCH)*/
 
 #ifdef __cplusplus
 }

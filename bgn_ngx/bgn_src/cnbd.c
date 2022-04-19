@@ -164,18 +164,21 @@ UINT32 cnbd_start(const CSTRING *nbd_dev_name,
     /* create a new module node */
     init_static_mem();
 
-    CNBD_MD_C_SOCKFD(cnbd_md)     = ERR_FD;
-    CNBD_MD_D_SOCKFD(cnbd_md)     = ERR_FD;
-    CNBD_MD_NBD_FD(cnbd_md)       = ERR_FD;
+    CNBD_MD_C_SOCKFD(cnbd_md)               = ERR_FD;
+    CNBD_MD_D_SOCKFD(cnbd_md)               = ERR_FD;
+    CNBD_MD_NBD_FD(cnbd_md)                 = ERR_FD;
 
-    CNBD_MD_DEMO_FD(cnbd_md)      = ERR_FD;
+    CNBD_MD_DEMO_FD(cnbd_md)                = ERR_FD;
+    CNBD_MD_NBD_THREAD_ID(cnbd_md)          = ERR_CTHREAD_ID;
+    *CNBD_MD_NBD_THREAD_COUNTER(cnbd_md)    = 0;
+    CNBD_MD_NBD_THREAD_ERRNO(cnbd_md)       = 0;
 
-    CNBD_MD_NBD_BLK_SIZE(cnbd_md) = 0;
-    CNBD_MD_NBD_DEV_SIZE(cnbd_md) = 0;
-    CNBD_MD_NBD_TIMEOUT(cnbd_md)  = 0;
-    CNBD_MD_NBD_T_FLAGS(cnbd_md)  = 0;/*xxx*/
-    CNBD_MD_NBD_DEV_NAME(cnbd_md) = NULL_PTR;
-    CNBD_MD_BUCKET_NAME(cnbd_md)  = NULL_PTR;
+    CNBD_MD_NBD_BLK_SIZE(cnbd_md)           = 0;
+    CNBD_MD_NBD_DEV_SIZE(cnbd_md)           = 0;
+    CNBD_MD_NBD_TIMEOUT(cnbd_md)            = 0;
+    CNBD_MD_NBD_T_FLAGS(cnbd_md)            = 0;/*xxx*/
+    CNBD_MD_NBD_DEV_NAME(cnbd_md)           = NULL_PTR;
+    CNBD_MD_BUCKET_NAME(cnbd_md)            = NULL_PTR;
 
     clist_init(CNBD_MD_NBD_REQ_LIST(cnbd_md), MM_CNBD_REQ, LOC_CNBD_0001);
     clist_init(CNBD_MD_NBD_RSP_LIST(cnbd_md), MM_CNBD_RSP, LOC_CNBD_0002);
@@ -244,7 +247,13 @@ UINT32 cnbd_start(const CSTRING *nbd_dev_name,
     CNBD_MD_C_SOCKFD(cnbd_md) = sockfd[0];
     CNBD_MD_D_SOCKFD(cnbd_md) = sockfd[1];
 
-    c_socket_nonblock_enable(CNBD_MD_C_SOCKFD(cnbd_md));
+    dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_start:"
+                                         "create unix socket pair done, "
+                                         "c_sockfd %d, d_sockfd %d\n",
+                                         CNBD_MD_C_SOCKFD(cnbd_md),
+                                         CNBD_MD_D_SOCKFD(cnbd_md));
+
+    c_socket_nonblock_enable(CNBD_MD_C_SOCKFD(cnbd_md));/*xxx*/
     c_socket_nonblock_enable(CNBD_MD_D_SOCKFD(cnbd_md));
 
     cepoll_set_event(task_brd_default_get_cepoll(),
@@ -261,6 +270,10 @@ UINT32 cnbd_start(const CSTRING *nbd_dev_name,
                       (CEPOLL_EVENT_HANDLER)cnbd_socket_send,
                       (void *)cnbd_md_id);
 
+    dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_start:"
+                                         "set d_sockfd %d RD & WR events\n",
+                                         CNBD_MD_D_SOCKFD(cnbd_md));
+
     if(EC_FALSE == cnbd_device_open(cnbd_md_id))
     {
         dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_start:"
@@ -269,6 +282,10 @@ UINT32 cnbd_start(const CSTRING *nbd_dev_name,
         cnbd_end(cnbd_md_id);
         return (CMPI_ERROR_MODI);
     }
+    dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_start: "
+                                         "open nbd device '%s', nbd fd %d done\n",
+                                         (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
+                                         CNBD_MD_NBD_FD(cnbd_md));
 
     if(EC_FALSE == cnbd_device_set(cnbd_md_id))
     {
@@ -279,25 +296,48 @@ UINT32 cnbd_start(const CSTRING *nbd_dev_name,
         return (CMPI_ERROR_MODI);
     }
 
-    /*cnbd_device_listen(cnbd_md_id);*/
+    dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_start: "
+                                         "nbd device '%s', fd %d, set flags done\n",
+                                         (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
+                                         CNBD_MD_NBD_FD(cnbd_md));
+
     dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_start: "
                                          "CNBD module #%ld, launch device listen\n",
                                          cnbd_md_id);
-    cthread_new(CTHREAD_DETACHABLE | CTHREAD_SYSTEM_LEVEL,
-                 (const char *)"cnbd_device_listen",
-                 (UINT32)cnbd_device_listen,
-                 (UINT32)0,/*core # (ignore)*/
-                 (UINT32)1,/*para num*/
-                 cnbd_md_id
-                 );
+    CNBD_MD_NBD_THREAD_ID(cnbd_md) = cthread_new(CTHREAD_DETACHABLE | CTHREAD_SYSTEM_LEVEL,
+                                                 (const char *)"cnbd_device_listen",
+                                                 (UINT32)cnbd_device_listen,
+                                                 (UINT32)0,/*core # (ignore)*/
+                                                 (UINT32)1,/*para num*/
+                                                 cnbd_md_id
+                                                 );
+    if(ERR_CTHREAD_ID == CNBD_MD_NBD_THREAD_ID(cnbd_md))
+    {
+        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_start: "
+                                             "CNBD module #%ld, launch device listen failed\n",
+                                             cnbd_md_id);
+        cnbd_end(cnbd_md_id);
+        return (CMPI_ERROR_MODI);
+    }
+    cnbd_thread_set_running(cnbd_md_id);
+
+    dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_start: "
+                                         "nbd device '%s', launch device listen thread %ld done\n",
+                                         (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
+                                         CNBD_MD_NBD_THREAD_ID(cnbd_md));
 
     /*cnbd_device_close(cnbd_md_id);*/
+
+    task_brd_process_add(task_brd_default_get(),
+                         (TASK_BRD_CALLBACK)cnbd_thread_check_listen,
+                         (void *)cnbd_md_id);
 
     csig_atexit_register((CSIG_ATEXIT_HANDLER)cnbd_end, cnbd_md_id);
 
     dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_start: "
-                                         "start CNBD module #%ld\n",
-                                         cnbd_md_id);
+                                         "start CNBD module #%ld, device '%s'\n",
+                                         cnbd_md_id,
+                                         (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md));
 
     return ( cnbd_md_id );
 }
@@ -312,6 +352,10 @@ void cnbd_end(const UINT32 cnbd_md_id)
     CNBD_MD *cnbd_md;
 
     csig_atexit_unregister((CSIG_ATEXIT_HANDLER)cnbd_end, cnbd_md_id);
+
+    task_brd_process_del(task_brd_default_get(),
+                         (TASK_BRD_CALLBACK)cnbd_thread_check_listen,
+                         (void *)cnbd_md_id);
 
     cnbd_md = CNBD_MD_GET(cnbd_md_id);
     if(NULL_PTR == cnbd_md)
@@ -354,6 +398,14 @@ void cnbd_end(const UINT32 cnbd_md_id)
 
     if(ERR_FD != CNBD_MD_C_SOCKFD(cnbd_md))
     {
+        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_end: "
+                                             "cnbd %ld device '%s', disconnect, "
+                                             "nbd fd %d, c_sockfd %d\n",
+                                             cnbd_md_id,
+                                             (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
+                                             CNBD_MD_NBD_FD(cnbd_md),
+                                             CNBD_MD_C_SOCKFD(cnbd_md));
+
         cnbd_device_disconnect(cnbd_md_id);
 
         close(CNBD_MD_C_SOCKFD(cnbd_md));
@@ -362,6 +414,13 @@ void cnbd_end(const UINT32 cnbd_md_id)
 
     if(ERR_FD != CNBD_MD_D_SOCKFD(cnbd_md))
     {
+        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_end: "
+                                             "cnbd %ld device '%s', "
+                                             "d_sockfd %d remove events and close\n",
+                                             cnbd_md_id,
+                                             (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
+                                             CNBD_MD_D_SOCKFD(cnbd_md));
+
         cepoll_del_event(task_brd_default_get_cepoll(),
                          CNBD_MD_D_SOCKFD(cnbd_md),
                          CEPOLL_RD_EVENT);
@@ -374,11 +433,31 @@ void cnbd_end(const UINT32 cnbd_md_id)
         CNBD_MD_D_SOCKFD(cnbd_md) = ERR_FD;
     }
 
+    if(ERR_CTHREAD_ID != CNBD_MD_NBD_THREAD_ID(cnbd_md))
+    {
+        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_end: "
+                                             "cnbd %ld stop nbd listen thread %ld\n",
+                                             cnbd_md_id,
+                                             CNBD_MD_NBD_THREAD_ID(cnbd_md));
+
+        cthread_kill(CNBD_MD_NBD_THREAD_ID(cnbd_md), SIGINT);
+        CNBD_MD_NBD_THREAD_ID(cnbd_md) = ERR_CTHREAD_ID;
+
+        cnbd_thread_set_stopped(cnbd_md_id);
+    }
+
     if(ERR_FD != CNBD_MD_NBD_FD(cnbd_md))
     {
+        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_end: "
+                                             "cnbd %ld device '%s', close, nbd fd %d\n",
+                                             cnbd_md_id,
+                                             (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
+                                             CNBD_MD_NBD_FD(cnbd_md));
+
         cnbd_device_close(cnbd_md_id);
     }
 
+    /*debug only*/
     if(ERR_FD != CNBD_MD_DEMO_FD(cnbd_md))
     {
         cnbd_bucket_close(cnbd_md_id);
@@ -418,6 +497,139 @@ void cnbd_end(const UINT32 cnbd_md_id)
     return ;
 }
 
+EC_BOOL cnbd_thread_check_running(const UINT32 cnbd_md_id)
+{
+    CNBD_MD  *cnbd_md;
+
+#if (SWITCH_ON == CNBD_DEBUG_SWITCH)
+    if ( CNBD_MD_ID_CHECK_INVALID(cnbd_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cnbd_thread_check_running: cnbd module #%ld not started.\n",
+                cnbd_md_id);
+        cnbd_print_module_status(cnbd_md_id, LOGSTDOUT);
+        dbg_exit(MD_CNBD, cnbd_md_id);
+    }
+#endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
+
+    cnbd_md = CNBD_MD_GET(cnbd_md_id);
+
+    if(0 < __sync_fetch_and_add(CNBD_MD_NBD_THREAD_COUNTER(cnbd_md), 0))
+    {
+        return (EC_TRUE);
+    }
+    return (EC_FALSE);
+}
+
+EC_BOOL cnbd_thread_set_running(const UINT32 cnbd_md_id)
+{
+    CNBD_MD  *cnbd_md;
+
+#if (SWITCH_ON == CNBD_DEBUG_SWITCH)
+    if ( CNBD_MD_ID_CHECK_INVALID(cnbd_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cnbd_thread_set_running: cnbd module #%ld not started.\n",
+                cnbd_md_id);
+        cnbd_print_module_status(cnbd_md_id, LOGSTDOUT);
+        dbg_exit(MD_CNBD, cnbd_md_id);
+    }
+#endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
+
+    cnbd_md = CNBD_MD_GET(cnbd_md_id);
+
+    if(0 == __sync_fetch_and_add(CNBD_MD_NBD_THREAD_COUNTER(cnbd_md), 1))
+    {
+        return (EC_TRUE);
+    }
+    return (EC_FALSE);
+}
+
+EC_BOOL cnbd_thread_set_stopped(const UINT32 cnbd_md_id)
+{
+    CNBD_MD  *cnbd_md;
+
+#if (SWITCH_ON == CNBD_DEBUG_SWITCH)
+    if ( CNBD_MD_ID_CHECK_INVALID(cnbd_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cnbd_thread_set_stopped: cnbd module #%ld not started.\n",
+                cnbd_md_id);
+        cnbd_print_module_status(cnbd_md_id, LOGSTDOUT);
+        dbg_exit(MD_CNBD, cnbd_md_id);
+    }
+#endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
+
+    cnbd_md = CNBD_MD_GET(cnbd_md_id);
+
+    if(1 == __sync_fetch_and_sub(CNBD_MD_NBD_THREAD_COUNTER(cnbd_md), 1))
+    {
+        return (EC_TRUE);
+    }
+    return (EC_FALSE);
+}
+
+EC_BOOL cnbd_thread_check_listen(const UINT32 cnbd_md_id)
+{
+    CNBD_MD  *cnbd_md;
+
+#if (SWITCH_ON == CNBD_DEBUG_SWITCH)
+    if ( CNBD_MD_ID_CHECK_INVALID(cnbd_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cnbd_thread_check_listen: cnbd module #%ld not started.\n",
+                cnbd_md_id);
+        cnbd_print_module_status(cnbd_md_id, LOGSTDOUT);
+        dbg_exit(MD_CNBD, cnbd_md_id);
+    }
+#endif/*(SWITCH_ON == CNBD_DEBUG_SWITCH)*/
+
+    cnbd_md = CNBD_MD_GET(cnbd_md_id);
+
+    if(EC_TRUE == cnbd_thread_check_running(cnbd_md_id))
+    {
+        /*next check*/
+        task_brd_process_add(task_brd_default_get(),
+                             (TASK_BRD_CALLBACK)cnbd_thread_check_listen,
+                             (void *)cnbd_md_id);
+        return (EC_TRUE);
+    }
+
+    if(0 == CNBD_MD_NBD_THREAD_ERRNO(cnbd_md))
+    {
+        task_brd_update_time_default();
+        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_thread_check_listen: "
+                                             "nbd device '%s', fd %d, listen terminated\n",
+                                             (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
+                                             CNBD_MD_NBD_FD(cnbd_md));
+
+        /*terminate thread and terminate cnbd module*/
+        cnbd_end(cnbd_md_id);
+    }
+    else
+    {
+        task_brd_update_time_default();
+        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_thread_check_listen: "
+                                             "nbd device '%s', fd %d, listen failed, "
+                                             "errno %d, errstr %s\n",
+                                             (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
+                                             CNBD_MD_NBD_FD(cnbd_md),
+                                             CNBD_MD_NBD_THREAD_ERRNO(cnbd_md),
+                                             strerror(CNBD_MD_NBD_THREAD_ERRNO(cnbd_md)));
+
+        if(EBUSY == CNBD_MD_NBD_THREAD_ERRNO(cnbd_md))
+        {
+            cnbd_device_disconnect(cnbd_md_id);
+        }
+
+        /*terminate thread and terminate cnbd module*/
+        cnbd_end(cnbd_md_id);
+    }
+
+    return (EC_TRUE);
+}
+
+/*debug only*/
 EC_BOOL cnbd_bucket_open(const UINT32 cnbd_md_id)
 {
     CNBD_MD  *cnbd_md;
@@ -484,6 +696,7 @@ EC_BOOL cnbd_bucket_open(const UINT32 cnbd_md_id)
     return (EC_TRUE);
 }
 
+/*debug only*/
 EC_BOOL cnbd_bucket_create(const UINT32 cnbd_md_id)
 {
     CNBD_MD  *cnbd_md;
@@ -548,6 +761,7 @@ EC_BOOL cnbd_bucket_create(const UINT32 cnbd_md_id)
     return (EC_TRUE);
 }
 
+/*debug only*/
 EC_BOOL cnbd_bucket_close(const UINT32 cnbd_md_id)
 {
     CNBD_MD  *cnbd_md;
@@ -591,6 +805,7 @@ EC_BOOL cnbd_bucket_close(const UINT32 cnbd_md_id)
     return (EC_TRUE);
 }
 
+/*debug only*/
 EC_BOOL cnbd_bucket_read(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req, CNBD_RSP *cnbd_rsp)
 {
     CNBD_MD  *cnbd_md;
@@ -656,6 +871,7 @@ EC_BOOL cnbd_bucket_read(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req, CNBD
     return (EC_TRUE);
 }
 
+/*debug only*/
 EC_BOOL cnbd_bucket_write(const UINT32 cnbd_md_id, const CNBD_REQ *cnbd_req, CNBD_RSP *cnbd_rsp)
 {
     CNBD_MD  *cnbd_md;
@@ -1885,36 +2101,18 @@ EC_BOOL cnbd_device_listen(const UINT32 cnbd_md_id)
     /*block*/
     if(0 > ioctl(CNBD_MD_NBD_FD(cnbd_md), CNBD_DO_IT))
     {
-        int err;
+        CNBD_MD_NBD_THREAD_ERRNO(cnbd_md) = errno;
+        cnbd_thread_set_stopped(cnbd_md_id);
 
-        err = errno;
-        task_brd_update_time_default();
-        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_device_listen: "
-                                             "nbd device '%s', fd %d, listen failed, "
-                                             "errno %d, errstr %s\n",
-                                             (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
-                                             CNBD_MD_NBD_FD(cnbd_md),
-                                             err, strerror(err));
-
-        if(EBUSY == err)
-        {
-            cnbd_device_disconnect(cnbd_md_id);
-        }
-
-        /*terminate thread and terminate cnbd module*/
-        cnbd_end(cnbd_md_id);
+        CNBD_MD_NBD_THREAD_ID(cnbd_md) = ERR_CTHREAD_ID;
 
         return (EC_FALSE);
     }
 
-    task_brd_update_time_default();
-    dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_device_listen: "
-                                         "nbd device '%s', fd %d, listen terminated\n",
-                                         (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
-                                         CNBD_MD_NBD_FD(cnbd_md));
-
     /*terminate thread and terminate cnbd module*/
-    cnbd_end(cnbd_md_id);
+    cnbd_thread_set_stopped(cnbd_md_id);
+
+    CNBD_MD_NBD_THREAD_ID(cnbd_md) = ERR_CTHREAD_ID;
 
     return (EC_TRUE);
 }
@@ -1940,64 +2138,79 @@ EC_BOOL cnbd_device_disconnect(const UINT32 cnbd_md_id)
 
     ret = EC_TRUE;
 
-    if(0 > ioctl(CNBD_MD_NBD_FD(cnbd_md), CNBD_CLEAR_QUE))
+    if(ERR_FD != CNBD_MD_NBD_FD(cnbd_md))
     {
-        task_brd_update_time_default();
-        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_device_disconnect: "
-                                             "nbd device '%s', fd %d, clear que failed, "
-                                             "errno %d, errstr %s\n",
-                                             (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
-                                             CNBD_MD_NBD_FD(cnbd_md),
-                                             errno, strerror(errno));
-        ret = EC_FALSE;
-    }
-    else
-    {
-        task_brd_update_time_default();
-        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_device_disconnect: "
-                                             "nbd device '%s', fd %d, clear que done\n",
-                                             (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
-                                             CNBD_MD_NBD_FD(cnbd_md));
-    }
+        if(0 > ioctl(CNBD_MD_NBD_FD(cnbd_md), CNBD_CLEAR_QUE))
+        {
+            int errcode;
 
-    if(0 > ioctl(CNBD_MD_NBD_FD(cnbd_md), CNBD_DISCONNECT))
-    {
-        task_brd_update_time_default();
-        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_device_disconnect: "
-                                             "nbd device '%s', fd %d, disconnect failed, "
-                                             "errno %d, errstr %s\n",
-                                             (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
-                                             CNBD_MD_NBD_FD(cnbd_md),
-                                             errno, strerror(errno));
-        ret = EC_FALSE;
-    }
-    else
-    {
-        task_brd_update_time_default();
-        dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_device_disconnect: "
-                                             "nbd device '%s', fd %d, disconnect done\n",
-                                             (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
-                                             CNBD_MD_NBD_FD(cnbd_md));
-    }
+            errcode = errno;
 
-    if(0 > ioctl(CNBD_MD_NBD_FD(cnbd_md), CNBD_CLEAR_SOCK))
-    {
-        task_brd_update_time_default();
-        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_device_disconnect: "
-                                             "nbd device '%s', fd %d, clear sock failed, "
-                                             "errno %d, errstr %s\n",
-                                             (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
-                                             CNBD_MD_NBD_FD(cnbd_md),
-                                             errno, strerror(errno));
-        ret = EC_FALSE;
-    }
-    else
-    {
-        task_brd_update_time_default();
-        dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_device_disconnect: "
-                                             "nbd device '%s', fd %d, clear sock done\n",
-                                             (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
-                                             CNBD_MD_NBD_FD(cnbd_md));
+            task_brd_update_time_default();
+            dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_device_disconnect: "
+                                                 "nbd device '%s', fd %d, clear que failed, "
+                                                 "errno %d, errstr %s\n",
+                                                 (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
+                                                 CNBD_MD_NBD_FD(cnbd_md),
+                                                 errcode, strerror(errcode));
+            ret = EC_FALSE;
+        }
+        else
+        {
+            task_brd_update_time_default();
+            dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_device_disconnect: "
+                                                 "nbd device '%s', fd %d, clear que done\n",
+                                                 (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
+                                                 CNBD_MD_NBD_FD(cnbd_md));
+        }
+
+        if(0 > ioctl(CNBD_MD_NBD_FD(cnbd_md), CNBD_DISCONNECT))
+        {
+            int errcode;
+
+            errcode = errno;
+
+            task_brd_update_time_default();
+            dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_device_disconnect: "
+                                                 "nbd device '%s', fd %d, disconnect failed, "
+                                                 "errno %d, errstr %s\n",
+                                                 (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
+                                                 CNBD_MD_NBD_FD(cnbd_md),
+                                                 errcode, strerror(errcode));
+            ret = EC_FALSE;
+        }
+        else
+        {
+            task_brd_update_time_default();
+            dbg_log(SEC_0206_CNBD, 9)(LOGSTDOUT, "[DEBUG] cnbd_device_disconnect: "
+                                                 "nbd device '%s', fd %d, disconnect done\n",
+                                                 (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
+                                                 CNBD_MD_NBD_FD(cnbd_md));
+        }
+
+        if(0 > ioctl(CNBD_MD_NBD_FD(cnbd_md), CNBD_CLEAR_SOCK))
+        {
+            int errcode;
+
+            errcode = errno;
+
+            task_brd_update_time_default();
+            dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "error:cnbd_device_disconnect: "
+                                                 "nbd device '%s', fd %d, clear sock failed, "
+                                                 "errno %d, errstr %s\n",
+                                                 (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
+                                                 CNBD_MD_NBD_FD(cnbd_md),
+                                                 errcode, strerror(errcode));
+            ret = EC_FALSE;
+        }
+        else
+        {
+            task_brd_update_time_default();
+            dbg_log(SEC_0206_CNBD, 0)(LOGSTDOUT, "[DEBUG] cnbd_device_disconnect: "
+                                                 "nbd device '%s', fd %d, clear sock done\n",
+                                                 (char *)CNBD_MD_NBD_DEV_NAME_STR(cnbd_md),
+                                                 CNBD_MD_NBD_FD(cnbd_md));
+        }
     }
 
     return (ret);

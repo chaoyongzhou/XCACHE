@@ -9,6 +9,8 @@
 extern "C"{
 #endif/*__cplusplus*/
 
+#if (SWITCH_ON == FUSE_SWITCH)
+
 #include <stddef.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -650,6 +652,8 @@ UINT32 cmpi_decode_dirnode(const UINT32 comm, const UINT8 *in_buff, const UINT32
 }
 
 #endif
+
+#endif/*(SWITCH_ON == FUSE_SWITCH)*/
 
 #ifdef __cplusplus
 }

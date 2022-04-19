@@ -1069,7 +1069,9 @@ EC_BOOL creg_func_addr_vec_add_default(CVECTOR *func_addr_vec)
     creg_func_addr_vec_add(func_addr_vec, MD_CUNIXPACKET,  &g_cunixpacket_agent_func_addr_list_len  ,   (FUNC_ADDR_NODE *)g_cunixpacket_agent_func_addr_list  , FI_cunixpacket_agent_start   , FI_cunixpacket_agent_end    , ERR_FUNC_ID             , NULL_PTR                                   );
 #endif /*(SWITCH_OFF == NGX_BGN_SWITCH)*/
 
+#if (SWITCH_ON == FUSE_SWITCH)
     creg_func_addr_vec_add(func_addr_vec, MD_CFUSES   ,  &g_cfuses_func_addr_list_len  ,   (FUNC_ADDR_NODE *)g_cfuses_func_addr_list  , FI_cfuses_start   , FI_cfuses_end    , ERR_FUNC_ID             , NULL_PTR                                   );
+#endif /*(SWITCH_ON == FUSE_SWITCH)*/
 
     return (EC_TRUE);
 }

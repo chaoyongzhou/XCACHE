@@ -224,7 +224,7 @@ CMACRO = \
          -DCXFS_DN_MMAP_SWITCH=SWITCH_OFF \
          -DCXFS_OP_SWITCH=SWITCH_OFF \
          -DCXFSDN_BAD_PAGE_CHOICE=CXFSDN_256K_BAD_PAGE \
-         -DCXFSPGB_PAGE_CHOICE=CXFSPGB_256K_PAGE_CHOICE \
+         -DCXFSPGB_PAGE_CHOICE=CXFSPGB_032K_PAGE_CHOICE \
          -DCXFSPGD_DISK_CHOICE=CXFSPGD_032G_DISK \
          -DLOAD_UPDATE_SWITCH=SWITCH_OFF \
          -DNGX_BGN_SWITCH=SWITCH_OFF \
@@ -244,6 +244,7 @@ CMACRO = \
          -DCAMD_SSD_DISK_MAX_SIZE_NBITS=${DISK_004T_NBITS} \
          -DCAMD_PAGE_SIZE_NBITS=${PAGE_256K_NBITS} \
          -DPMDK_PMEM_SWITCH=SWITCH_OFF \
+         -DFUSE_SWITCH=SWITCH_ON \
          -DFUSE_USE_VERSION=310 \
 
 # C Language
@@ -277,7 +278,7 @@ XFSNBDC_OBJS = $(OBJ_DIR)/demo_xfsnbdc.o
 TRANS_OBJS = $(OBJ_DIR)/demo_trans.o
 FUSE_OBJS = $(OBJ_DIR)/demo_fuse.o
 
-default: xfs xfsnbdc xfs_tool
+default: xfs xfsnbdc xfs_tool fuse
 
 libbgn: $(BGN_OBJS)
 	$(AR) $(LIB_DIR)/libbgn.a $(BGN_OBJS)
@@ -409,6 +410,7 @@ install: xfs xfsnbdc xfs_tool
 	install -p -D bin/xfs $(DESTDIR)$(prefix)/bin/xfs
 	install -p -D bin/xfsnbdc $(DESTDIR)$(prefix)/bin/xfsnbdc
 	install -p -D bin/xfs_tool $(DESTDIR)$(prefix)/bin/xfs_tool
+	install -p -D bin/fuse $(DESTDIR)$(prefix)/bin/fuse
 	install -p -D build/xfs/debian/xfs_init.sh $(DESTDIR)$(prefix)/bin/xfs_init.sh
 	install -p -D build/xfs/debian/xfs_cfg_scan.pl $(DESTDIR)$(prefix)/bin/xfs_cfg_scan.pl
 	install -p -D build/xfs/debian/xfs.deb.service $(DESTDIR)/etc/systemd/system/xfs.deb.service
@@ -432,6 +434,7 @@ clean-bin:
 	$(if $(wildcard $(BIN_DIR)/xfsnbd),rm -f $(BIN_DIR)/xfsnbd,)
 	$(if $(wildcard $(BIN_DIR)/xfsnbdc),rm -f $(BIN_DIR)/xfsnbdc,)
 	$(if $(wildcard $(BIN_DIR)/xfs_tool),rm -f $(BIN_DIR)/xfs_tool,)
+	$(if $(wildcard $(BIN_DIR)/fuse),rm -f $(BIN_DIR)/fuse,)
 
 clean-trial: clean-log clean-bin clean-obj
 	

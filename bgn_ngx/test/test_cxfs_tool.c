@@ -129,10 +129,10 @@ void init(const char *xml_cfg, const char *tcid_str)
 
         sys_log(LOGCONSOLE, "[DEBUG] init: reset CXFSDN_CAMD_MEM_DISK_SIZE from %ld to 0\n",
                             CXFSDN_CAMD_MEM_DISK_SIZE);
-        CPARACFG_DEFAULT_SET(CXFSDN_CAMD_MEM_DISK_SIZE, 0);
+        CXFSDN_CAMD_MEM_DISK_SIZE = 0;
 
         sys_log(LOGCONSOLE, "[DEBUG] init: reset CXFSDN_CAMD_SWITCH to on\n");
-        CPARACFG_DEFAULT_SET(CXFSDN_CAMD_SWITCH, SWITCH_ON);
+        CXFSDN_CAMD_SWITCH = SWITCH_ON;
 
         cparacfg_print(LOGCONSOLE, TASK_BRD_CPARACFG(task_brd));
     }

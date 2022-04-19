@@ -488,6 +488,10 @@
 #define                               FI_cnbd_start  ((UINT32) ((MD_CNBD << (WORDSIZE/2)) + 2))
 #define                                 FI_cnbd_end  ((UINT32) ((MD_CNBD << (WORDSIZE/2)) + 3))
 #define                          FI_cnbd_handle_req  ((UINT32) ((MD_CNBD << (WORDSIZE/2)) + 4))
+#define                FI_cnbd_thread_check_running  ((UINT32) ((MD_CNBD << (WORDSIZE/2)) + 5))
+#define                  FI_cnbd_thread_set_running  ((UINT32) ((MD_CNBD << (WORDSIZE/2)) + 6))
+#define                  FI_cnbd_thread_set_stopped  ((UINT32) ((MD_CNBD << (WORDSIZE/2)) + 7))
+#define                 FI_cnbd_thread_check_listen  ((UINT32) ((MD_CNBD << (WORDSIZE/2)) + 8))
 
 #define              FI_cxfsnbd_print_module_status  ((UINT32) ((MD_CXFSNBD << (WORDSIZE/2)) + 0))
 #define           FI_cxfsnbd_free_module_static_mem  ((UINT32) ((MD_CXFSNBD << (WORDSIZE/2)) + 1))

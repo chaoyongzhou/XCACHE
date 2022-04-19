@@ -12,6 +12,8 @@ extern "C"{
 #ifndef _CFUSEO_H
 #define _CFUSEO_H
 
+#if (SWITCH_ON == FUSE_SWITCH)
+
 #include "type.h"
 #include "mm.h"
 #include "log.h"
@@ -199,6 +201,8 @@ int cfuseo_releasedir(const char *path, struct fuse_file_info *fi);
 
 /*int (*fsyncdir) (const char *, int, struct fuse_file_info *);*/
 int cfuseo_fsyncdir(const char *path, int datasync, struct fuse_file_info *fi);
+
+#endif/*(SWITCH_ON == FUSE_SWITCH)*/
 
 #endif /*_CFUSEO_H*/
 

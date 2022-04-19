@@ -8,6 +8,8 @@
 #ifndef _CFUSES_INC
 #define _CFUSES_INC
 
+#if (SWITCH_ON == FUSE_SWITCH)
+
 #include "findex.inc"
 
 FUNC_ADDR_NODE g_cfuses_func_addr_list[ ] = {
@@ -509,5 +511,8 @@ FUNC_ADDR_NODE g_cfuses_func_addr_list[ ] = {
 };
 
 UINT32 g_cfuses_func_addr_list_len = sizeof(g_cfuses_func_addr_list)/sizeof(g_cfuses_func_addr_list[0]);
+
+#endif/*(SWITCH_ON == FUSE_SWITCH)*/
+
 #endif/*_CFUSES_INC*/
 

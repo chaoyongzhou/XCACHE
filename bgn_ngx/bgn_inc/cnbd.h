@@ -17,6 +17,7 @@ extern "C"{
 #include "log.h"
 
 #include "clist.h"
+#include "cthread.h"
 
 #include <linux/nbd.h>
 
@@ -151,8 +152,11 @@ typedef struct
     int                         c_sockfd;      /*set to kernel and listen it*/
     int                         d_sockfd;      /*listen it in user space, kernel would forward IO request to it*/
     int                         nbd_fd;
-    //int                       rsvd01;
     int                         demo_fd;       /*DEBUG ONLY!*/
+
+    CTHREAD_ID                  nbd_thread_id;
+    volatile uint32_t           nbd_thread_counter; /*running: > 0, not running: 0*/
+    int                         nbd_thread_errno;
 
     CSTRING                    *nbd_dev_name;
     CSTRING                    *bucket_name;
@@ -178,6 +182,9 @@ typedef struct
 #define CNBD_MD_NBD_FD(cnbd_md)                   ((cnbd_md)->nbd_fd)
 
 #define CNBD_MD_DEMO_FD(cnbd_md)                  ((cnbd_md)->demo_fd)
+#define CNBD_MD_NBD_THREAD_ID(cnbd_md)            ((cnbd_md)->nbd_thread_id)
+#define CNBD_MD_NBD_THREAD_COUNTER(cnbd_md)       (&((cnbd_md)->nbd_thread_counter))
+#define CNBD_MD_NBD_THREAD_ERRNO(cnbd_md)         ((cnbd_md)->nbd_thread_errno)
 
 #define CNBD_MD_NBD_DEV_NAME(cnbd_md)             ((cnbd_md)->nbd_dev_name)
 #define CNBD_MD_NBD_DEV_NAME_STR(cnbd_md)         (cstring_get_str(CNBD_MD_NBD_DEV_NAME(cnbd_md)))
@@ -233,6 +240,14 @@ UINT32 cnbd_start(const CSTRING *nbd_dev_name,
 *
 **/
 void cnbd_end(const UINT32 cnbd_md_id);
+
+EC_BOOL cnbd_thread_check_running(const UINT32 cnbd_md_id);
+
+EC_BOOL cnbd_thread_set_running(const UINT32 cnbd_md_id);
+
+EC_BOOL cnbd_thread_set_stopped(const UINT32 cnbd_md_id);
+
+EC_BOOL cnbd_thread_check_listen(const UINT32 cnbd_md_id);
 
 EC_BOOL cnbd_bucket_open(const UINT32 cnbd_md_id);
 

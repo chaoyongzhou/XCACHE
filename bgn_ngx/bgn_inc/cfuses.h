@@ -12,6 +12,8 @@ extern "C"{
 #ifndef _CFUSES_H
 #define _CFUSES_H
 
+#if (SWITCH_ON == FUSE_SWITCH)
+
 #include "type.h"
 #include "mm.h"
 #include "log.h"
@@ -122,6 +124,8 @@ EC_BOOL cfuses_utimens(const UINT32 cfuses_md_id, const CSTRING *path, const str
 EC_BOOL cfuses_fallocate(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 mode, const UINT32 offset, const UINT32 length, int *res);
 
 EC_BOOL cfuses_readdir(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 offset, const UINT32 flags, CLIST *dirnode_list, int *res);
+
+#endif/*(SWITCH_ON == FUSE_SWITCH)*/
 
 #endif /*_CFUSES_H*/
 
