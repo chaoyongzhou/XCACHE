@@ -28,6 +28,8 @@ struct json_object* json_object_add_k_int32(struct json_object *jso, const char 
 
 struct json_object* json_object_add_k_double(struct json_object *jso, const char *k, const double v);
 
+struct json_object* json_object_add_k_double_s(struct json_object *jso, const char *k, const double v, const char *format);
+
 struct json_object* json_object_add_kv(struct json_object *jso, const char *k, const char *v);
 
 struct json_object* json_object_add_obj(struct json_object* jso, const char *key, struct json_object *val);

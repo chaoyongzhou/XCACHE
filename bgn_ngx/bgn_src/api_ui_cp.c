@@ -122,7 +122,7 @@ void api_ui_cp_add_param(API_UI_INSTANCE* instance, API_UI_ELEM* element, char* 
             case API_UI_ELEM_TYPE_FLOAT:
                 new_node->type = API_UI_PARAM_TYPE_FLOAT;
 
-                new_node->x.decimal = atof(word);
+                new_node->x.decimal = strtod(word, NULL_PTR);
                 break;
 
             case API_UI_ELEM_TYPE_STR:

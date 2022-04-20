@@ -1869,7 +1869,7 @@ EC_BOOL cngx_get_mp4_start_length(ngx_http_request_t *r, UINT32 *mp4_start, UINT
              */
 
             ngx_set_errno(0);
-            start = (int) (strtod((char *) value.data, NULL) * 1000);
+            start = (int) (strtod((char *) value.data, NULL_PTR) * 1000);
 
             if (ngx_errno != 0)
             {
@@ -1882,7 +1882,7 @@ EC_BOOL cngx_get_mp4_start_length(ngx_http_request_t *r, UINT32 *mp4_start, UINT
             ngx_int_t                  end;
 
             ngx_set_errno(0);
-            end = (int) (strtod((char *) value.data, NULL) * 1000);
+            end = (int) (strtod((char *) value.data, NULL_PTR) * 1000);
 
             if (ngx_errno != 0)
             {

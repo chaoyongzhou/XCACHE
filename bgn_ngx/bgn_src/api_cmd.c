@@ -115,7 +115,7 @@ UINT8 * api_cmd_greedy_real(const UINT8 *pbeg, const UINT8 *pend, REAL *value)
     }
     str[ pos ] = '\0';
 
-    (*value) = atof((char *)str);
+    (*value) = strtod((char *)str, NULL_PTR);
 
     if(pch < pend)
     {

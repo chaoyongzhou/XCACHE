@@ -105,7 +105,7 @@ STATIC_CAST static EC_BOOL __cxml_parse_tag_real(xmlNodePtr node, const char *ta
         xmlChar *attr_val;
 
         attr_val = xmlGetProp(node, (const xmlChar*)tag);
-        (*data) = atof((char *)attr_val);
+        (*data) = strtod((char *)attr_val, NULL_PTR);
         xmlFree(attr_val);
 
         return (EC_TRUE);

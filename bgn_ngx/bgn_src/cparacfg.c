@@ -991,9 +991,10 @@ void cparacfg_json(json_object *obj, const CPARACFG *cparacfg)
         if(NULL_PTR != CPARACFG_NODE_TYPE_NAME(cparacfg_node)
         && 0 == STRCMP("REAL", CPARACFG_NODE_TYPE_NAME(cparacfg_node)))
         {
-            json_object_add_k_double(obj,
+            json_object_add_k_double_s(obj,
                     CPARACFG_NODE_MACRO_NAME(cparacfg_node),
-                    CPARACFG_NODE_DATA_REAL(cparacfg_node));
+                    CPARACFG_NODE_DATA_REAL(cparacfg_node),
+                    "%.3f");
             continue;
         }
 

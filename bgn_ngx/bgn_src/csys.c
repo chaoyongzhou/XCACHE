@@ -1620,7 +1620,7 @@ tmpfs                      506         0       506   0% /dev/shm
     CSYS_DSK_SIZE(csys_dsk_stat) = c_str_to_word(fields[ 1 ]);/*MBytes*/
     CSYS_DSK_USED(csys_dsk_stat) = c_str_to_word(fields[ 2 ]);/*MBytes*/
     CSYS_DSK_AVAL(csys_dsk_stat) = c_str_to_word(fields[ 3 ]);/*MBytes*/
-    CSYS_DSK_LOAD(csys_dsk_stat) = atof(fields[ 4 ]);
+    CSYS_DSK_LOAD(csys_dsk_stat) = strtod(fields[ 4 ], NULL_PTR);
 #if 0
     dbg_log(SEC_0077_CSYS, 5)(LOGSTDNULL, "csys_dsk_stat_get: name:%s, size %ld MBytes, used %ld MBytes, aval %ld MBytes, load %.2f%%\n",
                         (char *)cstring_get_str(CSYS_DSK_NAME(csys_dsk_stat)),

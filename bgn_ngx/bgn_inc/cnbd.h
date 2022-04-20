@@ -149,7 +149,7 @@ typedef struct
     /* used counter >= 0 */
     UINT32                      usedcounter;
 
-    int                         c_sockfd;      /*set to kernel and listen it*/
+    int                         c_sockfd;      /*set to kernel and listen it in kernel and then forward to d_sockfd*/
     int                         d_sockfd;      /*listen it in user space, kernel would forward IO request to it*/
     int                         nbd_fd;
     int                         demo_fd;       /*DEBUG ONLY!*/

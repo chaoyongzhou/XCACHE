@@ -9,6 +9,8 @@
 extern "C"{
 #endif/*__cplusplus*/
 
+#include <string.h>
+
 #include "json_debug.h"
 #include "linkhash.h"
 #include "arraylist.h"
@@ -67,6 +69,40 @@ struct json_object* json_object_add_k_double(struct json_object *jso, const char
     if(NULL == v_jso)
     {
         return (NULL);
+    }
+
+    if(0 != json_object_object_add(jso, k, v_jso))
+    {
+        json_object_put(v_jso);
+        return (NULL);
+    }
+
+    return (v_jso);
+}
+
+struct json_object* json_object_add_k_double_s(struct json_object *jso, const char *k, const double v, const char *format)
+{
+    struct json_object *v_jso;
+
+    v_jso = json_object_new_double(v);
+    if(NULL == v_jso)
+    {
+        return (NULL);
+    }
+
+    if(NULL_PTR != format)
+    {
+        char               *v_format;
+
+    	v_format = strdup(format);
+    	if (NULL == v_format)
+    	{
+            json_object_put(v_jso);
+            return (NULL);
+        }
+
+    	json_object_set_serializer(v_jso, json_object_double_to_json_string,
+    	    v_format, json_object_free_userdata);
     }
 
     if(0 != json_object_object_add(jso, k, v_jso))
