@@ -326,7 +326,11 @@ typedef struct _TASK_MGR
 
     EC_BOOL           jump_flag;       /* jump or not jump*/
     EC_BOOL           aging_flag;      /* when aging, task mgr should be in aging list*/
-    EC_BOOL           recving_flag;    /*when recving, task_mgr should be in recv list*/
+    EC_BOOL           recving_flag;    /* when recving, task_mgr should be in recv list*/
+
+    CLIST_DATA       *mounted_send_list;
+    CLIST_DATA       *mounted_recv_list;
+    CLIST_DATA       *mounted_aging_list;
 
     CCALLBACK_NODE    cleanup_cb;
 }TASK_MGR;
@@ -883,6 +887,10 @@ typedef MOD_MGR * (* MD_FGET_MOD_MGR)(const UINT32);
 #define TASK_MGR_JMP_FLAG(task_mgr)                        ((task_mgr)->jump_flag)
 #define TASK_MGR_AGING_FLAG(task_mgr)                      ((task_mgr)->aging_flag)
 #define TASK_MGR_RECVING_FLAG(task_mgr)                    ((task_mgr)->recving_flag)
+
+#define TASK_MGR_MOUNTED_SEND_LIST(task_mgr)               ((task_mgr)->mounted_send_list)
+#define TASK_MGR_MOUNTED_RECV_LIST(task_mgr)               ((task_mgr)->mounted_recv_list)
+#define TASK_MGR_MOUNTED_AGING_LIST(task_mgr)              ((task_mgr)->mounted_aging_list)
 
 #define TASK_MGR_CTIMEOUT_NODE(task_mgr)                   (&((task_mgr)->ctimeout_node))
 

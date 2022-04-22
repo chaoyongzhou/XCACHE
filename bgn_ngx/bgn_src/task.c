@@ -3273,7 +3273,6 @@ EC_BOOL task_rsp_match_task_req_node(const TASK_NODE *task_node, const TASK_RSP 
 
 EC_BOOL task_rsp_reserve(const TASK_BRD *task_brd, TASK_RSP *task_rsp, TASK_MGR **task_mgr_ret, TASK_REQ **task_req_ret)
 {
-    CLIST      *task_mgr_list;
     CLIST_DATA *task_mgr_data;
     TASK_MGR   *task_mgr;
 
@@ -3282,13 +3281,11 @@ EC_BOOL task_rsp_reserve(const TASK_BRD *task_brd, TASK_RSP *task_rsp, TASK_MGR 
     TASK_NODE  *task_node;
     TASK_REQ   *task_req;
 
-    task_mgr_list = (CLIST *)TASK_BRD_RECV_TASK_MGR_LIST(task_brd);
-
-    CLIST_LOCK(task_mgr_list, LOC_TASK_0019);/*1st lock*/
-    task_mgr_data = clist_search_front_no_lock(task_mgr_list, (void *)task_rsp, (CLIST_DATA_DATA_CMP)task_rsp_match_task_mgr);
+    CLIST_LOCK(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), LOC_TASK_0019);/*1st lock*/
+    task_mgr_data = clist_search_front_no_lock(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), (void *)task_rsp, (CLIST_DATA_DATA_CMP)task_rsp_match_task_mgr);
     if(NULL_PTR == task_mgr_data)
     {
-        CLIST_UNLOCK(task_mgr_list, LOC_TASK_0020);
+        CLIST_UNLOCK(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), LOC_TASK_0020);
         return (EC_FALSE);
     }
 
@@ -3300,7 +3297,7 @@ EC_BOOL task_rsp_reserve(const TASK_BRD *task_brd, TASK_RSP *task_rsp, TASK_MGR 
     if(NULL_PTR == task_node_data)
     {
         CLIST_UNLOCK(task_queue, LOC_TASK_0022);
-        CLIST_UNLOCK(task_mgr_list, LOC_TASK_0023);
+        CLIST_UNLOCK(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), LOC_TASK_0023);
         return (EC_FALSE);
     }
 
@@ -3309,13 +3306,14 @@ EC_BOOL task_rsp_reserve(const TASK_BRD *task_brd, TASK_RSP *task_rsp, TASK_MGR 
 
     if(TASK_MGR_SEQNO(task_mgr) != TASK_REQ_SEQNO(task_req) || task_mgr != TASK_REQ_MGR(task_req))
     {
-        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_rsp_reserve: task_mgr %p with seqno %lx, task req %p with seqno %lx.%lx.%lx and task mgr %p\n",
-                           task_mgr,
-                           TASK_MGR_SEQNO(task_mgr),
-                           task_req,
-                           TASK_REQ_SEND_TCID(task_req), TASK_REQ_SEND_RANK(task_req), TASK_REQ_SEQNO(task_req), TASK_REQ_MGR(task_req));
+        dbg_log(SEC_0015_TASK, 0)(LOGSTDOUT, "error:task_rsp_reserve: "
+               "task_mgr %p with seqno %lx, task req %p with seqno %lx.%lx.%lx and task mgr %p\n",
+               task_mgr,
+               TASK_MGR_SEQNO(task_mgr),
+               task_req,
+               TASK_REQ_SEND_TCID(task_req), TASK_REQ_SEND_RANK(task_req), TASK_REQ_SEQNO(task_req), TASK_REQ_MGR(task_req));
         CLIST_UNLOCK(task_queue, LOC_TASK_0024);
-        CLIST_UNLOCK(task_mgr_list, LOC_TASK_0025);
+        CLIST_UNLOCK(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), LOC_TASK_0025);
         return (EC_FALSE);
     }
 
@@ -3326,7 +3324,7 @@ EC_BOOL task_rsp_reserve(const TASK_BRD *task_brd, TASK_RSP *task_rsp, TASK_MGR 
     *task_req_ret = task_req;
 
     CLIST_UNLOCK(task_queue, LOC_TASK_0026);
-    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0027);
+    CLIST_UNLOCK(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), LOC_TASK_0027);
     return (EC_TRUE);
 }
 
@@ -5082,13 +5080,11 @@ EC_BOOL task_queue_discard_to(TASK_BRD *task_brd, CLIST *task_queue, const UINT3
 /*reschedule or discard those task req sending to the taskComm tcid according to each task mgr setting*/
 EC_BOOL task_mgr_list_handle_broken(TASK_BRD *task_brd, const UINT32 tcid, const UINT32 comm)
 {
-    CLIST      *task_mgr_list;
     CLIST_DATA *clist_data;
 
-    task_mgr_list = TASK_BRD_RECV_TASK_MGR_LIST(task_brd);
     /*handle one of existing task req and task rsp*/
-    CLIST_LOCK(task_mgr_list, LOC_TASK_0068);
-    CLIST_LOOP_NEXT(task_mgr_list, clist_data)
+    CLIST_LOCK(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), LOC_TASK_0068);
+    CLIST_LOOP_NEXT(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), clist_data)
     {
         TASK_MGR *task_mgr;
 
@@ -5105,26 +5101,23 @@ EC_BOOL task_mgr_list_handle_broken(TASK_BRD *task_brd, const UINT32 tcid, const
             task_mgr_discard_to(task_brd, task_mgr, tcid, comm);
         }
     }
-    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0069);
+    CLIST_UNLOCK(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), LOC_TASK_0069);
 
     return (EC_TRUE);
 }
 
 void task_brd_task_mgr_list_print(LOG *log, const TASK_BRD *task_brd)
 {
-    CLIST      *task_mgr_list;
     CLIST_DATA *clist_data;
 
-    task_mgr_list = (CLIST *)TASK_BRD_RECV_TASK_MGR_LIST(task_brd);
-
-    CLIST_LOCK(task_mgr_list, LOC_TASK_0070);
-    CLIST_LOOP_NEXT(task_mgr_list, clist_data)
+    CLIST_LOCK(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), LOC_TASK_0070);
+    CLIST_LOOP_NEXT(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), clist_data)
     {
         TASK_MGR *task_mgr;
         task_mgr = (TASK_MGR *)CLIST_DATA_DATA(clist_data);
         task_mgr_print(log, task_mgr);
     }
-    CLIST_UNLOCK(task_mgr_list, LOC_TASK_0071);
+    CLIST_UNLOCK(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), LOC_TASK_0071);
     return;
 }
 
@@ -5162,8 +5155,6 @@ void task_brd_do_nothing(void *none)
 
 EC_BOOL task_mgr_init(const UINT32 seqno, const UINT32 task_prio, const UINT32 task_need_rsp_flag, const UINT32 task_need_rsp_num, const MOD_MGR *mod_mgr, TASK_MGR *task_mgr)
 {
-    //sys_log(LOGSTDOUT, "[DEBUG] [tid %ld] task_mgr_init: init task_mgr %p\n", CTHREAD_GET_TID(), task_mgr);
-
     TASK_MGR_MOD(task_mgr) = (MOD_MGR *)mod_mgr/*NULL_PTR*/;
 
     TASK_MGR_PRIO(task_mgr)                 = task_prio;
@@ -5174,6 +5165,10 @@ EC_BOOL task_mgr_init(const UINT32 seqno, const UINT32 task_prio, const UINT32 t
     TASK_MGR_JMP_FLAG(task_mgr)             = EC_FALSE;
     TASK_MGR_AGING_FLAG(task_mgr)           = EC_FALSE;
     TASK_MGR_RECVING_FLAG(task_mgr)         = EC_FALSE;
+
+    TASK_MGR_MOUNTED_SEND_LIST(task_mgr)    = NULL_PTR;
+    TASK_MGR_MOUNTED_RECV_LIST(task_mgr)    = NULL_PTR;
+    TASK_MGR_MOUNTED_AGING_LIST(task_mgr)   = NULL_PTR;
 
     TASK_MGR_COUNTER(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_NEED) = task_need_rsp_num;
     TASK_MGR_COUNTER(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_SUCC) = 0;
@@ -5192,7 +5187,6 @@ EC_BOOL task_mgr_init(const UINT32 seqno, const UINT32 task_prio, const UINT32 t
 
     ccallback_node_init(TASK_MGR_CLEANUP_CB(task_mgr));
 
-    //sys_log(LOGSTDOUT, "[DEBUG] [tid %ld] task_mgr_init: task_mgr %p, ccond %p, ->var.__data.__nwaiters %d\n", CTHREAD_GET_TID(), task_mgr, (TASK_MGR_CROUTINE_COND(task_mgr)), (TASK_MGR_CROUTINE_COND(task_mgr))->var.__data.__nwaiters);
     return (EC_TRUE);
 }
 
@@ -5209,7 +5203,8 @@ UINT32 task_mgr_sub_seqno_gen(TASK_MGR *task_mgr, UINT32 *sub_seqno_new)
 
 EC_BOOL task_mgr_clean(TASK_MGR *task_mgr)
 {
-    //sys_log(LOGSTDOUT, "[DEBUG] [tid %ld] task_mgr_clean: clean task_mgr %p\n", CTHREAD_GET_TID(), task_mgr);
+    TASK_BRD *task_brd;
+
     TASK_MGR_CRWLOCK_WRLOCK(task_mgr, LOC_TASK_0076);
 
     TASK_MGR_MOD(task_mgr) = NULL_PTR;
@@ -5222,6 +5217,26 @@ EC_BOOL task_mgr_clean(TASK_MGR *task_mgr)
     TASK_MGR_JMP_FLAG(task_mgr)             = EC_FALSE;
     TASK_MGR_AGING_FLAG(task_mgr)           = EC_FALSE;
     TASK_MGR_RECVING_FLAG(task_mgr)         = EC_FALSE;
+
+    task_brd = task_brd_default_get();
+
+    if(NULL_PTR != TASK_MGR_MOUNTED_SEND_LIST(task_mgr))
+    {
+        clist_rmv(TASK_BRD_SEND_TASK_MGR_LIST(task_brd), TASK_MGR_MOUNTED_SEND_LIST(task_mgr));
+        TASK_MGR_MOUNTED_SEND_LIST(task_mgr) = NULL_PTR;
+    }
+
+    if(NULL_PTR != TASK_MGR_MOUNTED_RECV_LIST(task_mgr))
+    {
+        clist_rmv(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), TASK_MGR_MOUNTED_RECV_LIST(task_mgr));
+        TASK_MGR_MOUNTED_RECV_LIST(task_mgr) = NULL_PTR;
+    }
+
+    if(NULL_PTR != TASK_MGR_MOUNTED_AGING_LIST(task_mgr))
+    {
+        clist_rmv(TASK_BRD_AGING_TASK_MGR_LIST(task_brd), TASK_MGR_MOUNTED_AGING_LIST(task_mgr));
+        TASK_MGR_MOUNTED_AGING_LIST(task_mgr) = NULL_PTR;
+    }
 
     TASK_MGR_COUNTER(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_NEED) = 0;
     TASK_MGR_COUNTER(task_mgr, TASK_MGR_COUNTER_TASK_RSP_IS_SUCC) = 0;
@@ -5261,7 +5276,6 @@ EC_BOOL task_mgr_free(TASK_MGR *task_mgr)
 
     task_mgr_clean(task_mgr);
 
-    //sys_log(LOGSTDOUT, "[DEBUG] [tid %ld] task_mgr_free: task_mgr %p, ccond %p, ->var.__data.__nwaiters %d\n", CTHREAD_GET_TID(), task_mgr, (TASK_MGR_CROUTINE_COND(task_mgr)), (TASK_MGR_CROUTINE_COND(task_mgr))->var.__data.__nwaiters);
     free_static_mem(MM_TASK_MGR, task_mgr, LOC_TASK_0082);
 
     return (EC_TRUE);
@@ -9303,7 +9317,7 @@ EC_BOOL task_brd_task_mgr_add(TASK_BRD *task_brd, TASK_MGR *task_mgr)
     {
         case TASK_PRIO_PREEMPT:
         {
-            clist_push_front(TASK_BRD_SEND_TASK_MGR_LIST(task_brd), (void *)task_mgr);
+            TASK_MGR_MOUNTED_SEND_LIST(task_mgr) = clist_push_front(TASK_BRD_SEND_TASK_MGR_LIST(task_brd), (void *)task_mgr);
             TASK_MGR_RECVING_FLAG(task_mgr) = EC_TRUE;
             break;
         }
@@ -9321,8 +9335,7 @@ EC_BOOL task_brd_task_mgr_add(TASK_BRD *task_brd, TASK_MGR *task_mgr)
                 /*find a lower priority task_mgr, add to its prev*/
                 if(TASK_MGR_PRIO(task_mgr) > TASK_MGR_PRIO(task_mgr_cur))
                 {
-                    clist_insert_front_no_lock(TASK_BRD_SEND_TASK_MGR_LIST(task_brd),
-                                                clist_data, (void *)task_mgr);
+                    TASK_MGR_MOUNTED_SEND_LIST(task_mgr) = clist_insert_front_no_lock(TASK_BRD_SEND_TASK_MGR_LIST(task_brd), clist_data, (void *)task_mgr);
                     TASK_MGR_RECVING_FLAG(task_mgr) = EC_TRUE;
 
                     CLIST_UNLOCK(TASK_BRD_SEND_TASK_MGR_LIST(task_brd), LOC_TASK_0140);
@@ -9332,14 +9345,14 @@ EC_BOOL task_brd_task_mgr_add(TASK_BRD *task_brd, TASK_MGR *task_mgr)
             CLIST_UNLOCK(TASK_BRD_SEND_TASK_MGR_LIST(task_brd), LOC_TASK_0141);
 
             /*if not find a lower priority task_mgr, add to tail*/
-            clist_push_back(TASK_BRD_SEND_TASK_MGR_LIST(task_brd), (void *)task_mgr);
+            TASK_MGR_MOUNTED_SEND_LIST(task_mgr) = clist_push_back(TASK_BRD_SEND_TASK_MGR_LIST(task_brd), (void *)task_mgr);
             TASK_MGR_RECVING_FLAG(task_mgr) = EC_TRUE;
 
             break;
         }
         case TASK_PRIO_NORMAL:
         {
-            clist_push_back(TASK_BRD_SEND_TASK_MGR_LIST(task_brd), (void *)task_mgr);
+            TASK_MGR_MOUNTED_SEND_LIST(task_mgr) = clist_push_back(TASK_BRD_SEND_TASK_MGR_LIST(task_brd), (void *)task_mgr);
             TASK_MGR_RECVING_FLAG(task_mgr) = EC_TRUE;
             break;
         }
@@ -9357,7 +9370,7 @@ EC_BOOL task_brd_aging_list_add(TASK_BRD *task_brd, TASK_MGR *task_mgr)
 {
     if(EC_FALSE == TASK_MGR_AGING_FLAG(task_mgr))
     {
-        clist_push_back(TASK_BRD_AGING_TASK_MGR_LIST(task_brd), (void *)task_mgr);
+        TASK_MGR_MOUNTED_AGING_LIST(task_mgr) = clist_push_back(TASK_BRD_AGING_TASK_MGR_LIST(task_brd), (void *)task_mgr);
         TASK_MGR_AGING_FLAG(task_mgr) = EC_TRUE;
     }
     return (EC_TRUE);
@@ -11686,6 +11699,18 @@ EC_BOOL task_req_node_wait_on_send_succ(TASK_NODE *task_node)
 
     task_node_del_timer(task_node);
 
+    if(EC_TRUE == task_mgr_is_complete(TASK_REQ_MGR(task_req)))
+    {
+        dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT,"[DEBUG] task_req_node_wait_on_send_succ: "
+                                            "task_mgr complete\n");
+        task_mgr_complete(TASK_REQ_MGR(task_req));
+    }
+    else
+    {
+        dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT,"[DEBUG] task_req_node_wait_on_send_succ: "
+                                            "task_mgr not complete\n");
+    }
+
     dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT,"[DEBUG] task_req_node_wait_on_send_succ: "
                                         "leave: task_node %p\n",
                                         task_node);
@@ -11711,6 +11736,18 @@ EC_BOOL task_req_node_wait_on_send_fail(TASK_NODE *task_node)
     TASK_MGR_COUNTER_INC_BY_TASK_REQ(TASK_REQ_MGR(task_req), TASK_MGR_COUNTER_TASK_REQ_DISCARD, TASK_NODE_REQ(task_node), LOC_TASK_0190);
 
     task_node_del_timer(task_node);
+
+    if(EC_TRUE == task_mgr_is_complete(TASK_REQ_MGR(task_req)))
+    {
+        dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT,"[DEBUG] task_req_node_wait_on_send_fail: "
+                                            "task_mgr complete\n");
+        task_mgr_complete(TASK_REQ_MGR(task_req));
+    }
+    else
+    {
+        dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT,"[DEBUG] task_req_node_wait_on_send_fail: "
+                                            "task_mgr not complete\n");
+    }
 
     dbg_log(SEC_0015_TASK, 5)(LOGSTDOUT,"[DEBUG] task_req_node_wait_on_send_fail: "
                                         "leave: task_node %p\n",
@@ -12339,7 +12376,7 @@ EC_BOOL task_mgr_complete(TASK_MGR *task_mgr)
     task_brd = task_brd_default_get();
 
     clist_del(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), (void *)task_mgr, NULL_PTR);
-
+    TASK_MGR_MOUNTED_RECV_LIST(task_mgr) = NULL_PTR;
     TASK_MGR_RECVING_FLAG(task_mgr) = EC_FALSE;
 
     CTIMEOFDAY_GET(TASK_MGR_END_TIME(task_mgr));
@@ -12599,21 +12636,23 @@ void task_brd_send_task_mgr_list(TASK_BRD *task_brd)
 
     while(NULL_PTR != (task_mgr = clist_pop_front(TASK_BRD_SEND_TASK_MGR_LIST(task_brd))))
     {
+        TASK_MGR_MOUNTED_SEND_LIST(task_mgr) = NULL_PTR;  /*cleanup*/
+
         if(EC_TRUE == TASK_MGR_JMP_FLAG(task_mgr))
         {
+            /*note: TASK_MGR_CCOND_SET_TIMEOUT had added timer to coroutine pool timeout tree*/
+            TASK_MGR_MOUNTED_RECV_LIST(task_mgr) = clist_push_back(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), (void *)task_mgr);
+
             /*sending task req*/
             task_mgr_send_wait(task_brd, task_mgr);
-
-            /*note: TASK_MGR_CCOND_SET_TIMEOUT had added timer to coroutine pool timeout tree*/
-            clist_push_back(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), (void *)task_mgr);
         }
         else
         {
             /*sending task req*/
             task_mgr_send_no_wait(task_brd, task_mgr);
+
             task_mgr_free(task_mgr);
         }
-        /*else, free task_mgr after send*/
     }
 
     return;
@@ -12646,8 +12685,9 @@ void task_brd_recv_task_mgr_list(TASK_BRD *task_brd)
 
             clist_data_rmv = clist_data;
             clist_data = CLIST_DATA_PREV(clist_data);
-            clist_rmv_no_lock(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), clist_data_rmv);
 
+            clist_rmv_no_lock(TASK_BRD_RECV_TASK_MGR_LIST(task_brd), clist_data_rmv);
+            TASK_MGR_MOUNTED_RECV_LIST(task_mgr) = NULL_PTR;
             TASK_MGR_RECVING_FLAG(task_mgr) = EC_FALSE;
 
             CTIMEOFDAY_GET(TASK_MGR_END_TIME(task_mgr));
@@ -12685,6 +12725,7 @@ void task_brd_aging_task_mgr_list(TASK_BRD *task_brd)
             clist_data_rmv = clist_data;
             clist_data = CLIST_DATA_PREV(clist_data);
             clist_rmv_no_lock(TASK_BRD_AGING_TASK_MGR_LIST(task_brd), clist_data_rmv);
+            TASK_MGR_MOUNTED_AGING_LIST(task_mgr) = NULL_PTR;
             continue;
         }
 
@@ -12699,6 +12740,7 @@ void task_brd_aging_task_mgr_list(TASK_BRD *task_brd)
             clist_data_rmv = clist_data;
             clist_data = CLIST_DATA_PREV(clist_data);
             clist_rmv_no_lock(TASK_BRD_AGING_TASK_MGR_LIST(task_brd), clist_data_rmv);
+            TASK_MGR_MOUNTED_AGING_LIST(task_mgr) = NULL_PTR;
             task_mgr_free(task_mgr);
         }
         else
@@ -14545,6 +14587,13 @@ EC_BOOL task_wait(TASK_MGR *task_mgr, const UINT32 time_to_live, const UINT32 ta
     TASK_MGR_CCOND_WAIT(task_mgr, LOC_TASK_0249);
 
     /*when reach here, task is done*/
+    /*----------------------------------------------------------*\
+     *return points:                                            *
+     *  (1) coroutine normal swap: task_mgr_complete            *
+     *  (2) coroutine is_timeout swap                           *
+     *  (3) coroutine is_terminate swap                         *
+     * regarding (2) or (3), have to cleanup task_mgr carefully *
+    \*----------------------------------------------------------*/
 
     CTIMEOFDAY_GET(TASK_MGR_END_TIME(task_mgr));
 
@@ -14629,8 +14678,6 @@ TASK_MGR * task_new(const MOD_MGR *mod_mgr, const UINT32 task_prio, const UINT32
 
     alloc_static_mem(MM_TASK_MGR, &task_mgr, LOC_TASK_0250);
     task_mgr_init(task_seqno, task_prio, task_need_rsp_flag, task_need_rsp_num, mod_mgr, task_mgr);
-
-    /*task_brd_task_mgr_add(task_brd, task_mgr);*/
 
     return(task_mgr);
 }

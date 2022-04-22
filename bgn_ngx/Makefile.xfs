@@ -278,7 +278,7 @@ XFSNBDC_OBJS = $(OBJ_DIR)/demo_xfsnbdc.o
 TRANS_OBJS = $(OBJ_DIR)/demo_trans.o
 FUSE_OBJS = $(OBJ_DIR)/demo_fuse.o
 
-default: xfs xfsnbdc xfs_tool fuse
+default: xfs xfsnbd xfsnbdc xfs_tool fuse
 
 libbgn: $(BGN_OBJS)
 	$(AR) $(LIB_DIR)/libbgn.a $(BGN_OBJS)
@@ -408,6 +408,7 @@ $(TST_OBJS): $(OBJ_DIR)/%.o: $(TST_SRC)/%.c
 
 install: xfs xfsnbdc xfs_tool
 	install -p -D bin/xfs $(DESTDIR)$(prefix)/bin/xfs
+	install -p -D bin/xfsnbd $(DESTDIR)$(prefix)/bin/xfsnbd
 	install -p -D bin/xfsnbdc $(DESTDIR)$(prefix)/bin/xfsnbdc
 	install -p -D bin/xfs_tool $(DESTDIR)$(prefix)/bin/xfs_tool
 	install -p -D bin/fuse $(DESTDIR)$(prefix)/bin/fuse
@@ -416,6 +417,9 @@ install: xfs xfsnbdc xfs_tool
 	install -p -D build/xfs/debian/xfs.deb.service $(DESTDIR)/etc/systemd/system/xfs.deb.service
 	install -p -D build/xfs/debian/xfs.cli $(DESTDIR)/etc/init.d/xfs
 	install -p -D build/xfs/debian/xfs_crontab $(DESTDIR)/etc/cron.d/xfs
+	install -p -D /usr/lib/x86_64-linux-gnu/libfuse3.so $(DESTDIR)/usr/lib/x86_64-linux-gnu/libfuse3.so
+	install -p -D /usr/lib/x86_64-linux-gnu/libfuse3.so.3 $(DESTDIR)/usr/lib/x86_64-linux-gnu/libfuse3.so.3
+	install -p -D /usr/lib/x86_64-linux-gnu/libfuse3.so.3.10.5 $(DESTDIR)/usr/lib/x86_64-linux-gnu/libfuse3.so.3.10.5
 
 clean-obj:
 	$(if $(wildcard $(OBJ_DIR)/*.o), rm -f $(OBJ_DIR)/*.o,)

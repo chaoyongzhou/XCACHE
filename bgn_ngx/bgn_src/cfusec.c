@@ -229,11 +229,17 @@ int cfusec_getattr(const char *path, struct stat *stat, struct fuse_file_info *f
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_getattr, CMPI_ERROR_MODI, &path_arg, stat, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_getattr: return false\n");
+    }
 
     return (res);
 }
@@ -253,11 +259,17 @@ int cfusec_readlink(const char *path, char *buf, UINT32 size)
     cstring_mount(&buf_arg, (UINT8 *)buf, size - 1, size);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_readlink, CMPI_ERROR_MODI, &path_arg, &buf_arg, size, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_readlink: return false\n");
+    }
 
     return (res);
 }
@@ -275,11 +287,17 @@ int cfusec_mknod(const char *path, UINT32 mode, UINT32 dev)
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_mknod, CMPI_ERROR_MODI, &path_arg, mode, dev, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_mknod: return false\n");
+    }
 
     return (res);
 }
@@ -297,11 +315,17 @@ int cfusec_mkdir(const char *path, UINT32 mode)
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_mkdir, CMPI_ERROR_MODI, &path_arg, mode, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_mkdir: return false\n");
+    }
 
     return (res);
 }
@@ -319,13 +343,19 @@ int cfusec_unlink(const char *path)
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_unlink, CMPI_ERROR_MODI, &path_arg, &res);
 
-     return (res);
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_unlink: return false\n");
+    }
+
+    return (res);
 }
 
 /*int (*rmdir) (const char *);*/
@@ -341,11 +371,17 @@ int cfusec_rmdir(const char *path)
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_rmdir, CMPI_ERROR_MODI, &path_arg, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_rmdir: return false\n");
+    }
 
     return (res);
 }
@@ -366,11 +402,17 @@ int cfusec_symlink(const char *src_path, const char *des_path)
     cstring_set_str(&des_path_arg, (UINT8 *)des_path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_symlink, CMPI_ERROR_MODI, &src_path_arg, &des_path_arg, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_symlink: return false\n");
+    }
 
     return (res);
 }
@@ -390,11 +432,17 @@ int cfusec_rename(const char *src_path, const char *des_path, UINT32 flags /*REN
     cstring_set_str(&des_path_arg, (UINT8 *)des_path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_rename, CMPI_ERROR_MODI, &src_path_arg, &des_path_arg, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_rename: return false\n");
+    }
 
     return (res);
 }
@@ -415,11 +463,17 @@ int cfusec_link(const char *src_path, const char *des_path)
     cstring_set_str(&des_path_arg, (UINT8 *)des_path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_link, CMPI_ERROR_MODI, &src_path_arg, &des_path_arg, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_link: return false\n");
+    }
 
     return (res);
 }
@@ -440,11 +494,17 @@ int cfusec_chmod(const char *path, UINT32 mode, struct fuse_file_info *fi)
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_chmod, CMPI_ERROR_MODI, &path_arg, mode, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_chmod: return false\n");
+    }
 
     return (res);
 }
@@ -465,11 +525,17 @@ int cfusec_chown(const char *path, UINT32 owner, UINT32 group, struct fuse_file_
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_chown, CMPI_ERROR_MODI, &path_arg, owner, group, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_chown: return false\n");
+    }
 
     return (res);
 }
@@ -490,11 +556,17 @@ int cfusec_truncate(const char *path, UINT32 length, struct fuse_file_info *fi)
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_truncate, CMPI_ERROR_MODI, &path_arg, length, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_truncate: return false\n");
+    }
 
     return (res);
 }
@@ -516,11 +588,17 @@ int cfusec_utime(const char *path, /*const*/struct utimbuf *times)
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_utime, CMPI_ERROR_MODI, &path_arg, times, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_utime: return false\n");
+    }
 
     return (res);
 }
@@ -538,11 +616,17 @@ int cfusec_open(const char *path, struct fuse_file_info *fi)
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_open, CMPI_ERROR_MODI, &path_arg, (UINT32)(fi->flags), &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_open: return false\n");
+    }
 
     return (res);
 }
@@ -563,11 +647,17 @@ int cfusec_read(const char *path, char *buf, UINT32 size, UINT32 offset, struct 
     cbytes_mount(&buf_arg, size, (UINT8 *)buf, BIT_FALSE);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_read, CMPI_ERROR_MODI, &path_arg, &buf_arg, size, offset, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_read: return false\n");
+    }
 
     return (res);
 }
@@ -588,11 +678,17 @@ int cfusec_write(const char *path, const char *buf, UINT32 size, UINT32 offset, 
     cbytes_mount(&buf_arg, size, (UINT8 *)buf, BIT_FALSE);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_write, CMPI_ERROR_MODI, &path_arg, &buf_arg, offset, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_write: return false\n");
+    }
 
     return (res);
 }
@@ -610,11 +706,17 @@ int cfusec_statfs(const char *path, struct statvfs *statvfs)
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_statfs, CMPI_ERROR_MODI, &path_arg, statvfs, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_statfs: return false\n");
+    }
 
     return (res);
 }
@@ -633,11 +735,17 @@ int cfusec_flush(const char *path, struct fuse_file_info *fi)
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_flush, CMPI_ERROR_MODI, &path_arg, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_flush: return false\n");
+    }
 
     return (res);
 }
@@ -657,11 +765,17 @@ int cfusec_release(const char *path, struct fuse_file_info *fi)
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_release, CMPI_ERROR_MODI, &path_arg, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_release: return false\n");
+    }
 
     return (res);
 }
@@ -680,11 +794,17 @@ int cfusec_fsync(const char * path, UINT32 sync, struct fuse_file_info *fi)
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_fsync, CMPI_ERROR_MODI, &path_arg, sync, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_fsync: return false\n");
+    }
 
     return (res);
 }
@@ -707,11 +827,17 @@ int cfusec_setxattr(const char *path, const char *name, const char *value, UINT3
     cbytes_mount(&value_arg, size, (UINT8 *)value, BIT_FALSE);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_setxattr, CMPI_ERROR_MODI, &path_arg, &name_arg, &value_arg, flags, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_setxattr: return false\n");
+    }
 
     return (res);
 }
@@ -734,11 +860,17 @@ int cfusec_getxattr(const char *path, const char *name, char *value, UINT32 size
     cbytes_mount(&value_arg, (UINT32)size, (UINT8 *)value, BIT_FALSE);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_getxattr, CMPI_ERROR_MODI, &path_arg, &name_arg, &value_arg, size, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_getxattr: return false\n");
+    }
 
     return (res);
 }
@@ -759,11 +891,17 @@ int cfusec_listxattr(const char *path, char *list, UINT32 size)
     cbytes_mount(&list_arg, (UINT32)size, (UINT8 *)list, BIT_FALSE);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_listxattr, CMPI_ERROR_MODI, &path_arg, &list_arg, size, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_listxattr: return false\n");
+    }
 
     return (res);
 }
@@ -784,11 +922,17 @@ int cfusec_removexattr(const char *path, const char *name)
     cstring_set_str(&name_arg, (UINT8 *)name);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_removexattr, CMPI_ERROR_MODI, &path_arg, &name_arg, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_removexattr: return false\n");
+    }
 
     return (res);
 }
@@ -806,11 +950,17 @@ int cfusec_access(const char *path, UINT32 mask)
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_access, CMPI_ERROR_MODI, &path_arg, mask, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_access: return false\n");
+    }
 
     return (res);
 }
@@ -828,11 +978,17 @@ int cfusec_ftruncate(const char *path, UINT32 offset)
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_ftruncate, CMPI_ERROR_MODI, &path_arg, offset, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_ftruncate: return false\n");
+    }
 
     return (res);
 }
@@ -853,11 +1009,17 @@ int cfusec_utimens(const char *path, const struct timespec *ts0, const struct ti
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_utimens, CMPI_ERROR_MODI, &path_arg, ts0, ts1, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_utimens: return false\n");
+    }
 
     return (res);
 }
@@ -877,11 +1039,17 @@ int cfusec_fallocate(const char * path, UINT32 mode, UINT32 offset, UINT32 lengt
     cstring_set_str(&path_arg, (UINT8 *)path);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_fallocate, CMPI_ERROR_MODI, &path_arg, mode, offset, length, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_fallocate: return false\n");
+    }
 
     return (res);
 }
@@ -917,11 +1085,17 @@ int cfusec_readdir(const char *path, void *buf, UINT32 filler, UINT32 offset, st
     clist_init(&dirnode_list, MM_DIRNODE, LOC_CFUSEC_0003);
 
     ret = EC_FALSE;
+    res = -ECOMM;
 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cfusec_get_remote_mod_node(),
              &ret,
              FI_cfuses_readdir, CMPI_ERROR_MODI, &path_arg, offset, eflags, &dirnode_list, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "warn:cfusec_readdir: return false\n");
+    }
 
     while(NULL_PTR != (dirnode = clist_pop_front(&dirnode_list)))
     {
