@@ -90,7 +90,7 @@ struct json_object* json_object_add_k_double_s(struct json_object *jso, const ch
         return (NULL);
     }
 
-    if(NULL_PTR != format)
+    if(NULL != format)
     {
         char               *v_format;
 

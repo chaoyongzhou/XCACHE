@@ -24,6 +24,8 @@ extern "C"{
 #include <x86_64-linux-gnu/sys/xattr.h>
 #include <dirent.h>
 
+#include <fuse.h>
+
 #include "type.h"
 #include "mm.h"
 #include "log.h"
@@ -34,7 +36,6 @@ extern "C"{
 #include "task.h"
 
 #include "cfuses.h"
-#include "cfused.h"
 
 #include "findex.inc"
 
@@ -145,8 +146,6 @@ UINT32 cfuses_start(const CSTRING *mount_point)
 
     cfuses_md->usedcounter = 1;
 
-    cfused_start();
-
     if(0 != chroot((char *)CFUSES_MD_MOUNT_POINT_STR(cfuses_md)))
     {
         dbg_log(SEC_0024_CFUSES, 0)(LOGSTDOUT, "error:cfuses_start: "
@@ -207,8 +206,6 @@ void cfuses_end(const UINT32 cfuses_md_id)
                                                cfuses_md_id);
         dbg_exit(MD_CFUSES, cfuses_md_id);
     }
-
-    cfused_end();
 
     /* free module : */
     //cfuses_free_module_static_mem(cfuses_md_id);

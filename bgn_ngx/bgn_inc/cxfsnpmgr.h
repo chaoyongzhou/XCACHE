@@ -39,7 +39,7 @@ extern "C"{
 #include "cxfsnprb.h"
 #include "cxfsop.h"
 
-#define CXFSNP_MGR_MEM_ALIGNMENT                    (1 << 20)
+#define CXFSNP_MGR_MEM_ALIGNMENT                    (1 << 20)   /*1MB*/
 
 #define CXFSNP_MGR_MSYNC_SIZE                       (256 << 10) /*256K*/
 
@@ -88,6 +88,12 @@ typedef struct
 
 #define CXFSNP_MGR_NP_SET_NO_LOCK(cxfsnp_mgr, cxfsnp_id, __cxfsnp, location) \
         (cvector_set_no_lock(CXFSNP_MGR_NP_VEC(cxfsnp_mgr), (cxfsnp_id), (__cxfsnp)))
+
+#define CXFSNP_MGR_INO_MAKE(cxfsnp_id, node_pos) \
+        ((((uint64_t)(cxfsnp_id)) << 32) | ((uint64_t)(node_pos)))
+
+#define CXFSNP_MGR_INO_FETCH_NP_ID(ino)     ((uint32_t)((ino) >> 32))
+#define CXFSNP_MGR_INO_FETCH_NODE_POS(ino)  ((uint32_t)((ino) & 0xFFFFFFFF))
 
 CXFSNP_MGR *cxfsnp_mgr_new();
 
@@ -187,6 +193,12 @@ EC_BOOL cxfsnp_mgr_write(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, const
 EC_BOOL cxfsnp_mgr_read(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, CXFSNP_FNODE *cxfsnp_fnode);
 
 EC_BOOL cxfsnp_mgr_update(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, const CXFSNP_FNODE *cxfsnp_fnode);
+
+EC_BOOL cxfsnp_mgr_ino(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, uint64_t *ino);
+
+CXFSNP *cxfsnp_mgr_fetch_np(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino);
+
+CXFSNP_ITEM *cxfsnp_mgr_fetch_item(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino);
 
 EC_BOOL cxfsnp_mgr_umount(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const UINT32 dflag);
 

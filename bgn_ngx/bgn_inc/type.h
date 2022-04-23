@@ -25,6 +25,14 @@ extern "C"{
 #include <sys/malloc.h>
 #endif
 
+#include <sys/stat.h>
+#include <sys/statvfs.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/time.h>
+
+#include <utime.h>
+
 #include <string.h>
 #include <stdarg.h>
 #include <unistd.h>
@@ -380,6 +388,16 @@ typedef time_t CTIMET;  /*32 bits for 32bit OS, 64 bits for 64bit OS*/
 //typedef time_t ctime_t; /*32 bits for 32bit OS, 64 bits for 64bit OS*/
 typedef struct tm CTM;
 typedef struct timeval CTMV;
+
+/*definition for readdir interface*/
+struct dirnode
+{
+    char                   *name;
+    struct stat             stat;
+    off_t                   offset;
+    uint32_t                flags;
+    uint32_t                rsvd;
+};
 
 extern long int lrint(double x);
 

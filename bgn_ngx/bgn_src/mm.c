@@ -114,8 +114,7 @@ extern "C"{
 #include "cmmap.h"
 #include "cmsync.h"
 #include "cfuses.h"
-#include "cfused.h"
-#include "csdisc.h"
+ #include "csdisc.h"
 
 #include "cdnscache.h"
 #include "ceventfd.h"
@@ -489,6 +488,7 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CXFSNP                       ,"MM_CXFSNP                       ",1        , sizeof(CXFSNP)                      , LOC_MM_0212);
     MM_MGR_DEF(MM_CXFSNP_MGR                   ,"MM_CXFSNP_MGR                   ",1        , sizeof(CXFSNP_MGR)                  , LOC_MM_0213);
     MM_MGR_DEF(MM_CXFSNP_KEY                   ,"MM_CXFSNP_KEY                   ",1        , sizeof(CXFSNP_KEY)                  , LOC_MM_0214);
+    MM_MGR_DEF(MM_CXFSNP_ATTR                  ,"MM_CXFSNP_ATTR                  ",1        , sizeof(CXFSNP_ATTR)                 , LOC_MM_0211);
 
     MM_MGR_DEF(MM_CXFS_LOCKED_FILE             ,"MM_CXFS_LOCKED_FILE             ",32        , sizeof(CXFS_LOCKED_FILE)           , LOC_MM_0215);
     MM_MGR_DEF(MM_CXFS_WAIT_FILE               ,"MM_CXFS_WAIT_FILE               ",256       , sizeof(CXFS_WAIT_FILE)             , LOC_MM_0216);

@@ -633,6 +633,37 @@ uint8_t c_get_8(const uint8_t *buffer, uint32_t *counter);
 uint16_t c_get_16(const uint8_t *buffer, uint32_t *counter);
 uint32_t c_get_32(const uint8_t *buffer, uint32_t *counter);
 
+int *c_i32_new();
+EC_BOOL c_i32_init(int *i32);
+EC_BOOL c_i32_clean(int *i32);
+EC_BOOL c_i32_free(int *i32);
+
+struct stat *c_stat_new();
+EC_BOOL c_stat_init(struct stat *stat);
+EC_BOOL c_stat_clean(struct stat *stat);
+EC_BOOL c_stat_free(struct stat *stat);
+
+struct statvfs *c_statvfs_new();
+EC_BOOL c_statvfs_init(struct statvfs *statvfs);
+EC_BOOL c_statvfs_clean(struct statvfs *statvfs);
+EC_BOOL c_statvfs_free(struct statvfs *statvfs);
+
+struct timespec *c_timespec_new();
+EC_BOOL c_timespec_init(struct timespec *timespec);
+EC_BOOL c_timespec_clean(struct timespec *timespec);
+EC_BOOL c_timespec_free(struct timespec *timespec);
+
+struct utimbuf *c_utimbuf_new();
+EC_BOOL c_utimbuf_init(struct utimbuf *utimbuf);
+EC_BOOL c_utimbuf_clean(struct utimbuf *utimbuf);
+EC_BOOL c_utimbuf_free(struct utimbuf *utimbuf);
+
+struct dirnode *c_dirnode_new();
+EC_BOOL c_dirnode_init(struct dirnode *dirnode);
+EC_BOOL c_dirnode_clean(struct dirnode *dirnode);
+EC_BOOL c_dirnode_free(struct dirnode *dirnode);
+
+
 #endif /*_CMISC_H*/
 
 #ifdef __cplusplus

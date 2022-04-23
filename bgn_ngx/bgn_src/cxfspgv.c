@@ -1238,15 +1238,19 @@ EC_BOOL cxfspgv_is_empty(const CXFSPGV *cxfspgv)
 
 REAL cxfspgv_page_used_ratio(const CXFSPGV *cxfspgv)
 {
-    REAL    page_used_num;
-    REAL    page_max_num;
+    if(0 < CXFSPGV_PAGE_MAX_NUM(cxfspgv))
+    {
+        REAL    page_used_num;
+        REAL    page_max_num;
 
-    ASSERT(0 < CXFSPGV_PAGE_MAX_NUM(cxfspgv));
+        page_used_num = 0.0 + CXFSPGV_PAGE_USED_NUM(cxfspgv);
+        page_max_num  = 0.0 + CXFSPGV_PAGE_MAX_NUM(cxfspgv);
 
-    page_used_num = 0.0 + CXFSPGV_PAGE_USED_NUM(cxfspgv);
-    page_max_num  = 0.0 + CXFSPGV_PAGE_MAX_NUM(cxfspgv);
+        return (page_used_num / page_max_num);
+    }
 
-    return (page_used_num / page_max_num);
+    /*when disk not added into volume yet*/
+    return ((REAL)0.0);
 }
 
 /*vol meta data size*/

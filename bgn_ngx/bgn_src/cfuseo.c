@@ -37,7 +37,6 @@ extern "C"{
 #include "cfuseo.h"
 #include "cfusec.h"
 #include "cfuses.h"
-#include "cfused.h"
 
 /*----------------------------------------------------------------------------*\
  *                             CFUSE ORIGIN                                   *
@@ -106,8 +105,6 @@ EC_BOOL cfuseo_start(struct fuse_args *args)
 
 	c_cond_init(CFUSEO_MD_CCOND(cfuseo_md), LOC_CFUSEO_0001);
 
-    cfused_start();
-
     dbg_log(SEC_0036_CFUSEO, 0)(LOGSTDOUT, "[DEBUG] cfuseo_start: launch fuse\n");
 
     /*block thread when communicate with kernel fuse*/
@@ -128,8 +125,6 @@ void cfuseo_end()
     cfuseo_md = cfuseo_md_default_get();
 
     cfuseo_clean_ops(cfuseo_md);
-
-    cfused_end();
 
     c_cond_clean(CFUSEO_MD_CCOND(cfuseo_md), LOC_CFUSEO_0002);
 

@@ -63,7 +63,6 @@ extern "C"{
 #include "cp2p.h"
 #include "cdnscache.h"
 #include "cfuses.h"
-#include "cfused.h"
 
 //#define CMPI_DBG(x) sys_log x
 #define CMPI_DBG(x) do{}while(0)
@@ -5000,6 +4999,232 @@ UINT32 cmpi_decode_cmon_node(const UINT32 comm, const UINT8 *in_buff, const UINT
 }
 
 #endif
+
+#if 1
+UINT32 cmpi_encode_i32(const UINT32 comm, const int *i32, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+    cmpi_encode_uint8_array(comm, (UINT8 *)i32, sizeof(int), out_buff, out_buff_max_len, position);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_i32_size(const UINT32 comm, const int *i32, UINT32 *size)
+{
+    cmpi_encode_uint8_array_size(comm, (UINT8 *)i32, sizeof(int), size);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_i32(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, int *i32)
+{
+    UINT32      len;
+    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, (UINT8 *)i32, &len);
+    ASSERT(sizeof(int) == len);
+
+    return ((UINT32)0);
+}
+#endif
+
+
+#if 1
+UINT32 cmpi_encode_stat(const UINT32 comm, const struct stat *stat, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+    cmpi_encode_uint8_array(comm, (UINT8 *)stat, sizeof(struct stat), out_buff, out_buff_max_len, position);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_stat_size(const UINT32 comm, const struct stat *stat, UINT32 *size)
+{
+    cmpi_encode_uint8_array_size(comm, (UINT8 *)stat, sizeof(struct stat), size);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_stat(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct stat *stat)
+{
+    UINT32      len;
+    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, (UINT8 *)stat, &len);
+    ASSERT(sizeof(struct stat) == len);
+
+    return ((UINT32)0);
+}
+#endif
+
+
+#if 1
+UINT32 cmpi_encode_statvfs(const UINT32 comm, const struct statvfs *statvfs, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+    cmpi_encode_uint8_array(comm, (UINT8 *)statvfs, sizeof(struct statvfs), out_buff, out_buff_max_len, position);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_statvfs_size(const UINT32 comm, const struct statvfs *statvfs, UINT32 *size)
+{
+    cmpi_encode_uint8_array_size(comm, (UINT8 *)statvfs, sizeof(struct statvfs), size);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_statvfs(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct statvfs *statvfs)
+{
+    UINT32      len;
+    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, (UINT8 *)statvfs, &len);
+    ASSERT(sizeof(struct statvfs) == len);
+
+    return ((UINT32)0);
+}
+#endif
+
+#if 1
+UINT32 cmpi_encode_timespec(const UINT32 comm, const struct timespec *timespec, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+    cmpi_encode_uint8_array(comm, (UINT8 *)timespec, sizeof(struct timespec), out_buff, out_buff_max_len, position);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_timespec_size(const UINT32 comm, const struct timespec *timespec, UINT32 *size)
+{
+    cmpi_encode_uint8_array_size(comm, (UINT8 *)timespec, sizeof(struct timespec), size);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_timespec(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct timespec *timespec)
+{
+    UINT32      len;
+    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, (UINT8 *)timespec, &len);
+    ASSERT(sizeof(struct timespec) == len);
+
+    return ((UINT32)0);
+}
+#endif
+
+
+#if 1
+UINT32 cmpi_encode_utimbuf(const UINT32 comm, const struct utimbuf *utimbuf, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+    cmpi_encode_uint8_array(comm, (UINT8 *)utimbuf, sizeof(struct utimbuf), out_buff, out_buff_max_len, position);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_utimbuf_size(const UINT32 comm, const struct utimbuf *utimbuf, UINT32 *size)
+{
+    cmpi_encode_uint8_array_size(comm, (UINT8 *)utimbuf, sizeof(struct utimbuf), size);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_utimbuf(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct utimbuf *utimbuf)
+{
+    UINT32      len;
+    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, (UINT8 *)utimbuf, &len);
+    ASSERT(sizeof(struct utimbuf) == len);
+
+    return ((UINT32)0);
+}
+#endif
+
+
+#if 1
+UINT32 cmpi_encode_dirnode(const UINT32 comm, const struct dirnode *dirnode, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+    UINT32      num;
+    UINT32      len;
+    UINT8      *data;
+    uint32_t    u32;
+
+    if(NULL_PTR != dirnode->name)
+    {
+        len  = strlen(dirnode->name);
+        data = (UINT8 *)(dirnode->name);
+        cmpi_encode_uint32(comm, len, out_buff, out_buff_max_len, position);
+        cmpi_encode_uint8_array(comm, data, len, out_buff, out_buff_max_len, position);
+    }
+    else
+    {
+        len = 0;
+        cmpi_encode_uint32(comm, len, out_buff, out_buff_max_len, position);
+    }
+
+    len  = sizeof(struct stat);
+    data = (UINT8 *)&(dirnode->stat);
+    cmpi_encode_uint8_array(comm, data, len, out_buff, out_buff_max_len, position);
+
+    num = (UINT32)(dirnode->offset);
+    cmpi_encode_uint32(comm, num, out_buff, out_buff_max_len, position);
+
+    u32 = dirnode->flags;
+    cmpi_encode_uint32_t(comm, u32, out_buff, out_buff_max_len, position);
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_dirnode_size(const UINT32 comm, const struct dirnode *dirnode, UINT32 *size)
+{
+    UINT32      num;
+    UINT32      len;
+    UINT8      *data;
+    uint32_t    u32;
+
+    if(NULL_PTR != dirnode->name)
+    {
+        len  = strlen(dirnode->name);
+        data = (UINT8 *)(dirnode->name);
+        cmpi_encode_uint32_size(comm, len, size);
+        cmpi_encode_uint8_array_size(comm, data, len, size);
+    }
+    else
+    {
+        len = 0;
+        cmpi_encode_uint32_size(comm, len, size);
+    }
+
+    len  = sizeof(struct stat);
+    data = (UINT8 *)&(dirnode->stat);
+    cmpi_encode_uint8_array_size(comm, data, len, size);
+
+    num = (UINT32)(dirnode->offset);
+    cmpi_encode_uint32_size(comm, num, size);
+
+    u32 = dirnode->flags;
+    cmpi_encode_uint32_t_size(comm, u32, size);
+
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_dirnode(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, struct dirnode *dirnode)
+{
+    UINT32      num;
+    UINT32      len;
+    UINT8      *data;
+    uint32_t    u32;
+
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &len);
+    if(0 != len)
+    {
+        data = safe_malloc(len + 1, LOC_CFUSED_0013);
+        num  = len;
+        ASSERT(NULL_PTR != data);
+        cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
+        ASSERT(num == len);
+        data[ len ] = 0x00;
+
+        dirnode->name = (char *)data;
+    }
+    else
+    {
+        dirnode->name = NULL_PTR;
+    }
+
+    data = (UINT8 *)&(dirnode->stat);
+    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);
+    ASSERT(sizeof(struct stat) == len);
+
+    cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &num);
+    dirnode->offset = (off_t)num;
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &u32);
+    dirnode->flags = u32;
+
+    return ((UINT32)0);
+}
+
+#endif
+
 
 #ifdef __cplusplus
 }

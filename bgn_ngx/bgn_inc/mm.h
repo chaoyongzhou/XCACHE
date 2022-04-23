@@ -367,7 +367,7 @@ extern "C"{
 #define              MM_CXFS_LOCKED_FILE    ((UINT32)279)
 #define                MM_CXFS_WAIT_FILE    ((UINT32)280)
 #define                   MM_CXFSC_RNODE    ((UINT32)281)
-#define                        MM_000282    ((UINT32)282) /*-- obsolete --*/
+#define                   MM_CXFSNP_ATTR    ((UINT32)282)
 #define                    MM_CXFSOP_MGR    ((UINT32)283)
 #define                     MM_CAMD_COND    ((UINT32)284)
 #define                 MM_CAMD_FILE_REQ    ((UINT32)285)

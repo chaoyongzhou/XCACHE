@@ -41,7 +41,7 @@ extern "C"{
 
 #include "camd.h"
 
-#define CXFSDN_MEM_ALIGNMENT           (1 << 20)
+#define CXFSDN_MEM_ALIGNMENT           (1 << 20)   /*1MB*/
 
 #define CXFSDN_MSYNC_SIZE              (256 << 10) /*256K*/
 

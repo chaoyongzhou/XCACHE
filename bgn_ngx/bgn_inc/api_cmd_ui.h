@@ -296,6 +296,8 @@ EC_BOOL api_cmd_ui_cxfs_qlist_path(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_qlist_seg(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_qlist_tree_of_np(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_qlist_tree(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_getattr(CMD_PARA_VEC * param);
+EC_BOOL api_cmd_ui_cxfs_readdir(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_delete_file(CMD_PARA_VEC * param);
 EC_BOOL api_cmd_ui_cxfs_delete_dir(CMD_PARA_VEC * param);
 

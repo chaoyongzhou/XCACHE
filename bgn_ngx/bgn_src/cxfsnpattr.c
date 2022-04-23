@@ -15,52 +15,52 @@ extern "C"{
 
 #include "cmisc.h"
 
-#include "cxfsnpkey.h"
+#include "cxfsnpattr.h"
 #include "cxfsnp.h"
 
-#define CXFSNPKEY_ASSERT(condition)           ASSERT(condition)
-//#define CXFSNPKEY_ASSERT(condition)           do{}while(0)
+#define CXFSNPATTR_ASSERT(condition)           ASSERT(condition)
+//#define CXFSNPATTR_ASSERT(condition)           do{}while(0)
 
 
-EC_BOOL cxfsnpkey_pool_init(CXFSNPRB_POOL *pool, const uint32_t node_max_num, const uint32_t node_sizeof)
+EC_BOOL cxfsnpattr_pool_init(CXFSNPRB_POOL *pool, const uint32_t node_max_num, const uint32_t node_sizeof)
 {
     uint32_t node_pos;
-    uint32_t key_offset;
+    uint32_t attr_offset;
 
     if(CXFSNPRB_POOL_MAX_SIZE < node_max_num)
     {
-        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDERR, "error:cxfsnpkey_pool_init: "
+        dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDERR, "error:cxfsnpattr_pool_init: "
                                                "node_max_num %u overflow!\n",
                                                node_max_num);
         return (EC_FALSE);
     }
 
-    /*offset between key[node_pos] and item[node_pos] is fixed*/
-    key_offset = node_sizeof * node_max_num * 1 + 0;
+    /*offset between attr[node_pos] and item[node_pos] is fixed*/
+    attr_offset = node_sizeof * node_max_num * 2 + 0;
 
     for(node_pos = 0; node_pos < node_max_num; node_pos ++)
     {
         CXFSNPRB_NODE  *cxfsnprb_node;
         CXFSNP_ITEM    *cxfsnp_item;
-        CXFSNP_KEY     *cxfsnp_key;
+        CXFSNP_ATTR    *cxfsnp_attr;
 
         cxfsnprb_node  = CXFSNPRB_POOL_NODE(pool, node_pos);
         cxfsnp_item    = (CXFSNP_ITEM *)cxfsnprb_node;
 
-        CXFSNPKEY_ASSERT((void *)cxfsnp_item == (void *)cxfsnprb_node); /*address must be aligned*/
+        CXFSNPATTR_ASSERT((void *)cxfsnp_item == (void *)cxfsnprb_node); /*address must be aligned*/
 
-        CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item) = key_offset;
-        cxfsnp_key     = CXFSNP_ITEM_KEY(cxfsnp_item);
-        cxfsnp_key_init(cxfsnp_key);
+        CXFSNP_ITEM_ATTR_OFFSET(cxfsnp_item) = attr_offset;
+        cxfsnp_attr    = CXFSNP_ITEM_ATTR(cxfsnp_item);
+        cxfsnp_attr_init(cxfsnp_attr);
 
         if(0 == ((node_pos + 1) % 100000))
         {
-            dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "info:cxfsnpkey_pool_init: "
+            dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "info:cxfsnpattr_pool_init: "
                                                    "init node %u - %u of max %u done\n",
                                                    node_pos - 99999, node_pos, node_max_num);
         }
     }
-    dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "info:cxfsnpkey_pool_init: init %u nodes done\n", node_max_num);
+    dbg_log(SEC_0197_CXFSNP, 0)(LOGSTDOUT, "info:cxfsnpattr_pool_init: init %u nodes done\n", node_max_num);
 
     return (EC_TRUE);
 }

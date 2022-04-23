@@ -1781,6 +1781,51 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,},
 /*func para val   */     0, 0, {0},
 },
+{
+/* -- EC_BOOL cxfs_getattr(const UINT32 cxfs_md_id, const CSTRING *file_path, struct stat *stat, int *res) -- */
+/*func module     */     MD_CXFS,
+/*func logic addr */     (UINT32)cxfs_getattr,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cxfs_getattr",
+/*func index      */     FI_cxfs_getattr,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     4,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_struct_stat_ptr,e_dbg_int_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL cxfs_getxattr(const UINT32 cxfs_md_id, const CSTRING *file_path, const CSTRING *name, CBYTES *value, const UINT32 size, int *res); -- */
+/*func module     */     MD_CXFS,
+/*func logic addr */     (UINT32)cxfs_getxattr,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cxfs_getxattr",
+/*func index      */     FI_cxfs_getxattr,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     6,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,e_dbg_CBYTES_ptr,e_dbg_UINT32,e_dbg_int_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL cxfs_readdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 offset, const UINT32 flags, CLIST *dirnode_list, int *res); -- */
+/*func module     */     MD_CXFS,
+/*func logic addr */     (UINT32)cxfs_readdir,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cxfs_readdir",
+/*func index      */     FI_cxfs_readdir,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     6,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_CLIST_ptr,e_dbg_int_ptr,},
+/*func para val   */     0, 0, {0},
+},
 };
 
 UINT32 g_cxfs_func_addr_list_len = sizeof(g_cxfs_func_addr_list)/sizeof(g_cxfs_func_addr_list[0]);

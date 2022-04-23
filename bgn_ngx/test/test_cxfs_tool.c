@@ -750,12 +750,6 @@ int __cxfs_test_suite_0(int argc, char **argv, char *xml_fname, char *tcid_str)
 
         BSET(cmd_line,'\0',cmd_line_len);
 
-        //fputs(prompt, stdout);
-        //fgets(cmd_line, cmd_line_len - 1, stdin);
-
-        //cmd_line[cmd_line_len] = 0;
-        //cmd_line[strlen(cmd_line) - 1] = '\0';
-
         snprintf(cmd_line, cmd_line_len - 1, "%s", argv[idx]);
 
         sys_log(LOGCONSOLE, "cmd: %s\n", cmd_line);

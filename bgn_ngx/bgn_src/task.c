@@ -14566,8 +14566,13 @@ EC_BOOL task_wait(TASK_MGR *task_mgr, const UINT32 time_to_live, const UINT32 ta
 
     task_brd = task_brd_default_get();
 
-    dbg_log(SEC_0015_TASK, 3)(LOGSTDOUT, "================================= task %lx.%lx.%lx  start %p [tid %ld] ==============================================\n",
-                        TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd), TASK_MGR_SEQNO(task_mgr), task_mgr, CTHREAD_GET_TID());
+    dbg_log(SEC_0015_TASK, 3)(LOGSTDOUT, "=== task %lx.%lx.%lx  start %p [tid %ld] timeout %ld sec ===\n",
+                                         TASK_BRD_TCID(task_brd),
+                                         TASK_BRD_RANK(task_brd),
+                                         TASK_MGR_SEQNO(task_mgr),
+                                         task_mgr,
+                                         CTHREAD_GET_TID(),
+                                         time_to_live);
 
 #if (SWITCH_ON == CROUTINE_SUPPORT_CTHREAD_SWITCH)
     if(CTHREAD_GET_TID() == TASK_BRD_DO_SLAVE_PID(task_brd))
@@ -14597,8 +14602,11 @@ EC_BOOL task_wait(TASK_MGR *task_mgr, const UINT32 time_to_live, const UINT32 ta
 
     CTIMEOFDAY_GET(TASK_MGR_END_TIME(task_mgr));
 
-    dbg_log(SEC_0015_TASK, 3)(LOGSTDOUT, "================================= task %lx.%lx.%lx  end %p ================================================\n",
-                        TASK_BRD_TCID(task_brd), TASK_BRD_RANK(task_brd), TASK_MGR_SEQNO(task_mgr), task_mgr);
+    dbg_log(SEC_0015_TASK, 3)(LOGSTDOUT, "=== task %lx.%lx.%lx  end %p ===\n",
+                                         TASK_BRD_TCID(task_brd),
+                                         TASK_BRD_RANK(task_brd),
+                                         TASK_MGR_SEQNO(task_mgr),
+                                         task_mgr);
 
     start_tm = CTIMET_TO_LOCAL_TIME(TASK_MGR_START_TIME_SEC(task_mgr));
     end_tm   = CTIMET_TO_LOCAL_TIME(TASK_MGR_END_TIME_SEC(task_mgr));

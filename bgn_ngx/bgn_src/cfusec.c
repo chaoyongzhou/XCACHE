@@ -37,7 +37,6 @@ extern "C"{
 #include "cfuseo.h"
 #include "cfusec.h"
 #include "cfuses.h"
-#include "cfused.h"
 
 #include "findex.inc"
 
@@ -101,10 +100,6 @@ CFUSEC_MD *cfusec_start(struct fuse_args *args, const UINT32 cfuses_tcid, const 
                    MOD_NODE_TCID_STR(CFUSEC_MD_CFUSES_MOD_NODE(cfusec_md)),
                    MOD_NODE_RANK(CFUSEC_MD_CFUSES_MOD_NODE(cfusec_md)),
                    MOD_NODE_MODI(CFUSEC_MD_CFUSES_MOD_NODE(cfusec_md)));
-
-    cfused_start();
-    dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "[DEBUG] cfusec_start: "
-                                           "start cfused\n");
 
     CFUSEC_MD_CFUSEO_THREAD_ID(cfusec_md) = cthread_new(
                                                 CTHREAD_DETACHABLE | CTHREAD_SYSTEM_LEVEL,
@@ -191,10 +186,6 @@ void cfusec_end(void *none)
         MOD_NODE_COMM(CFUSEC_MD_CFUSES_MOD_NODE(cfusec_md)) = CMPI_ERROR_COMM;
         MOD_NODE_RANK(CFUSEC_MD_CFUSES_MOD_NODE(cfusec_md)) = CMPI_ERROR_RANK;
         MOD_NODE_MODI(CFUSEC_MD_CFUSES_MOD_NODE(cfusec_md)) = CMPI_ERROR_MODI;
-
-        dbg_log(SEC_0031_CFUSEC, 0)(LOGSTDOUT, "[DEBUG] cfusec_end: "
-                                               "stop cfused\n");
-        cfused_end();
 
         safe_free(cfusec_md, LOC_CFUSEC_0002);
         cfusec_md = NULL_PTR;

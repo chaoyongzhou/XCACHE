@@ -101,6 +101,18 @@ EC_BOOL cxfsnp_key_set(CXFSNP_KEY *cxfsnp_key, const uint32_t klen, const uint8_
 
 void    cxfsnp_key_print(LOG *log, const CXFSNP_KEY *cxfsnp_key);
 
+CXFSNP_ATTR *cxfsnp_attr_new();
+
+EC_BOOL cxfsnp_attr_init(CXFSNP_ATTR *cxfsnp_attr);
+
+EC_BOOL cxfsnp_attr_clean(CXFSNP_ATTR *cxfsnp_attr);
+
+EC_BOOL cxfsnp_attr_clone(const CXFSNP_ATTR *cxfsnp_attr_src, CXFSNP_ATTR *cxfsnp_attr_des);
+
+EC_BOOL cxfsnp_attr_free(CXFSNP_ATTR *cxfsnp_attr);
+
+void cxfsnp_attr_print(LOG *log, const CXFSNP_ATTR *cxfsnp_attr);
+
 CXFSNP_ITEM *cxfsnp_item_new();
 
 EC_BOOL cxfsnp_item_init(CXFSNP_ITEM *cxfsnp_item);

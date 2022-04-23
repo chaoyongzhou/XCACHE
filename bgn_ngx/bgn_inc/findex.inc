@@ -333,6 +333,9 @@
 #define                  FI_cxfs_check_space_used  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 115))
 #define               FI_cxfs_check_adjacent_used  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 116))
 #define                     FI_cxfs_truncate_file  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 117))
+#define                           FI_cxfs_getattr  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 118))
+#define                          FI_cxfs_getxattr  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 119))
+#define                           FI_cxfs_readdir  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 120))
 
 #define               FI_cmon_print_module_status  ((UINT32) ((MD_CMON << (WORDSIZE/2)) +  0))
 #define            FI_cmon_free_module_static_mem  ((UINT32) ((MD_CMON << (WORDSIZE/2)) +  1))

@@ -917,6 +917,11 @@ CXFSNP_MGR *cxfsnp_mgr_create(const uint8_t cxfsnp_model,
     UINT32      offset;
     UINT32      np_size;
 
+    dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_create: "
+                                              "np model %u, np max num %u, dev size %ld, dev offset %ld\n",
+                                              cxfsnp_model, cxfsnp_max_num,
+                                              cxfsnp_dev_size, cxfsnp_dev_offset);
+
     if(EC_FALSE == cxfsnp_model_file_size(cxfsnp_model, &np_size))
     {
         dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_create: "
@@ -924,6 +929,9 @@ CXFSNP_MGR *cxfsnp_mgr_create(const uint8_t cxfsnp_model,
                                                   cxfsnp_model);
         return (NULL_PTR);
     }
+    dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_create: "
+                                              "np model %u => np size %ld\n",
+                                              cxfsnp_model, np_size);
 
     if(EC_FALSE == cxfsnp_model_item_max_num(cxfsnp_model, &cxfsnp_item_max_num))
     {
@@ -934,6 +942,10 @@ CXFSNP_MGR *cxfsnp_mgr_create(const uint8_t cxfsnp_model,
     }
 
     np_total_size = ((UINT32)cxfsnp_max_num) * np_size;
+
+    dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_create: "
+                                              "np model %u => item max num %u => np total size %ld\n",
+                                              cxfsnp_model, cxfsnp_item_max_num, np_total_size);
 
     if(cxfsnp_dev_size <= cxfsnp_dev_offset + np_total_size)
     {
@@ -1003,6 +1015,10 @@ CXFSNP_MGR *cxfsnp_mgr_create(const uint8_t cxfsnp_model,
     CXFSNP_MGR_NP_S_OFFSET(cxfsnp_mgr)             = cxfsnp_dev_offset;
     CXFSNP_MGR_NP_E_OFFSET(cxfsnp_mgr)             = cxfsnp_dev_offset + np_total_size;
     CXFSNP_MGR_NP_CACHE(cxfsnp_mgr)                = np_mem_cache;
+
+    dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_create: "
+                                              "np cache [%p, %p)\n",
+                                              np_mem_cache, np_mem_cache + np_total_size);
 
     src_cxfsnp = NULL_PTR;
 
@@ -1731,6 +1747,76 @@ EC_BOOL cxfsnp_mgr_update(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, cons
         return cxfsnp_fnode_import(cxfsnp_fnode, CXFSNP_ITEM_FNODE(cxfsnp_item));
     }
     return (EC_FALSE);
+}
+
+/*ino = inode no = np id | node_pos*/
+EC_BOOL cxfsnp_mgr_ino(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, uint64_t *ino)
+{
+    CXFSNP *cxfsnp;
+    uint32_t cxfsnp_id;
+    uint32_t node_pos;
+
+    cxfsnp = __cxfsnp_mgr_get_np(cxfsnp_mgr, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), &cxfsnp_id);
+    if(NULL_PTR == cxfsnp)
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_ino: no np for path %s\n", (char *)cstring_get_str(file_path));
+        return (EC_FALSE);
+    }
+
+    node_pos = cxfsnp_search_no_lock(cxfsnp, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), CXFSNP_ITEM_FILE_IS_REG);
+    if(CXFSNPRB_ERR_POS != node_pos)
+    {
+        if(NULL_PTR != ino)
+        {
+            (*ino) = CXFSNP_MGR_INO_MAKE(cxfsnp_id, node_pos);
+        }
+
+        return (EC_TRUE);
+    }
+    return (EC_FALSE);
+}
+
+CXFSNP *cxfsnp_mgr_fetch_np(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino)
+{
+    uint32_t  cxfsnp_id;
+
+    cxfsnp_id = CXFSNP_MGR_INO_FETCH_NP_ID(ino);
+    if(CXFSNP_ERR_ID != cxfsnp_id)
+    {
+        CXFSNP   *cxfsnp;
+
+        cxfsnp = (CXFSNP *)cvector_get_no_lock(CXFSNP_MGR_NP_VEC(cxfsnp_mgr), (UINT32)cxfsnp_id);
+        if(NULL_PTR != cxfsnp)
+        {
+            return (cxfsnp);
+        }
+
+        return (NULL_PTR);
+    }
+    return (NULL_PTR);
+}
+
+CXFSNP_ITEM *cxfsnp_mgr_fetch_item(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino)
+{
+    CXFSNP   *cxfsnp;
+
+    cxfsnp = cxfsnp_mgr_fetch_np(cxfsnp_mgr, ino);
+    if(NULL_PTR != cxfsnp)
+    {
+        uint32_t    node_pos;
+
+        node_pos = CXFSNP_MGR_INO_FETCH_NODE_POS(ino);
+        if(CXFSNPRB_ERR_POS != node_pos)
+        {
+            CXFSNP_ITEM *cxfsnp_item;
+
+            cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
+            cxfsnpque_node_move_head(cxfsnp, CXFSNP_ITEM_QUE_NODE(cxfsnp_item), node_pos);
+            return (cxfsnp_item);
+        }
+        return (NULL_PTR);
+    }
+    return (NULL_PTR);
 }
 
 STATIC_CAST static EC_BOOL __cxfsnp_mgr_umount_file(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const UINT32 dflag)
@@ -2531,6 +2617,8 @@ EC_BOOL cxfsnp_mgr_walk(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path_cstr, const 
             dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_walk: open np %u failed\n", cxfsnp_id);
             return (EC_FALSE);
         }
+
+        CXFSNP_DIT_NODE_CUR_NP_ID(cxfsnp_dit_node) = cxfsnp_id;
 
         if(EC_FALSE == cxfsnp_walk(cxfsnp, (uint32_t)cstring_get_len(path_cstr), cstring_get_str(path_cstr), dflag, cxfsnp_dit_node))
         {

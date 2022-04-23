@@ -917,6 +917,90 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* cmpi_decode_type_func  */(UINT32)cmpi_decode_cp2p_cmd,
         /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cp2p_cmd_size
     );
+
+    creg_type_conv_vec_add(TASK_BRD_TYPE_CONV_VEC(task_brd_default_get()),
+        /* type                   */e_dbg_int_ptr,
+        /* type_sizeof            */sizeof(int *),
+        /* pointer_flag           */EC_TRUE,
+        /* var_mm_type            */MM_END,
+        /* new_type_func          */(UINT32)c_i32_new,
+        /* init_type_func         */(UINT32)c_i32_init,
+        /* clean_type_func        */(UINT32)c_i32_clean,
+        /* free_type_func         */(UINT32)c_i32_free,
+        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_i32,
+        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_i32,
+        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_i32_size
+    );
+
+    creg_type_conv_vec_add(TASK_BRD_TYPE_CONV_VEC(task_brd_default_get()),
+        /* type                   */e_dbg_struct_stat_ptr,
+        /* type_sizeof            */sizeof(struct stat *),
+        /* pointer_flag           */EC_TRUE,
+        /* var_mm_type            */MM_END,
+        /* new_type_func          */(UINT32)c_stat_new,
+        /* init_type_func         */(UINT32)c_stat_init,
+        /* clean_type_func        */(UINT32)c_stat_clean,
+        /* free_type_func         */(UINT32)c_stat_free,
+        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_stat,
+        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_stat,
+        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_stat_size
+    );
+
+    creg_type_conv_vec_add(TASK_BRD_TYPE_CONV_VEC(task_brd_default_get()),
+        /* type                   */e_dbg_struct_statvfs_ptr,
+        /* type_sizeof            */sizeof(struct statvfs *),
+        /* pointer_flag           */EC_TRUE,
+        /* var_mm_type            */MM_END,
+        /* new_type_func          */(UINT32)c_statvfs_new,
+        /* init_type_func         */(UINT32)c_statvfs_init,
+        /* clean_type_func        */(UINT32)c_statvfs_clean,
+        /* free_type_func         */(UINT32)c_statvfs_free,
+        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_statvfs,
+        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_statvfs,
+        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_statvfs_size
+    );
+
+    creg_type_conv_vec_add(TASK_BRD_TYPE_CONV_VEC(task_brd_default_get()),
+        /* type                   */e_dbg_struct_timespec_ptr,
+        /* type_sizeof            */sizeof(struct timespec *),
+        /* pointer_flag           */EC_TRUE,
+        /* var_mm_type            */MM_END,
+        /* new_type_func          */(UINT32)c_timespec_new,
+        /* init_type_func         */(UINT32)c_timespec_init,
+        /* clean_type_func        */(UINT32)c_timespec_clean,
+        /* free_type_func         */(UINT32)c_timespec_free,
+        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_timespec,
+        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_timespec,
+        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_timespec_size
+    );
+
+    creg_type_conv_vec_add(TASK_BRD_TYPE_CONV_VEC(task_brd_default_get()),
+        /* type                   */e_dbg_struct_utimbuf_ptr,
+        /* type_sizeof            */sizeof(struct utimbuf *),
+        /* pointer_flag           */EC_TRUE,
+        /* var_mm_type            */MM_END,
+        /* new_type_func          */(UINT32)c_utimbuf_new,
+        /* init_type_func         */(UINT32)c_utimbuf_init,
+        /* clean_type_func        */(UINT32)c_utimbuf_clean,
+        /* free_type_func         */(UINT32)c_utimbuf_free,
+        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_utimbuf,
+        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_utimbuf,
+        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_utimbuf_size
+    );
+
+    creg_type_conv_vec_add(TASK_BRD_TYPE_CONV_VEC(task_brd_default_get()),
+        /* type                   */e_dbg_struct_dirnode_ptr,
+        /* type_sizeof            */sizeof(struct dirnode *),
+        /* pointer_flag           */EC_TRUE,
+        /* var_mm_type            */MM_DIRNODE,
+        /* new_type_func          */(UINT32)c_dirnode_new,
+        /* init_type_func         */(UINT32)c_dirnode_init,
+        /* clean_type_func        */(UINT32)c_dirnode_clean,
+        /* free_type_func         */(UINT32)c_dirnode_free,
+        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_dirnode,
+        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_dirnode,
+        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_dirnode_size
+    );
     return (EC_TRUE);
 }
 

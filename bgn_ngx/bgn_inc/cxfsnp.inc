@@ -39,6 +39,7 @@ extern "C"{
 #include "cxfsnpdel.inc"
 #include "cxfsop.h"
 
+#define CXFSNP_ATTR_SWITCH              SWITCH_ON
 
 #define CXFSNP_KEY_SIZE_255B            ( 255)/*max len of file or dir seg name*/
 #define CXFSNP_KEY_SIZE_063B            (  63)/*max len of file or dir seg name*/
@@ -81,9 +82,9 @@ typedef struct
 typedef struct
 {
     /*8B*/
+    uint32_t      rsvd;
     uint32_t      file_size:28;    /*data/value length <= 64M = 2^26B*/
     uint32_t      file_replica_num:4;
-    uint32_t      rsvd;
 
     /*8B*/
     CXFSNP_INODE  inodes[ CXFSNP_FILE_REPLICA_MAX_NUM ];
@@ -98,16 +99,12 @@ typedef struct
 #define CXFSNP_FNODE_INODE_BLOCK_NO(cxfsnp_fnode, idx)   CXFSNP_INODE_BLOCK_NO(CXFSNP_FNODE_INODE(cxfsnp_fnode, idx))
 #define CXFSNP_FNODE_INODE_PAGE_NO(cxfsnp_fnode, idx)    CXFSNP_INODE_PAGE_NO(CXFSNP_FNODE_INODE(cxfsnp_fnode, idx))
 
-#define CXFSNP_DNODE_PAD_SIZE                        (8)
-
 typedef struct
 {
-    /*8B*/
+    uint32_t       rsvd01;
     uint32_t       file_num;   /*number of files under this directory*/
     uint32_t       root_pos;   /*dir root pos*/
-
-    /*8B*/
-    uint8_t        pad[ CXFSNP_DNODE_PAD_SIZE ];
+    uint32_t       rsvd02;
 }CXFSNP_DNODE;/*16B*/
 
 #define CXFSNP_DNODE_FILE_NUM(cxfsnp_dnode)      ((cxfsnp_dnode)->file_num)
@@ -115,9 +112,43 @@ typedef struct
 
 typedef struct
 {
+    uint16_t        rsvd;
+    uint16_t        mode;
+    uint32_t        uid;        /*owner id*/
+
+    uint32_t        gid;        /*group id of owner*/
+    uint32_t        rdev;       /*device number*/
+
+    uint64_t        atime_sec;  /*seconds of last access time*/
+    uint64_t        mtime_sec;  /*seconds of last modified time*/
+    uint64_t        ctime_sec;  /*seconds of last change time*/
+
+    /*second = 1000 ms = 1,000,000 nsec = 0xF4240 nsec, */
+    /*represent nanosecond in 20 bits*/
+    uint32_t        atime_nsec; /*nanosecond of last access time*/
+    uint32_t        mtime_nsec; /*nanosecond of last modified time*/
+    uint32_t        ctime_nsec; /*nanosecond of last change time*/
+    uint32_t        nlink;      /*number of links*/
+}CXFSNP_ATTR;/*64B*/
+
+#define CXFSNP_ATTR_MODE(cxfsnp_attr)            ((cxfsnp_attr)->mode)
+#define CXFSNP_ATTR_UID(cxfsnp_attr)             ((cxfsnp_attr)->uid)
+#define CXFSNP_ATTR_GID(cxfsnp_attr)             ((cxfsnp_attr)->gid)
+#define CXFSNP_ATTR_RDEV(cxfsnp_attr)            ((cxfsnp_attr)->rdev)
+#define CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr)       ((cxfsnp_attr)->atime_sec)
+#define CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)       ((cxfsnp_attr)->mtime_sec)
+#define CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)       ((cxfsnp_attr)->ctime_sec)
+#define CXFSNP_ATTR_ATIME_NSEC(cxfsnp_attr)      ((cxfsnp_attr)->atime_nsec)
+#define CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr)      ((cxfsnp_attr)->mtime_nsec)
+#define CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr)      ((cxfsnp_attr)->ctime_nsec)
+#define CXFSNP_ATTR_NLINK(cxfsnp_attr)           ((cxfsnp_attr)->nlink)
+
+
+typedef struct
+{
     uint8_t       len; /*[0..CXFSNP_KEY_MAX_SIZE]*/
     uint8_t       name[ CXFSNP_KEY_MAX_SIZE ];  /* dir name or file name */
-}CXFSNP_KEY;
+}CXFSNP_KEY;/*64B or 256B*/
 
 #define CXFSNP_KEY_LEN(cxfsnp_key)               ((cxfsnp_key)->len)
 #define CXFSNP_KEY_NAME(cxfsnp_key)              ((cxfsnp_key)->name)
@@ -133,10 +164,10 @@ typedef struct
     uint32_t        rsvd        :27; /* num of bits is enough */
 
     /*4B*/
-    uint32_t        key_offset; /*key address = item address + key_offset*/
+    uint32_t        key_offset;      /*key address = item address + key_offset*/
 
     /*8B*/
-    uint32_t        parent_pos;/*parent directory*/
+    uint32_t        parent_pos;      /*parent directory*/
     uint32_t        second_hash;
 
     /*8B*/
@@ -149,6 +180,7 @@ typedef struct
     {
         CXFSNP_FNODE fnode;/*16B*/
         CXFSNP_DNODE dnode;/*16B*/
+        uint32_t     attr_offset; /*attr address = item address + attr_offset*/
     }u;/*16B*/
 } CXFSNP_ITEM;/*64B*/
 
@@ -156,6 +188,7 @@ typedef struct
 #define CXFSNP_ITEM_DIR_FLAG(cxfsnp_item)         ((cxfsnp_item)->dir_flag)
 #define CXFSNP_ITEM_USED_FLAG(cxfsnp_item)        ((cxfsnp_item)->used_flag)
 #define CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item)       ((cxfsnp_item)->key_offset)
+#define CXFSNP_ITEM_ATTR_OFFSET(cxfsnp_item)      ((cxfsnp_item)->u.attr_offset)
 
 #define CXFSNP_ITEM_PARENT_POS(cxfsnp_item)       ((cxfsnp_item)->parent_pos)
 #define CXFSNP_ITEM_FNODE(cxfsnp_item)            (&((cxfsnp_item)->u.fnode))
@@ -169,6 +202,9 @@ typedef struct
 
 #define CXFSNP_ITEM_KLEN(cxfsnp_item)             (CXFSNP_KEY_LEN(CXFSNP_ITEM_KEY(cxfsnp_item)))
 #define CXFSNP_ITEM_KNAME(cxfsnp_item)            (CXFSNP_KEY_NAME(CXFSNP_ITEM_KEY(cxfsnp_item)))
+
+#define CXFSNP_ITEM_ATTR(cxfsnp_item)              \
+    ((CXFSNP_ATTR *)(((void *)(cxfsnp_item)) + CXFSNP_ITEM_ATTR_OFFSET(cxfsnp_item)))
 
 
 /*get CXFSNP_ITEM from CXFSNPRB_NODE*/
@@ -238,43 +274,52 @@ typedef struct
 #endif/*(CXFSNP_KEY_SIZE_255B == CXFSNP_KEY_MAX_SIZE)*/
 
 #if (CXFSNP_KEY_SIZE_063B == CXFSNP_KEY_MAX_SIZE)
-/*item max num = [file size / 128] - 2*/
+/*item max num = [file size / item total size] - 2*/
 /*item table start from offset 256B. */
-/*128 = 64 (sizeof item) + 64 (sizeof key)*/
 
 #define CXFSNP_ITEM_BIT_SIZE             (6)
 #define CXFSNP_ITEM_SIZEOF               (1 << CXFSNP_ITEM_BIT_SIZE) /*it must be 64B*/
 
+#if (SWITCH_OFF == CXFSNP_ATTR_SWITCH)
+/*item total size = (sizeof(CXFSNP_ITEM) + sizeof(CXFSNP_KEY))*/
+#define CXFSNP_ITEM_TOTAL_SIZE           (128)
+#endif/*(SWITCH_OFF == CXFSNP_ATTR_SWITCH)*/
+
+#if (SWITCH_ON == CXFSNP_ATTR_SWITCH)
+/*item total size = (sizeof(CXFSNP_ITEM) + sizeof(CXFSNP_KEY) + sizeof(CXFSNP_ATTR))*/
+#define CXFSNP_ITEM_TOTAL_SIZE           (192)
+#endif/*(SWITCH_ON == CXFSNP_ATTR_SWITCH)*/
+
 #define CXFSNP_008M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 23))
-#define CXFSNP_008M_CFG_ITEM_MAX_NUM     (((CXFSNP_008M_CFG_FILE_SIZE >> CXFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+#define CXFSNP_008M_CFG_ITEM_MAX_NUM     ((CXFSNP_008M_CFG_FILE_SIZE / CXFSNP_ITEM_TOTAL_SIZE) - 2)
 
 #define CXFSNP_016M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 24))
-#define CXFSNP_016M_CFG_ITEM_MAX_NUM     (((CXFSNP_016M_CFG_FILE_SIZE >> CXFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+#define CXFSNP_016M_CFG_ITEM_MAX_NUM     ((CXFSNP_016M_CFG_FILE_SIZE / CXFSNP_ITEM_TOTAL_SIZE) - 2)
 
 #define CXFSNP_032M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 25))
-#define CXFSNP_032M_CFG_ITEM_MAX_NUM     (((CXFSNP_032M_CFG_FILE_SIZE >> CXFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+#define CXFSNP_032M_CFG_ITEM_MAX_NUM     ((CXFSNP_032M_CFG_FILE_SIZE / CXFSNP_ITEM_TOTAL_SIZE) - 2)
 
 #define CXFSNP_064M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 26))
-#define CXFSNP_064M_CFG_ITEM_MAX_NUM     (((CXFSNP_064M_CFG_FILE_SIZE >> CXFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+#define CXFSNP_064M_CFG_ITEM_MAX_NUM     ((CXFSNP_064M_CFG_FILE_SIZE / CXFSNP_ITEM_TOTAL_SIZE) - 2)
 
 #define CXFSNP_128M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 27))
-#define CXFSNP_128M_CFG_ITEM_MAX_NUM     (((CXFSNP_128M_CFG_FILE_SIZE >> CXFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+#define CXFSNP_128M_CFG_ITEM_MAX_NUM     ((CXFSNP_128M_CFG_FILE_SIZE / CXFSNP_ITEM_TOTAL_SIZE) - 2)
 
 #define CXFSNP_256M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 28))
-#define CXFSNP_256M_CFG_ITEM_MAX_NUM     (((CXFSNP_256M_CFG_FILE_SIZE >> CXFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+#define CXFSNP_256M_CFG_ITEM_MAX_NUM     ((CXFSNP_256M_CFG_FILE_SIZE / CXFSNP_ITEM_TOTAL_SIZE) - 2)
 
 #define CXFSNP_512M_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 29))
-#define CXFSNP_512M_CFG_ITEM_MAX_NUM     (((CXFSNP_512M_CFG_FILE_SIZE >> CXFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+#define CXFSNP_512M_CFG_ITEM_MAX_NUM     ((CXFSNP_512M_CFG_FILE_SIZE / CXFSNP_ITEM_TOTAL_SIZE) - 2)
 
 #define CXFSNP_001G_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 30))
-#define CXFSNP_001G_CFG_ITEM_MAX_NUM     (((CXFSNP_001G_CFG_FILE_SIZE >> CXFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+#define CXFSNP_001G_CFG_ITEM_MAX_NUM     ((CXFSNP_001G_CFG_FILE_SIZE / CXFSNP_ITEM_TOTAL_SIZE) - 2)
 
 #define CXFSNP_002G_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 31))
-#define CXFSNP_002G_CFG_ITEM_MAX_NUM     (((CXFSNP_002G_CFG_FILE_SIZE >> CXFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+#define CXFSNP_002G_CFG_ITEM_MAX_NUM     ((CXFSNP_002G_CFG_FILE_SIZE / CXFSNP_ITEM_TOTAL_SIZE) - 2)
 
 #if (64 == WORDSIZE)
 #define CXFSNP_004G_CFG_FILE_SIZE        ((UINT32)(UINT32_ONE << 32))
-#define CXFSNP_004G_CFG_ITEM_MAX_NUM     (((CXFSNP_004G_CFG_FILE_SIZE >> CXFSNP_ITEM_BIT_SIZE) >> 1) - 2)
+#define CXFSNP_004G_CFG_ITEM_MAX_NUM     ((CXFSNP_004G_CFG_FILE_SIZE / CXFSNP_ITEM_TOTAL_SIZE) - 2)
 
 /*due to offset is defined as 32bit integer, here cannot support more than 4G file*/
 #endif/*(64 == WORDSIZE)*/
@@ -324,6 +369,8 @@ typedef struct
 #define CXFSNP_PATH_LAYOUT_DIR3_NO(path_id)     (((path_id) >> CXFSNP_PATH_LAYOUT_DIR3_ABITS) & CXFSNP_PATH_LAYOUT_DIR3_MASK)
 
 #define CXFSNP_ERR_ID                     ((uint32_t)0xFFFFFFFF)
+#define CXFSNP_MAX_DEPTH                  ((uint32_t)0xFFFFFFFF)
+#define CXFSNP_ERR_DEPTH                  ((uint32_t)0xFFFFFFFF)
 
 
 /**********************************************************************************************************************************************************************
@@ -435,11 +482,15 @@ typedef struct
 typedef struct _CXFSNP_DIT_NODE
 {
     EC_BOOL (*handler)(struct _CXFSNP_DIT_NODE *, CXFSNP *, CXFSNP_ITEM *, const uint32_t);
-    CSTACK  cxfsnp_item_stack;
-    void *args[ CXFSNP_DIT_ARGS_MAX_NUM ];
+    uint32_t    current_cxfsnp_id;
+    uint32_t    max_depth;
+    CSTACK      cxfsnp_item_stack;
+    void *      args[ CXFSNP_DIT_ARGS_MAX_NUM ];
 }CXFSNP_DIT_NODE;
 
 #define CXFSNP_DIT_NODE_HANDLER(cxfsnp_dit_node)        ((cxfsnp_dit_node)->handler)
+#define CXFSNP_DIT_NODE_CUR_NP_ID(cxfsnp_dit_node)      ((cxfsnp_dit_node)->current_cxfsnp_id)
+#define CXFSNP_DIT_NODE_MAX_DEPTH(cxfsnp_dit_node)      ((cxfsnp_dit_node)->max_depth)
 #define CXFSNP_DIT_NODE_STACK(cxfsnp_dit_node)          (&((cxfsnp_dit_node)->cxfsnp_item_stack))
 #define CXFSNP_DIT_NODE_ARGS(cxfsnp_dit_node)           ((cxfsnp_dit_node)->args)
 #define CXFSNP_DIT_NODE_ARG(cxfsnp_dit_node, idx)       ((cxfsnp_dit_node)->args[ (idx) ])

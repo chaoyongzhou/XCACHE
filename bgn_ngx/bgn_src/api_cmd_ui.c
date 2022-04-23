@@ -227,6 +227,8 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs qfile"   , "hsxfs <id> qfile <file> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs qdir"    , "hsxfs <id> qdir <dir> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs qlist"   , "hsxfs <id> qlist <file or dir> {full | short | tree} [of np <np id>] on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs getattr" , "hsxfs <id> getattr <dir|file> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs readdir" , "hsxfs <id> readdir <dir> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show npp [<que | del>] on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show dn on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show specific np <id> [<que | del>] on tcid <tcid> at <console|log>");
@@ -550,6 +552,8 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_qlist_path       , "hsxfs %n qlist %s full on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_qlist_seg        , "hsxfs %n qlist %s short on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_qlist_tree       , "hsxfs %n qlist %s tree on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_getattr          , "hsxfs %n getattr %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_readdir          , "hsxfs %n readdir %s on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_check_space_used , "hsxfs %n check space %n %n on tcid %t at %s", rank, rank, rank, tcid, where);
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_create_npp       , "tdns create np model %n max num %n with root %s on tcid %t at %s", rank, rank, rank, rank, rank, where, tcid, where);
@@ -12877,6 +12881,186 @@ EC_BOOL api_cmd_ui_cxfs_qlist_tree(CMD_PARA_VEC * param)
 
     cvector_clean(path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_API_0443);
     cvector_free(path_cstr_vec, LOC_API_0444);
+
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_getattr(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *path;
+    CSTRING *where;
+    UINT32   cxfs_tcid;
+
+    MOD_MGR     *mod_mgr;
+    TASK_MGR    *task_mgr;
+    struct stat  stat;
+    LOG         *des_log;
+
+    EC_BOOL   ret;
+    int       res;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &path);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfs_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld getattr %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(path),
+                        c_word_to_ipv4(cxfs_tcid),
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = mod_mgr_new(CMPI_ERROR_MODI, LOAD_BALANCING_LOOP);
+    mod_mgr_incl(cxfs_tcid, CMPI_ANY_COMM, CMPI_CXFS_RANK, cxfs_modi, mod_mgr);
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_getattr beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_getattr end ----------------------------------\n");
+    }
+#endif
+
+    ret = EC_FALSE;
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_tcid_inc(task_mgr, cxfs_tcid, &ret, FI_cxfs_getattr, CMPI_ERROR_MODI, path, &stat, &res);
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC]\n");
+
+        res = -res;
+
+        if(0 == res)
+        {
+            sys_log(des_log, "st_dev     = %d\n", stat.st_dev);
+            sys_log(des_log, "st_ino     = %d\n", stat.st_ino);
+            sys_log(des_log, "st_mode    = %d\n", stat.st_mode);
+            sys_log(des_log, "st_nlink   = %d\n", stat.st_nlink);
+            sys_log(des_log, "st_uid     = %d\n", stat.st_uid);
+            sys_log(des_log, "st_gid     = %d\n", stat.st_gid);
+            sys_log(des_log, "st_rdev    = %d\n", stat.st_rdev);
+            sys_log(des_log, "st_size    = %ld\n", stat.st_size);
+            sys_log(des_log, "st_blksize = %d\n", stat.st_blksize);
+            sys_log(des_log, "st_blocks  = %ld\n", stat.st_blocks);
+            sys_log(des_log, "st_atime   = %ld\n", stat.st_atime);
+            sys_log(des_log, "st_mtime   = %ld\n", stat.st_mtime);
+            sys_log(des_log, "st_ctime   = %ld\n", stat.st_ctime);
+        }
+        else
+        {
+            sys_log(des_log, "errno: %d, errstr: %s\n", res, strerror(res));
+        }
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL]\n");
+    }
+
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_readdir(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *path;
+    CSTRING *where;
+    UINT32   cxfs_tcid;
+
+    MOD_MGR     *mod_mgr;
+    TASK_MGR    *task_mgr;
+    CLIST        dirnode_list;
+    LOG         *des_log;
+
+    EC_BOOL   ret;
+    int       res;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &path);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfs_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld readdir %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(path),
+                        c_word_to_ipv4(cxfs_tcid),
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = mod_mgr_new(CMPI_ERROR_MODI, LOAD_BALANCING_LOOP);
+    mod_mgr_incl(cxfs_tcid, CMPI_ANY_COMM, CMPI_CXFS_RANK, cxfs_modi, mod_mgr);
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_readdir beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_readdir end ----------------------------------\n");
+    }
+#endif
+
+    clist_init(&dirnode_list, MM_DIRNODE, LOC_API_0003);
+
+    ret = EC_FALSE;
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_tcid_inc(task_mgr, cxfs_tcid, &ret, FI_cxfs_readdir, CMPI_ERROR_MODI, path, (UINT32)0/*offset*/, (UINT32)0/*flags*/, &dirnode_list, &res);
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC]\n");
+
+        res = -res;
+
+        if(0 == res)
+        {
+            struct dirnode *dirnode;
+
+            while(NULL_PTR != (dirnode = clist_pop_front(&dirnode_list)))
+            {
+                sys_log(des_log, "(name %s, offset %ld, flags %u)\n",
+                                 dirnode->name,
+                                 dirnode->offset,
+                                 dirnode->flags);
+
+                sys_log(des_log, "    st_dev     = %d\n", dirnode->stat.st_dev);
+                sys_log(des_log, "    st_ino     = %d\n", dirnode->stat.st_ino);
+                sys_log(des_log, "    st_mode    = %d\n", dirnode->stat.st_mode);
+                sys_log(des_log, "    st_nlink   = %d\n", dirnode->stat.st_nlink);
+                sys_log(des_log, "    st_uid     = %d\n", dirnode->stat.st_uid);
+                sys_log(des_log, "    st_gid     = %d\n", dirnode->stat.st_gid);
+                sys_log(des_log, "    st_rdev    = %d\n", dirnode->stat.st_rdev);
+                sys_log(des_log, "    st_size    = %ld\n", dirnode->stat.st_size);
+                sys_log(des_log, "    st_blksize = %d\n", dirnode->stat.st_blksize);
+                sys_log(des_log, "    st_blocks  = %ld\n", dirnode->stat.st_blocks);
+                sys_log(des_log, "    st_atime   = %ld\n", dirnode->stat.st_atime);
+                sys_log(des_log, "    st_mtime   = %ld\n", dirnode->stat.st_mtime);
+                sys_log(des_log, "    st_ctime   = %ld\n", dirnode->stat.st_ctime);
+
+                c_dirnode_free(dirnode);
+            }
+        }
+        else
+        {
+            sys_log(des_log, "errno: %d, errstr: %s\n", res, strerror(res));
+        }
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL]\n");
+    }
+
+    clist_clean(&dirnode_list, (CLIST_DATA_DATA_CLEANER)c_dirnode_free);
 
     mod_mgr_free(mod_mgr);
 

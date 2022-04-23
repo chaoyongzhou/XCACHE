@@ -125,7 +125,7 @@ extern "C"{
 #define              TASK_NEED_ALL_RSP      ((UINT32) -1) /*need to wait all response come back*/
 #define              TASK_NEED_NONE_RSP     ((UINT32)  0) /*not need to wait any response come back*/
 
-#define              TASK_ALWAYS_LIVE       ((UINT32) -1) /*task mgr stay waiting until collected specific num of task rsp*/
+#define              TASK_ALWAYS_LIVE       ((UINT32) 0x0FFFFFFF) /*task mgr stay waiting until collected specific num of task rsp*/
 #define              TASK_DEFAULT_LIVE      ((UINT32) /*60*/TASK_LIVE_NSEC) /*task may stay 60s waiting for until collected specific num of task rsp*/
 
 /*TASK PRIORITY*/

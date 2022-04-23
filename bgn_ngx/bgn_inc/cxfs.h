@@ -1175,6 +1175,12 @@ EC_BOOL cxfs_activate_ngx(const UINT32 cxfs_md_id);
 **/
 EC_BOOL cxfs_deactivate_ngx(const UINT32 cxfs_md_id);
 
+EC_BOOL cxfs_getattr(const UINT32 cxfs_md_id, const CSTRING *file_path, struct stat *stat, int *res);
+
+EC_BOOL cxfs_getxattr(const UINT32 cxfs_md_id, const CSTRING *file_path, const CSTRING *name, CBYTES *value, const UINT32 size, int *res);
+
+EC_BOOL cxfs_readdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 offset, const UINT32 flags, CLIST *dirnode_list, int *res);
+
 #endif /*_CXFS_H*/
 
 #ifdef __cplusplus

@@ -74,7 +74,7 @@ typedef struct
     UINT32           ssd_disk_offset;           /*ssd cache start offset in ssd disk*/
 
     /*dynamic data*/
-    uint64_t         op_dump_time_msec;         /*the latest recent op dump succ time*/
+    uint64_t         op_dump_time_msec;         /*the latest op dump succ time*/
 }CXFSCFG;
 
 #define CXFSCFG_MAGIC(cxfscfg)                         ((cxfscfg)->magic)
