@@ -488,41 +488,41 @@ STATIC_CAST static UINT32 init_mem_manager()
     MM_MGR_DEF(MM_CXFSNP                       ,"MM_CXFSNP                       ",1        , sizeof(CXFSNP)                      , LOC_MM_0212);
     MM_MGR_DEF(MM_CXFSNP_MGR                   ,"MM_CXFSNP_MGR                   ",1        , sizeof(CXFSNP_MGR)                  , LOC_MM_0213);
     MM_MGR_DEF(MM_CXFSNP_KEY                   ,"MM_CXFSNP_KEY                   ",1        , sizeof(CXFSNP_KEY)                  , LOC_MM_0214);
-    MM_MGR_DEF(MM_CXFSNP_ATTR                  ,"MM_CXFSNP_ATTR                  ",1        , sizeof(CXFSNP_ATTR)                 , LOC_MM_0211);
+    MM_MGR_DEF(MM_CXFSNP_ATTR                  ,"MM_CXFSNP_ATTR                  ",1        , sizeof(CXFSNP_ATTR)                 , LOC_MM_0215);
 
-    MM_MGR_DEF(MM_CXFS_LOCKED_FILE             ,"MM_CXFS_LOCKED_FILE             ",32        , sizeof(CXFS_LOCKED_FILE)           , LOC_MM_0215);
-    MM_MGR_DEF(MM_CXFS_WAIT_FILE               ,"MM_CXFS_WAIT_FILE               ",256       , sizeof(CXFS_WAIT_FILE)             , LOC_MM_0216);
+    MM_MGR_DEF(MM_CXFS_LOCKED_FILE             ,"MM_CXFS_LOCKED_FILE             ",32        , sizeof(CXFS_LOCKED_FILE)           , LOC_MM_0216);
+    MM_MGR_DEF(MM_CXFS_WAIT_FILE               ,"MM_CXFS_WAIT_FILE               ",256       , sizeof(CXFS_WAIT_FILE)             , LOC_MM_0217);
 
-    MM_MGR_DEF(MM_CXFSOP_MGR                   ,"MM_CXFSOP_MGR                   ",4         , sizeof(CXFSOP_MGR)                 , LOC_MM_0217);
+    MM_MGR_DEF(MM_CXFSOP_MGR                   ,"MM_CXFSOP_MGR                   ",4         , sizeof(CXFSOP_MGR)                 , LOC_MM_0218);
 
-    MM_MGR_DEF(MM_CNBD_REQ                     ,"MM_CNBD_REQ                     ",32        , sizeof(CNBD_REQ)                   , LOC_MM_0218);
-    MM_MGR_DEF(MM_CNBD_RSP                     ,"MM_CNBD_RSP                     ",32        , sizeof(CNBD_RSP)                   , LOC_MM_0219);
+    MM_MGR_DEF(MM_CNBD_REQ                     ,"MM_CNBD_REQ                     ",32        , sizeof(CNBD_REQ)                   , LOC_MM_0219);
+    MM_MGR_DEF(MM_CNBD_RSP                     ,"MM_CNBD_RSP                     ",32        , sizeof(CNBD_RSP)                   , LOC_MM_0220);
 
-    MM_MGR_DEF(MM_CXFSNBD_SEG                  ,"MM_CXFSNBD_SEG                  ",32        , sizeof(CXFSNBD_SEG)                , LOC_MM_0220);
+    MM_MGR_DEF(MM_CXFSNBD_SEG                  ,"MM_CXFSNBD_SEG                  ",32        , sizeof(CXFSNBD_SEG)                , LOC_MM_0221);
 
-    MM_MGR_DEF(MM_CXFSC_RNODE                  ,"MM_CXFSC_RNODE                  ",32        , sizeof(CXFSC_RNODE)                , LOC_MM_0221);
+    MM_MGR_DEF(MM_CXFSC_RNODE                  ,"MM_CXFSC_RNODE                  ",32        , sizeof(CXFSC_RNODE)                , LOC_MM_0222);
 
-    MM_MGR_DEF(MM_CMON_NODE                    ,"MM_CMON_NODE                    ",256       , sizeof(CMON_NODE)                  , LOC_MM_0222);
-    MM_MGR_DEF(MM_CMON_HOT_PATH                ,"MM_CMON_HOT_PATH                ",32        , sizeof(CMON_HOT_PATH)              , LOC_MM_0223);
+    MM_MGR_DEF(MM_CMON_NODE                    ,"MM_CMON_NODE                    ",256       , sizeof(CMON_NODE)                  , LOC_MM_0223);
+    MM_MGR_DEF(MM_CMON_HOT_PATH                ,"MM_CMON_HOT_PATH                ",32        , sizeof(CMON_HOT_PATH)              , LOC_MM_0224);
 
-    MM_MGR_DEF(MM_CCONHASH                     ,"MM_CCONHASH                     ",1         , sizeof(CCONHASH)                   , LOC_MM_0224);
-    MM_MGR_DEF(MM_CCONHASH_RNODE               ,"MM_CCONHASH_RNODE               ",32        , sizeof(CCONHASH_RNODE)             , LOC_MM_0225);
-    MM_MGR_DEF(MM_CCONHASH_VNODE               ,"MM_CCONHASH_VNODE               ",32        , sizeof(CCONHASH_VNODE)             , LOC_MM_0226);
+    MM_MGR_DEF(MM_CCONHASH                     ,"MM_CCONHASH                     ",1         , sizeof(CCONHASH)                   , LOC_MM_0225);
+    MM_MGR_DEF(MM_CCONHASH_RNODE               ,"MM_CCONHASH_RNODE               ",32        , sizeof(CCONHASH_RNODE)             , LOC_MM_0226);
+    MM_MGR_DEF(MM_CCONHASH_VNODE               ,"MM_CCONHASH_VNODE               ",32        , sizeof(CCONHASH_VNODE)             , LOC_MM_0227);
 
-    MM_MGR_DEF(MM_CSDISC_NODE                  ,"MM_CSDISC_NODE                  ",1         , sizeof(CSDISC_NODE)                , LOC_MM_0227);
-    MM_MGR_DEF(MM_CSDISC_SENDER                ,"MM_CSDISC_SENDER                ",1         , sizeof(CSDISC_SENDER)              , LOC_MM_0228);
-    MM_MGR_DEF(MM_CSDISC_RECVER                ,"MM_CSDISC_RECVER                ",1         , sizeof(CSDISC_RECVER)              , LOC_MM_0229);
+    MM_MGR_DEF(MM_CSDISC_NODE                  ,"MM_CSDISC_NODE                  ",1         , sizeof(CSDISC_NODE)                , LOC_MM_0228);
+    MM_MGR_DEF(MM_CSDISC_SENDER                ,"MM_CSDISC_SENDER                ",1         , sizeof(CSDISC_SENDER)              , LOC_MM_0229);
+    MM_MGR_DEF(MM_CSDISC_RECVER                ,"MM_CSDISC_RECVER                ",1         , sizeof(CSDISC_RECVER)              , LOC_MM_0230);
 
-    MM_MGR_DEF(MM_CDNSCACHE_NODE               ,"MM_CDNSCACHE_NODE               ",1         , sizeof(CDNSCACHE_NODE)             , LOC_MM_0230);
-    MM_MGR_DEF(MM_CDNSCACHE                    ,"MM_CDNSCACHE                    ",1         , sizeof(CDNSCACHE)                  , LOC_MM_0231);
+    MM_MGR_DEF(MM_CDNSCACHE_NODE               ,"MM_CDNSCACHE_NODE               ",1         , sizeof(CDNSCACHE_NODE)             , LOC_MM_0231);
+    MM_MGR_DEF(MM_CDNSCACHE                    ,"MM_CDNSCACHE                    ",1         , sizeof(CDNSCACHE)                  , LOC_MM_0232);
 
-    MM_MGR_DEF(MM_CEVENTFD_NODE                ,"MM_CEVENTFD_NODE                ",4         , sizeof(CEVENTFD_NODE)              , LOC_MM_0232);
+    MM_MGR_DEF(MM_CEVENTFD_NODE                ,"MM_CEVENTFD_NODE                ",4         , sizeof(CEVENTFD_NODE)              , LOC_MM_0233);
 
-    MM_MGR_DEF(MM_CMAGLEV                      ,"MM_CMAGLEV                      ",1         , sizeof(CMAGLEV)                    , LOC_MM_0233);
-    MM_MGR_DEF(MM_CMAGLEV_RNODE                ,"MM_CMAGLEV_RNODE                ",1         , sizeof(CMAGLEV_RNODE)              , LOC_MM_0234);
-    MM_MGR_DEF(MM_CMAGLEV_QNODE                ,"MM_CMAGLEV_QNODE                ",2         , sizeof(CMAGLEV_QNODE)              , LOC_MM_0235);
+    MM_MGR_DEF(MM_CMAGLEV                      ,"MM_CMAGLEV                      ",1         , sizeof(CMAGLEV)                    , LOC_MM_0234);
+    MM_MGR_DEF(MM_CMAGLEV_RNODE                ,"MM_CMAGLEV_RNODE                ",1         , sizeof(CMAGLEV_RNODE)              , LOC_MM_0235);
+    MM_MGR_DEF(MM_CMAGLEV_QNODE                ,"MM_CMAGLEV_QNODE                ",2         , sizeof(CMAGLEV_QNODE)              , LOC_MM_0236);
 
-    MM_MGR_DEF(MM_CPARACFG_NODE                ,"MM_CPARACFG_NODE                ",256       , sizeof(CPARACFG_NODE)              , LOC_MM_0236);
+    MM_MGR_DEF(MM_CPARACFG_NODE                ,"MM_CPARACFG_NODE                ",256       , sizeof(CPARACFG_NODE)              , LOC_MM_0237);
 
     return ( 0 );
 }
@@ -715,7 +715,7 @@ EC_BOOL man_debug(const UINT8 *info, MM_MAN *pMan)
 {
     MM_NODE_BLOCK *pNodeBlock;
 
-    MAN_LOCK(pMan, LOC_MM_0237);
+    MAN_LOCK(pMan, LOC_MM_0238);
 
     dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] ========================== man_debug beg ==========================\n\n");
     dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "%s\n", info);
@@ -731,7 +731,7 @@ EC_BOOL man_debug(const UINT8 *info, MM_MAN *pMan)
     }
     dbg_log(SEC_0066_MM, 5)(LOGSTDOUT, "[debug] ========================== man_debug end ==========================\n\n");
 
-    MAN_UNLOCK(pMan, LOC_MM_0238);
+    MAN_UNLOCK(pMan, LOC_MM_0239);
     return (EC_TRUE);
 }
 
@@ -968,7 +968,7 @@ UINT32 alloc_static_mem_0(const UINT32 location, const UINT32 type, void **ppvoi
     }
 #endif/*(SWITCH_ON == MM_DEBUG)*/
 
-    MAN_LOCK(pMan, LOC_MM_0239);
+    MAN_LOCK(pMan, LOC_MM_0240);
 
     /*if manager has no more free node, then alloc a new node block*/
     if ( pMan->curusedsum >= pMan->nodenumsum )
@@ -983,7 +983,7 @@ UINT32 alloc_static_mem_0(const UINT32 location, const UINT32 type, void **ppvoi
 
             (*ppvoid) = NULL_PTR;
 
-            MAN_UNLOCK(pMan, LOC_MM_0240);
+            MAN_UNLOCK(pMan, LOC_MM_0241);
             /*return ((UINT32)( -1 ));*/
             exit( 0 );
         }
@@ -999,7 +999,7 @@ UINT32 alloc_static_mem_0(const UINT32 location, const UINT32 type, void **ppvoi
 
         (*ppvoid) = NULL_PTR;
 
-        MAN_UNLOCK(pMan, LOC_MM_0241);
+        MAN_UNLOCK(pMan, LOC_MM_0242);
         print_static_mem_status(LOGSTDOUT);
         exit ( 2 );
     }
@@ -1016,7 +1016,7 @@ UINT32 alloc_static_mem_0(const UINT32 location, const UINT32 type, void **ppvoi
 
         (*ppvoid) = NULL_PTR;
 
-        MAN_UNLOCK(pMan, LOC_MM_0242);
+        MAN_UNLOCK(pMan, LOC_MM_0243);
         print_static_mem_status(LOGSTDOUT);
         exit ( 2 );
     }
@@ -1050,7 +1050,7 @@ UINT32 alloc_static_mem_0(const UINT32 location, const UINT32 type, void **ppvoi
         NODEBLOCK_FREENODE_INIT(pNodeBlock);/*important: point its next and prev to itself*/
     }
 
-    MAN_UNLOCK(pMan, LOC_MM_0243);
+    MAN_UNLOCK(pMan, LOC_MM_0244);
     return ( 0 );
 }
 
@@ -1112,7 +1112,7 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
     return (0);
 #endif/*(SWITCH_ON == MM_DEBUG)*/
 
-    MAN_LOCK(pMan, LOC_MM_0244);
+    MAN_LOCK(pMan, LOC_MM_0245);
 
     if ( 0 == pMan->curusedsum )
     {
@@ -1120,7 +1120,7 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld, pvoid %p\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location), pvoid);
         print_static_mem_status(LOGSTDOUT);
 
-        MAN_UNLOCK(pMan, LOC_MM_0245);
+        MAN_UNLOCK(pMan, LOC_MM_0246);
         exit ( 2 );
     }
 
@@ -1135,7 +1135,7 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
                         (UINT32)pvoid);
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
 
-        MAN_UNLOCK(pMan, LOC_MM_0246);
+        MAN_UNLOCK(pMan, LOC_MM_0247);
         exit ( 2 );
     }
 
@@ -1149,7 +1149,7 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
                         (UINT32)pvoid);
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
 
-        MAN_UNLOCK(pMan, LOC_MM_0247);
+        MAN_UNLOCK(pMan, LOC_MM_0248);
         exit ( 2 );
     }
 
@@ -1162,7 +1162,7 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
                         type);
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
 
-        MAN_UNLOCK(pMan, LOC_MM_0248);
+        MAN_UNLOCK(pMan, LOC_MM_0249);
         exit ( 2 );
     }
 
@@ -1174,7 +1174,7 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error was free at: %s:%ld\n",MM_LOC_FILE_NAME(pNode->location),MM_LOC_LINE_NO(pNode->location));
 
-        MAN_UNLOCK(pMan, LOC_MM_0249);
+        MAN_UNLOCK(pMan, LOC_MM_0250);
 
         c_backtrace_dump(LOGSTDOUT);
 
@@ -1188,7 +1188,7 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error was free at: %s:%ld\n",MM_LOC_FILE_NAME(pNode->location),MM_LOC_LINE_NO(pNode->location));
 
-        MAN_UNLOCK(pMan, LOC_MM_0250);
+        MAN_UNLOCK(pMan, LOC_MM_0251);
 
         c_backtrace_dump(LOGSTDOUT);
 
@@ -1227,7 +1227,7 @@ UINT32 free_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
         free_nodeblock_static_mem(pMan, pNodeBlock);
     }
 
-    MAN_UNLOCK(pMan, LOC_MM_0251);
+    MAN_UNLOCK(pMan, LOC_MM_0252);
     return 0;
 }
 
@@ -1268,7 +1268,7 @@ UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
     ASSERT(0);
 #endif/*(SWITCH_ON == MM_DEBUG)*/
 
-    MAN_LOCK(pMan, LOC_MM_0252);
+    MAN_LOCK(pMan, LOC_MM_0253);
 
     if ( 0 == pMan->curusedsum )
     {
@@ -1276,7 +1276,7 @@ UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld, pvoid %p\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location), pvoid);
         print_static_mem_status(LOGSTDOUT);
 
-        MAN_UNLOCK(pMan, LOC_MM_0253);
+        MAN_UNLOCK(pMan, LOC_MM_0254);
         exit ( 2 );
     }
 
@@ -1291,7 +1291,7 @@ UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
                         (UINT32)pvoid);
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
 
-        MAN_UNLOCK(pMan, LOC_MM_0254);
+        MAN_UNLOCK(pMan, LOC_MM_0255);
         exit ( 2 );
     }
 
@@ -1305,7 +1305,7 @@ UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
                         (UINT32)pvoid);
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
 
-        MAN_UNLOCK(pMan, LOC_MM_0255);
+        MAN_UNLOCK(pMan, LOC_MM_0256);
         exit ( 2 );
     }
 
@@ -1318,7 +1318,7 @@ UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
                         type);
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
 
-        MAN_UNLOCK(pMan, LOC_MM_0256);
+        MAN_UNLOCK(pMan, LOC_MM_0257);
         exit ( 2 );
     }
 
@@ -1330,7 +1330,7 @@ UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error was free at: %s:%ld\n",MM_LOC_FILE_NAME(pNode->location),MM_LOC_LINE_NO(pNode->location));
 
-        MAN_UNLOCK(pMan, LOC_MM_0257);
+        MAN_UNLOCK(pMan, LOC_MM_0258);
 
         c_backtrace_dump(LOGSTDOUT);
 
@@ -1344,7 +1344,7 @@ UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error reported by: %s:%ld\n",MM_LOC_FILE_NAME(location),MM_LOC_LINE_NO(location));
         dbg_log(SEC_0066_MM, 0)(LOGSTDOUT,"error was free at: %s:%ld\n",MM_LOC_FILE_NAME(pNode->location),MM_LOC_LINE_NO(pNode->location));
 
-        MAN_UNLOCK(pMan, LOC_MM_0258);
+        MAN_UNLOCK(pMan, LOC_MM_0259);
 
         c_backtrace_dump(LOGSTDOUT);
 
@@ -1353,7 +1353,7 @@ UINT32 reuse_static_mem_0(const UINT32 location, const UINT32 type, void *pvoid)
 
     pNode->counter ++;
 
-    MAN_UNLOCK(pMan, LOC_MM_0259);
+    MAN_UNLOCK(pMan, LOC_MM_0260);
     return 0;
 }
 
@@ -1386,7 +1386,7 @@ UINT32 breathing_static_mem()
         /* do this manager */
         pMan = &(g_mem_manager[ type ]);
 
-        MAN_LOCK(pMan, LOC_MM_0260);
+        MAN_LOCK(pMan, LOC_MM_0261);
 
         MAN_FREENODEBLOCK_LOOP_NEXT(pMan, pNodeBlock)
         {
@@ -1397,7 +1397,7 @@ UINT32 breathing_static_mem()
             }
         }
 
-        MAN_UNLOCK(pMan, LOC_MM_0261);
+        MAN_UNLOCK(pMan, LOC_MM_0262);
     }
 
     return 0;
@@ -1426,7 +1426,7 @@ UINT32 destory_static_mem()
     for ( type = 0; type < MM_END; type ++ )
     {
         pMan = &(g_mem_manager[ type ]);
-        MAN_LOCK(pMan, LOC_MM_0262);
+        MAN_LOCK(pMan, LOC_MM_0263);
 
         MAN_LINKNODEBLOCK_LOOP_NEXT(pMan, pNodeBlock)
         {
@@ -1451,8 +1451,8 @@ UINT32 destory_static_mem()
         MAN_LINKNODEBLOCK_HEAD_INIT(pMan);
         MAN_FREENODEBLOCK_HEAD_INIT(pMan);
 
-        MAN_UNLOCK(pMan, LOC_MM_0263);
-        MAN_CLEAN_LOCK(pMan, LOC_MM_0264);/*clean lock*/
+        MAN_UNLOCK(pMan, LOC_MM_0264);
+        MAN_CLEAN_LOCK(pMan, LOC_MM_0265);/*clean lock*/
     }
 
     return 0;
@@ -1778,7 +1778,7 @@ void print_static_mem_status_of_type(LOG *log, const UINT32  type)
     }
 
     pMan = &(g_mem_manager[ type ]);
-    //MAN_LOCK(pMan, LOC_MM_0265);
+    //MAN_LOCK(pMan, LOC_MM_0266);
 
     if( 0 < pMan->nodeblocknum || 0 < pMan->nodenumsum || 0 < pMan->maxusedsum || 0 < pMan->curusedsum )
     {
@@ -2073,7 +2073,7 @@ UINT32 mm_man_occupy_node_init(MM_MAN_OCCUPY_NODE *mm_man_occupy_node)
 
 UINT32 mm_man_occupy_node_free(MM_MAN_OCCUPY_NODE *mm_man_occupy_node)
 {
-    free_static_mem(MM_MM_MAN_OCCUPY_NODE, mm_man_occupy_node, LOC_MM_0266);
+    free_static_mem(MM_MM_MAN_OCCUPY_NODE, mm_man_occupy_node, LOC_MM_0267);
     return (0);
 }
 
@@ -2146,7 +2146,7 @@ UINT32 mm_man_load_node_init(MM_MAN_LOAD_NODE *mm_man_load_node)
 
 UINT32 mm_man_load_node_free(MM_MAN_LOAD_NODE *mm_man_load_node)
 {
-    free_static_mem(MM_MM_MAN_LOAD_NODE, mm_man_load_node, LOC_MM_0267);
+    free_static_mem(MM_MM_MAN_LOAD_NODE, mm_man_load_node, LOC_MM_0268);
     return (0);
 }
 

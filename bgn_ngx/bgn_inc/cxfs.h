@@ -630,6 +630,13 @@ EC_BOOL cxfs_recycle_dn(const UINT32 cxfs_md_id, const CXFSNP_FNODE *cxfsnp_fnod
 
 /**
 *
+*  reserve a file
+*
+**/
+EC_BOOL cxfs_reserve(const UINT32 cxfs_md_id, const CSTRING *file_path, const UINT32 file_size);
+
+/**
+*
 *  write a file
 *
 **/
@@ -797,10 +804,38 @@ EC_BOOL cxfs_update_npp(const UINT32 cxfs_md_id, const CSTRING *file_path, const
 
 /**
 *
-*  renew a fnode to name node
+*  rename src file to des file
 *
 **/
-EC_BOOL cxfs_renew(const UINT32 cxfs_md_id, const CSTRING *file_path);
+EC_BOOL cxfs_rename_file(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path);
+
+/**
+*
+*  rename src dir to des dir
+*
+**/
+EC_BOOL cxfs_rename_dir(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path);
+
+/**
+*
+*  rename src path to des path
+*
+**/
+EC_BOOL cxfs_rename(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path);
+
+/**
+*
+*  link src path to des path
+*
+**/
+EC_BOOL cxfs_link(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path);
+
+/**
+*
+*  reallink of path
+*
+**/
+EC_BOOL cxfs_reallink(const UINT32 cxfs_md_id, const CSTRING *src_path, CSTRING *des_path);
 
 /**
 *
@@ -1175,11 +1210,6 @@ EC_BOOL cxfs_activate_ngx(const UINT32 cxfs_md_id);
 **/
 EC_BOOL cxfs_deactivate_ngx(const UINT32 cxfs_md_id);
 
-EC_BOOL cxfs_getattr(const UINT32 cxfs_md_id, const CSTRING *file_path, struct stat *stat, int *res);
-
-EC_BOOL cxfs_getxattr(const UINT32 cxfs_md_id, const CSTRING *file_path, const CSTRING *name, CBYTES *value, const UINT32 size, int *res);
-
-EC_BOOL cxfs_readdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 offset, const UINT32 flags, CLIST *dirnode_list, int *res);
 
 #endif /*_CXFS_H*/
 

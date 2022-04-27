@@ -17,9 +17,7 @@ extern "C"{
 #include <sys/mman.h>
 
 #include <sys/stat.h>
-#if (SWITCH_ON == FUSE_SWITCH)
-#include <fuse.h>
-#endif/*(SWITCH_ON == FUSE_SWITCH)*/
+
 #include "type.h"
 #include "mm.h"
 #include "log.h"
@@ -70,7 +68,7 @@ extern "C"{
 #define CXFS_MD_ID_CHECK_INVALID(cxfs_md_id)  \
     ((CMPI_ANY_MODI != (cxfs_md_id)) && ((NULL_PTR == CXFS_MD_GET(cxfs_md_id)) || (0 == (CXFS_MD_GET(cxfs_md_id)->usedcounter))))
 
-STATIC_CAST static CXFSNP_FNODE * __cxfs_reserve_npp(const UINT32 cxfs_md_id, const CSTRING *file_path);
+STATIC_CAST static CXFSNP_FNODE * __cxfs_reserve_npp(const UINT32 cxfs_md_id, const CSTRING *file_path, uint32_t *cxfsnp_id);
 STATIC_CAST static EC_BOOL __cxfs_release_npp(const UINT32 cxfs_md_id, const CSTRING *file_path);
 STATIC_CAST static EC_BOOL __cxfs_recycle_of_np(const UINT32 cxfs_md_id, const uint32_t cxfsnp_id, const UINT32 max_num, UINT32 *complete_num);
 
@@ -164,6 +162,10 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
     UINT32      cfg_offset;
     UINT32      vdisk_size;
     UINT32      vdisk_num;
+
+    ASSERT(64 == sizeof(CXFSNP_ITEM));
+    ASSERT(64 == sizeof(CXFSNP_KEY));
+    ASSERT(64 == sizeof(CXFSNP_ATTR));
 
     cbc_md_reg(MD_CXFS, 32);
 
@@ -717,6 +719,10 @@ UINT32 cxfs_start(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path)
         ASSERT(cfg_offset == CXFSCFG_OFFSET(cxfscfg));
         ASSERT(vdisk_size == CXFSCFG_SATA_VDISK_SIZE(cxfscfg));
         ASSERT(vdisk_num == CXFSCFG_SATA_VDISK_NUM(cxfscfg));
+
+#if (SWITCH_ON == CXFSFUSE_SWITCH)
+        ASSERT(1 == CXFSCFG_NP_MAX_NUM(cxfscfg));
+#endif/*(SWITCH_ON == CXFSFUSE_SWITCH)*/
 
         if(EC_FALSE == cxfs_load_sata_bad_bitmap(cxfs_md))
         {
@@ -1665,6 +1671,10 @@ UINT32 cxfs_retrieve(const CSTRING *sata_disk_path, const CSTRING *ssd_disk_path
         ASSERT(cfg_offset == CXFSCFG_OFFSET(cxfscfg));
         ASSERT(vdisk_size == CXFSCFG_SATA_VDISK_SIZE(cxfscfg));
         ASSERT(vdisk_num == CXFSCFG_SATA_VDISK_NUM(cxfscfg));
+
+#if (SWITCH_ON == CXFSFUSE_SWITCH)
+        ASSERT(1 == CXFSCFG_NP_MAX_NUM(cxfscfg));
+#endif/*(SWITCH_ON == CXFSFUSE_SWITCH)*/
 
         if(EC_FALSE == cxfs_load_sata_bad_bitmap(cxfs_md))
         {
@@ -3266,6 +3276,10 @@ EC_BOOL cxfs_open_npp(const UINT32 cxfs_md_id)
         return (EC_FALSE);
     }
 
+#if (SWITCH_ON == CXFSFUSE_SWITCH)
+    ASSERT(1 == CXFSCFG_NP_MAX_NUM(CXFS_MD_CFG(cxfs_md)));
+#endif/*(SWITCH_ON == CXFSFUSE_SWITCH)*/
+
     CXFS_MD_NPP(cxfs_md) = cxfsnp_mgr_open(CXFS_MD_SATA_META_FD(cxfs_md), CXFS_MD_CFG(cxfs_md));
     if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
     {
@@ -3535,6 +3549,10 @@ EC_BOOL cxfs_create_npp(const UINT32 cxfs_md_id,
         dbg_exit(MD_CXFS, cxfs_md_id);
     }
 #endif/*(SWITCH_ON == CXFS_DEBUG_SWITCH)*/
+
+#if (SWITCH_ON == CXFSFUSE_SWITCH)
+    ASSERT(1 == cxfsnp_max_num);
+#endif/*(SWITCH_ON == CXFSFUSE_SWITCH)*/
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
     cxfscfg = CXFS_MD_CFG(cxfs_md);
@@ -4738,6 +4756,201 @@ EC_BOOL cxfs_recycle_dn(const UINT32 cxfs_md_id, const CXFSNP_FNODE *cxfsnp_fnod
 
 /**
 *
+*  reserve a file (version 0.3)
+*
+**/
+STATIC_CAST static EC_BOOL __cxfs_reserve(const UINT32 cxfs_md_id, const CSTRING *file_path, const UINT32 file_size)
+{
+    CXFS_MD      *cxfs_md;
+    CXFSNP_FNODE *cxfsnp_fnode;
+
+    uint64_t      s_msec;
+    uint64_t      e_msec;
+    uint64_t      cost_msec;
+
+    uint32_t      cxfsnp_id;
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    s_msec = c_get_cur_time_msec();
+
+    CXFS_STAT_WRITE_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+    cxfsnp_fnode = __cxfs_reserve_npp(cxfs_md_id, file_path, &cxfsnp_id);
+    if(NULL_PTR == cxfsnp_fnode)
+    {
+        e_msec = c_get_cur_time_msec();
+        cost_msec = e_msec - s_msec;
+
+        CXFS_STAT_WRITE_COST_MSEC(CXFS_MD_STAT(cxfs_md)) += cost_msec;
+        CXFS_STAT_WRITE_NP_FAIL_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_reserve: "
+                                             "file %s reserve npp failed\n",
+                                             (char *)cstring_get_str(file_path));
+
+        /*notify all waiters*/
+        cxfs_file_notify(cxfs_md_id, file_path); /*patch*/
+        return (EC_FALSE);
+    }
+
+    CXFS_STAT_WRITE_NP_SUCC_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+    /*exception*/
+    if(0 == file_size)
+    {
+        e_msec = c_get_cur_time_msec();
+        cost_msec = e_msec - s_msec;
+
+        CXFS_STAT_WRITE_COST_MSEC(CXFS_MD_STAT(cxfs_md)) += cost_msec;
+
+        cxfsnp_fnode_init(cxfsnp_fnode);
+
+        if(do_log(SEC_0192_CXFS, 1))
+        {
+            sys_log(LOGSTDOUT, "warn:__cxfs_reserve: "
+                               "reserve file %s with zero len to dn "
+                               "where fnode is \n",
+                               (char *)cstring_get_str(file_path));
+            cxfsnp_fnode_print(LOGSTDOUT, cxfsnp_fnode);
+        }
+
+        /*notify all waiters*/
+        cxfs_file_notify(cxfs_md_id, file_path); /*patch*/
+
+        return (EC_TRUE);
+    }
+
+    if(SWITCH_ON == CXFS_LRU_MODEL_SWITCH
+    && EC_FALSE == __cxfs_reserve_hash_dn(cxfs_md_id, file_path, file_size, cxfsnp_fnode))
+    {
+        e_msec = c_get_cur_time_msec();
+        cost_msec = e_msec - s_msec;
+
+        CXFS_STAT_WRITE_COST_MSEC(CXFS_MD_STAT(cxfs_md)) += cost_msec;
+        CXFS_STAT_WRITE_DN_FAIL_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_reserve: "
+                                             "[lru] reserve dn %ld bytes for file %s failed\n",
+                                             file_size,
+                                             (char *)cstring_get_str(file_path));
+
+        __cxfs_release_npp(cxfs_md_id, file_path);
+
+        /*notify all waiters*/
+        cxfs_file_notify(cxfs_md_id, file_path); /*patch*/
+
+        return (EC_FALSE);
+    }
+
+    if(SWITCH_ON == CXFS_FIFO_MODEL_SWITCH
+    && EC_FALSE == __cxfs_reserve_no_hash_dn(cxfs_md_id, file_path, file_size, cxfsnp_fnode))
+    {
+        e_msec = c_get_cur_time_msec();
+        cost_msec = e_msec - s_msec;
+
+        CXFS_STAT_WRITE_COST_MSEC(CXFS_MD_STAT(cxfs_md)) += cost_msec;
+        CXFS_STAT_WRITE_DN_FAIL_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_reserve: "
+                                             "[fifo] reserve dn %ld bytes for file %s failed\n",
+                                             file_size,
+                                             (char *)cstring_get_str(file_path));
+
+        __cxfs_release_npp(cxfs_md_id, file_path);
+
+        /*notify all waiters*/
+        cxfs_file_notify(cxfs_md_id, file_path); /*patch*/
+
+        return (EC_FALSE);
+    }
+
+    if(SWITCH_ON == CXFSFUSE_SWITCH && 0 < file_size)
+    {
+        CXFSNP_ITEM     *cxfsnp_item;
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_DNODE    *cxfsnp_dnode_parent;
+
+        cxfsnp_item = CXFSNP_FNODE_ITEM(cxfsnp_fnode);
+        cxfsnp_item_parent = cxfsnp_mgr_finger_item(CXFS_MD_NPP(cxfs_md), cxfsnp_id, CXFSNP_ITEM_PARENT_POS(cxfsnp_item));
+        cxfsnp_dnode_parent = CXFSNP_ITEM_DNODE(cxfsnp_item_parent);
+
+        CXFSNP_DNODE_FILE_SIZE(cxfsnp_dnode_parent) += (uint64_t)file_size;
+    }
+
+    e_msec = c_get_cur_time_msec();
+    cost_msec = e_msec - s_msec;
+
+    CXFS_STAT_WRITE_COST_MSEC(CXFS_MD_STAT(cxfs_md)) += cost_msec;
+    CXFS_STAT_WRITE_DN_SUCC_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+    CXFS_STAT_WRITE_NBYTES(CXFS_MD_STAT(cxfs_md)) += file_size;
+
+    if(do_log(SEC_0192_CXFS, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] __cxfs_reserve: "
+                           "reserve file %s to dn where fnode is \n",
+                           (char *)cstring_get_str(file_path));
+        cxfsnp_fnode_print(LOGSTDOUT, cxfsnp_fnode);
+    }
+
+    /*notify all waiters*/
+    cxfs_file_notify(cxfs_md_id, file_path);
+
+    if(BIT_FALSE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md)
+    && NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
+    {
+        cxfsop_mgr_dn_push_reserve_op(CXFS_MD_OP_MGR(cxfs_md),
+                                  (uint32_t )CXFSNP_FNODE_FILESZ(cxfsnp_fnode),
+                                  (uint16_t )CXFSNP_FNODE_INODE_DISK_NO(cxfsnp_fnode, 0),
+                                  (uint16_t )CXFSNP_FNODE_INODE_BLOCK_NO(cxfsnp_fnode, 0),
+                                  (uint16_t )CXFSNP_FNODE_INODE_PAGE_NO(cxfsnp_fnode, 0));
+
+        cxfsop_mgr_np_push_file_add_op(CXFS_MD_OP_MGR(cxfs_md),
+                                  (uint32_t )cstring_get_len(file_path),
+                                  (uint8_t *)cstring_get_str(file_path),
+                                  (uint32_t )CXFSNP_FNODE_FILESZ(cxfsnp_fnode),
+                                  (uint16_t )CXFSNP_FNODE_INODE_DISK_NO(cxfsnp_fnode, 0),
+                                  (uint16_t )CXFSNP_FNODE_INODE_BLOCK_NO(cxfsnp_fnode, 0),
+                                  (uint16_t )CXFSNP_FNODE_INODE_PAGE_NO(cxfsnp_fnode, 0));
+    }
+
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfs_reserve(const UINT32 cxfs_md_id, const CSTRING *file_path, const UINT32 file_size)
+{
+    CXFS_MD      *cxfs_md;
+
+#if (SWITCH_ON == CXFS_DEBUG_SWITCH)
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_reserve: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*(SWITCH_ON == CXFS_DEBUG_SWITCH)*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_reserve: wait syncing timeout\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CXFS_MD_READ_ONLY_FLAG(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_reserve: cxfs is read-only\n");
+        return (EC_FALSE);
+    }
+
+    return __cxfs_reserve(cxfs_md_id, file_path, file_size);
+}
+
+/**
+*
 *  write a file (version 0.3)
 *
 **/
@@ -4750,13 +4963,15 @@ STATIC_CAST static EC_BOOL __cxfs_write(const UINT32 cxfs_md_id, const CSTRING *
     uint64_t      e_msec;
     uint64_t      cost_msec;
 
+    uint32_t      cxfsnp_id;
+
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
     s_msec = c_get_cur_time_msec();
 
     CXFS_STAT_WRITE_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
 
-    cxfsnp_fnode = __cxfs_reserve_npp(cxfs_md_id, file_path);
+    cxfsnp_fnode = __cxfs_reserve_npp(cxfs_md_id, file_path, &cxfsnp_id);
     if(NULL_PTR == cxfsnp_fnode)
     {
         e_msec = c_get_cur_time_msec();
@@ -4855,6 +5070,19 @@ STATIC_CAST static EC_BOOL __cxfs_write(const UINT32 cxfs_md_id, const CSTRING *
         return (EC_FALSE);
     }
 
+    if(SWITCH_ON == CXFSFUSE_SWITCH && 0 < CBYTES_LEN(cbytes))
+    {
+        CXFSNP_ITEM     *cxfsnp_item;
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_DNODE    *cxfsnp_dnode_parent;
+
+        cxfsnp_item = CXFSNP_FNODE_ITEM(cxfsnp_fnode);
+        cxfsnp_item_parent = cxfsnp_mgr_finger_item(CXFS_MD_NPP(cxfs_md), cxfsnp_id, CXFSNP_ITEM_PARENT_POS(cxfsnp_item));
+        cxfsnp_dnode_parent = CXFSNP_ITEM_DNODE(cxfsnp_item_parent);
+
+        CXFSNP_DNODE_FILE_SIZE(cxfsnp_dnode_parent) += (uint64_t)CBYTES_LEN(cbytes);
+    }
+
     e_msec = c_get_cur_time_msec();
     cost_msec = e_msec - s_msec;
 
@@ -4903,13 +5131,15 @@ STATIC_CAST static EC_BOOL __cxfs_write_no_lock(const UINT32 cxfs_md_id, const C
     uint64_t      e_msec;
     uint64_t      cost_msec;
 
+    uint32_t      cxfsnp_id;
+
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
     CXFS_STAT_WRITE_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
 
     s_msec = c_get_cur_time_msec();
 
-    cxfsnp_fnode = __cxfs_reserve_npp(cxfs_md_id, file_path);
+    cxfsnp_fnode = __cxfs_reserve_npp(cxfs_md_id, file_path, &cxfsnp_id);
     if(NULL_PTR == cxfsnp_fnode)
     {
         e_msec = c_get_cur_time_msec();
@@ -5005,6 +5235,19 @@ STATIC_CAST static EC_BOOL __cxfs_write_no_lock(const UINT32 cxfs_md_id, const C
 
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_write_no_lock: export file %s content to dn failed\n", (char *)cstring_get_str(file_path));
         return (EC_FALSE);
+    }
+
+    if(SWITCH_ON == CXFSFUSE_SWITCH && 0 < CBYTES_LEN(cbytes))
+    {
+        CXFSNP_ITEM     *cxfsnp_item;
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_DNODE    *cxfsnp_dnode_parent;
+
+        cxfsnp_item = CXFSNP_FNODE_ITEM(cxfsnp_fnode);
+        cxfsnp_item_parent = cxfsnp_mgr_finger_item(CXFS_MD_NPP(cxfs_md), cxfsnp_id, CXFSNP_ITEM_PARENT_POS(cxfsnp_item));
+        cxfsnp_dnode_parent = CXFSNP_ITEM_DNODE(cxfsnp_item_parent);
+
+        CXFSNP_DNODE_FILE_SIZE(cxfsnp_dnode_parent) += (uint64_t)CBYTES_LEN(cbytes);
     }
 
     e_msec = c_get_cur_time_msec();
@@ -5388,6 +5631,34 @@ EC_BOOL cxfs_write_e(const UINT32 cxfs_md_id, const CSTRING *file_path, UINT32 *
 
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_write_e: offset write to dn failed\n");
         return (EC_FALSE);
+    }
+
+    if(SWITCH_ON == CXFSFUSE_SWITCH && 0 < CBYTES_LEN(cbytes))
+    {
+        CXFSNP_ITEM     *cxfsnp_item;
+
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_DNODE    *cxfsnp_dnode_parent;
+
+        uint32_t         cxfsnp_id;
+
+        cxfsnp_mgr_search(CXFS_MD_NPP(cxfs_md),
+                         (uint32_t)cstring_get_len(file_path),
+                         cstring_get_str(file_path),
+                         CXFSNP_ITEM_FILE_IS_REG,
+                         &cxfsnp_id);
+
+        cxfsnp_item = cxfsnp_mgr_search_item(CXFS_MD_NPP(cxfs_md),
+                                             (uint32_t)cstring_get_len(file_path),
+                                             cstring_get_str(file_path),
+                                             CXFSNP_ITEM_FILE_IS_REG);
+
+        cxfsnp_item_parent  = cxfsnp_mgr_finger_item(CXFS_MD_NPP(cxfs_md),
+                                                     cxfsnp_id,
+                                                     CXFSNP_ITEM_PARENT_POS(cxfsnp_item));
+        cxfsnp_dnode_parent = CXFSNP_ITEM_DNODE(cxfsnp_item_parent);
+
+        CXFSNP_DNODE_FILE_SIZE(cxfsnp_dnode_parent) += (uint64_t)CBYTES_LEN(cbytes);
     }
 
     CXFS_STAT_WRITE_DN_SUCC_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
@@ -6202,6 +6473,7 @@ EC_BOOL cxfs_export_dn(const UINT32 cxfs_md_id, const CBYTES *cbytes, const CXFS
                             data_len, disk_no, block_no, page_no);
         return (EC_FALSE);
     }
+
     //dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] cxfs_export_dn: write %ld bytes to disk %u block %u page %u done\n",
     //                    data_len, disk_no, block_no, page_no);
 
@@ -6608,7 +6880,7 @@ EC_BOOL cxfs_read_e_dn(const UINT32 cxfs_md_id, const CXFSNP_FNODE *cxfsnp_fnode
 *  reserve a fnode from name node
 *
 **/
-STATIC_CAST static CXFSNP_FNODE * __cxfs_reserve_npp(const UINT32 cxfs_md_id, const CSTRING *file_path)
+STATIC_CAST static CXFSNP_FNODE * __cxfs_reserve_npp(const UINT32 cxfs_md_id, const CSTRING *file_path, uint32_t *cxfsnp_id)
 {
     CXFS_MD      *cxfs_md;
     CXFSNP_FNODE *cxfsnp_fnode;
@@ -6631,7 +6903,7 @@ STATIC_CAST static CXFSNP_FNODE * __cxfs_reserve_npp(const UINT32 cxfs_md_id, co
         return (NULL_PTR);
     }
 
-    cxfsnp_fnode = cxfsnp_mgr_reserve(CXFS_MD_NPP(cxfs_md), file_path);
+    cxfsnp_fnode = cxfsnp_mgr_reserve(CXFS_MD_NPP(cxfs_md), file_path, cxfsnp_id);
     if(NULL_PTR == cxfsnp_fnode)
     {
         /*try to retire & recycle some files*/
@@ -6642,7 +6914,7 @@ STATIC_CAST static CXFSNP_FNODE * __cxfs_reserve_npp(const UINT32 cxfs_md_id, co
         cxfs_recycle(cxfs_md_id, (UINT32)CXFSNP_TRY_RECYCLE_MAX_NUM, NULL_PTR);
 
         /*try again*/
-        cxfsnp_fnode = cxfsnp_mgr_reserve(CXFS_MD_NPP(cxfs_md), file_path);
+        cxfsnp_fnode = cxfsnp_mgr_reserve(CXFS_MD_NPP(cxfs_md), file_path, cxfsnp_id);
         if(NULL_PTR == cxfsnp_fnode)/*Oops!*/
         {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_reserve_npp: no name node accept file %s\n",
@@ -6875,18 +7147,32 @@ EC_BOOL cxfs_update_npp(const UINT32 cxfs_md_id, const CSTRING *file_path, const
 
 /**
 *
-*  renew a fnode to name node
+*  rename src file to des file
 *
 **/
-EC_BOOL cxfs_renew(const UINT32 cxfs_md_id, const CSTRING *file_path)
+EC_BOOL cxfs_rename_file(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path)
 {
     CXFS_MD      *cxfs_md;
+
+    CXFSNP       *cxfsnp;
+    CXFSNP_FNODE *cxfsnp_fnode_src;
+    CXFSNP_ITEM  *cxfsnp_item_src;
+
+    CXFSNP_FNODE *cxfsnp_fnode_des;
+    CXFSNP_ITEM  *cxfsnp_item_des;
+
+    uint64_t      s_msec;
+    uint64_t      e_msec;
+    uint64_t      cost_msec;
+
+    uint32_t      node_pos_src;
+    uint32_t      cxfsnp_id;
 
 #if (SWITCH_ON == CXFS_DEBUG_SWITCH)
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
     {
         sys_log(LOGSTDOUT,
-                "error:cxfs_renew: cxfs module #%ld not started.\n",
+                "error:cxfs_rename_file: cxfs module #%ld not started.\n",
                 cxfs_md_id);
         dbg_exit(MD_CXFS, cxfs_md_id);
     }
@@ -6894,25 +7180,645 @@ EC_BOOL cxfs_renew(const UINT32 cxfs_md_id, const CSTRING *file_path)
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
+    if(SWITCH_OFF == CXFSFUSE_SWITCH)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename_file: works only if CXFSFUSE_SWITCH = on \n");
+        return (EC_FALSE);
+    }
+
     if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_renew: wait syncing timeout\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename_file: wait syncing timeout\n");
         return (EC_FALSE);
     }
 
     if(BIT_TRUE == CXFS_MD_READ_ONLY_FLAG(cxfs_md))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_renew: cxfs is read-only\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename_file: cxfs is read-only\n");
         return (EC_FALSE);
     }
 
     if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_renew: npp was not open\n");
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename_file: npp was not open\n");
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_renew: obsolete interface\n");
+    s_msec = c_get_cur_time_msec();
+
+    cxfsnp_id = 0; /*fix*/
+    cxfsnp = cxfsnp_mgr_fetch_specific_np(CXFS_MD_NPP(cxfs_md), cxfsnp_id);
+    if(NULL_PTR == cxfsnp)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename_file: np %u was not open\n", cxfsnp_id);
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename_file: rename file %s -> %s failed\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(des_path));
+        return (EC_FALSE);
+    }
+
+    node_pos_src = cxfsnp_search(cxfsnp, (uint32_t)cstring_get_len(src_path), cstring_get_str(src_path), CXFSNP_ITEM_FILE_IS_REG);
+    cxfsnp_item_src = cxfsnp_fetch(cxfsnp, node_pos_src);
+    if(NULL_PTR == cxfsnp_item_src)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "warn:cxfs_rename_file: src '%s' in np %u\n",
+                                             (char *)cstring_get_str(src_path), cxfsnp_id);
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename_file: rename file %s -> %s failed\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(des_path));
+        return (EC_FALSE);
+    }
+    cxfsnp_fnode_src = CXFSNP_ITEM_FNODE(cxfsnp_item_src);
+
+    CXFS_STAT_WRITE_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+    cxfsnp_item_des = cxfsnp_set(cxfsnp, cstring_get_len(des_path), cstring_get_str(des_path), CXFSNP_ITEM_FILE_IS_REG);
+    if(NULL_PTR == cxfsnp_item_des)
+    {
+        e_msec = c_get_cur_time_msec();
+        cost_msec = e_msec - s_msec;
+
+        CXFS_STAT_WRITE_COST_MSEC(CXFS_MD_STAT(cxfs_md)) += cost_msec;
+        CXFS_STAT_WRITE_NP_FAIL_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename_file: set file %s to np %u failed\n",
+                            (char *)cstring_get_str(des_path), cxfsnp_id);
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename_file: rename file %s -> %s failed\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(des_path));
+        return (EC_FALSE);
+    }
+
+    cxfsnp_fnode_des = CXFSNP_ITEM_FNODE(cxfsnp_item_des);
+
+    /*copy*/
+    cxfsnp_fnode_clone(cxfsnp_fnode_src, cxfsnp_fnode_des);
+
+    CXFS_STAT_WRITE_NP_SUCC_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+    e_msec = c_get_cur_time_msec();
+    cost_msec = e_msec - s_msec;
+
+    CXFS_STAT_WRITE_COST_MSEC(CXFS_MD_STAT(cxfs_md)) += cost_msec;
+
+    /*here would update its parent dir file_size */
+    cxfs_delete_file(cxfs_md_id, src_path);    /*item is not recycled yet*/
+    CXFSNP_FNODE_FILESZ(cxfsnp_fnode_src) = 0; /*then recycle later would not recycle data node*/
+
+    if(SWITCH_ON == CXFSFUSE_SWITCH && 0 < CXFSNP_FNODE_FILESZ(cxfsnp_fnode_des))
+    {
+        CXFSNP_ITEM     *cxfsnp_item_des_parent;
+        CXFSNP_DNODE    *cxfsnp_dnode_des_parent;
+
+        cxfsnp_item_des_parent = cxfsnp_mgr_finger_item(CXFS_MD_NPP(cxfs_md), cxfsnp_id,
+                                                        CXFSNP_ITEM_PARENT_POS(cxfsnp_item_des));
+        cxfsnp_dnode_des_parent = CXFSNP_ITEM_DNODE(cxfsnp_item_des_parent);
+
+        CXFSNP_DNODE_FILE_SIZE(cxfsnp_dnode_des_parent) += (uint64_t)CXFSNP_FNODE_FILESZ(cxfsnp_fnode_des);
+    }
+
+    /*notify all waiters*/
+    cxfs_file_notify(cxfs_md_id, des_path);
+
+    if(BIT_FALSE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md)
+    && NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
+    {
+        cxfsop_mgr_np_push_file_add_op(CXFS_MD_OP_MGR(cxfs_md),
+                                  (uint32_t )cstring_get_len(des_path),
+                                  (uint8_t *)cstring_get_str(des_path),
+                                  (uint32_t )CXFSNP_FNODE_FILESZ(cxfsnp_fnode_des),
+                                  (uint16_t )CXFSNP_FNODE_INODE_DISK_NO(cxfsnp_fnode_des, 0),
+                                  (uint16_t )CXFSNP_FNODE_INODE_BLOCK_NO(cxfsnp_fnode_des, 0),
+                                  (uint16_t )CXFSNP_FNODE_INODE_PAGE_NO(cxfsnp_fnode_des, 0));
+
+        cxfsop_mgr_np_push_file_delete_op(CXFS_MD_OP_MGR(cxfs_md),
+                                  (uint32_t )cstring_get_len(src_path),
+                                  (uint8_t *)cstring_get_str(src_path));
+    }
+
+    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_rename_file: rename file %s -> %s done\n",
+                                         (char *)cstring_get_str(src_path),
+                                         (char *)cstring_get_str(des_path));
+
+    return (EC_TRUE);
+}
+
+/**
+*
+*  rename src dir to des dir
+*
+**/
+EC_BOOL cxfs_rename_dir(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path)
+{
+    CXFS_MD      *cxfs_md;
+
+    CXFSNP       *cxfsnp;
+    CXFSNP_DNODE *cxfsnp_dnode_src;
+    CXFSNP_ITEM  *cxfsnp_item_src;
+
+    CXFSNP_DNODE *cxfsnp_dnode_des;
+    CXFSNP_ITEM  *cxfsnp_item_des;
+
+    uint64_t      s_msec;
+    uint64_t      e_msec;
+    uint64_t      cost_msec;
+
+    uint32_t      node_pos_src;
+    uint32_t      cxfsnp_id;
+
+#if (SWITCH_ON == CXFS_DEBUG_SWITCH)
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_rename_dir: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*(SWITCH_ON == CXFS_DEBUG_SWITCH)*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(SWITCH_OFF == CXFSFUSE_SWITCH)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename_dir: works only if CXFSFUSE_SWITCH = on \n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename_dir: wait syncing timeout\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CXFS_MD_READ_ONLY_FLAG(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename_dir: cxfs is read-only\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename_dir: npp was not open\n");
+        return (EC_FALSE);
+    }
+
+    s_msec = c_get_cur_time_msec();
+
+    cxfsnp_id = 0; /*fix*/
+    cxfsnp = cxfsnp_mgr_fetch_specific_np(CXFS_MD_NPP(cxfs_md), cxfsnp_id);
+    if(NULL_PTR == cxfsnp)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename_dir: np %u was not open\n", cxfsnp_id);
+        return (EC_FALSE);
+    }
+
+    CXFS_STAT_WRITE_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+    cxfsnp_item_des = cxfsnp_set(cxfsnp, cstring_get_len(des_path), cstring_get_str(des_path), CXFSNP_ITEM_FILE_IS_DIR);
+    if(NULL_PTR == cxfsnp_item_des)
+    {
+        e_msec = c_get_cur_time_msec();
+        cost_msec = e_msec - s_msec;
+
+        CXFS_STAT_WRITE_COST_MSEC(CXFS_MD_STAT(cxfs_md)) += cost_msec;
+        CXFS_STAT_WRITE_NP_FAIL_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename_dir: set dir %s to np %u failed\n",
+                            (char *)cstring_get_str(des_path), cxfsnp_id);
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename_dir: rename dir %s -> %s failed\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(des_path));
+        return (EC_FALSE);
+    }
+    cxfsnp_dnode_des = CXFSNP_ITEM_DNODE(cxfsnp_item_des);
+    CXFS_STAT_WRITE_NP_SUCC_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+    e_msec = c_get_cur_time_msec();
+    cost_msec = e_msec - s_msec;
+
+    CXFS_STAT_WRITE_COST_MSEC(CXFS_MD_STAT(cxfs_md)) += cost_msec;
+
+    if(EC_FALSE == cxfsnp_tear(cxfsnp, (uint32_t)cstring_get_len(src_path), cstring_get_str(src_path),
+                                CXFSNP_ITEM_FILE_IS_DIR, &node_pos_src))
+    {
+        e_msec = c_get_cur_time_msec();
+        cost_msec = e_msec - s_msec;
+
+        CXFS_STAT_WRITE_COST_MSEC(CXFS_MD_STAT(cxfs_md)) += cost_msec;
+        CXFS_STAT_WRITE_NP_FAIL_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+        cxfsnp_delete(cxfsnp, (uint32_t)cstring_get_len(src_path), cstring_get_str(src_path), CXFSNP_ITEM_FILE_IS_DIR);
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "warn:cxfs_rename_dir: tear src '%s' in np %u failed\n",
+                                             (char *)cstring_get_str(src_path), cxfsnp_id);
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename_dir: rename dir %s -> %s failed\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(des_path));
+
+        return (EC_FALSE);
+    }
+    cxfsnp_item_src = cxfsnp_fetch(cxfsnp, node_pos_src);
+    ASSERT(NULL_PTR != cxfsnp_item_src);
+    cxfsnp_dnode_src = CXFSNP_ITEM_DNODE(cxfsnp_item_src);
+
+    /*copy*/
+    cxfsnp_dnode_clone(cxfsnp_dnode_src, cxfsnp_dnode_des);
+    /*reset*/
+    CXFSNP_DNODE_ROOT_POS(cxfsnp_dnode_src) = CXFSNPRB_ERR_POS;
+
+    cxfsnp_umount_item(cxfsnp, node_pos_src);
+    CXFS_STAT_DELETE_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+    /*notify all waiters*/
+    cxfs_file_notify(cxfs_md_id, des_path);
+
+    if(BIT_FALSE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md)
+    && NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
+    {
+        cxfsop_mgr_np_push_dir_add_op(CXFS_MD_OP_MGR(cxfs_md),
+                                  (uint32_t )cstring_get_len(des_path),
+                                  (uint8_t *)cstring_get_str(des_path));
+
+        cxfsop_mgr_np_push_dir_delete_op(CXFS_MD_OP_MGR(cxfs_md),
+                                  (uint32_t )cstring_get_len(src_path),
+                                  (uint8_t *)cstring_get_str(src_path));
+    }
+
+    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_rename_dir: rename dir %s -> %s done\n",
+                                         (char *)cstring_get_str(src_path),
+                                         (char *)cstring_get_str(des_path));
+
+    return (EC_TRUE);
+}
+
+/**
+*
+*  rename src path to des path
+*
+**/
+EC_BOOL cxfs_rename(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path)
+{
+#if (SWITCH_ON == CXFS_DEBUG_SWITCH)
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_rename: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*(SWITCH_ON == CXFS_DEBUG_SWITCH)*/
+
+    if(EC_FALSE == cxfs_rename_file(cxfs_md_id, src_path, des_path)
+    && EC_FALSE == cxfs_rename_dir(cxfs_md_id, src_path, des_path))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_rename: rename path %s -> %s failed\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(des_path));
+        return (EC_FALSE);
+    }
+
+    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_rename: rename path %s -> %s done\n",
+                                         (char *)cstring_get_str(src_path),
+                                         (char *)cstring_get_str(des_path));
+    return (EC_TRUE);
+}
+
+/**
+*
+*  link src path to des path
+*
+**/
+EC_BOOL cxfs_link(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path)
+{
+    CXFS_MD      *cxfs_md;
+
+    CXFSNP       *cxfsnp;
+    CXFSNP_ITEM  *cxfsnp_item_src;
+
+    CXFSNP_ITEM  *cxfsnp_item_des;
+    CXFSNP_ATTR  *cxfsnp_attr_des;
+
+    uint64_t      s_msec;
+    uint64_t      e_msec;
+    uint64_t      cost_msec;
+
+    uint32_t      node_pos_src;
+    uint32_t      cxfsnp_id;
+
+#if (SWITCH_ON == CXFS_DEBUG_SWITCH)
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_link: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*(SWITCH_ON == CXFS_DEBUG_SWITCH)*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(SWITCH_OFF == CXFSFUSE_SWITCH)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_link: works only if CXFSFUSE_SWITCH = on \n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_link: wait syncing timeout\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CXFS_MD_READ_ONLY_FLAG(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_link: cxfs is read-only\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_link: npp was not open\n");
+        return (EC_FALSE);
+    }
+
+    s_msec = c_get_cur_time_msec();
+
+    cxfsnp_id = 0; /*fix*/
+    cxfsnp = cxfsnp_mgr_fetch_specific_np(CXFS_MD_NPP(cxfs_md), cxfsnp_id);
+    if(NULL_PTR == cxfsnp)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_link: np %u was not open\n", cxfsnp_id);
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_link: link %s -> %s failed\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(des_path));
+        return (EC_FALSE);
+    }
+
+    node_pos_src = cxfsnp_search(cxfsnp, (uint32_t)cstring_get_len(src_path), cstring_get_str(src_path), CXFSNP_ITEM_FILE_IS_REG);
+    cxfsnp_item_src = cxfsnp_fetch(cxfsnp, node_pos_src);
+    if(NULL_PTR == cxfsnp_item_src)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "warn:cxfs_link: src '%s' in np %u\n",
+                                             (char *)cstring_get_str(src_path), cxfsnp_id);
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_link: rename file %s -> %s failed\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(des_path));
+        return (EC_FALSE);
+    }
+
+    if(CXFSNP_ITEM_FILE_IS_REG == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item_src))
+    {
+        CXFS_STAT_WRITE_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+        cxfsnp_item_des = cxfsnp_set(cxfsnp, cstring_get_len(des_path), cstring_get_str(des_path), CXFSNP_ITEM_FILE_IS_REG);
+        if(NULL_PTR == cxfsnp_item_des)
+        {
+            e_msec = c_get_cur_time_msec();
+            cost_msec = e_msec - s_msec;
+
+            CXFS_STAT_WRITE_COST_MSEC(CXFS_MD_STAT(cxfs_md)) += cost_msec;
+            CXFS_STAT_WRITE_NP_FAIL_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_link: set file %s to np %u failed\n",
+                                (char *)cstring_get_str(des_path), cxfsnp_id);
+
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_link: link file %s -> %s failed\n",
+                                                 (char *)cstring_get_str(src_path),
+                                                 (char *)cstring_get_str(des_path));
+            return (EC_FALSE);
+        }
+
+        CXFS_STAT_WRITE_NP_SUCC_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+        cxfsnp_attr_des = CXFSNP_ITEM_ATTR(cxfsnp_item_des);
+        CXFSNP_ATTR_NEXT_INO(cxfsnp_attr_des) = CXFSNP_ATTR_INO_MAKE(cxfsnp_id, node_pos_src);
+
+        e_msec = c_get_cur_time_msec();
+        cost_msec = e_msec - s_msec;
+
+        CXFS_STAT_WRITE_COST_MSEC(CXFS_MD_STAT(cxfs_md)) += cost_msec;
+
+        /*notify all waiters*/
+        cxfs_file_notify(cxfs_md_id, des_path);
+
+        if(BIT_FALSE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md)
+        && NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
+        {
+            CXFSNP_FNODE *cxfsnp_fnode_des;
+
+            cxfsnp_fnode_des = CXFSNP_ITEM_FNODE(cxfsnp_item_des);
+            cxfsop_mgr_np_push_file_add_op(CXFS_MD_OP_MGR(cxfs_md),
+                                      (uint32_t )cstring_get_len(des_path),
+                                      (uint8_t *)cstring_get_str(des_path),
+                                      (uint32_t )CXFSNP_FNODE_FILESZ(cxfsnp_fnode_des),
+                                      (uint16_t )CXFSNP_FNODE_INODE_DISK_NO(cxfsnp_fnode_des, 0),
+                                      (uint16_t )CXFSNP_FNODE_INODE_BLOCK_NO(cxfsnp_fnode_des, 0),
+                                      (uint16_t )CXFSNP_FNODE_INODE_PAGE_NO(cxfsnp_fnode_des, 0));
+        }
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_link: link file %s -> %s done\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(des_path));
+        return (EC_TRUE);
+    }
+
+    if(CXFSNP_ITEM_FILE_IS_DIR == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item_src))
+    {
+        CXFS_STAT_WRITE_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+        cxfsnp_item_des = cxfsnp_set(cxfsnp, cstring_get_len(des_path), cstring_get_str(des_path), CXFSNP_ITEM_FILE_IS_DIR);
+        if(NULL_PTR == cxfsnp_item_des)
+        {
+            e_msec = c_get_cur_time_msec();
+            cost_msec = e_msec - s_msec;
+
+            CXFS_STAT_WRITE_COST_MSEC(CXFS_MD_STAT(cxfs_md)) += cost_msec;
+            CXFS_STAT_WRITE_NP_FAIL_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_link: set file %s to np %u failed\n",
+                                (char *)cstring_get_str(des_path), cxfsnp_id);
+
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_link: link file %s -> %s failed\n",
+                                                 (char *)cstring_get_str(src_path),
+                                                 (char *)cstring_get_str(des_path));
+            return (EC_FALSE);
+        }
+
+        CXFS_STAT_WRITE_NP_SUCC_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
+
+        cxfsnp_attr_des = CXFSNP_ITEM_ATTR(cxfsnp_item_des);
+        CXFSNP_ATTR_NEXT_INO(cxfsnp_attr_des) = CXFSNP_ATTR_INO_MAKE(cxfsnp_id, node_pos_src);
+
+        e_msec = c_get_cur_time_msec();
+        cost_msec = e_msec - s_msec;
+
+        CXFS_STAT_WRITE_COST_MSEC(CXFS_MD_STAT(cxfs_md)) += cost_msec;
+
+        /*notify all waiters*/
+        cxfs_file_notify(cxfs_md_id, des_path);
+
+        if(BIT_FALSE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md)
+        && NULL_PTR != CXFS_MD_OP_MGR(cxfs_md))
+        {
+            cxfsop_mgr_np_push_dir_add_op(CXFS_MD_OP_MGR(cxfs_md),
+                                      (uint32_t )cstring_get_len(des_path),
+                                      (uint8_t *)cstring_get_str(des_path));
+        }
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_link: link dir %s -> %s done\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(des_path));
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_link: unknown src %s dir flag %x\n",
+                                         (char *)cstring_get_str(src_path),
+                                         CXFSNP_ITEM_DIR_FLAG(cxfsnp_item_src));
+
+    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_link: rename path %s -> %s failed\n",
+                                         (char *)cstring_get_str(src_path),
+                                         (char *)cstring_get_str(des_path));
+
+    return (EC_FALSE);
+}
+
+/**
+*
+*  reallink of path
+*
+**/
+EC_BOOL cxfs_reallink(const UINT32 cxfs_md_id, const CSTRING *src_path, CSTRING *des_path)
+{
+    CXFS_MD      *cxfs_md;
+
+    CXFSNP       *cxfsnp;
+    CXFSNP_ITEM  *cxfsnp_item;
+
+    uint32_t      node_pos;
+    uint32_t      cxfsnp_id;
+
+#if (SWITCH_ON == CXFS_DEBUG_SWITCH)
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_reallink: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*(SWITCH_ON == CXFS_DEBUG_SWITCH)*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(SWITCH_OFF == CXFSFUSE_SWITCH)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_reallink: works only if CXFSFUSE_SWITCH = on \n");
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_reallink: wait syncing timeout\n");
+        return (EC_FALSE);
+    }
+
+    if(BIT_TRUE == CXFS_MD_READ_ONLY_FLAG(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_reallink: cxfs is read-only\n");
+        return (EC_FALSE);
+    }
+
+    if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_reallink: npp was not open\n");
+        return (EC_FALSE);
+    }
+
+    cxfsnp_id = 0; /*fix*/
+    cxfsnp = cxfsnp_mgr_fetch_specific_np(CXFS_MD_NPP(cxfs_md), cxfsnp_id);
+    if(NULL_PTR == cxfsnp)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_reallink: np %u was not open\n", cxfsnp_id);
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_reallink: reallink %s failed\n",
+                                             (char *)cstring_get_str(src_path));
+        return (EC_FALSE);
+    }
+
+    node_pos = cxfsnp_search(cxfsnp, (uint32_t)cstring_get_len(src_path), cstring_get_str(src_path), CXFSNP_ITEM_FILE_IS_REG);
+    cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
+    if(NULL_PTR != cxfsnp_item)
+    {
+        CXFSNP_ATTR  *cxfsnp_attr;
+
+        cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
+
+        while(CXFSNP_ATTR_ERR_INO != CXFSNP_ATTR_NEXT_INO(cxfsnp_attr))
+        {
+            node_pos = CXFSNP_ATTR_INO_FETCH_NODE_POS(CXFSNP_ATTR_NEXT_INO(cxfsnp_attr));
+
+            cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
+            if(CXFSNP_ITEM_IS_NOT_USED == CXFSNP_ITEM_USED_FLAG(cxfsnp_item))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_reallink: "
+                                    "not used item at node_pos %u => reallink file %s failed\n",
+                                    node_pos, (char *)cstring_get_str(src_path));
+                return (EC_FALSE);
+            }
+            cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
+        }
+
+        cxfsnp_path_name_cstr(cxfsnp, node_pos, des_path);
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_reallink: "
+                            "file %s -> %s done\n",
+                            (char *)cstring_get_str(src_path),
+                            (char *)cstring_get_str(des_path));
+
+        return (EC_TRUE);
+    }
+
+    node_pos = cxfsnp_search(cxfsnp, (uint32_t)cstring_get_len(src_path), cstring_get_str(src_path), CXFSNP_ITEM_FILE_IS_DIR);
+    cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
+    if(NULL_PTR != cxfsnp_item)
+    {
+        CXFSNP_ATTR  *cxfsnp_attr;
+
+        cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
+
+        while(CXFSNP_ATTR_ERR_INO != CXFSNP_ATTR_NEXT_INO(cxfsnp_attr))
+        {
+            node_pos = CXFSNP_ATTR_INO_FETCH_NODE_POS(CXFSNP_ATTR_NEXT_INO(cxfsnp_attr));
+
+            cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
+            if(CXFSNP_ITEM_IS_NOT_USED == CXFSNP_ITEM_USED_FLAG(cxfsnp_item))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_reallink: "
+                                    "not used item at node_pos %u => reallink dir %s failed\n",
+                                    node_pos, (char *)cstring_get_str(src_path));
+                return (EC_FALSE);
+            }
+            cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
+        }
+
+        cxfsnp_path_name_cstr(cxfsnp, node_pos, des_path);
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_reallink: "
+                            "dir %s -> %s done\n",
+                            (char *)cstring_get_str(src_path),
+                            (char *)cstring_get_str(des_path));
+
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_reallink: src %s not exist => reallink failed\n",
+                                         (char *)cstring_get_str(src_path));
+
     return (EC_FALSE);
 }
 
@@ -11613,12 +12519,14 @@ STATIC_CAST static EC_BOOL __cxfs_replay_op_np_add_file(const UINT32 cxfs_md_id,
     CXFSNP_FNODE    *cxfsnp_fnode;
     CXFSNP_INODE    *cxfsnp_inode;
 
+    uint32_t         cxfsnp_id;
+
     cstring_init(&path, NULL_PTR);
     cstring_set_chars(&path, CXFSOP_NP_HDR_KEY(cxfsop_np_hdr), CXFSOP_NP_HDR_KLEN(cxfsop_np_hdr));
 
     /*write file*/
 
-    cxfsnp_fnode = __cxfs_reserve_npp(cxfs_md_id, &path);
+    cxfsnp_fnode = __cxfs_reserve_npp(cxfs_md_id, &path, &cxfsnp_id);
     if(NULL_PTR == cxfsnp_fnode)
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_replay_op_np_add_file: "
@@ -13525,390 +14433,6 @@ EC_BOOL cxfs_deactivate_ngx(const UINT32 cxfs_md_id)
     return (EC_TRUE);
 }
 
-#define CXFS_DEBUG_ENTER(func_name) \
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] " func_name ": enter\n")
-
-#define CXFS_DEBUG_LEAVE(func_name) \
-    dbg_log(SEC_0192_CXFS, 9)(LOGSTDOUT, "[DEBUG] " func_name ": leave\n")
-
-EC_BOOL cxfs_getattr(const UINT32 cxfs_md_id, const CSTRING *file_path, struct stat *stat, int *res)
-{
-    CXFS_MD      *cxfs_md;
-    CXFSNP_ITEM  *cxfsnp_item;
-    CXFSNP_ATTR  *cxfsnp_attr;
-    uint64_t      ino;
-
-#if (SWITCH_ON == CXFS_DEBUG_SWITCH)
-    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:cxfs_getattr: cxfs module #%ld not started.\n",
-                cxfs_md_id);
-        cxfs_print_module_status(cxfs_md_id, LOGSTDOUT);
-        dbg_exit(MD_CXFS, cxfs_md_id);
-    }
-#endif/*(SWITCH_ON == CXFS_DEBUG_SWITCH)*/
-
-    CXFS_DEBUG_ENTER("cxfs_getattr");
-
-    cxfs_md = CXFS_MD_GET(cxfs_md_id);
-
-    if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
-    {
-        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_getattr: npp was not open\n");
-        (*res) = -EACCES;
-        return (EC_TRUE);
-    }
-
-    if(BIT_TRUE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md))
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_getattr: "
-                                             "xfs is in op-replay mode\n");
-        (*res) = -EBUSY;
-        return (EC_TRUE);
-    }
-
-    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_getattr: wait syncing timeout\n");
-        (*res) = -EBUSY;
-        return (EC_TRUE);
-    }
-
-    CXFS_STAT_READ_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
-
-    if(EC_FALSE == cxfsnp_mgr_ino(CXFS_MD_NPP(cxfs_md), file_path, &ino))
-    {
-        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_getattr: cxfsnp mgr ino %s failed\n",
-                                             (char *)cstring_get_str(file_path));
-        (*res) = -ENOENT;
-        return (EC_TRUE);
-    }
-
-    dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_getattr: %s => ino %lu\n",
-                                         (char *)cstring_get_str(file_path), ino);
-
-    cxfsnp_item = cxfsnp_mgr_fetch_item(CXFS_MD_NPP(cxfs_md), ino);
-    if(NULL_PTR == cxfsnp_item)
-    {
-        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_getattr: %s => ino %lu => no item\n",
-                                             (char *)cstring_get_str(file_path), ino);
-
-        (*res) = -ENOENT;
-        return (EC_TRUE);
-    }
-
-    cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
-
-    if(NULL_PTR != stat)
-    {
-        stat->st_ino        = ino;
-        stat->st_mode       = CXFSNP_ATTR_MODE(cxfsnp_attr);
-        stat->st_uid        = CXFSNP_ATTR_UID(cxfsnp_attr);
-        stat->st_gid        = CXFSNP_ATTR_GID(cxfsnp_attr);
-        stat->st_rdev       = CXFSNP_ATTR_RDEV(cxfsnp_attr);
-
-        stat->st_atime      = CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr);
-        stat->st_mtime      = CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr);
-        stat->st_ctime      = CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr);
-        stat->st_nlink      = CXFSNP_ATTR_NLINK(cxfsnp_attr);
-
-        stat->st_dev        = 0;/*xxx*/
-
-        if(CXFSNP_ITEM_FILE_IS_REG == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
-        {
-            CXFSNP_FNODE       *cxfsnp_fnode;
-
-            cxfsnp_fnode = CXFSNP_ITEM_FNODE(cxfsnp_item);
-
-            stat->st_size       = CXFSNP_FNODE_FILESZ(cxfsnp_fnode);
-            stat->st_blksize    = 512;
-            stat->st_blocks     = (CXFSNP_FNODE_FILESZ(cxfsnp_fnode) + 512 - 1) / 512;
-        }
-        else
-        {
-            stat->st_size       = 0; /*xxx*/
-            stat->st_blksize    = 0; /*xxx*/
-            stat->st_blocks     = 0; /*xxx*/
-        }
-    }
-
-    (*res) = 0;
-    return (EC_TRUE);
-}
-
-#if (SWITCH_ON == FUSE_SWITCH)
-EC_BOOL cxfs_getxattr(const UINT32 cxfs_md_id, const CSTRING *file_path, const CSTRING *name, CBYTES *value, const UINT32 size, int *res)
-{
-    CXFS_MD   *cxfs_md;
-    uint64_t   ino;
-
-#if (SWITCH_ON == CXFS_DEBUG_SWITCH)
-    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:cxfs_getxattr: cxfs module #%ld not started.\n",
-                cxfs_md_id);
-        cxfs_print_module_status(cxfs_md_id, LOGSTDOUT);
-        dbg_exit(MD_CXFS, cxfs_md_id);
-    }
-#endif/*(SWITCH_ON == CXFS_DEBUG_SWITCH)*/
-
-    CXFS_DEBUG_ENTER("cxfs_getxattr");
-
-    cxfs_md = CXFS_MD_GET(cxfs_md_id);
-
-    if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
-    {
-        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_getxattr: npp was not open\n");
-        (*res) = -EACCES;
-        return (EC_TRUE);
-    }
-
-    if(BIT_TRUE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md))
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_getxattr: "
-                                             "xfs is in op-replay mode\n");
-        (*res) = -EBUSY;
-        return (EC_TRUE);
-    }
-
-    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_getxattr: wait syncing timeout\n");
-        (*res) = -EBUSY;
-        return (EC_TRUE);
-    }
-
-    CXFS_STAT_READ_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
-
-    if(EC_FALSE == cxfsnp_mgr_ino(CXFS_MD_NPP(cxfs_md), file_path, &ino))
-    {
-        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_getxattr: cxfsnp mgr ino %s failed\n",
-                                             (char *)cstring_get_str(file_path));
-        (*res) = -ENOENT;
-        return (EC_TRUE);
-    }
-
-    dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_getxattr: %s => ino %lu\n",
-                                         (char *)cstring_get_str(file_path), ino);
-
-    (*res) = 0;
-    cbytes_clean(value);
-
-    return (EC_TRUE);
-}
-
-STATIC_CAST static EC_BOOL __cxfs_readdir_walker(CXFSNP_DIT_NODE *cxfsnp_dit_node, CXFSNP *cxfsnp, CXFSNP_ITEM *cxfsnp_item, const uint32_t node_pos)
-{
-    CXFSNP_KEY                 *cxfsnp_key;
-    CXFSNP_ATTR                *cxfsnp_attr;
-    struct dirnode             *dirnode;
-    CLIST                      *dirnode_list;
-
-    uint64_t                    ino;
-    uint32_t                    cxfsnp_id;
-
-    enum fuse_readdir_flags     flags_t;
-
-    if(CXFSNP_ITEM_IS_NOT_USED == CXFSNP_ITEM_USED_FLAG(cxfsnp_item))
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_readdir_walker: item was not used\n");
-        return (EC_FALSE);
-    }
-
-    if(0 == node_pos)/*root item*/
-    {
-        return (EC_TRUE);
-    }
-
-    cxfsnp_id    = CXFSNP_DIT_NODE_CUR_NP_ID(cxfsnp_dit_node);
-
-    flags_t      = (enum fuse_readdir_flags)CXFSNP_DIT_NODE_ARG(cxfsnp_dit_node, 1);
-    dirnode_list = (CLIST                 *)CXFSNP_DIT_NODE_ARG(cxfsnp_dit_node, 2);
-
-    cxfsnp_key  = CXFSNP_ITEM_KEY(cxfsnp_item);
-    cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
-
-    ASSERT(0 != CXFSNP_KEY_LEN(cxfsnp_key));
-
-    dirnode = c_dirnode_new();
-    if(NULL_PTR == dirnode)
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_readdir_walker: "
-                                             "new dirnode failed\n");
-        return (EC_FALSE);
-    }
-
-    dirnode->flags = 0; /*enum fuse_fill_dir_flags*/
-
-    dirnode->name = c_str_n_dup((char *)CXFSNP_KEY_NAME(cxfsnp_key), (uint32_t)CXFSNP_KEY_LEN(cxfsnp_key));
-    if(NULL_PTR == dirnode->name)
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_readdir_walker: "
-                                             "dup '%.*s' failed\n",
-                                             (uint32_t)CXFSNP_KEY_LEN(cxfsnp_key),
-                                             (char   *)CXFSNP_KEY_NAME(cxfsnp_key));
-        c_dirnode_free(dirnode);
-        return (EC_FALSE);
-    }
-
-    ino = CXFSNP_MGR_INO_MAKE(cxfsnp_id, node_pos);
-
-    if(flags_t & FUSE_READDIR_PLUS)
-    {
-        dirnode->flags |= FUSE_FILL_DIR_PLUS;
-
-        dirnode->stat.st_ino        = ino;
-        dirnode->stat.st_mode       = CXFSNP_ATTR_MODE(cxfsnp_attr);
-        dirnode->stat.st_uid        = CXFSNP_ATTR_UID(cxfsnp_attr);
-        dirnode->stat.st_gid        = CXFSNP_ATTR_GID(cxfsnp_attr);
-        dirnode->stat.st_rdev       = CXFSNP_ATTR_RDEV(cxfsnp_attr);
-
-        dirnode->stat.st_atime      = CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr);
-        dirnode->stat.st_mtime      = CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr);
-        dirnode->stat.st_ctime      = CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr);
-        dirnode->stat.st_nlink      = CXFSNP_ATTR_NLINK(cxfsnp_attr);
-
-        dirnode->stat.st_dev        = 0;/*xxx*/
-
-        if(CXFSNP_ITEM_FILE_IS_REG == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
-        {
-            CXFSNP_FNODE       *cxfsnp_fnode;
-
-            cxfsnp_fnode = CXFSNP_ITEM_FNODE(cxfsnp_item);
-
-            dirnode->stat.st_size       = CXFSNP_FNODE_FILESZ(cxfsnp_fnode);
-            dirnode->stat.st_blksize    = 512;
-            dirnode->stat.st_blocks     = (CXFSNP_FNODE_FILESZ(cxfsnp_fnode) + 512 - 1) / 512;
-        }
-        else
-        {
-            dirnode->stat.st_size       = 0; /*xxx*/
-            dirnode->stat.st_blksize    = 0; /*xxx*/
-            dirnode->stat.st_blocks     = 0; /*xxx*/
-        }
-    }
-
-	if(!(dirnode->flags & FUSE_FILL_DIR_PLUS))
-	{
-		dirnode->stat.st_ino  = ino;
-		dirnode->stat.st_mode = CXFSNP_ATTR_MODE(cxfsnp_attr);
-	}
-
-	clist_push_back(dirnode_list, (void *)dirnode);
-
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfs_readdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 offset, const UINT32 flags, CLIST *dirnode_list, int *res)
-{
-    CXFS_MD   *cxfs_md;
-
-    CXFSNP_DIT_NODE cxfsnp_dit_node;
-
-#if (SWITCH_ON == CXFS_DEBUG_SWITCH)
-    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
-    {
-        sys_log(LOGSTDOUT,
-                "error:cxfs_readdir: cxfs module #%ld not started.\n",
-                cxfs_md_id);
-        cxfs_print_module_status(cxfs_md_id, LOGSTDOUT);
-        dbg_exit(MD_CXFS, cxfs_md_id);
-    }
-#endif/*(SWITCH_ON == CXFS_DEBUG_SWITCH)*/
-
-    CXFS_DEBUG_ENTER("cxfs_readdir");
-
-    cxfs_md = CXFS_MD_GET(cxfs_md_id);
-
-    (void)offset;
-
-    if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
-    {
-        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_readdir: npp was not open\n");
-        (*res) = -EACCES;
-        return (EC_TRUE);
-    }
-
-    if(BIT_TRUE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md))
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_readdir: "
-                                             "xfs is in op-replay mode\n");
-        (*res) = -EBUSY;
-        return (EC_TRUE);
-    }
-
-    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_readdir: wait syncing timeout\n");
-        (*res) = -EBUSY;
-        return (EC_TRUE);
-    }
-
-    clist_codec_set(dirnode_list, MM_DIRNODE);
-
-    cxfsnp_dit_node_init(&cxfsnp_dit_node);
-
-    CXFSNP_DIT_NODE_HANDLER(&cxfsnp_dit_node)   = __cxfs_readdir_walker;
-    CXFSNP_DIT_NODE_CUR_NP_ID(&cxfsnp_dit_node) = CXFSNP_ERR_ID;
-    CXFSNP_DIT_NODE_MAX_DEPTH(&cxfsnp_dit_node) = 1;
-    CXFSNP_DIT_NODE_ARG(&cxfsnp_dit_node, 0)    = (void *)cxfs_md_id;
-    CXFSNP_DIT_NODE_ARG(&cxfsnp_dit_node, 1)    = (void *)flags;
-    CXFSNP_DIT_NODE_ARG(&cxfsnp_dit_node, 2)    = (void *)dirnode_list;
-
-    if(EC_FALSE == cxfsnp_mgr_walk(CXFS_MD_NPP(cxfs_md), path, CXFSNP_ITEM_FILE_IS_DIR, &cxfsnp_dit_node))
-    {
-        cxfsnp_dit_node_clean(&cxfsnp_dit_node);
-
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_readdir: "
-                                             "readdir '%s' failed\n",
-                                             (char *)cstring_get_str(path));
-        (*res) = -EACCES;
-        return (EC_FALSE);
-    }
-
-    cxfsnp_dit_node_clean(&cxfsnp_dit_node);
-
-    dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_readdir: "
-                                         "readdir '%s' done\n",
-                                         (char *)cstring_get_str(path));
-
-    (*res) = 0;
-    return (EC_TRUE);
-}
-
-#endif/*(SWITCH_ON == FUSE_SWITCH)*/
-
-#if (SWITCH_OFF == FUSE_SWITCH)
-EC_BOOL cxfs_getxattr(const UINT32 cxfs_md_id, const CSTRING *file_path, const CSTRING *name, CBYTES *value, const UINT32 size, int *res)
-{
-    (void)cxfs_md_id;
-    (void)file_path;
-    (void)name;
-    (void)value;
-    (void)size;
-    (void)res;
-
-    CXFS_DEBUG_ENTER("cxfs_readdir:cxfs_getxattr");
-    return (EC_FALSE);
-}
-
-EC_BOOL cxfs_readdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 offset, const UINT32 flags, CLIST *dirnode_list, int *res)
-{
-    (void)cxfs_md_id;
-    (void)path;
-    (void)offset;
-    (void)flags;
-    (void)dirnode_list;
-    (void)res;
-
-    CXFS_DEBUG_ENTER("cxfs_readdir:UNSUPPORTED");
-
-    return (EC_FALSE);
-}
-
-#endif/*(SWITCH_OFF == FUSE_SWITCH)*/
 
 #ifdef __cplusplus
 }

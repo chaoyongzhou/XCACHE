@@ -280,6 +280,10 @@ EC_BOOL cxfsnp_umount_wildcard(CXFSNP *cxfsnp, const uint32_t path_len, const ui
 
 EC_BOOL cxfsnp_umount_wildcard_deep(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
 
+EC_BOOL cxfsnp_tear_item(CXFSNP *cxfsnp, const uint32_t node_pos);
+
+EC_BOOL cxfsnp_tear(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag, uint32_t *node_pos);
+
 EC_BOOL cxfsnp_recycle_item_file(CXFSNP *cxfsnp, CXFSNP_ITEM *cxfsnp_item, const uint32_t node_pos, CXFSNP_RECYCLE_NP *cxfsnp_recycle_np, CXFSNP_RECYCLE_DN *cxfsnp_recycle_dn);
 
 EC_BOOL cxfsnp_recycle_dnode_item(CXFSNP *cxfsnp, CXFSNP_DNODE *cxfsnp_dnode, CXFSNP_ITEM *cxfsnp_item, const uint32_t node_pos, CXFSNP_RECYCLE_NP *cxfsnp_recycle_np, CXFSNP_RECYCLE_DN *cxfsnp_recycle_dn);

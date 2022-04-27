@@ -56,7 +56,7 @@
 #define SEC_0046_CXML                       ((UINT32)(     46)) /*cxml                            */
 #define SEC_0047_DEBUG                      ((UINT32)(     47)) /*debug                           */
 #define SEC_0048_CTDNSHTTP                  ((UINT32)(     48)) /*ctdnshttp                       */
-#define SEC_0049_XXXXXXXX                   ((UINT32)(     49)) /*-- obsolete --                  */
+#define SEC_0049_CXFS_FUSEC                 ((UINT32)(     49)) /*cxfsfusec                       */
 #define SEC_0050_CCONHASH                   ((UINT32)(     50)) /*cconhash                        */
 #define SEC_0051_CTDNSSV                    ((UINT32)(     51)) /*ctdnssv                         */
 #define SEC_0052_CPARACFG                   ((UINT32)(     52)) /*cparacfg                        */
@@ -78,7 +78,7 @@
 #define SEC_0068_CP2PHTTP                   ((UINT32)(     68)) /*cp2phttp                        */
 #define SEC_0069_CFILE                      ((UINT32)(     69)) /*cfile                           */
 #define SEC_0070_CDETECTN                   ((UINT32)(     70)) /*cdetectn                        */
-#define SEC_0071_XXXXXXXXX                  ((UINT32)(     71)) /*-- obsolete --                  */
+#define SEC_0071_CXFS_FUSEO                 ((UINT32)(     71)) /*cxfsfuseo                       */
 #define SEC_0072_CEPOLL                     ((UINT32)(     72)) /*cepoll                          */
 #define SEC_0073_CEVENTFD                   ((UINT32)(     73)) /*ceventfd                        */
 #define SEC_0074_CPGV                       ((UINT32)(     74)) /*cpgv                            */

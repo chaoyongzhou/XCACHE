@@ -117,7 +117,7 @@ EC_BOOL cfuses_removexattr(const UINT32 cfuses_md_id, const CSTRING *path, const
 
 EC_BOOL cfuses_access(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 mask, int *res);
 
-EC_BOOL cfuses_ftruncate(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 offset, int *res);
+EC_BOOL cfuses_ftruncate(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 length, int *res);
 
 EC_BOOL cfuses_utimens(const UINT32 cfuses_md_id, const CSTRING *path, const struct timespec *tv0, const struct timespec *tv1, int *res);
 

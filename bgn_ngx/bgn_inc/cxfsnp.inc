@@ -64,12 +64,12 @@ extern "C"{
 #define CXFSNP_ITEM_FILE_IS_REG         ((uint32_t) 0x0002)  /*regular file*/
 #define CXFSNP_ITEM_FILE_IS_ERR         ((uint32_t) 0x0000)  /*4 bits      */
 
-#define CXFSNP_ITEM_IS_NOT_USED         ((uint32_t) 0x0000)  /*2 bits*/
+#define CXFSNP_ITEM_IS_NOT_USED         ((uint32_t) 0x0000)  /*1 bits*/
 #define CXFSNP_ITEM_IS_USED             ((uint32_t) 0x0001)
 
 typedef struct
 {
-    uint16_t    rsvd;     /*data is cached or not*/
+    uint16_t    rsvd;
     uint16_t    disk_no;        /*local disk_no*/
     uint16_t    block_no;       /*block_no in above disk*/
     uint16_t    page_no;        /*page_no in above block*/
@@ -99,36 +99,50 @@ typedef struct
 #define CXFSNP_FNODE_INODE_BLOCK_NO(cxfsnp_fnode, idx)   CXFSNP_INODE_BLOCK_NO(CXFSNP_FNODE_INODE(cxfsnp_fnode, idx))
 #define CXFSNP_FNODE_INODE_PAGE_NO(cxfsnp_fnode, idx)    CXFSNP_INODE_PAGE_NO(CXFSNP_FNODE_INODE(cxfsnp_fnode, idx))
 
+#define CXFSNP_FNODE_ITEM(cxfsnp_fnode) \
+    ((CXFSNP_ITEM *)((char *)(cxfsnp_fnode)-(unsigned long)(&((CXFSNP_ITEM *)0)->u.fnode)))
+
 typedef struct
 {
-    uint32_t       rsvd01;
+    uint64_t       file_size;  /*total file size not including subdirectories*/
     uint32_t       file_num;   /*number of files under this directory*/
     uint32_t       root_pos;   /*dir root pos*/
-    uint32_t       rsvd02;
 }CXFSNP_DNODE;/*16B*/
 
+#define CXFSNP_DNODE_FILE_SIZE(cxfsnp_dnode)     ((cxfsnp_dnode)->file_size)
 #define CXFSNP_DNODE_FILE_NUM(cxfsnp_dnode)      ((cxfsnp_dnode)->file_num)
 #define CXFSNP_DNODE_ROOT_POS(cxfsnp_dnode)      ((cxfsnp_dnode)->root_pos)
 
+#define CXFSNP_DNODE_ITEM(cxfsnp_dnode) \
+    ((CXFSNP_ITEM *)((char *)(cxfsnp_dnode)-(unsigned long)(&((CXFSNP_ITEM *)0)->u.dnode)))
+
+#define CXFSNP_ATTR_ERR_INO                      ((uint64_t)(~((uint64_t)0)))
+
 typedef struct
 {
+    /*8B*/
     uint16_t        rsvd;
     uint16_t        mode;
     uint32_t        uid;        /*owner id*/
 
+    /*8B*/
     uint32_t        gid;        /*group id of owner*/
     uint32_t        rdev;       /*device number*/
 
+    /*24B*/
     uint64_t        atime_sec;  /*seconds of last access time*/
     uint64_t        mtime_sec;  /*seconds of last modified time*/
     uint64_t        ctime_sec;  /*seconds of last change time*/
 
+    /*16B*/
     /*second = 1000 ms = 1,000,000 nsec = 0xF4240 nsec, */
     /*represent nanosecond in 20 bits*/
     uint32_t        atime_nsec; /*nanosecond of last access time*/
     uint32_t        mtime_nsec; /*nanosecond of last modified time*/
     uint32_t        ctime_nsec; /*nanosecond of last change time*/
-    uint32_t        nlink;      /*number of links*/
+    uint32_t        nlink;      /*number of links (sub-directories or hardlinks?)*/
+
+    uint64_t        next_ino;   /*next link ino*/
 }CXFSNP_ATTR;/*64B*/
 
 #define CXFSNP_ATTR_MODE(cxfsnp_attr)            ((cxfsnp_attr)->mode)
@@ -142,7 +156,13 @@ typedef struct
 #define CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr)      ((cxfsnp_attr)->mtime_nsec)
 #define CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr)      ((cxfsnp_attr)->ctime_nsec)
 #define CXFSNP_ATTR_NLINK(cxfsnp_attr)           ((cxfsnp_attr)->nlink)
+#define CXFSNP_ATTR_NEXT_INO(cxfsnp_attr)        ((cxfsnp_attr)->next_ino)
 
+#define CXFSNP_ATTR_INO_MAKE(cxfsnp_id, node_pos) \
+        ((((uint64_t)(cxfsnp_id)) << 32) | ((uint64_t)(node_pos)))
+
+#define CXFSNP_ATTR_INO_FETCH_NP_ID(ino)     ((uint32_t)((ino) >> 32))
+#define CXFSNP_ATTR_INO_FETCH_NODE_POS(ino)  ((uint32_t)((ino) & 0xFFFFFFFF))
 
 typedef struct
 {
@@ -159,12 +179,21 @@ typedef struct
     CXFSNPRB_NODE   rb_node;
 
     /*4B*/
-    uint32_t        used_flag   :3;  /* item status: not used, used */
-    uint32_t        dir_flag    :2;  /* directory or regular file */
-    uint32_t        rsvd        :27; /* num of bits is enough */
-
+    uint32_t        used_flag   :1;  /* item status: not used, used */
+    uint32_t        rsvd01      :2;
+    uint32_t        dir_flag    :4;  /* directory or regular file */
+    uint32_t        key_soffset :25; /* num of bits is enough, */
+                                     /* 4G/(item 64B + key 64B) = 2^32/2^7 = 2^25 */
+                                     /* 2^25 > 4G/(item 64B + key 64B + attr 64B) */
+                                     /* key_offset  = key_soffset * (item 64B)*/
+                                     /* key address = item address + key_soffset * (item 64B)*/
     /*4B*/
-    uint32_t        key_offset;      /*key address = item address + key_offset*/
+    uint32_t        rsvd02      :7;
+    uint32_t        attr_soffset:25; /* num of bits is enough, */
+                                     /* 4G/(item 64B + key 64B) = 2^32/2^7 = 2^25 */
+                                     /* 2^25 > 4G/(item 64B + key 64B + attr 64B) */
+                                     /* attr_offset  = attr_soffset * (item 64B + key 64B)*/
+                                     /* attr address = item address + attr_soffset * (item 64B + key 64B)*/
 
     /*8B*/
     uint32_t        parent_pos;      /*parent directory*/
@@ -180,15 +209,14 @@ typedef struct
     {
         CXFSNP_FNODE fnode;/*16B*/
         CXFSNP_DNODE dnode;/*16B*/
-        uint32_t     attr_offset; /*attr address = item address + attr_offset*/
     }u;/*16B*/
 } CXFSNP_ITEM;/*64B*/
 
 #define CXFSNP_ITEM_RB_NODE(cxfsnp_item)          (&((cxfsnp_item)->rb_node))
 #define CXFSNP_ITEM_DIR_FLAG(cxfsnp_item)         ((cxfsnp_item)->dir_flag)
 #define CXFSNP_ITEM_USED_FLAG(cxfsnp_item)        ((cxfsnp_item)->used_flag)
-#define CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item)       ((cxfsnp_item)->key_offset)
-#define CXFSNP_ITEM_ATTR_OFFSET(cxfsnp_item)      ((cxfsnp_item)->u.attr_offset)
+#define CXFSNP_ITEM_KEY_SOFFSET(cxfsnp_item)      ((cxfsnp_item)->key_soffset)
+#define CXFSNP_ITEM_ATTR_SOFFSET(cxfsnp_item)     ((cxfsnp_item)->attr_soffset)
 
 #define CXFSNP_ITEM_PARENT_POS(cxfsnp_item)       ((cxfsnp_item)->parent_pos)
 #define CXFSNP_ITEM_FNODE(cxfsnp_item)            (&((cxfsnp_item)->u.fnode))
@@ -198,13 +226,13 @@ typedef struct
 #define CXFSNP_ITEM_DEL_NODE(cxfsnp_item)         (&((cxfsnp_item)->del_node))
 
 #define CXFSNP_ITEM_KEY(cxfsnp_item)              \
-    ((CXFSNP_KEY *)(((void *)(cxfsnp_item)) + CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item)))
+    ((CXFSNP_KEY *)(((void *)(cxfsnp_item)) + CXFSNP_ITEM_KEY_SOFFSET(cxfsnp_item)*(sizeof(CXFSNP_ITEM))))
 
 #define CXFSNP_ITEM_KLEN(cxfsnp_item)             (CXFSNP_KEY_LEN(CXFSNP_ITEM_KEY(cxfsnp_item)))
 #define CXFSNP_ITEM_KNAME(cxfsnp_item)            (CXFSNP_KEY_NAME(CXFSNP_ITEM_KEY(cxfsnp_item)))
 
 #define CXFSNP_ITEM_ATTR(cxfsnp_item)              \
-    ((CXFSNP_ATTR *)(((void *)(cxfsnp_item)) + CXFSNP_ITEM_ATTR_OFFSET(cxfsnp_item)))
+    ((CXFSNP_ATTR *)(((void *)(cxfsnp_item)) + CXFSNP_ITEM_ATTR_SOFFSET(cxfsnp_item)*((sizeof(CXFSNP_ITEM) + sizeof(CXFSNP_KEY)))))
 
 
 /*get CXFSNP_ITEM from CXFSNPRB_NODE*/
@@ -453,6 +481,7 @@ typedef struct
 #define CXFSNP_ITEMS_USED_NUM(cxfsnp)         (CXFSNPRB_POOL_NODE_USED_NUM(CXFSNP_ITEMS_POOL(cxfsnp)))
 
 #define CXFSNP_2ND_CHASH_ALGO_COMPUTE(cxfsnp, klen, key)  (CXFSNP_2ND_CHASH_ALGO(cxfsnp)(klen, key))
+
 
 typedef EC_BOOL (*CXFSNP_RECYCLE_DN_FUNC)(const UINT32, const CXFSNP_FNODE *);
 

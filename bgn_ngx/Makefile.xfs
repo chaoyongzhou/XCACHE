@@ -244,6 +244,7 @@ CMACRO = \
          -DCAMD_SSD_DISK_MAX_SIZE_NBITS=${DISK_004T_NBITS} \
          -DCAMD_PAGE_SIZE_NBITS=${PAGE_256K_NBITS} \
          -DPMDK_PMEM_SWITCH=SWITCH_OFF \
+         -DCXFSFUSE_SWITCH=SWITCH_ON \
          -DFUSE_SWITCH=SWITCH_ON \
          -DFUSE_USE_VERSION=310 \
 
@@ -277,8 +278,9 @@ XFSNBD_OBJS = $(OBJ_DIR)/demo_xfsnbd.o
 XFSNBDC_OBJS = $(OBJ_DIR)/demo_xfsnbdc.o
 TRANS_OBJS = $(OBJ_DIR)/demo_trans.o
 FUSE_OBJS = $(OBJ_DIR)/demo_fuse.o
+XFSFUSEC_OBJS = $(OBJ_DIR)/demo_xfsfusec.o
 
-default: xfs xfsnbd xfsnbdc xfs_tool fuse
+default: xfs xfsnbd xfsnbdc xfs_tool xfsfuse
 
 libbgn: $(BGN_OBJS)
 	$(AR) $(LIB_DIR)/libbgn.a $(BGN_OBJS)
@@ -291,6 +293,9 @@ libjson: $(JSON_OBJS)
 
 fuse: libbgn libamd libjson $(FUSE_OBJS)
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/fuse $(FUSE_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
+
+xfsfusec: libbgn libamd libjson $(XFSFUSEC_OBJS)
+	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/xfsfusec $(XFSFUSEC_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
 
 trans: libbgn libamd libjson $(TRANS_OBJS)
 	$(CLINKER) $(CFLAGS) -o $(BIN_DIR)/trans $(TRANS_OBJS) $(BGN_INC) $(AMD_INC) $(JSON_INC) $(REL_INC) $(EXT_INC) $(BGN_LIB) $(AMD_LIB) $(BGN_LIB) $(JSON_LIB) $(EXT_LIB)
@@ -412,6 +417,7 @@ install: xfs xfsnbdc xfs_tool
 	install -p -D bin/xfsnbdc $(DESTDIR)$(prefix)/bin/xfsnbdc
 	install -p -D bin/xfs_tool $(DESTDIR)$(prefix)/bin/xfs_tool
 	install -p -D bin/fuse $(DESTDIR)$(prefix)/bin/fuse
+	install -p -D bin/xfsfusec $(DESTDIR)$(prefix)/bin/xfsfusec
 	install -p -D build/xfs/debian/xfs_init.sh $(DESTDIR)$(prefix)/bin/xfs_init.sh
 	install -p -D build/xfs/debian/xfs_cfg_scan.pl $(DESTDIR)$(prefix)/bin/xfs_cfg_scan.pl
 	install -p -D build/xfs/debian/xfs.deb.service $(DESTDIR)/etc/systemd/system/xfs.deb.service
@@ -439,6 +445,7 @@ clean-bin:
 	$(if $(wildcard $(BIN_DIR)/xfsnbdc),rm -f $(BIN_DIR)/xfsnbdc,)
 	$(if $(wildcard $(BIN_DIR)/xfs_tool),rm -f $(BIN_DIR)/xfs_tool,)
 	$(if $(wildcard $(BIN_DIR)/fuse),rm -f $(BIN_DIR)/fuse,)
+	$(if $(wildcard $(BIN_DIR)/xfsfusec),rm -f $(BIN_DIR)/xfsfusec,)
 
 clean-trial: clean-log clean-bin clean-obj
 	

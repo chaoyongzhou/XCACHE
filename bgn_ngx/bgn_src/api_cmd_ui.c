@@ -227,8 +227,11 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs qfile"   , "hsxfs <id> qfile <file> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs qdir"    , "hsxfs <id> qdir <dir> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs qlist"   , "hsxfs <id> qlist <file or dir> {full | short | tree} [of np <np id>] on tcid <tcid> at <console|log>");
-    api_cmd_help_vec_create(cmd_help_vec, "hsxfs getattr" , "hsxfs <id> getattr <dir|file> on tcid <tcid> at <console|log>");
-    api_cmd_help_vec_create(cmd_help_vec, "hsxfs readdir" , "hsxfs <id> readdir <dir> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs rename"  , "hsxfs <id> rename {file|dir|path} <src> to <des> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs link"    , "hsxfs <id> link <src> to <des> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs reallink", "hsxfs <id> reallink <path> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs getattr" , "hsxfs <id> fuses getattr <dir|file> on tcid <tcid> at <console|log>");
+    api_cmd_help_vec_create(cmd_help_vec, "hsxfs readdir" , "hsxfs <id> fuses readdir <dir> on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show npp [<que | del>] on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show dn on tcid <tcid> at <console|log>");
     api_cmd_help_vec_create(cmd_help_vec, "hsxfs show"    , "hsxfs <id> show specific np <id> [<que | del>] on tcid <tcid> at <console|log>");
@@ -552,8 +555,13 @@ EC_BOOL api_cmd_ui_init(CMD_ELEM_VEC *cmd_elem_vec, CMD_TREE *cmd_tree, CMD_HELP
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_qlist_path       , "hsxfs %n qlist %s full on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_qlist_seg        , "hsxfs %n qlist %s short on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_qlist_tree       , "hsxfs %n qlist %s tree on tcid %t at %s", rank, where, tcid, where);
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_getattr          , "hsxfs %n getattr %s on tcid %t at %s", rank, where, tcid, where);
-    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_readdir          , "hsxfs %n readdir %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_rename_file      , "hsxfs %n rename file %s to %s on tcid %t at %s", rank, where, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_rename_dir       , "hsxfs %n rename dir %s to %s on tcid %t at %s", rank, where, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_rename_path      , "hsxfs %n rename path %s to %s on tcid %t at %s", rank, where, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_link             , "hsxfs %n link %s to %s on tcid %t at %s", rank, where, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_reallink         , "hsxfs %n reallink %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_fuses_getattr    , "hsxfs %n fuses getattr %s on tcid %t at %s", rank, where, tcid, where);
+    api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_fuses_readdir    , "hsxfs %n fuses readdir %s on tcid %t at %s", rank, where, tcid, where);
     api_cmd_comm_define(cmd_tree, api_cmd_ui_cxfs_check_space_used , "hsxfs %n check space %n %n on tcid %t at %s", rank, rank, rank, tcid, where);
 
     api_cmd_comm_define(cmd_tree, api_cmd_ui_ctdns_create_npp       , "tdns create np model %n max num %n with root %s on tcid %t at %s", rank, rank, rank, rank, rank, where, tcid, where);
@@ -12887,7 +12895,309 @@ EC_BOOL api_cmd_ui_cxfs_qlist_tree(CMD_PARA_VEC * param)
     return (EC_TRUE);
 }
 
-EC_BOOL api_cmd_ui_cxfs_getattr(CMD_PARA_VEC * param)
+EC_BOOL api_cmd_ui_cxfs_rename_file(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *src_path;
+    CSTRING *des_path;
+    CSTRING *where;
+    UINT32   cxfs_tcid;
+
+    MOD_MGR     *mod_mgr;
+    TASK_MGR    *task_mgr;
+    LOG         *des_log;
+
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &src_path);
+    api_cmd_para_vec_get_cstring(param , 2, &des_path);
+    api_cmd_para_vec_get_tcid(param    , 3, &cxfs_tcid);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld rename file %s to %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(src_path),
+                        (char *)cstring_get_str(des_path),
+                        c_word_to_ipv4(cxfs_tcid),
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = mod_mgr_new(CMPI_ERROR_MODI, LOAD_BALANCING_LOOP);
+    mod_mgr_incl(cxfs_tcid, CMPI_ANY_COMM, CMPI_CXFS_RANK, cxfs_modi, mod_mgr);
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_rename_file beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_rename_file end ----------------------------------\n");
+    }
+#endif
+
+    ret = EC_FALSE;
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_tcid_inc(task_mgr, cxfs_tcid, &ret, FI_cxfs_rename_file, CMPI_ERROR_MODI, src_path, des_path);
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC]\n");
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL]\n");
+    }
+
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_rename_dir(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *src_path;
+    CSTRING *des_path;
+    CSTRING *where;
+    UINT32   cxfs_tcid;
+
+    MOD_MGR     *mod_mgr;
+    TASK_MGR    *task_mgr;
+    LOG         *des_log;
+
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &src_path);
+    api_cmd_para_vec_get_cstring(param , 2, &des_path);
+    api_cmd_para_vec_get_tcid(param    , 3, &cxfs_tcid);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld rename dir %s to %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(src_path),
+                        (char *)cstring_get_str(des_path),
+                        c_word_to_ipv4(cxfs_tcid),
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = mod_mgr_new(CMPI_ERROR_MODI, LOAD_BALANCING_LOOP);
+    mod_mgr_incl(cxfs_tcid, CMPI_ANY_COMM, CMPI_CXFS_RANK, cxfs_modi, mod_mgr);
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_rename_dir beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_rename_dir end ----------------------------------\n");
+    }
+#endif
+
+    ret = EC_FALSE;
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_tcid_inc(task_mgr, cxfs_tcid, &ret, FI_cxfs_rename_dir, CMPI_ERROR_MODI, src_path, des_path);
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC]\n");
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL]\n");
+    }
+
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_rename_path(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *src_path;
+    CSTRING *des_path;
+    CSTRING *where;
+    UINT32   cxfs_tcid;
+
+    MOD_MGR     *mod_mgr;
+    TASK_MGR    *task_mgr;
+    LOG         *des_log;
+
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &src_path);
+    api_cmd_para_vec_get_cstring(param , 2, &des_path);
+    api_cmd_para_vec_get_tcid(param    , 3, &cxfs_tcid);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld rename path %s to %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(src_path),
+                        (char *)cstring_get_str(des_path),
+                        c_word_to_ipv4(cxfs_tcid),
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = mod_mgr_new(CMPI_ERROR_MODI, LOAD_BALANCING_LOOP);
+    mod_mgr_incl(cxfs_tcid, CMPI_ANY_COMM, CMPI_CXFS_RANK, cxfs_modi, mod_mgr);
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_rename_path beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_rename_path end ----------------------------------\n");
+    }
+#endif
+
+    ret = EC_FALSE;
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_tcid_inc(task_mgr, cxfs_tcid, &ret, FI_cxfs_rename, CMPI_ERROR_MODI, src_path, des_path);
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC]\n");
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL]\n");
+    }
+
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_link(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *src_path;
+    CSTRING *des_path;
+    CSTRING *where;
+    UINT32   cxfs_tcid;
+
+    MOD_MGR     *mod_mgr;
+    TASK_MGR    *task_mgr;
+    LOG         *des_log;
+
+    EC_BOOL   ret;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &src_path);
+    api_cmd_para_vec_get_cstring(param , 2, &des_path);
+    api_cmd_para_vec_get_tcid(param    , 3, &cxfs_tcid);
+    api_cmd_para_vec_get_cstring(param , 4, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld link %s to %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(src_path),
+                        (char *)cstring_get_str(des_path),
+                        c_word_to_ipv4(cxfs_tcid),
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = mod_mgr_new(CMPI_ERROR_MODI, LOAD_BALANCING_LOOP);
+    mod_mgr_incl(cxfs_tcid, CMPI_ANY_COMM, CMPI_CXFS_RANK, cxfs_modi, mod_mgr);
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_link beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_link end ----------------------------------\n");
+    }
+#endif
+
+    ret = EC_FALSE;
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_tcid_inc(task_mgr, cxfs_tcid, &ret, FI_cxfs_link, CMPI_ERROR_MODI, src_path, des_path);
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC]\n");
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL]\n");
+    }
+
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_reallink(CMD_PARA_VEC * param)
+{
+    UINT32   cxfs_modi;
+    CSTRING *src_path;
+
+    CSTRING *where;
+    UINT32   cxfs_tcid;
+
+    MOD_MGR     *mod_mgr;
+    TASK_MGR    *task_mgr;
+    LOG         *des_log;
+
+    EC_BOOL   ret;
+    CSTRING   des_path;
+
+    api_cmd_para_vec_get_uint32(param  , 0, &cxfs_modi);
+    api_cmd_para_vec_get_cstring(param , 1, &src_path);
+    api_cmd_para_vec_get_tcid(param    , 2, &cxfs_tcid);
+    api_cmd_para_vec_get_cstring(param , 3, &where);
+
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld reallink %s on tcid %s at %s\n",
+                        cxfs_modi,
+                        (char *)cstring_get_str(src_path),
+                        c_word_to_ipv4(cxfs_tcid),
+                        (char *)cstring_get_str(where));
+
+    mod_mgr = mod_mgr_new(CMPI_ERROR_MODI, LOAD_BALANCING_LOOP);
+    mod_mgr_incl(cxfs_tcid, CMPI_ANY_COMM, CMPI_CXFS_RANK, cxfs_modi, mod_mgr);
+#if 1
+    if(do_log(SEC_0010_API, 5))
+    {
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_reallink beg ----------------------------------\n");
+        mod_mgr_print(LOGSTDOUT, mod_mgr);
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_reallink end ----------------------------------\n");
+    }
+#endif
+
+    cstring_init(&des_path, NULL_PTR);
+    ret = EC_FALSE;
+
+    task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
+    task_tcid_inc(task_mgr, cxfs_tcid, &ret, FI_cxfs_reallink, CMPI_ERROR_MODI, src_path, &des_path);
+    task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
+
+    des_log = api_cmd_ui_get_log(where);
+
+    if(EC_TRUE == ret)
+    {
+        sys_log(des_log, "[SUCC] %s\n", (char *)cstring_get_str(&des_path));
+    }
+    else
+    {
+        sys_log(des_log, "[FAIL]\n");
+    }
+
+    cstring_clean(&des_path);
+
+    mod_mgr_free(mod_mgr);
+
+    return (EC_TRUE);
+}
+
+EC_BOOL api_cmd_ui_cxfs_fuses_getattr(CMD_PARA_VEC * param)
 {
     UINT32   cxfs_modi;
     CSTRING *path;
@@ -12907,7 +13217,7 @@ EC_BOOL api_cmd_ui_cxfs_getattr(CMD_PARA_VEC * param)
     api_cmd_para_vec_get_tcid(param    , 2, &cxfs_tcid);
     api_cmd_para_vec_get_cstring(param , 3, &where);
 
-    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld getattr %s on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld fuses getattr %s on tcid %s at %s\n",
                         cxfs_modi,
                         (char *)cstring_get_str(path),
                         c_word_to_ipv4(cxfs_tcid),
@@ -12918,16 +13228,16 @@ EC_BOOL api_cmd_ui_cxfs_getattr(CMD_PARA_VEC * param)
 #if 1
     if(do_log(SEC_0010_API, 5))
     {
-        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_getattr beg ----------------------------------\n");
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_fuses_getattr beg ----------------------------------\n");
         mod_mgr_print(LOGSTDOUT, mod_mgr);
-        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_getattr end ----------------------------------\n");
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_fuses_getattr end ----------------------------------\n");
     }
 #endif
 
     ret = EC_FALSE;
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
-    task_tcid_inc(task_mgr, cxfs_tcid, &ret, FI_cxfs_getattr, CMPI_ERROR_MODI, path, &stat, &res);
+    task_tcid_inc(task_mgr, cxfs_tcid, &ret, FI_cxfs_fuses_getattr, CMPI_ERROR_MODI, path, &stat, &res);
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
     des_log = api_cmd_ui_get_log(where);
@@ -12969,7 +13279,7 @@ EC_BOOL api_cmd_ui_cxfs_getattr(CMD_PARA_VEC * param)
     return (EC_TRUE);
 }
 
-EC_BOOL api_cmd_ui_cxfs_readdir(CMD_PARA_VEC * param)
+EC_BOOL api_cmd_ui_cxfs_fuses_readdir(CMD_PARA_VEC * param)
 {
     UINT32   cxfs_modi;
     CSTRING *path;
@@ -12989,7 +13299,7 @@ EC_BOOL api_cmd_ui_cxfs_readdir(CMD_PARA_VEC * param)
     api_cmd_para_vec_get_tcid(param    , 2, &cxfs_tcid);
     api_cmd_para_vec_get_cstring(param , 3, &where);
 
-    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld readdir %s on tcid %s at %s\n",
+    dbg_log(SEC_0010_API, 5)(LOGSTDOUT, "hsxfs %ld fuses readdir %s on tcid %s at %s\n",
                         cxfs_modi,
                         (char *)cstring_get_str(path),
                         c_word_to_ipv4(cxfs_tcid),
@@ -13000,18 +13310,19 @@ EC_BOOL api_cmd_ui_cxfs_readdir(CMD_PARA_VEC * param)
 #if 1
     if(do_log(SEC_0010_API, 5))
     {
-        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_readdir beg ----------------------------------\n");
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_fuses_readdir beg ----------------------------------\n");
         mod_mgr_print(LOGSTDOUT, mod_mgr);
-        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_readdir end ----------------------------------\n");
+        sys_log(LOGSTDOUT, "------------------------------------ api_cmd_ui_cxfs_fuses_readdir end ----------------------------------\n");
     }
 #endif
 
-    clist_init(&dirnode_list, MM_DIRNODE, LOC_API_0003);
+    clist_init(&dirnode_list, MM_DIRNODE, LOC_API_0445);
 
     ret = EC_FALSE;
 
     task_mgr = task_new(mod_mgr, TASK_PRIO_HIGH, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP);
-    task_tcid_inc(task_mgr, cxfs_tcid, &ret, FI_cxfs_readdir, CMPI_ERROR_MODI, path, (UINT32)0/*offset*/, (UINT32)0/*flags*/, &dirnode_list, &res);
+    task_tcid_inc(task_mgr, cxfs_tcid, &ret, FI_cxfs_fuses_readdir, CMPI_ERROR_MODI,
+                    path, (UINT32)0/*offset*/, (UINT32)(1 << 0)/*flags:FUSE_READDIR_PLUS = 1*/, &dirnode_list, &res);
     task_wait(task_mgr, TASK_DEFAULT_LIVE, TASK_NOT_NEED_RESCHEDULE_FLAG, NULL_PTR);
 
     des_log = api_cmd_ui_get_log(where);

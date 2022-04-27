@@ -89,12 +89,6 @@ typedef struct
 #define CXFSNP_MGR_NP_SET_NO_LOCK(cxfsnp_mgr, cxfsnp_id, __cxfsnp, location) \
         (cvector_set_no_lock(CXFSNP_MGR_NP_VEC(cxfsnp_mgr), (cxfsnp_id), (__cxfsnp)))
 
-#define CXFSNP_MGR_INO_MAKE(cxfsnp_id, node_pos) \
-        ((((uint64_t)(cxfsnp_id)) << 32) | ((uint64_t)(node_pos)))
-
-#define CXFSNP_MGR_INO_FETCH_NP_ID(ino)     ((uint32_t)((ino) >> 32))
-#define CXFSNP_MGR_INO_FETCH_NODE_POS(ino)  ((uint32_t)((ino) & 0xFFFFFFFF))
-
 CXFSNP_MGR *cxfsnp_mgr_new();
 
 EC_BOOL cxfsnp_mgr_init(CXFSNP_MGR *cxfsnp_mgr);
@@ -143,6 +137,8 @@ EC_BOOL cxfsnp_mgr_search(CXFSNP_MGR *cxfsnp_mgr, const uint32_t path_len, const
 
 CXFSNP_ITEM *cxfsnp_mgr_search_item(CXFSNP_MGR *cxfsnp_mgr, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
 
+CXFSNP_ITEM *cxfsnp_mgr_finger_item(CXFSNP_MGR *cxfsnp_mgr, const uint32_t cxfsnp_id, const uint32_t node_pos);
+
 CXFSNP_MGR *cxfsnp_mgr_create(const uint8_t cxfsnp_model,
                                   const uint32_t cxfsnp_max_num,
                                   const uint8_t  cxfsnp_2nd_chash_algo_id,
@@ -182,7 +178,7 @@ EC_BOOL cxfsnp_mgr_find_dir(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *dir_path);
 
 EC_BOOL cxfsnp_mgr_find_file(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path);
 
-CXFSNP_FNODE *cxfsnp_mgr_reserve(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path);
+CXFSNP_FNODE *cxfsnp_mgr_reserve(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, uint32_t *cxfsnp_id);
 
 EC_BOOL cxfsnp_mgr_release(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path);
 
@@ -193,6 +189,8 @@ EC_BOOL cxfsnp_mgr_write(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, const
 EC_BOOL cxfsnp_mgr_read(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, CXFSNP_FNODE *cxfsnp_fnode);
 
 EC_BOOL cxfsnp_mgr_update(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, const CXFSNP_FNODE *cxfsnp_fnode);
+
+CXFSNP *cxfsnp_mgr_fetch_specific_np(CXFSNP_MGR *cxfsnp_mgr, const uint32_t cxfsnp_id);
 
 EC_BOOL cxfsnp_mgr_ino(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, uint64_t *ino);
 

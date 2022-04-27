@@ -2706,7 +2706,7 @@ EC_BOOL cxfshttps_handle_renew_request(CHTTP_NODE *chttp_node)
 
         csocket_cnode = CHTTP_NODE_CSOCKET_CNODE(chttp_node);
 #if 1
-        if(EC_FALSE == cxfs_renew(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr))
+        if(EC_FALSE == cxfs_update(CSOCKET_CNODE_MODI(csocket_cnode), &path_cstr, content_cbytes))
         {
             dbg_log(SEC_0200_CXFSHTTPS, 0)(LOGSTDOUT, "error:cxfshttps_handle_renew_request: cxfs renew %s failed\n",
                                 (char *)cstring_get_str(&path_cstr));

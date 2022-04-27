@@ -496,6 +496,12 @@ uint64_t c_get_cur_time_msec();
 
 uint64_t c_get_cur_time_usec();
 
+void c_get_cur_time_nsec_and_msec(uint64_t *nsec, uint64_t *msec);
+
+void c_get_cur_time_nsec_and_usec(uint64_t *nsec, uint64_t *usec);
+
+void c_get_cur_time_nsec_and_nanosec(uint64_t *nsec, uint64_t *nanosec);
+
 char *c_get_time_msec_str(const uint64_t time_msec);
 
 EC_BOOL c_dns_resolve_by_detect(const char *host_name, UINT32 *ipv4);

@@ -45,6 +45,7 @@ extern "C"{
 #include "cxfsc.h"
 #include "cunixpacket_agent.h"
 #include "cfuses.h"
+#include "cxfsfuses.h"
 
 #include "cmd5.h"
 #include "cbuffer.h"
@@ -78,7 +79,6 @@ extern "C"{
 #include "cunixpacket_agent.inc"
 #include "cfuses.inc"
 #include "task.inc"
-#include "cfuses.inc"
 
 TYPE_CONV_ITEM *creg_type_conv_item_new()
 {

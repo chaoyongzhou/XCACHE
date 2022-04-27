@@ -1002,7 +1002,7 @@ EC_BOOL cfuses_getxattr(const UINT32 cfuses_md_id, const CSTRING *path, const CS
         return (EC_TRUE);
     }
 
-    (*res) = 0;
+    (*res) = ret;
 
     cbytes_mount(value, (UINT32)(*res), data, BIT_FALSE);
 
@@ -1125,7 +1125,7 @@ EC_BOOL cfuses_access(const UINT32 cfuses_md_id, const CSTRING *path, const UINT
     return (EC_TRUE);
 }
 
-EC_BOOL cfuses_ftruncate(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 offset, int *res)
+EC_BOOL cfuses_ftruncate(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 length, int *res)
 {
     CFUSES_MD   *cfuses_md;
     int          ret;
@@ -1154,7 +1154,7 @@ EC_BOOL cfuses_ftruncate(const UINT32 cfuses_md_id, const CSTRING *path, const U
 	    return (EC_TRUE);
 	}
 
-    ret = ftruncate(fd, (off_t)offset);
+    ret = ftruncate(fd, (off_t)length);
 	if(0 > ret)
 	{
 	    (*res) = -errno;

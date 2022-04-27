@@ -898,6 +898,24 @@ CXFSNP_ITEM *cxfsnp_mgr_search_item(CXFSNP_MGR *cxfsnp_mgr, const uint32_t path_
     return (cxfsnp_item);
 }
 
+CXFSNP_ITEM *cxfsnp_mgr_finger_item(CXFSNP_MGR *cxfsnp_mgr, const uint32_t cxfsnp_id, const uint32_t node_pos)
+{
+    CXFSNP      *cxfsnp;
+    CXFSNP_ITEM *cxfsnp_item;
+
+    cxfsnp = (CXFSNP *)cvector_get_no_lock(CXFSNP_MGR_NP_VEC(cxfsnp_mgr), (UINT32)cxfsnp_id);
+    if(NULL_PTR == cxfsnp)
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_finger_item: "
+                                                  "np %u not open\n",
+                                                  cxfsnp_id);
+        return (NULL_PTR);
+    }
+
+    cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
+    return (cxfsnp_item);
+}
+
 CXFSNP_MGR *cxfsnp_mgr_create(const uint8_t cxfsnp_model,
                                   const uint32_t cxfsnp_max_num,
                                   const uint8_t  cxfsnp_2nd_chash_algo_id,
@@ -1533,11 +1551,11 @@ EC_BOOL cxfsnp_mgr_find_file(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path)
                                     NULL_PTR);
 }
 
-CXFSNP_FNODE *cxfsnp_mgr_reserve(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path)
+CXFSNP_FNODE *cxfsnp_mgr_reserve(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, uint32_t *cxfsnp_id)
 {
     CXFSNP *cxfsnp;
     CXFSNP_ITEM *cxfsnp_item;
-    uint32_t cxfsnp_id;
+    uint32_t cxfsnp_id_t;
 
     if(BIT_TRUE == CXFSNP_MGR_READ_ONLY_FLAG(cxfsnp_mgr))
     {
@@ -1545,7 +1563,7 @@ CXFSNP_FNODE *cxfsnp_mgr_reserve(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_pat
         return (NULL_PTR);
     }
 
-    cxfsnp = __cxfsnp_mgr_get_np(cxfsnp_mgr, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), &cxfsnp_id);
+    cxfsnp = __cxfsnp_mgr_get_np(cxfsnp_mgr, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), &cxfsnp_id_t);
     if(NULL_PTR == cxfsnp)
     {
         dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_reserve: no np for path %s\n", (char *)cstring_get_str(file_path));
@@ -1556,7 +1574,7 @@ CXFSNP_FNODE *cxfsnp_mgr_reserve(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_pat
     if(NULL_PTR == cxfsnp_item)
     {
         dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_reserve: set file %s to np %u failed\n",
-                            (char *)cstring_get_str(file_path), cxfsnp_id);
+                            (char *)cstring_get_str(file_path), cxfsnp_id_t);
         return (NULL_PTR);
     }
 
@@ -1565,6 +1583,11 @@ CXFSNP_FNODE *cxfsnp_mgr_reserve(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_pat
         dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_reserve: file path %s is not regular file\n",
                             (char *)cstring_get_str(file_path));
         return (NULL_PTR);
+    }
+
+    if(NULL_PTR != cxfsnp_id)
+    {
+        (*cxfsnp_id) = cxfsnp_id_t;
     }
 
     /*not import yet*/
@@ -1749,12 +1772,35 @@ EC_BOOL cxfsnp_mgr_update(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, cons
     return (EC_FALSE);
 }
 
+CXFSNP *cxfsnp_mgr_fetch_specific_np(CXFSNP_MGR *cxfsnp_mgr, const uint32_t cxfsnp_id)
+{
+    CXFSNP *cxfsnp;
+
+    cxfsnp = (CXFSNP *)cvector_get_no_lock(CXFSNP_MGR_NP_VEC(cxfsnp_mgr), (UINT32)cxfsnp_id);
+    if(NULL_PTR != cxfsnp)
+    {
+        return (cxfsnp);
+    }
+
+    return (NULL_PTR);
+}
+
 /*ino = inode no = np id | node_pos*/
 EC_BOOL cxfsnp_mgr_ino(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, uint64_t *ino)
 {
     CXFSNP *cxfsnp;
     uint32_t cxfsnp_id;
     uint32_t node_pos;
+
+    if(EC_TRUE == cstring_is_str(file_path, (const UINT8 *)"/"))
+    {
+        if(NULL_PTR != ino)
+        {
+            (*ino) = 0;
+        }
+
+        return (EC_TRUE);
+    }
 
     cxfsnp = __cxfsnp_mgr_get_np(cxfsnp_mgr, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), &cxfsnp_id);
     if(NULL_PTR == cxfsnp)
@@ -1768,7 +1814,7 @@ EC_BOOL cxfsnp_mgr_ino(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, uint64_
     {
         if(NULL_PTR != ino)
         {
-            (*ino) = CXFSNP_MGR_INO_MAKE(cxfsnp_id, node_pos);
+            (*ino) = CXFSNP_ATTR_INO_MAKE(cxfsnp_id, node_pos);
         }
 
         return (EC_TRUE);
@@ -1780,7 +1826,7 @@ CXFSNP *cxfsnp_mgr_fetch_np(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino)
 {
     uint32_t  cxfsnp_id;
 
-    cxfsnp_id = CXFSNP_MGR_INO_FETCH_NP_ID(ino);
+    cxfsnp_id = CXFSNP_ATTR_INO_FETCH_NP_ID(ino);
     if(CXFSNP_ERR_ID != cxfsnp_id)
     {
         CXFSNP   *cxfsnp;
@@ -1805,7 +1851,7 @@ CXFSNP_ITEM *cxfsnp_mgr_fetch_item(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino)
     {
         uint32_t    node_pos;
 
-        node_pos = CXFSNP_MGR_INO_FETCH_NODE_POS(ino);
+        node_pos = CXFSNP_ATTR_INO_FETCH_NODE_POS(ino);
         if(CXFSNPRB_ERR_POS != node_pos)
         {
             CXFSNP_ITEM *cxfsnp_item;

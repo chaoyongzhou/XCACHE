@@ -4828,7 +4828,8 @@ UINT32 cmpi_encode_cxfsnp_item(const UINT32 comm, const CXFSNP_ITEM *cxfsnp_item
 
     cmpi_encode_uint32_t(comm, CXFSNP_ITEM_USED_FLAG(cxfsnp_item), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CXFSNP_ITEM_DIR_FLAG(cxfsnp_item), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint32_t(comm, CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CXFSNP_ITEM_KEY_SOFFSET(cxfsnp_item), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint32_t(comm, CXFSNP_ITEM_ATTR_SOFFSET(cxfsnp_item), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CXFSNP_ITEM_PARENT_POS(cxfsnp_item), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CXFSNP_ITEM_SECOND_HASH(cxfsnp_item), out_buff, out_buff_max_len, position);
 
@@ -4837,6 +4838,7 @@ UINT32 cmpi_encode_cxfsnp_item(const UINT32 comm, const CXFSNP_ITEM *cxfsnp_item
 
     if(CXFSNP_ITEM_FILE_IS_DIR == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
     {
+        cmpi_encode_uint32_t(comm, CXFSNP_DNODE_FILE_SIZE(CXFSNP_ITEM_DNODE(cxfsnp_item)), out_buff, out_buff_max_len, position);
         cmpi_encode_uint32_t(comm, CXFSNP_DNODE_FILE_NUM(CXFSNP_ITEM_DNODE(cxfsnp_item)), out_buff, out_buff_max_len, position);
     }
 
@@ -4852,7 +4854,8 @@ UINT32 cmpi_encode_cxfsnp_item_size(const UINT32 comm, const CXFSNP_ITEM *cxfsnp
 {
     cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_USED_FLAG(cxfsnp_item), size);
     cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_DIR_FLAG(cxfsnp_item), size);
-    cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item), size);
+    cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_KEY_SOFFSET(cxfsnp_item), size);
+    cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_ATTR_SOFFSET(cxfsnp_item), size);
     cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_PARENT_POS(cxfsnp_item), size);
     cmpi_encode_uint32_t_size(comm, CXFSNP_ITEM_SECOND_HASH(cxfsnp_item), size);
 
@@ -4861,6 +4864,7 @@ UINT32 cmpi_encode_cxfsnp_item_size(const UINT32 comm, const CXFSNP_ITEM *cxfsnp
 
     if(CXFSNP_ITEM_FILE_IS_DIR == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
     {
+        cmpi_encode_uint32_t_size(comm, CXFSNP_DNODE_FILE_SIZE(CXFSNP_ITEM_DNODE(cxfsnp_item)), size);
         cmpi_encode_uint32_t_size(comm, CXFSNP_DNODE_FILE_NUM(CXFSNP_ITEM_DNODE(cxfsnp_item)), size);
     }
 
@@ -4901,7 +4905,10 @@ UINT32 cmpi_decode_cxfsnp_item(const UINT32 comm, const UINT8 *in_buff, const UI
     CXFSNP_ITEM_DIR_FLAG(cxfsnp_item)  = num;
 
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
-    CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item) = num;
+    CXFSNP_ITEM_KEY_SOFFSET(cxfsnp_item) = num;
+
+    cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
+    CXFSNP_ITEM_ATTR_SOFFSET(cxfsnp_item) = num;
 
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
     CXFSNP_ITEM_PARENT_POS(cxfsnp_item) = num;
@@ -4914,6 +4921,9 @@ UINT32 cmpi_decode_cxfsnp_item(const UINT32 comm, const UINT8 *in_buff, const UI
 
     if(CXFSNP_ITEM_FILE_IS_DIR == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
     {
+        cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
+        CXFSNP_DNODE_FILE_SIZE(CXFSNP_ITEM_DNODE(cxfsnp_item)) = num;
+
         cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(num));
         CXFSNP_DNODE_FILE_NUM(CXFSNP_ITEM_DNODE(cxfsnp_item)) = num;
     }
@@ -5021,10 +5031,7 @@ UINT32 cmpi_decode_i32(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_
 
     return ((UINT32)0);
 }
-#endif
 
-
-#if 1
 UINT32 cmpi_encode_stat(const UINT32 comm, const struct stat *stat, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
 {
     cmpi_encode_uint8_array(comm, (UINT8 *)stat, sizeof(struct stat), out_buff, out_buff_max_len, position);
@@ -5045,10 +5052,7 @@ UINT32 cmpi_decode_stat(const UINT32 comm, const UINT8 *in_buff, const UINT32 in
 
     return ((UINT32)0);
 }
-#endif
 
-
-#if 1
 UINT32 cmpi_encode_statvfs(const UINT32 comm, const struct statvfs *statvfs, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
 {
     cmpi_encode_uint8_array(comm, (UINT8 *)statvfs, sizeof(struct statvfs), out_buff, out_buff_max_len, position);
@@ -5069,9 +5073,7 @@ UINT32 cmpi_decode_statvfs(const UINT32 comm, const UINT8 *in_buff, const UINT32
 
     return ((UINT32)0);
 }
-#endif
 
-#if 1
 UINT32 cmpi_encode_timespec(const UINT32 comm, const struct timespec *timespec, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
 {
     cmpi_encode_uint8_array(comm, (UINT8 *)timespec, sizeof(struct timespec), out_buff, out_buff_max_len, position);
@@ -5092,10 +5094,7 @@ UINT32 cmpi_decode_timespec(const UINT32 comm, const UINT8 *in_buff, const UINT3
 
     return ((UINT32)0);
 }
-#endif
 
-
-#if 1
 UINT32 cmpi_encode_utimbuf(const UINT32 comm, const struct utimbuf *utimbuf, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
 {
     cmpi_encode_uint8_array(comm, (UINT8 *)utimbuf, sizeof(struct utimbuf), out_buff, out_buff_max_len, position);
@@ -5116,10 +5115,7 @@ UINT32 cmpi_decode_utimbuf(const UINT32 comm, const UINT8 *in_buff, const UINT32
 
     return ((UINT32)0);
 }
-#endif
 
-
-#if 1
 UINT32 cmpi_encode_dirnode(const UINT32 comm, const struct dirnode *dirnode, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
 {
     UINT32      num;
@@ -5196,7 +5192,7 @@ UINT32 cmpi_decode_dirnode(const UINT32 comm, const UINT8 *in_buff, const UINT32
     cmpi_decode_uint32(comm, in_buff, in_buff_max_len, position, &len);
     if(0 != len)
     {
-        data = safe_malloc(len + 1, LOC_CFUSED_0013);
+        data = safe_malloc(len + 1, LOC_CMPIE_0021);
         num  = len;
         ASSERT(NULL_PTR != data);
         cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, data, &len);

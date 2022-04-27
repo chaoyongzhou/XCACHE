@@ -25,7 +25,7 @@ extern "C"{
 EC_BOOL cxfsnpkey_pool_init(CXFSNPRB_POOL *pool, const uint32_t node_max_num, const uint32_t node_sizeof)
 {
     uint32_t node_pos;
-    uint32_t key_offset;
+    uint32_t key_soffset;
 
     if(CXFSNPRB_POOL_MAX_SIZE < node_max_num)
     {
@@ -35,8 +35,8 @@ EC_BOOL cxfsnpkey_pool_init(CXFSNPRB_POOL *pool, const uint32_t node_max_num, co
         return (EC_FALSE);
     }
 
-    /*offset between key[node_pos] and item[node_pos] is fixed*/
-    key_offset = node_sizeof * node_max_num * 1 + 0;
+    /*offset between key[node_pos] and item[node_pos] is fixed which actually is node_max_num*/
+    key_soffset = (node_sizeof * node_max_num * 1 + 0) / sizeof(CXFSNP_ITEM);
 
     for(node_pos = 0; node_pos < node_max_num; node_pos ++)
     {
@@ -49,7 +49,7 @@ EC_BOOL cxfsnpkey_pool_init(CXFSNPRB_POOL *pool, const uint32_t node_max_num, co
 
         CXFSNPKEY_ASSERT((void *)cxfsnp_item == (void *)cxfsnprb_node); /*address must be aligned*/
 
-        CXFSNP_ITEM_KEY_OFFSET(cxfsnp_item) = key_offset;
+        CXFSNP_ITEM_KEY_SOFFSET(cxfsnp_item) = key_soffset;
         cxfsnp_key     = CXFSNP_ITEM_KEY(cxfsnp_item);
         cxfsnp_key_init(cxfsnp_key);
 

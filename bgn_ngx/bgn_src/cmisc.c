@@ -6718,6 +6718,63 @@ uint64_t c_get_cur_time_usec()
     return (time_usec_cur);
 }
 
+void c_get_cur_time_nsec_and_msec(uint64_t *nsec, uint64_t *msec)
+{
+    CTMV        timev_cur;
+
+    gettimeofday(&timev_cur, NULL_PTR);
+
+    if(NULL_PTR != nsec)
+    {
+        (*nsec) = ((uint64_t)timev_cur.tv_sec );
+    }
+
+    if(NULL_PTR != msec)
+    {
+        (*msec) = (((uint64_t)timev_cur.tv_usec) / 1000);
+    }
+
+    return;
+}
+
+void c_get_cur_time_nsec_and_usec(uint64_t *nsec, uint64_t *usec)
+{
+    CTMV        timev_cur;
+
+    gettimeofday(&timev_cur, NULL_PTR);
+
+    if(NULL_PTR != nsec)
+    {
+        (*nsec) = ((uint64_t)timev_cur.tv_sec );
+    }
+
+    if(NULL_PTR != usec)
+    {
+        (*usec) = ((uint64_t)timev_cur.tv_usec);
+    }
+
+    return;
+}
+
+void c_get_cur_time_nsec_and_nanosec(uint64_t *nsec, uint64_t *nanosec)
+{
+    CTMV        timev_cur;
+
+    gettimeofday(&timev_cur, NULL_PTR);
+
+    if(NULL_PTR != nsec)
+    {
+        (*nsec) = ((uint64_t)timev_cur.tv_sec );
+    }
+
+    if(NULL_PTR != nanosec)
+    {
+        (*nanosec) = (((uint64_t)timev_cur.tv_usec) * 1000);
+    }
+
+    return;
+}
+
 char *c_get_time_msec_str(const uint64_t time_msec)
 {
     CTMV             timev;
@@ -8782,7 +8839,7 @@ int *c_i32_new()
 {
     int *i32;
 
-    i32 = safe_malloc(sizeof(int), LOC_CMISC_0001);
+    i32 = safe_malloc(sizeof(int), LOC_CMISC_0098);
     if(NULL_PTR == i32)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_i32_new: no memory\n");
@@ -8818,7 +8875,7 @@ EC_BOOL c_i32_free(int *i32)
     if(NULL_PTR != i32)
     {
         c_i32_clean(i32);
-        safe_free(i32, LOC_CMISC_0002);
+        safe_free(i32, LOC_CMISC_0099);
     }
     return (EC_TRUE);
 }
@@ -8827,7 +8884,7 @@ struct stat *c_stat_new()
 {
     struct stat *stat;
 
-    stat = safe_malloc(sizeof(struct stat), LOC_CMISC_0003);
+    stat = safe_malloc(sizeof(struct stat), LOC_CMISC_0100);
     if(NULL_PTR == stat)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_stat_new: no memory\n");
@@ -8863,7 +8920,7 @@ EC_BOOL c_stat_free(struct stat *stat)
     if(NULL_PTR != stat)
     {
         c_stat_clean(stat);
-        safe_free(stat, LOC_CMISC_0004);
+        safe_free(stat, LOC_CMISC_0101);
     }
     return (EC_TRUE);
 }
@@ -8872,7 +8929,7 @@ struct statvfs *c_statvfs_new()
 {
     struct statvfs *statvfs;
 
-    statvfs = safe_malloc(sizeof(struct statvfs), LOC_CMISC_0005);
+    statvfs = safe_malloc(sizeof(struct statvfs), LOC_CMISC_0102);
     if(NULL_PTR == statvfs)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_statvfs_new: no memory\n");
@@ -8908,7 +8965,7 @@ EC_BOOL c_statvfs_free(struct statvfs *statvfs)
     if(NULL_PTR != statvfs)
     {
         c_statvfs_clean(statvfs);
-        safe_free(statvfs, LOC_CMISC_0006);
+        safe_free(statvfs, LOC_CMISC_0103);
     }
     return (EC_TRUE);
 }
@@ -8916,7 +8973,7 @@ struct timespec *c_timespec_new()
 {
     struct timespec *timespec;
 
-    timespec = safe_malloc(sizeof(struct timespec), LOC_CMISC_0007);
+    timespec = safe_malloc(sizeof(struct timespec), LOC_CMISC_0104);
     if(NULL_PTR == timespec)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_timespec_new: no memory\n");
@@ -8952,7 +9009,7 @@ EC_BOOL c_timespec_free(struct timespec *timespec)
     if(NULL_PTR != timespec)
     {
         c_timespec_clean(timespec);
-        safe_free(timespec, LOC_CMISC_0008);
+        safe_free(timespec, LOC_CMISC_0105);
     }
     return (EC_TRUE);
 }
@@ -8961,7 +9018,7 @@ struct utimbuf *c_utimbuf_new()
 {
     struct utimbuf *utimbuf;
 
-    utimbuf = safe_malloc(sizeof(struct utimbuf), LOC_CMISC_0009);
+    utimbuf = safe_malloc(sizeof(struct utimbuf), LOC_CMISC_0106);
     if(NULL_PTR == utimbuf)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_utimbuf_new: no memory\n");
@@ -8997,7 +9054,7 @@ EC_BOOL c_utimbuf_free(struct utimbuf *utimbuf)
     if(NULL_PTR != utimbuf)
     {
         c_utimbuf_clean(utimbuf);
-        safe_free(utimbuf, LOC_CMISC_0010);
+        safe_free(utimbuf, LOC_CMISC_0107);
     }
     return (EC_TRUE);
 }
@@ -9006,7 +9063,7 @@ struct dirnode *c_dirnode_new()
 {
     struct dirnode *dirnode;
 
-    dirnode = safe_malloc(sizeof(struct dirnode), LOC_CMISC_0011);
+    dirnode = safe_malloc(sizeof(struct dirnode), LOC_CMISC_0108);
     if(NULL_PTR == dirnode)
     {
         dbg_log(SEC_0013_CMISC, 0)(LOGSTDOUT, "error:c_dirnode_new: no memory\n");
@@ -9054,7 +9111,7 @@ EC_BOOL c_dirnode_free(struct dirnode *dirnode)
     if(NULL_PTR != dirnode)
     {
         c_dirnode_clean(dirnode);
-        safe_free(dirnode, LOC_CMISC_0012);
+        safe_free(dirnode, LOC_CMISC_0109);
     }
     return (EC_TRUE);
 }

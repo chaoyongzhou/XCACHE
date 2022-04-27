@@ -449,7 +449,7 @@ FUNC_ADDR_NODE g_cfuses_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cfuses_ftruncate(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 offset, int *res); -- */
+/* -- EC_BOOL cfuses_ftruncate(const UINT32 cfuses_md_id, const CSTRING *path, const UINT32 length, int *res); -- */
 /*func module     */     MD_CFUSES,
 /*func logic addr */     (UINT32)cfuses_ftruncate,
 /*func beg addr   */     0,

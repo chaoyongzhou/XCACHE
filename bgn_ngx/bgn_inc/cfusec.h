@@ -143,7 +143,7 @@ int cfusec_access(const char *path, UINT32 mask);
 
 
 /*int (*ftruncate) (const char *, off_t);*/
-int cfusec_ftruncate(const char *path, UINT32 offset);
+int cfusec_ftruncate(const char *path, UINT32 length);
 
 
 /*int (*utimens) (const char *, const struct timespec tv[2]);*/
