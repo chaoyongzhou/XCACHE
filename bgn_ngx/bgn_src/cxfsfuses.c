@@ -257,13 +257,7 @@ EC_BOOL cxfs_fuses_readlink(const UINT32 cxfs_md_id, const CSTRING *path, CSTRIN
 
         cxfsnp_attr  = CXFSNP_ITEM_ATTR(cxfsnp_item);
         node_pos_src = node_pos;
-        while(CXFSNP_ATTR_ERR_INO != CXFSNP_ATTR_NEXT_INO(cxfsnp_attr))
-        {
-            node_pos = CXFSNP_ATTR_INO_FETCH_NODE_POS(CXFSNP_ATTR_NEXT_INO(cxfsnp_attr));
-            cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
-            cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
-        }
-        node_pos_des = node_pos;
+        node_pos_des = CXFSNP_ATTR_INO_FETCH_NODE_POS(CXFSNP_ATTR_NEXT_INO(cxfsnp_attr));
 
         if(EC_FALSE == cxfsnp_relative_path_name_cstr(cxfsnp, node_pos_src, node_pos_des, des_path))
         {
@@ -313,13 +307,7 @@ EC_BOOL cxfs_fuses_readlink(const UINT32 cxfs_md_id, const CSTRING *path, CSTRIN
 
         cxfsnp_attr  = CXFSNP_ITEM_ATTR(cxfsnp_item);
         node_pos_src = node_pos;
-        while(CXFSNP_ATTR_ERR_INO != CXFSNP_ATTR_NEXT_INO(cxfsnp_attr))
-        {
-            node_pos = CXFSNP_ATTR_INO_FETCH_NODE_POS(CXFSNP_ATTR_NEXT_INO(cxfsnp_attr));
-            cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
-            cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
-        }
-        node_pos_des = node_pos;
+        node_pos_des = CXFSNP_ATTR_INO_FETCH_NODE_POS(CXFSNP_ATTR_NEXT_INO(cxfsnp_attr));
 
         if(EC_FALSE == cxfsnp_relative_path_name_cstr(cxfsnp, node_pos_src, node_pos_des, des_path))
         {
