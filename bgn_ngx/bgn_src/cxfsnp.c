@@ -3731,7 +3731,13 @@ EC_BOOL cxfsnp_relative_path_name_cstr(const CXFSNP *cxfsnp, const uint32_t node
         node_pos_parent_src    = CXFSNP_ITEM_PARENT_POS(cxfsnp_item_parent_src);
     }
 
-    ASSERT(node_pos_parent_src == node_pos_parent_des);
+    if(node_pos_parent_src != node_pos_parent_des)
+    {
+        cstack_clean(cstack, NULL_PTR);/*cleanup for safe reason*/
+        cstack_free(cstack, LOC_CXFSNP_0023);
+
+        return (EC_FALSE);
+    }
 
     node_pos_parent_tmp = node_pos_parent_src;
 

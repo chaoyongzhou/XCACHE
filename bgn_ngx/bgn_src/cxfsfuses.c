@@ -262,7 +262,12 @@ EC_BOOL cxfs_fuses_readlink(const UINT32 cxfs_md_id, const CSTRING *path, CSTRIN
         }
         node_pos_des = node_pos;
 
-        cxfsnp_relative_path_name_cstr(cxfsnp, node_pos_src, node_pos_des, des_path);
+        if(EC_FALSE == cxfsnp_relative_path_name_cstr(cxfsnp, node_pos_src, node_pos_des, des_path))
+        {
+            (*res) = -ENOENT;
+            cstring_clean(&link_path);
+            return (EC_TRUE);
+        }
 
         cstring_umount(des_path, &str, &len, &capacity);
         if(len >= bufsize)
@@ -313,7 +318,12 @@ EC_BOOL cxfs_fuses_readlink(const UINT32 cxfs_md_id, const CSTRING *path, CSTRIN
         }
         node_pos_des = node_pos;
 
-        cxfsnp_relative_path_name_cstr(cxfsnp, node_pos_src, node_pos_des, des_path);
+        if(EC_FALSE == cxfsnp_relative_path_name_cstr(cxfsnp, node_pos_src, node_pos_des, des_path))
+        {
+            (*res) = -ENOENT;
+            cstring_clean(&link_path);
+            return (EC_TRUE);
+        }
 
         cstring_umount(des_path, &str, &len, &capacity);
         if(len >= bufsize)
