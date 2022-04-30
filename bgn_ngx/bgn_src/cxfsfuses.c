@@ -229,9 +229,12 @@ EC_BOOL cxfs_fuses_readlink(const UINT32 cxfs_md_id, const CSTRING *path, CSTRIN
     cxfsnp = cxfsnp_mgr_fetch_specific_np(CXFS_MD_NPP(cxfs_md), cxfsnp_id);
     if(NULL_PTR == cxfsnp)
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_readlink: np %u was not open\n", cxfsnp_id);
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_readlink: "
+                                             "np %u was not open\n",
+                                             cxfsnp_id);
 
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_readlink: reallink %s failed\n",
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_readlink: "
+                                             "reallink %s failed\n",
                                              (char *)cstring_get_str(src_path));
         return (EC_FALSE);
     }
@@ -284,9 +287,9 @@ EC_BOOL cxfs_fuses_readlink(const UINT32 cxfs_md_id, const CSTRING *path, CSTRIN
         cstring_mount(buf, str, len, capacity);
 
         dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_readlink: "
-                            "file %s -> %s done\n",
-                            (char *)cstring_get_str(src_path),
-                            (char *)cstring_get_str(buf));
+                                             "file %s -> %s done\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(buf));
 
 
         (*res) = 0;
@@ -340,16 +343,17 @@ EC_BOOL cxfs_fuses_readlink(const UINT32 cxfs_md_id, const CSTRING *path, CSTRIN
         cstring_mount(buf, str, len, capacity);
 
         dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_readlink: "
-                            "dir %s -> %s done\n",
-                            (char *)cstring_get_str(src_path),
-                            (char *)cstring_get_str(buf));
+                                             "dir %s -> %s done\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(buf));
 
         (*res) = 0;
         cstring_clean(&link_path);
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_readlink: src %s not exist => reallink failed\n",
+    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_readlink: "
+                                         "src %s not exist => reallink failed\n",
                                          (char *)cstring_get_str(src_path));
 
     (*res) = -ENOENT;
