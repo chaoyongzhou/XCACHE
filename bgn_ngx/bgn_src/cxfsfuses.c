@@ -60,7 +60,7 @@ EC_BOOL cxfs_fuses_getattr(const UINT32 cxfs_md_id, const CSTRING *file_path, st
 {
     CXFS_MD      *cxfs_md;
     CXFSNP_ITEM  *cxfsnp_item;
-    CXFSNP_ATTR  *cxfsnp_attr;
+
     uint64_t      ino;
 
 #if (SWITCH_ON == CXFS_DEBUG_SWITCH)
@@ -123,12 +123,15 @@ EC_BOOL cxfs_fuses_getattr(const UINT32 cxfs_md_id, const CSTRING *file_path, st
         return (EC_TRUE);
     }
 
-    cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
-
     if(NULL_PTR != stat)
     {
+        CXFSNP_ATTR  *cxfsnp_attr;
+
+        cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
+
         stat->st_ino        = ino;
 
+        stat->st_mode       = CXFSNP_ATTR_MODE(cxfsnp_attr);
         stat->st_uid        = CXFSNP_ATTR_UID(cxfsnp_attr);
         stat->st_gid        = CXFSNP_ATTR_GID(cxfsnp_attr);
         stat->st_rdev       = CXFSNP_ATTR_RDEV(cxfsnp_attr);
@@ -146,22 +149,15 @@ EC_BOOL cxfs_fuses_getattr(const UINT32 cxfs_md_id, const CSTRING *file_path, st
 
             cxfsnp_fnode = CXFSNP_ITEM_FNODE(cxfsnp_item);
 
-            stat->st_mode       = /*CXFSNP_ATTR_MODE(cxfsnp_attr)*/S_IFREG;
             stat->st_size       = CXFSNP_FNODE_FILESZ(cxfsnp_fnode);
             stat->st_blksize    = 4096;
             stat->st_blocks     = (CXFSNP_FNODE_FILESZ(cxfsnp_fnode) + 512 - 1) / 512;
         }
         else
         {
-            CXFSNP_DNODE        *cxfsnp_dnode;
-
-            cxfsnp_dnode = CXFSNP_ITEM_DNODE(cxfsnp_item);
-
-            stat->st_mode       = /*CXFSNP_ATTR_MODE(cxfsnp_attr)*/S_IFDIR;
             stat->st_size       = 4096; /*xxx*/
             stat->st_blksize    = 4096; /*xxx*/
             stat->st_blocks     = 8; /*xxx*/
-            stat->st_nlink      = CXFSNP_DNODE_FILE_NUM(cxfsnp_dnode);
         }
     }
 
@@ -171,14 +167,185 @@ EC_BOOL cxfs_fuses_getattr(const UINT32 cxfs_md_id, const CSTRING *file_path, st
 
 EC_BOOL cxfs_fuses_readlink(const UINT32 cxfs_md_id, const CSTRING *path, CSTRING *buf, const UINT32 bufsize, int *res)
 {
-    (void)cxfs_md_id;
-    (void)path;
-    (void)buf;
-    (void)bufsize;
-    (void)res;
+    CXFS_MD      *cxfs_md;
 
-    CXFS_FUSES_DEBUG_ENTER("cxfs_fuses_readlink:TODO");
-    return (EC_FALSE);
+    CXFSNP       *cxfsnp;
+    CXFSNP_ITEM  *cxfsnp_item;
+
+    CSTRING      *src_path;
+    CSTRING      *des_path;
+    CSTRING       link_path;
+
+    uint32_t      node_pos;
+    uint32_t      cxfsnp_id;
+
+#if (SWITCH_ON == CXFS_DEBUG_SWITCH)
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_fuses_readlink: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*(SWITCH_ON == CXFS_DEBUG_SWITCH)*/
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_fuses_readlink: npp was not open\n");
+        (*res) = -EACCES;
+        return (EC_TRUE);
+    }
+
+    if(BIT_TRUE == CXFS_MD_OP_REPLAY_FLAG(cxfs_md))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_readlink: "
+                                             "xfs is in op-replay mode\n");
+        (*res) = -EBUSY;
+        return (EC_TRUE);
+    }
+
+    if(EC_FALSE == cxfs_sync_wait(cxfs_md_id))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_readlink: wait syncing timeout\n");
+        (*res) = -EBUSY;
+        return (EC_TRUE);
+    }
+
+    if(0 == bufsize)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_readlink: bufsize is zero\n");
+        (*res) = -EINVAL;
+        return (EC_TRUE);
+    }
+
+    cstring_init(&link_path, NULL_PTR);
+
+    src_path = (CSTRING *)path;
+    des_path = &link_path;
+
+    cxfsnp_id = 0; /*fix*/
+    cxfsnp = cxfsnp_mgr_fetch_specific_np(CXFS_MD_NPP(cxfs_md), cxfsnp_id);
+    if(NULL_PTR == cxfsnp)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_readlink: np %u was not open\n", cxfsnp_id);
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_readlink: reallink %s failed\n",
+                                             (char *)cstring_get_str(src_path));
+        return (EC_FALSE);
+    }
+
+    cstring_clean(buf);
+
+    node_pos = cxfsnp_search(cxfsnp, (uint32_t)cstring_get_len(src_path),
+                            cstring_get_str(src_path), CXFSNP_ITEM_FILE_IS_REG);
+    cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
+    if(NULL_PTR != cxfsnp_item)
+    {
+        UINT8           *str;
+        UINT32          len;
+        UINT32          capacity;
+
+        uint32_t        node_pos_src;
+        uint32_t        node_pos_des;
+
+        CXFSNP_ATTR    *cxfsnp_attr;
+
+        cxfsnp_attr  = CXFSNP_ITEM_ATTR(cxfsnp_item);
+        node_pos_src = node_pos;
+        while(CXFSNP_ATTR_ERR_INO != CXFSNP_ATTR_NEXT_INO(cxfsnp_attr))
+        {
+            node_pos = CXFSNP_ATTR_INO_FETCH_NODE_POS(CXFSNP_ATTR_NEXT_INO(cxfsnp_attr));
+            cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
+            cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
+        }
+        node_pos_des = node_pos;
+
+        cxfsnp_relative_path_name_cstr(cxfsnp, node_pos_src, node_pos_des, des_path);
+
+        cstring_umount(des_path, &str, &len, &capacity);
+        if(len >= bufsize)
+        {
+            len = bufsize - 1;
+        }
+
+        while(0 < len && '/' == str[ len - 1])
+        {
+            len --;
+        }
+        str[ len ] = '\0';
+
+        cstring_mount(buf, str, len, capacity);
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_readlink: "
+                            "file %s -> %s done\n",
+                            (char *)cstring_get_str(src_path),
+                            (char *)cstring_get_str(buf));
+
+
+        (*res) = 0;
+        cstring_clean(&link_path);
+        return (EC_TRUE);
+    }
+
+    node_pos = cxfsnp_search(cxfsnp, (uint32_t)cstring_get_len(src_path),
+                            cstring_get_str(src_path), CXFSNP_ITEM_FILE_IS_DIR);
+    cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
+    if(NULL_PTR != cxfsnp_item)
+    {
+        UINT8           *str;
+        UINT32          len;
+        UINT32          capacity;
+
+        uint32_t        node_pos_src;
+        uint32_t        node_pos_des;
+
+        CXFSNP_ATTR    *cxfsnp_attr;
+
+        cxfsnp_attr  = CXFSNP_ITEM_ATTR(cxfsnp_item);
+        node_pos_src = node_pos;
+        while(CXFSNP_ATTR_ERR_INO != CXFSNP_ATTR_NEXT_INO(cxfsnp_attr))
+        {
+            node_pos = CXFSNP_ATTR_INO_FETCH_NODE_POS(CXFSNP_ATTR_NEXT_INO(cxfsnp_attr));
+            cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
+            cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
+        }
+        node_pos_des = node_pos;
+
+        cxfsnp_relative_path_name_cstr(cxfsnp, node_pos_src, node_pos_des, des_path);
+
+        cstring_umount(des_path, &str, &len, &capacity);
+        if(len >= bufsize)
+        {
+            len = bufsize - 1;
+        }
+
+        while(0 < len && '/' == str[ len - 1])
+        {
+            len --;
+        }
+        str[ len ] = '\0';
+
+        cstring_mount(buf, str, len, capacity);
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_readlink: "
+                            "dir %s -> %s done\n",
+                            (char *)cstring_get_str(src_path),
+                            (char *)cstring_get_str(buf));
+
+        (*res) = 0;
+        cstring_clean(&link_path);
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_readlink: src %s not exist => reallink failed\n",
+                                         (char *)cstring_get_str(src_path));
+
+    (*res) = -ENOENT;
+    cstring_clean(&link_path);
+
+    return (EC_TRUE);
 }
 
 EC_BOOL cxfs_fuses_mknod(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 dev, int *res)
@@ -187,9 +354,6 @@ EC_BOOL cxfs_fuses_mknod(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
     CXFSNP_ITEM     *cxfsnp_item;
     CXFSNP_ATTR     *cxfsnp_attr;
     uint64_t         ino;
-
-    uint64_t         nsec;  /*seconds*/
-    uint64_t         nanosec;/*nanosecond*/
 
 #if (SWITCH_ON == CXFS_DEBUG_SWITCH)
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
@@ -232,12 +396,10 @@ EC_BOOL cxfs_fuses_mknod(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
 
     CXFS_STAT_WRITE_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
 
-    c_get_cur_time_nsec_and_nanosec(&nsec, &nanosec);
-
-    if(EC_FALSE == cxfsnp_mgr_mkdir(CXFS_MD_NPP(cxfs_md), path))
+    if(EC_FALSE == cxfs_reserve(cxfs_md_id, path, (UINT32)0))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_mknod: "
-                                             "mkdir '%s' failed\n",
+                                             "reserve '%s' with size 0 failed\n",
                                              (char *)cstring_get_str(path));
         (*res) = -EACCES;
         return (EC_FALSE);
@@ -264,17 +426,8 @@ EC_BOOL cxfs_fuses_mknod(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
     }
 
     cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
-    CXFSNP_ATTR_UID(cxfsnp_attr)        = 0;
-    CXFSNP_ATTR_GID(cxfsnp_attr)        = 0;
     CXFSNP_ATTR_MODE(cxfsnp_attr)       = (uint16_t)mode;
     CXFSNP_ATTR_RDEV(cxfsnp_attr)       = (uint32_t)dev;
-    CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-    CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-    CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-    CXFSNP_ATTR_ATIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-    CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-    CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-    CXFSNP_ATTR_NLINK(cxfsnp_attr)      = 1;
 
     dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_mknod: %s => ino %lu => done\n",
                                          (char *)cstring_get_str(path), ino);
@@ -290,9 +443,6 @@ EC_BOOL cxfs_fuses_mkdir(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
     CXFSNP_ITEM     *cxfsnp_item;
     CXFSNP_ATTR     *cxfsnp_attr;
     uint64_t         ino;
-
-    uint64_t         nsec;  /*seconds*/
-    uint64_t         nanosec;/*nanosecond*/
 
 #if (SWITCH_ON == CXFS_DEBUG_SWITCH)
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
@@ -335,8 +485,6 @@ EC_BOOL cxfs_fuses_mkdir(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
 
     CXFS_STAT_WRITE_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
 
-    c_get_cur_time_nsec_and_nanosec(&nsec, &nanosec);
-
     if(EC_FALSE == cxfsnp_mgr_mkdir(CXFS_MD_NPP(cxfs_md), path))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_mkdir: "
@@ -367,17 +515,7 @@ EC_BOOL cxfs_fuses_mkdir(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
     }
 
     cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
-    CXFSNP_ATTR_UID(cxfsnp_attr)        = 0;
-    CXFSNP_ATTR_GID(cxfsnp_attr)        = 0;
     CXFSNP_ATTR_MODE(cxfsnp_attr)       = (uint16_t)mode;
-    CXFSNP_ATTR_RDEV(cxfsnp_attr)       = 0; /*xxx*/
-    CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-    CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-    CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-    CXFSNP_ATTR_ATIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-    CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-    CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-    CXFSNP_ATTR_NLINK(cxfsnp_attr)      = 1;
 
     dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_mkdir: "
                                          "mkdir %s => ino %lu => done\n",
@@ -1209,12 +1347,13 @@ EC_BOOL cxfs_fuses_read(const UINT32 cxfs_md_id, const CSTRING *path, CBYTES *bu
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "error:cxfs_fuses_read: "
-                                         "read file '%s' offset %ld size %ld done\n",
-                                         (char *)cstring_get_str(path), offset, size);
-
     ASSERT((offset_t - offset) == CBYTES_LEN(buf));
     (*res) = (int)(offset_t - offset);
+
+    dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_fuses_read: "
+                                         "read file '%s' offset %ld size %ld => ret %ld done\n",
+                                         (char *)cstring_get_str(path), offset, size,
+                                         CBYTES_LEN(buf));
 
     return (EC_TRUE);
 }
@@ -1264,24 +1403,172 @@ EC_BOOL cxfs_fuses_write(const UINT32 cxfs_md_id, const CSTRING *path, const CBY
         return (EC_TRUE);
     }
 
-    offset_t = offset;
-    size     = CBYTES_LEN(buf);
-
-    if(EC_FALSE == cxfs_write_e(cxfs_md_id, path, &offset_t, size, buf))
+    if(0 == CBYTES_LEN(buf))
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_write: "
-                                             "write file '%s' offset %ld size %ld failed\n",
-                                             (char *)cstring_get_str(path), offset, size);
-        (*res) = -ENOENT;
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_fuses_write: "
+                                             "file '%s' offset %ld content size %ld "
+                                             "=> write nothing\n",
+                                             (char *)cstring_get_str(path), offset, CBYTES_LEN(buf));
+
+        (*res) = 0;
+
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "error:cxfs_fuses_write: "
-                                         "write file '%s' offset %ld size %ld done\n",
-                                         (char *)cstring_get_str(path), offset, size);
+    offset_t = offset;
+    size     = CBYTES_LEN(buf);
 
-    (*res) = (int)(offset_t - offset);
+    /*file not exist*/
+    if(EC_FALSE == cxfsnp_mgr_find_file(CXFS_MD_NPP(cxfs_md), path))
+    {
+        UINT32  file_size;
 
+        file_size = offset_t + size;
+
+        if(EC_FALSE == cxfs_reserve(cxfs_md_id, path, file_size))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_write: "
+                                                 "reserve file '%s' size %ld = offset %ld + content size %ld failed\n",
+                                                 (char *)cstring_get_str(path), file_size, offset, size);
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+
+        if(EC_FALSE == cxfs_write_e(cxfs_md_id, path, &offset_t, size, buf))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_write: "
+                                                 "write file '%s' offset %ld size %ld failed\n",
+                                                 (char *)cstring_get_str(path), offset, size);
+
+            cxfs_delete_file(cxfs_md_id, path);
+
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_fuses_write: "
+                                             "create and write file '%s' offset %ld size %ld done\n",
+                                             (char *)cstring_get_str(path), offset, size);
+
+        (*res) = (int)(offset_t - offset);
+
+        return (EC_TRUE);
+    }
+
+    /*file exist*/
+    else
+    {
+        uint64_t         file_size;
+
+        uint8_t         *data;
+        UINT32           data_len;
+        CBYTES           content_saved;
+
+        if(EC_FALSE == cxfs_file_size(cxfs_md_id, path, &file_size))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_write: "
+                                                 "file '%s' size failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_write: file %s, file size %ld\n", (char *)cstring_get_str(path), file_size);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_write: file %s, offset %ld, size %ld\n", (char *)cstring_get_str(path), offset, size);
+
+
+        if(offset_t + size <= file_size)
+        {
+            if(EC_FALSE == cxfs_write_e(cxfs_md_id, path, &offset_t, size, buf))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_write: "
+                                                     "[no expand] write file '%s' offset %ld size %ld failed\n",
+                                                     (char *)cstring_get_str(path), offset, size);
+                (*res) = -ENOENT;
+                return (EC_TRUE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_fuses_write: "
+                                                 "[no expand] write file '%s' offset %ld size %ld done\n",
+                                                 (char *)cstring_get_str(path), offset, size);
+
+            (*res) = (int)(offset_t - offset);
+
+            return (EC_TRUE);
+        }
+
+        data_len = offset_t + size;
+        data = safe_malloc(data_len, LOC_CXFSFUSES_0001);
+        if(NULL_PTR == data)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_write: "
+                                                 "[expand] write file '%s' offset %ld size %ld, new %ld failed\n",
+                                                 (char *)cstring_get_str(path), offset, size, data_len);
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+
+        cbytes_mount(&content_saved, data_len, data, BIT_FALSE);
+
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_write: [before] content_saved: buf %p, len %ld, file size %ld\n", CBYTES_BUF(&content_saved), CBYTES_LEN(&content_saved), file_size);
+
+        if(0 < file_size)
+        {
+            if(EC_FALSE == cxfs_read(cxfs_md_id, path, &content_saved))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_write: "
+                                                     "[expand] read file '%s' failed\n",
+                                                     (char *)cstring_get_str(path));
+
+                cbytes_clean(&content_saved);
+
+                (*res) = -ENOENT;
+                return (EC_TRUE);
+            }
+
+            sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_write: [after] content_saved: buf %p, len %ld, file size %ld\n", CBYTES_BUF(&content_saved), CBYTES_LEN(&content_saved), file_size);
+
+            ASSERT(file_size == CBYTES_LEN(&content_saved));
+            ASSERT(data == CBYTES_BUF(&content_saved));
+        }
+
+        if(EC_FALSE == cxfs_delete_file(cxfs_md_id, path))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_write: "
+                                                 "[expand] delete file '%s' failed\n",
+                                                 (char *)cstring_get_str(path));
+
+            cbytes_clean(&content_saved);
+
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+
+        BCOPY(CBYTES_BUF(buf), CBYTES_BUF(&content_saved) + offset_t, size);
+        CBYTES_LEN(&content_saved) = offset_t + size; /*update*/
+
+        if(EC_FALSE == cxfs_write(cxfs_md_id, path, &content_saved))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_write: "
+                                                 "[expand] write file '%s' failed\n",
+                                                 (char *)cstring_get_str(path));
+
+            cbytes_clean(&content_saved);
+
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_fuses_write: "
+                                             "write file '%s' offset %ld size %ld done\n",
+                                             (char *)cstring_get_str(path), offset, size);
+
+        cbytes_clean(&content_saved);
+
+        (*res) = (int)(size);
+        return (EC_TRUE);
+    }
+
+    /*never reach here*/
     return (EC_TRUE);
 }
 
@@ -1899,6 +2186,15 @@ EC_BOOL cxfs_fuses_access(const UINT32 cxfs_md_id, const CSTRING *path, const UI
         return (EC_TRUE);
     }
 
+    if(0 != (((uint16_t)mask) & (~(R_OK|W_OK|X_OK|F_OK))))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_access: "
+                                             "invalid mask %#x\n",
+                                             (uint16_t)mask);
+        (*res) = -EINVAL;
+        return (EC_TRUE);
+    }
+
     if(EC_FALSE == cxfsnp_mgr_ino(CXFS_MD_NPP(cxfs_md), path, &ino))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_access: "
@@ -1948,7 +2244,6 @@ EC_BOOL cxfs_fuses_ftruncate(const UINT32 cxfs_md_id, const CSTRING *path, const
 {
     CXFS_MD         *cxfs_md;
     CXFSNP_ITEM     *cxfsnp_item;
-    CXFSNP_ATTR     *cxfsnp_attr;
     CBYTES           content;
     uint64_t         ino;
 
@@ -2027,18 +2322,6 @@ EC_BOOL cxfs_fuses_ftruncate(const UINT32 cxfs_md_id, const CSTRING *path, const
             (*res) = -ENOENT;
             return (EC_TRUE);
         }
-
-        cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
-
-        CXFSNP_ATTR_UID(cxfsnp_attr)        = 0;
-        CXFSNP_ATTR_GID(cxfsnp_attr)        = 0;
-        CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-        CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-        CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-        CXFSNP_ATTR_ATIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-        CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-        CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-        CXFSNP_ATTR_NLINK(cxfsnp_attr)      = 1;
 
         dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_fuses_ftruncate: "
                                              "ftruncate %s => ino %lu => done\n",
@@ -2131,18 +2414,6 @@ EC_BOOL cxfs_fuses_ftruncate(const UINT32 cxfs_md_id, const CSTRING *path, const
         (*res) = -ENOENT;
         return (EC_TRUE);
     }
-
-    cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
-
-    CXFSNP_ATTR_UID(cxfsnp_attr)        = 0;
-    CXFSNP_ATTR_GID(cxfsnp_attr)        = 0;
-    CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-    CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-    CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-    CXFSNP_ATTR_ATIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-    CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-    CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-    CXFSNP_ATTR_NLINK(cxfsnp_attr)      = 1;
 
     dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_fuses_ftruncate: "
                                          "ftruncate %s => ino %lu => done\n",
@@ -2244,7 +2515,6 @@ EC_BOOL cxfs_fuses_fallocate(const UINT32 cxfs_md_id, const CSTRING *path, const
 {
     CXFS_MD         *cxfs_md;
     CXFSNP_ITEM     *cxfsnp_item;
-    CXFSNP_ATTR     *cxfsnp_attr;
     CBYTES           content;
     uint64_t         ino;
 
@@ -2323,18 +2593,6 @@ EC_BOOL cxfs_fuses_fallocate(const UINT32 cxfs_md_id, const CSTRING *path, const
             (*res) = -ENOENT;
             return (EC_TRUE);
         }
-
-        cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
-
-        CXFSNP_ATTR_UID(cxfsnp_attr)        = 0;
-        CXFSNP_ATTR_GID(cxfsnp_attr)        = 0;
-        CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-        CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-        CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-        CXFSNP_ATTR_ATIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-        CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-        CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-        CXFSNP_ATTR_NLINK(cxfsnp_attr)      = 1;
 
         dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_fuses_fallocate: "
                                              "fallocate %s => ino %lu => done\n",
@@ -2428,18 +2686,6 @@ EC_BOOL cxfs_fuses_fallocate(const UINT32 cxfs_md_id, const CSTRING *path, const
         (*res) = -ENOENT;
         return (EC_TRUE);
     }
-
-    cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
-
-    CXFSNP_ATTR_UID(cxfsnp_attr)        = 0;
-    CXFSNP_ATTR_GID(cxfsnp_attr)        = 0;
-    CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-    CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-    CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-    CXFSNP_ATTR_ATIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-    CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-    CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-    CXFSNP_ATTR_NLINK(cxfsnp_attr)      = 1;
 
     dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_fuses_fallocate: "
                                          "fallocate %s => ino %lu => done\n",

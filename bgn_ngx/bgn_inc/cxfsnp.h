@@ -111,6 +111,12 @@ EC_BOOL cxfsnp_attr_clone(const CXFSNP_ATTR *cxfsnp_attr_src, CXFSNP_ATTR *cxfsn
 
 EC_BOOL cxfsnp_attr_free(CXFSNP_ATTR *cxfsnp_attr);
 
+EC_BOOL cxfsnp_attr_set_file(CXFSNP_ATTR *cxfsnp_attr);
+
+EC_BOOL cxfsnp_attr_set_dir(CXFSNP_ATTR *cxfsnp_attr);
+
+EC_BOOL cxfsnp_attr_update_time(CXFSNP_ATTR *cxfsnp_attr);
+
 void cxfsnp_attr_print(LOG *log, const CXFSNP_ATTR *cxfsnp_attr);
 
 CXFSNP_ITEM *cxfsnp_item_new();
@@ -300,6 +306,8 @@ EC_BOOL cxfsnp_recycle(CXFSNP *cxfsnp, const UINT32 max_num, CXFSNP_RECYCLE_NP *
 EC_BOOL cxfsnp_path_name(const CXFSNP *cxfsnp, const uint32_t node_pos, const uint32_t path_max_len, uint32_t *path_len, uint8_t *path);
 
 EC_BOOL cxfsnp_path_name_cstr(const CXFSNP *cxfsnp, const uint32_t node_pos, CSTRING *path_cstr);
+
+EC_BOOL cxfsnp_relative_path_name_cstr(const CXFSNP *cxfsnp, const uint32_t node_pos_src, const uint32_t node_pos_des, CSTRING *path_cstr);
 
 EC_BOOL cxfsnp_seg_name(const CXFSNP *cxfsnp, const uint32_t offset, const uint32_t seg_name_max_len, uint32_t *seg_name_len, uint8_t *seg_name);
 

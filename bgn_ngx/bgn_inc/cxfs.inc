@@ -1947,6 +1947,36 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
+/* -- EC_BOOL cxfs_link_file(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path); -- */
+/*func module     */     MD_CXFS,
+/*func logic addr */     (UINT32)cxfs_link_file,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cxfs_link_file",
+/*func index      */     FI_cxfs_link_file,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     3,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
+/* -- EC_BOOL cxfs_link_dir(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path); -- */
+/*func module     */     MD_CXFS,
+/*func logic addr */     (UINT32)cxfs_link_dir,
+/*func beg addr   */     0,
+/*func end addr   */     0,
+/*func addr offset*/     0,
+/*func name       */     "cxfs_link_dir",
+/*func index      */     FI_cxfs_link_dir,
+/*func ret type   */     e_dbg_EC_BOOL,
+/*func para num   */     3,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,},
+/*func para val   */     0, 0, {0},
+},
+{
 /* -- EC_BOOL cxfs_link(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_link,

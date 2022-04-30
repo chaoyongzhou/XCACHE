@@ -123,6 +123,32 @@ typedef struct
     /*8B*/
     uint16_t        rsvd;
     uint16_t        mode;
+    /*----------------------------------------------------------------*\
+      mode definition:
+        S_IFMT      0170000     bit mask
+        S_IFSOCK    0140000     socket
+        S_IFLNK     0120000     symbolic link
+        S_IFREG     0100000     regular file
+        S_IFBLK     0060000     block device
+        S_IFDIR     0040000     directory
+        S_IFCHR     0020000     character device
+        S_IFIFO     0010000     fifo
+        S_ISUID     0004000     set user-id on execution
+        S_ISGID     0002000     set group-id on execution
+        S_ISVTX     0001000     sticky
+        S_IRWXU     00700       owner bit mask
+        S_IRUSR     00400       owner bit read
+        S_IWUSR     00200       owner bit write
+        S_IXUSR     00100       owner bit exec
+        S_IRWXG     00070       group bit mask
+        S_IRGRP     00040       group bit read
+        S_IWGRP     00020       group bit write
+        S_IXGRP     00010       group bit exec
+        S_IRWXO     00007       other bit mask
+        S_IROTH     00004       other bit read
+        S_IWOTH     00002       other bit write
+        S_IXOTH     00001       other bit exec
+    \*----------------------------------------------------------------*/
     uint32_t        uid;        /*owner id*/
 
     /*8B*/
@@ -140,7 +166,8 @@ typedef struct
     uint32_t        atime_nsec; /*nanosecond of last access time*/
     uint32_t        mtime_nsec; /*nanosecond of last modified time*/
     uint32_t        ctime_nsec; /*nanosecond of last change time*/
-    uint32_t        nlink;      /*number of links (sub-directories or hardlinks?)*/
+    uint32_t        nlink;      /*number of links (sub-directories or hardlinks)*/
+                                /*note: not including regular files*/
 
     uint64_t        next_ino;   /*next link ino*/
 }CXFSNP_ATTR;/*64B*/

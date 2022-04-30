@@ -763,11 +763,18 @@ STATIC_CAST static CXFSNP *__cxfsnp_mgr_get_np(CXFSNP_MGR *cxfsnp_mgr, const uin
     CXFSNP  * cxfsnp;
     uint32_t  cxfsnp_id;
 
-    cxfsnp_id = __cxfsnp_mgr_get_np_id_of_path(cxfsnp_mgr, path_len, path);
-    if(CXFSNP_ERR_ID == cxfsnp_id)
+    if(SWITCH_ON == CXFSFUSE_SWITCH)
     {
-        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:__cxfsnp_mgr_get_np: no np for path %.*s\n", path_len, (char *)path);
-        return (NULL_PTR);
+        cxfsnp_id = 0;
+    }
+    else
+    {
+        cxfsnp_id = __cxfsnp_mgr_get_np_id_of_path(cxfsnp_mgr, path_len, path);
+        if(CXFSNP_ERR_ID == cxfsnp_id)
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:__cxfsnp_mgr_get_np: no np for path %.*s\n", path_len, (char *)path);
+            return (NULL_PTR);
+        }
     }
 
     cxfsnp = cxfsnp_mgr_open_np(cxfsnp_mgr, cxfsnp_id);
@@ -1819,6 +1826,18 @@ EC_BOOL cxfsnp_mgr_ino(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, uint64_
 
         return (EC_TRUE);
     }
+
+    node_pos = cxfsnp_search_no_lock(cxfsnp, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), CXFSNP_ITEM_FILE_IS_DIR);
+    if(CXFSNPRB_ERR_POS != node_pos)
+    {
+        if(NULL_PTR != ino)
+        {
+            (*ino) = CXFSNP_ATTR_INO_MAKE(cxfsnp_id, node_pos);
+        }
+
+        return (EC_TRUE);
+    }
+
     return (EC_FALSE);
 }
 

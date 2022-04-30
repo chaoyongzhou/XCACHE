@@ -825,6 +825,20 @@ EC_BOOL cxfs_rename(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTR
 
 /**
 *
+*  link src file to des file
+*
+**/
+EC_BOOL cxfs_link_file(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path);
+
+/**
+*
+*  link src dir to des dir
+*
+**/
+EC_BOOL cxfs_link_dir(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path);
+
+/**
+*
 *  link src path to des path
 *
 **/

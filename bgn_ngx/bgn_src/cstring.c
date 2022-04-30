@@ -514,7 +514,7 @@ EC_BOOL cstring_mount(CSTRING *cstring, const UINT8 *str, const UINT32 len, cons
 {
     cstring->str      = (UINT8 *)str;
     cstring->len      = len;
-    cstring->capacity = len + 1;
+    cstring->capacity = capacity;
     return (EC_TRUE);
 }
 

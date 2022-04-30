@@ -285,6 +285,8 @@ EC_BOOL c_sector_size(int fd, int *sector_size);
 
 EC_BOOL c_sector_num(int fd, size_t *sector_num);
 
+char *c_realpath(char *path);
+
 char   *c_dirname(const char *path_name);
 
 EC_BOOL c_dir_create(const char *dir_name);

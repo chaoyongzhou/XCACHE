@@ -1910,7 +1910,10 @@ char *c_str_join(const char *delim, const char **fields, const UINT32 size)
 
     for(idx = 0, total_len = 0; idx < size; idx ++)
     {
-        total_len += strlen(fields[ idx ]);
+        if(NULL_PTR != fields[ idx ])
+        {
+            total_len += strlen(fields[ idx ]);
+        }
     }
 
     total_len += delim_len * (size - 1);
@@ -1928,17 +1931,20 @@ char *c_str_join(const char *delim, const char **fields, const UINT32 size)
     ptr = str;
     for(idx = 0; idx < size; idx ++)
     {
-        UINT32 cur_len;
-
-        cur_len = strlen(fields[ idx ]);
-
-        BCOPY(fields[ idx ], ptr, cur_len);
-        ptr += cur_len;
-
-        if(idx + 1 < size)
+        if(NULL_PTR != fields[ idx ])
         {
-            BCOPY(delim, ptr, delim_len);
-            ptr += delim_len;
+            UINT32 cur_len;
+
+            cur_len = strlen(fields[ idx ]);
+
+            BCOPY(fields[ idx ], ptr, cur_len);
+            ptr += cur_len;
+
+            if(idx + 1 < size)
+            {
+                BCOPY(delim, ptr, delim_len);
+                ptr += delim_len;
+            }
         }
     }
 
@@ -3022,6 +3028,83 @@ STATIC_CAST static int __c_file_unlink_func(const char *path, const struct stat 
     }
 
     return 0; /* just continue */
+}
+
+char *c_realpath(char *path)
+{
+    char        *fields[256];
+    uint32_t     num;
+    uint32_t     idx;
+    uint32_t     root_flag;
+    char        *ptr;
+
+    if(NULL_PTR == path)
+    {
+        return (NULL_PTR);
+    }
+
+    if('/' ==  path[0])
+    {
+        root_flag = BIT_TRUE;
+    }
+    else
+    {
+        root_flag = BIT_FALSE;
+    }
+
+    num = c_str_split(path, "/", fields, sizeof(fields)/sizeof(fields[0]));
+    for(idx = 0; idx < num; idx ++)
+    {
+        if(0 == strcmp(fields[idx], "."))
+        {
+            fields[idx] = NULL_PTR;
+            continue;
+        }
+
+        if(0 == strcmp(fields[idx], ".."))
+        {
+            uint32_t j;
+
+            fields[idx] = NULL_PTR;
+            for(j = idx ; j -- > 0;)
+            {
+                if(NULL_PTR != fields[ j ])
+                {
+                    fields[ j ] = NULL_PTR;
+                    break;
+                }
+            }
+        }
+    }
+
+    ptr = path;
+
+    if(BIT_TRUE == root_flag)
+    {
+        *(ptr ++) = '/';
+    }
+
+    for(idx = 0; idx < num; idx ++)
+    {
+        if(NULL_PTR != fields[ idx ])
+        {
+            uint32_t cur_len;
+
+            cur_len = strlen(fields[ idx ]);
+
+            BMOVE(fields[ idx ], ptr, cur_len);
+            ptr += cur_len;
+
+            if(idx + 1 < num)
+            {
+                *(ptr ++) = '/';
+            }
+        }
+    }
+
+    (*ptr) = '\0';
+
+    return (path);
 }
 
 char *c_dirname(const char *path_name)
