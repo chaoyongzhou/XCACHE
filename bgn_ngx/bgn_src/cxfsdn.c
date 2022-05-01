@@ -94,11 +94,15 @@ EC_BOOL cxfsdn_node_write(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 dat
             CXFSDN_WRITER_NUM(cxfsdn) --;
 
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_node_write: "
-                                "flush %ld bytes to node %ld at offset %ld failed\n",
-                                data_max_len, node_id, offset_b + (*offset));
+                                "fd %d, flush %ld bytes to node %ld at offset %ld failed\n",
+                                CXFSDN_SATA_DISK_FD(cxfsdn), data_max_len, node_id, offset_b + (*offset));
 
             return (EC_FALSE);
         }
+
+        dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_node_write: "
+                            "fd %d, flush %ld bytes done => [%ld, %ld)\n",
+                            CXFSDN_SATA_DISK_FD(cxfsdn), data_max_len, offset_b + (*offset), offset_r);
 
         CXFSDN_WRITER_NUM(cxfsdn) --;
     }
@@ -151,12 +155,16 @@ EC_BOOL cxfsdn_node_read(CXFSDN *cxfsdn, const UINT32 node_id, const UINT32 data
             CXFSDN_READER_NUM(cxfsdn) --;
 
             dbg_log(SEC_0191_CXFSDN, 0)(LOGSTDOUT, "error:cxfsdn_node_read: "
-                                "load %ld bytes from node %ld at offset %ld failed\n",
-                                data_max_len, node_id, offset_b + (*offset));
+                                "fd %d, load %ld bytes from node %ld at offset %ld failed\n",
+                                CXFSDN_SATA_DISK_FD(cxfsdn), data_max_len, node_id, offset_b + (*offset));
             return (EC_FALSE);
         }
 
         CXFSDN_READER_NUM(cxfsdn) --;
+
+        dbg_log(SEC_0191_CXFSDN, 9)(LOGSTDOUT, "[DEBUG] cxfsdn_node_read: "
+                            "fd %d, load %ld bytes done => [%ld, %ld)\n",
+                            CXFSDN_SATA_DISK_FD(cxfsdn), data_max_len, offset_b + (*offset), offset_r);
     }
 
     (*offset) = (offset_r - offset_b);

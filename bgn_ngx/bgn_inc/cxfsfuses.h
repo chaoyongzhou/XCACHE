@@ -21,6 +21,14 @@ extern "C"{
 #include "carray.h"
 #include "cvector.h"
 
+#define CXFS_FUSES_BLOCK_SIZE   (4096)
+#define CXFS_FUSES_BLOCK_MASK   (CXFS_FUSES_BLOCK_SIZE - 1)
+
+#define CXFS_FUSES_SECTOR_SIZE  (512)
+#define CXFS_FUSES_SECTOR_MASK  (CXFS_FUSES_SECTOR_SIZE - 1)
+
+#define CXFS_FUSES_SECTOR_NUM(size) (((size) + CXFS_FUSES_SECTOR_SIZE - 1) / CXFS_FUSES_SECTOR_SIZE)
+
 EC_BOOL cxfs_fuses_getattr(const UINT32 cxfs_md_id, const CSTRING *file_path, struct stat *stat, int *res);
 
 EC_BOOL cxfs_fuses_readlink(const UINT32 cxfs_md_id, const CSTRING *path, CSTRING *buf, const UINT32 bufsize, int *res);

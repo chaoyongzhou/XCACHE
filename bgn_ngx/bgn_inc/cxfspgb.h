@@ -936,6 +936,8 @@ extern "C"{
 #define CXFSPGB_PAGE_DESC                ("32M-page")
 #endif/*(CXFSPGB_032M_PAGE_CHOICE == CXFSPGB_PAGE_CHOICE)*/
 
+#define CXFSPGB_PAGE_ALIGN_LO(size)      ((size) & (~(CXFSPGB_PAGE_BYTE_SIZE - 1)))
+#define CXFSPGB_PAGE_ALIGN_HI(size)      CXFSPGB_PAGE_ALIGN_LO((size) + CXFSPGB_PAGE_BYTE_SIZE - 1)
 
 /*--------------------------------------------------------------------------------------------*/
 

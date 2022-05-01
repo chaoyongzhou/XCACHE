@@ -606,7 +606,7 @@ int cxfs_fuseo_open(const char *path, struct fuse_file_info *fi)
 
 	/** Can be filled in by open, to indicate that the file is not
 	    seekable. */
-        fi->nonseekable         = 1;
+        fi->nonseekable         = 0;
 
 	/* Indicates that flock locks for this file should be
 	   released.  If set, lock_owner shall contain a valid value.
@@ -911,7 +911,7 @@ int cxfs_fuseo_opendir(const char *path, struct fuse_file_info *fi)
 
 	/** Can be filled in by open, to indicate that the file is not
 	    seekable. */
-        fi->nonseekable         = 1;
+        fi->nonseekable         = 0;
 
 	/* Indicates that flock locks for this file should be
 	   released.  If set, lock_owner shall contain a valid value.

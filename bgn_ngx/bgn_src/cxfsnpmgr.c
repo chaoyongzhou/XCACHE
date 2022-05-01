@@ -1771,10 +1771,22 @@ EC_BOOL cxfsnp_mgr_update(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, cons
     if(CXFSNPRB_ERR_POS != node_pos)
     {
         CXFSNP_ITEM *cxfsnp_item;
+        CXFSNP_ITEM *cxfsnp_item_parent;
 
         cxfsnp_item = cxfsnp_fetch(cxfsnp, node_pos);
+        cxfsnp_item_parent = cxfsnp_fetch(cxfsnp, CXFSNP_ITEM_PARENT_POS(cxfsnp_item));
+        if(NULL_PTR != cxfsnp_item_parent)
+        {
+            CXFSNP_DNODE    *cxfsnp_dnode_parent;
+            cxfsnp_dnode_parent = CXFSNP_ITEM_DNODE(cxfsnp_item_parent);
+            CXFSNP_DNODE_FILE_SIZE(cxfsnp_dnode_parent) -= CXFSNP_FNODE_FILESZ(CXFSNP_ITEM_FNODE(cxfsnp_item));
+            CXFSNP_DNODE_FILE_SIZE(cxfsnp_dnode_parent) += CXFSNP_FNODE_FILESZ(cxfsnp_fnode);
+        }
+
+        cxfsnp_fnode_import(cxfsnp_fnode, CXFSNP_ITEM_FNODE(cxfsnp_item));
+
         cxfsnpque_node_move_head(cxfsnp, CXFSNP_ITEM_QUE_NODE(cxfsnp_item), node_pos);
-        return cxfsnp_fnode_import(cxfsnp_fnode, CXFSNP_ITEM_FNODE(cxfsnp_item));
+        return (EC_TRUE);
     }
     return (EC_FALSE);
 }
@@ -1882,6 +1894,56 @@ CXFSNP_ITEM *cxfsnp_mgr_fetch_item(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino)
         return (NULL_PTR);
     }
     return (NULL_PTR);
+}
+
+EC_BOOL cxfsnp_mgr_resize(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino, const uint32_t old_size, const uint32_t new_size)
+{
+    CXFSNP_ITEM    *cxfsnp_item;
+    CXFSNP_FNODE   *cxfsnp_fnode;
+
+    CXFSNP_ITEM    *cxfsnp_item_parent;
+    CXFSNP_DNODE   *cxfsnp_dnode_parent;
+
+    uint64_t        ino_parent;
+
+    cxfsnp_item = cxfsnp_mgr_fetch_item(cxfsnp_mgr, ino);
+    if(NULL_PTR == cxfsnp_item)
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_resize: "
+                                                  "ino %lu, "
+                                                  "fetch item failed\n",
+                                                  ino);
+        return (EC_FALSE);
+    }
+
+    if(CXFSNP_ITEM_FILE_IS_REG != CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
+    {
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfs_fuses_write: "
+                                                  "ino %lu, "
+                                                  "item dir flag %x is not regular file\n",
+                                                  ino,
+                                                  CXFSNP_ITEM_DIR_FLAG(cxfsnp_item));
+        return (EC_FALSE);
+    }
+
+    cxfsnp_fnode = CXFSNP_ITEM_FNODE(cxfsnp_item);
+
+    ino_parent = CXFSNP_ATTR_INO_MAKE(CXFSNP_ATTR_INO_FETCH_NP_ID(ino), CXFSNP_ITEM_PARENT_POS(cxfsnp_item));
+
+    cxfsnp_item_parent  = cxfsnp_mgr_fetch_item(cxfsnp_mgr, ino_parent);
+    ASSERT(CXFSNP_ITEM_FILE_IS_DIR == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item_parent));
+    cxfsnp_dnode_parent = CXFSNP_ITEM_DNODE(cxfsnp_item_parent);
+
+    CXFSNP_DNODE_FILE_SIZE(cxfsnp_dnode_parent) -= old_size;
+    CXFSNP_DNODE_FILE_SIZE(cxfsnp_dnode_parent) += new_size;
+    CXFSNP_FNODE_FILESZ(cxfsnp_fnode)            = new_size;
+
+    dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfs_fuses_write: "
+                                              "ino %lu, "
+                                              "resize %u => %u\n",
+                                              ino, old_size, new_size);
+
+    return (EC_TRUE);
 }
 
 STATIC_CAST static EC_BOOL __cxfsnp_mgr_umount_file(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const UINT32 dflag)

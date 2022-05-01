@@ -737,9 +737,9 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* init_type_func         */(UINT32)dbg_init_uint64_ptr,
         /* clean_type_func        */(UINT32)dbg_clean_uint64_ptr,
         /* free_type_func         */(UINT32)dbg_free_uint64_ptr,
-        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_uint64_ptr,
-        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_uint64,
-        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_uint64_ptr_size
+        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_uint64_t_ptr,
+        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_uint64_t,
+        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_uint64_t_ptr_size
     );
     creg_type_conv_vec_add(type_conv_vec,
         /* type                   */e_dbg_CMD5_DIGEST_ptr,

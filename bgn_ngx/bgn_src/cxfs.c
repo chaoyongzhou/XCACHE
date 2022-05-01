@@ -2818,10 +2818,10 @@ EC_BOOL cxfs_flush_sata_bad_bitmap(CXFS_MD *cxfs_md)
 
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "[DEBUG] cxfs_flush_sata_bad_bitmap: "
                                              "flush sata bad bitmap to fd %d "
-                                             "with offset %ld, size %ld done\n",
+                                             "[%ld, %ld) done\n",
                                              CXFS_MD_SATA_META_FD(cxfs_md),
                                              sata_bad_bitmap_offset_saved,
-                                             sata_bad_bitmap_size);
+                                             sata_bad_bitmap_offset_saved + sata_bad_bitmap_size);
     }
 
     return (EC_TRUE);

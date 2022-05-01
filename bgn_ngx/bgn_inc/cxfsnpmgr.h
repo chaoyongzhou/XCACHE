@@ -198,6 +198,8 @@ CXFSNP *cxfsnp_mgr_fetch_np(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino);
 
 CXFSNP_ITEM *cxfsnp_mgr_fetch_item(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino);
 
+EC_BOOL cxfsnp_mgr_resize(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino, const uint32_t old_size, const uint32_t new_size);
+
 EC_BOOL cxfsnp_mgr_umount(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const UINT32 dflag);
 
 EC_BOOL cxfsnp_mgr_umount_deep(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, const UINT32 dflag);

@@ -290,30 +290,30 @@ UINT32 cmpi_decode_uint32_t(const UINT32 comm, const UINT8 *in_buff, const UINT3
     return ((UINT32)0);
 }
 
-UINT32 cmpi_encode_uint64(const UINT32 comm, const uint64_t num, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+UINT32 cmpi_encode_uint64_t(const UINT32 comm, const uint64_t num, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
 {
     cmpi_pack((UINT8 *)&num, 1, CMPI_ULONGLONG, out_buff, out_buff_max_len, position,  comm);
     return ((UINT32)0);
 }
 
-UINT32 cmpi_encode_uint64_ptr(const UINT32 comm, const uint64_t *num, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+UINT32 cmpi_encode_uint64_t_ptr(const UINT32 comm, const uint64_t *num, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
 {
     cmpi_pack((UINT8 *)num, 1, CMPI_ULONGLONG, out_buff, out_buff_max_len, position,  comm);
     return ((UINT32)0);
 }
 
-UINT32 cmpi_encode_uint64_size(const UINT32 comm, const uint64_t num, UINT32 *size)
+UINT32 cmpi_encode_uint64_t_size(const UINT32 comm, const uint64_t num, UINT32 *size)
 {
     cmpi_pack_size(1, CMPI_ULONGLONG, size,  comm);
     return ((UINT32)0);
 }
-UINT32 cmpi_encode_uint64_ptr_size(const UINT32 comm, const uint64_t *num, UINT32 *size)
+UINT32 cmpi_encode_uint64_t_ptr_size(const UINT32 comm, const uint64_t *num, UINT32 *size)
 {
     cmpi_pack_size(1, CMPI_ULONGLONG, size,  comm);
     return ((UINT32)0);
 }
 
-UINT32 cmpi_decode_uint64(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, uint64_t *num)
+UINT32 cmpi_decode_uint64_t(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, uint64_t *num)
 {
     cmpi_unpack(in_buff, in_buff_max_len, position, (UINT8 *)num, 1, CMPI_ULONGLONG, comm);
     return ((UINT32)0);
@@ -3709,12 +3709,12 @@ UINT32 cmpi_encode_chttp_stat(const UINT32 comm, const CHTTP_STAT *chttp_stat, U
     cmpi_encode_uint32_t(comm, CHTTP_STAT_S_SEND_LEN(chttp_stat), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STAT_S_RECV_LEN(chttp_stat), out_buff, out_buff_max_len, position);
 
-    cmpi_encode_uint64(comm, CHTTP_STAT_REQ_S_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint64(comm, CHTTP_STAT_REQ_E_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint64(comm, CHTTP_STAT_REQ_C_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64_t(comm, CHTTP_STAT_REQ_S_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64_t(comm, CHTTP_STAT_REQ_E_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64_t(comm, CHTTP_STAT_REQ_C_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
 
-    cmpi_encode_uint64(comm, CHTTP_STAT_RSP_S_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint64(comm, CHTTP_STAT_RSP_E_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64_t(comm, CHTTP_STAT_RSP_S_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64_t(comm, CHTTP_STAT_RSP_E_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
 
     cmpi_encode_uint32_t(comm, CHTTP_STAT_SSL_SHAKEHAND_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STAT_SSL_SEND_LEN(chttp_stat), out_buff, out_buff_max_len, position);
@@ -3724,21 +3724,21 @@ UINT32 cmpi_encode_chttp_stat(const UINT32 comm, const CHTTP_STAT *chttp_stat, U
     cmpi_encode_uint8_array(comm, CHTTP_STAT_TRACE_ID(chttp_stat), CHTTP_STAT_STR_MAX_SIZE, out_buff, out_buff_max_len, position);
 
     cmpi_encode_uint8_array(comm, CHTTP_STAT_REQ_HOST(chttp_stat), CHTTP_STAT_STR_MAX_SIZE, out_buff, out_buff_max_len, position);
-    cmpi_encode_uint64(comm, CHTTP_STAT_REQ_IPADDR(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64_t(comm, CHTTP_STAT_REQ_IPADDR(chttp_stat), out_buff, out_buff_max_len, position);
 
-    cmpi_encode_uint64(comm, CHTTP_STAT_LOG_BITMAP(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64_t(comm, CHTTP_STAT_LOG_BITMAP(chttp_stat), out_buff, out_buff_max_len, position);
 
-    cmpi_encode_uint64(comm, CHTTP_STAT_BASIC_S_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64_t(comm, CHTTP_STAT_BASIC_S_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
 
-    cmpi_encode_uint64(comm, CHTTP_STAT_BASIC_R_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64_t(comm, CHTTP_STAT_BASIC_R_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
 
-    cmpi_encode_uint64(comm, CHTTP_STAT_BASIC_L_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64_t(comm, CHTTP_STAT_BASIC_L_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
 
-    cmpi_encode_uint64(comm, CHTTP_STAT_BASIC_H_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64_t(comm, CHTTP_STAT_BASIC_H_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
 
-    cmpi_encode_uint64(comm, CHTTP_STAT_BASIC_D_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64_t(comm, CHTTP_STAT_BASIC_D_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
 
-    cmpi_encode_uint64(comm, CHTTP_STAT_BASIC_E_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64_t(comm, CHTTP_STAT_BASIC_E_MSEC(chttp_stat), out_buff, out_buff_max_len, position);
 
     return ((UINT32)0);
 }
@@ -3750,12 +3750,12 @@ UINT32 cmpi_encode_chttp_stat_size(const UINT32 comm, const CHTTP_STAT *chttp_st
     cmpi_encode_uint32_t_size(comm, CHTTP_STAT_S_SEND_LEN(chttp_stat), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STAT_S_RECV_LEN(chttp_stat), size);
 
-    cmpi_encode_uint64_size(comm, CHTTP_STAT_REQ_S_MSEC(chttp_stat), size);
-    cmpi_encode_uint64_size(comm, CHTTP_STAT_REQ_E_MSEC(chttp_stat), size);
-    cmpi_encode_uint64_size(comm, CHTTP_STAT_REQ_C_MSEC(chttp_stat), size);
+    cmpi_encode_uint64_t_size(comm, CHTTP_STAT_REQ_S_MSEC(chttp_stat), size);
+    cmpi_encode_uint64_t_size(comm, CHTTP_STAT_REQ_E_MSEC(chttp_stat), size);
+    cmpi_encode_uint64_t_size(comm, CHTTP_STAT_REQ_C_MSEC(chttp_stat), size);
 
-    cmpi_encode_uint64_size(comm, CHTTP_STAT_RSP_S_MSEC(chttp_stat), size);
-    cmpi_encode_uint64_size(comm, CHTTP_STAT_RSP_E_MSEC(chttp_stat), size);
+    cmpi_encode_uint64_t_size(comm, CHTTP_STAT_RSP_S_MSEC(chttp_stat), size);
+    cmpi_encode_uint64_t_size(comm, CHTTP_STAT_RSP_E_MSEC(chttp_stat), size);
 
     cmpi_encode_uint32_t_size(comm, CHTTP_STAT_SSL_SHAKEHAND_MSEC(chttp_stat), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STAT_SSL_SEND_LEN(chttp_stat), size);
@@ -3765,21 +3765,21 @@ UINT32 cmpi_encode_chttp_stat_size(const UINT32 comm, const CHTTP_STAT *chttp_st
     cmpi_encode_uint8_array_size(comm, CHTTP_STAT_TRACE_ID(chttp_stat), CHTTP_STAT_STR_MAX_SIZE, size);
 
     cmpi_encode_uint8_array_size(comm, CHTTP_STAT_REQ_HOST(chttp_stat), CHTTP_STAT_STR_MAX_SIZE, size);
-    cmpi_encode_uint64_size(comm, CHTTP_STAT_REQ_IPADDR(chttp_stat), size);
+    cmpi_encode_uint64_t_size(comm, CHTTP_STAT_REQ_IPADDR(chttp_stat), size);
 
-    cmpi_encode_uint64_size(comm, CHTTP_STAT_LOG_BITMAP(chttp_stat), size);
+    cmpi_encode_uint64_t_size(comm, CHTTP_STAT_LOG_BITMAP(chttp_stat), size);
 
-    cmpi_encode_uint64_size(comm, CHTTP_STAT_BASIC_S_MSEC(chttp_stat), size);
+    cmpi_encode_uint64_t_size(comm, CHTTP_STAT_BASIC_S_MSEC(chttp_stat), size);
 
-    cmpi_encode_uint64_size(comm, CHTTP_STAT_BASIC_R_MSEC(chttp_stat), size);
+    cmpi_encode_uint64_t_size(comm, CHTTP_STAT_BASIC_R_MSEC(chttp_stat), size);
 
-    cmpi_encode_uint64_size(comm, CHTTP_STAT_BASIC_L_MSEC(chttp_stat), size);
+    cmpi_encode_uint64_t_size(comm, CHTTP_STAT_BASIC_L_MSEC(chttp_stat), size);
 
-    cmpi_encode_uint64_size(comm, CHTTP_STAT_BASIC_H_MSEC(chttp_stat), size);
+    cmpi_encode_uint64_t_size(comm, CHTTP_STAT_BASIC_H_MSEC(chttp_stat), size);
 
-    cmpi_encode_uint64_size(comm, CHTTP_STAT_BASIC_D_MSEC(chttp_stat), size);
+    cmpi_encode_uint64_t_size(comm, CHTTP_STAT_BASIC_D_MSEC(chttp_stat), size);
 
-    cmpi_encode_uint64_size(comm, CHTTP_STAT_BASIC_E_MSEC(chttp_stat), size);
+    cmpi_encode_uint64_t_size(comm, CHTTP_STAT_BASIC_E_MSEC(chttp_stat), size);
 
     return ((UINT32)0);
 }
@@ -3811,12 +3811,12 @@ UINT32 cmpi_decode_chttp_stat(const UINT32 comm, const UINT8 *in_buff, const UIN
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_S_SEND_LEN(chttp_stat));
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_S_RECV_LEN(chttp_stat));
 
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_REQ_S_MSEC(chttp_stat));
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_REQ_E_MSEC(chttp_stat));
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_REQ_C_MSEC(chttp_stat));
+    cmpi_decode_uint64_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_REQ_S_MSEC(chttp_stat));
+    cmpi_decode_uint64_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_REQ_E_MSEC(chttp_stat));
+    cmpi_decode_uint64_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_REQ_C_MSEC(chttp_stat));
 
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_RSP_S_MSEC(chttp_stat));
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_RSP_E_MSEC(chttp_stat));
+    cmpi_decode_uint64_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_RSP_S_MSEC(chttp_stat));
+    cmpi_decode_uint64_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_RSP_E_MSEC(chttp_stat));
 
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_SSL_SHAKEHAND_MSEC(chttp_stat));
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_SSL_SEND_LEN(chttp_stat));
@@ -3826,21 +3826,21 @@ UINT32 cmpi_decode_chttp_stat(const UINT32 comm, const UINT8 *in_buff, const UIN
     cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, CHTTP_STAT_TRACE_ID(chttp_stat), &len);
 
     cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, CHTTP_STAT_REQ_HOST(chttp_stat), &len);
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_REQ_IPADDR(chttp_stat));
+    cmpi_decode_uint64_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_REQ_IPADDR(chttp_stat));
 
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_LOG_BITMAP(chttp_stat));
+    cmpi_decode_uint64_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_LOG_BITMAP(chttp_stat));
 
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_S_MSEC(chttp_stat));
+    cmpi_decode_uint64_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_S_MSEC(chttp_stat));
 
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_R_MSEC(chttp_stat));
+    cmpi_decode_uint64_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_R_MSEC(chttp_stat));
 
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_L_MSEC(chttp_stat));
+    cmpi_decode_uint64_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_L_MSEC(chttp_stat));
 
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_H_MSEC(chttp_stat));
+    cmpi_decode_uint64_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_H_MSEC(chttp_stat));
 
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_D_MSEC(chttp_stat));
+    cmpi_decode_uint64_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_D_MSEC(chttp_stat));
 
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_E_MSEC(chttp_stat));
+    cmpi_decode_uint64_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STAT_BASIC_E_MSEC(chttp_stat));
 
     return ((UINT32)0);
 }
@@ -3892,7 +3892,7 @@ UINT32 cmpi_encode_chttp_store(const UINT32 comm, const CHTTP_STORE *chttp_store
     cmpi_encode_uint32_t(comm, CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_cstring(comm, CHTTP_STORE_ETAG(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_cstring(comm, CHTTP_STORE_LAST_MODIFIED(chttp_store), out_buff, out_buff_max_len, position);
-    cmpi_encode_uint64(comm, CHTTP_STORE_CONTENT_LENGTH(chttp_store), out_buff, out_buff_max_len, position);
+    cmpi_encode_uint64_t(comm, CHTTP_STORE_CONTENT_LENGTH(chttp_store), out_buff, out_buff_max_len, position);
     cmpi_encode_uint32_t(comm, CHTTP_STORE_USE_GZIP_FLAG(chttp_store), out_buff, out_buff_max_len, position);
 
     cmpi_encode_uint32_t(comm, CHTTP_STORE_CACHE_ALLOW(chttp_store), out_buff, out_buff_max_len, position);
@@ -3949,7 +3949,7 @@ UINT32 cmpi_encode_chttp_store_size(const UINT32 comm, const CHTTP_STORE *chttp_
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_LAST_MODIFIED_SWITCH(chttp_store), size);
     cmpi_encode_cstring_size(comm, CHTTP_STORE_ETAG(chttp_store), size);
     cmpi_encode_cstring_size(comm, CHTTP_STORE_LAST_MODIFIED(chttp_store), size);
-    cmpi_encode_uint64_size(comm, CHTTP_STORE_CONTENT_LENGTH(chttp_store), size);
+    cmpi_encode_uint64_t_size(comm, CHTTP_STORE_CONTENT_LENGTH(chttp_store), size);
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_USE_GZIP_FLAG(chttp_store), size);
 
     cmpi_encode_uint32_t_size(comm, CHTTP_STORE_CACHE_ALLOW(chttp_store), size);
@@ -4044,7 +4044,7 @@ UINT32 cmpi_decode_chttp_store(const UINT32 comm, const UINT8 *in_buff, const UI
 
     cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CHTTP_STORE_ETAG(chttp_store));
     cmpi_decode_cstring(comm, in_buff, in_buff_max_len, position, CHTTP_STORE_LAST_MODIFIED(chttp_store));
-    cmpi_decode_uint64(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_CONTENT_LENGTH(chttp_store));
+    cmpi_decode_uint64_t(comm, in_buff, in_buff_max_len, position, &CHTTP_STORE_CONTENT_LENGTH(chttp_store));
 
     cmpi_decode_uint32_t(comm, in_buff, in_buff_max_len, position, &(flag));
     CHTTP_STORE_USE_GZIP_FLAG(chttp_store) = flag;
