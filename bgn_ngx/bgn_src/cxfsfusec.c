@@ -929,7 +929,7 @@ int cxfs_fusec_removexattr(const char *path, const char *name)
 }
 
 /*int (*access) (const char *, int);*/
-int cxfs_fusec_access(const char *path, UINT32 mask)
+int cxfs_fusec_access(const char *path, UINT32 mask, UINT32 *mode)
 {
     CSTRING         path_arg;
 
@@ -946,7 +946,7 @@ int cxfs_fusec_access(const char *path, UINT32 mask)
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cxfs_fusec_get_remote_mod_node(),
              &ret,
-             FI_cxfs_fuses_access, CMPI_ERROR_MODI, &path_arg, mask, &res);
+             FI_cxfs_fuses_access, CMPI_ERROR_MODI, &path_arg, mask, mode, &res);
 
     if(EC_FALSE == ret)
     {

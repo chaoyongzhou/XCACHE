@@ -649,7 +649,7 @@ UINT32 dbg_free_uint32_ptr(UINT32 *num)
 * init uint64_t
 *
 **/
-uint64_t dbg_init_uint64_ptr(uint64_t *num)
+uint64_t dbg_init_uint64_t_ptr(uint64_t *num)
 {
     (*num) = 0;
     return (0);
@@ -660,7 +660,7 @@ uint64_t dbg_init_uint64_ptr(uint64_t *num)
 * init uint64_t
 *
 **/
-uint64_t dbg_clean_uint64_ptr(uint64_t *num)
+uint64_t dbg_clean_uint64_t_ptr(uint64_t *num)
 {
     (*num) = 0;
     return (0);
@@ -671,11 +671,80 @@ uint64_t dbg_clean_uint64_ptr(uint64_t *num)
 * free uint64_t
 *
 **/
-uint64_t dbg_free_uint64_ptr(uint64_t *num)
+uint64_t dbg_free_uint64_t_ptr(uint64_t *num)
 {
     (*num) = 0;
     return (0);
 }
+
+/**
+*
+* init uint32_t
+*
+**/
+uint32_t dbg_init_uint32_t_ptr(uint32_t *num)
+{
+    (*num) = 0;
+    return (0);
+}
+
+/**
+*
+* init uint32_t
+*
+**/
+uint32_t dbg_clean_uint32_t_ptr(uint32_t *num)
+{
+    (*num) = 0;
+    return (0);
+}
+
+/**
+*
+* free uint32_t
+*
+**/
+uint32_t dbg_free_uint32_t_ptr(uint32_t *num)
+{
+    (*num) = 0;
+    return (0);
+}
+
+
+
+/**
+*
+* init uint16_t
+*
+**/
+uint16_t dbg_init_uint16_t_ptr(uint16_t *num)
+{
+    (*num) = 0;
+    return (0);
+}
+
+/**
+*
+* init uint16_t
+*
+**/
+uint16_t dbg_clean_uint16_t_ptr(uint16_t *num)
+{
+    (*num) = 0;
+    return (0);
+}
+
+/**
+*
+* free uint16_t
+*
+**/
+uint16_t dbg_free_uint16_t_ptr(uint16_t *num)
+{
+    (*num) = 0;
+    return (0);
+}
+
 
 #ifdef __cplusplus
 }

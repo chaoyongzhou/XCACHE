@@ -2247,7 +2247,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_access(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mask, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_access(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mask, UINT32 *mode, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_access,
 /*func beg addr   */     0,
@@ -2256,9 +2256,9 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func name       */     "cxfs_fuses_access",
 /*func index      */     FI_cxfs_fuses_access,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     4,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_int_ptr,},
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32_ptr,e_dbg_int_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {

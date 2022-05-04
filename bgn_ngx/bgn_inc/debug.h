@@ -89,8 +89,8 @@ extern "C"{
 #define                  e_dbg_CLIST_ptr    ((UINT32) 52)
 #define                  e_dbg_00053_ptr    ((UINT32) 53) /*-- obsolete --*/
 #define                  e_dbg_00054_ptr    ((UINT32) 54)
-#define                  e_dbg_00055_ptr    ((UINT32) 55) /*-- obsolete --*/
-#define                  e_dbg_00056_ptr    ((UINT32) 56) /*-- obsolete --*/
+#define               e_dbg_uint16_t_ptr    ((UINT32) 55)
+#define               e_dbg_uint32_t_ptr    ((UINT32) 56)
 #define               e_dbg_uint64_t_ptr    ((UINT32) 57)
 #define                  e_dbg_00058_ptr    ((UINT32) 58) /*-- obsolete --*/
 #define            e_dbg_CMD5_DIGEST_ptr    ((UINT32) 59)
@@ -394,20 +394,60 @@ UINT32 dbg_free_uint32_ptr(UINT32 *num);
 * init uint64_t
 *
 **/
-uint64_t dbg_init_uint64_ptr(uint64_t *num);
+uint64_t dbg_init_uint64_t_ptr(uint64_t *num);
 
 /**
 *
 * init uint64_t
 *
 **/
-uint64_t dbg_clean_uint64_ptr(uint64_t *num);
+uint64_t dbg_clean_uint64_t_ptr(uint64_t *num);
 /**
 *
 * free uint64_t
 *
 **/
-uint64_t dbg_free_uint64_ptr(uint64_t *num);
+uint64_t dbg_free_uint64_t_ptr(uint64_t *num);
+
+/**
+*
+* init uint32_t
+*
+**/
+uint32_t dbg_init_uint32_t_ptr(uint32_t *num);
+
+/**
+*
+* init uint32_t
+*
+**/
+uint32_t dbg_clean_uint32_t_ptr(uint32_t *num);
+/**
+*
+* free uint32_t
+*
+**/
+uint32_t dbg_free_uint32_t_ptr(uint32_t *num);
+
+/**
+*
+* init uint16_t
+*
+**/
+uint16_t dbg_init_uint16_t_ptr(uint16_t *num);
+
+/**
+*
+* init uint16_t
+*
+**/
+uint16_t dbg_clean_uint16_t_ptr(uint16_t *num);
+/**
+*
+* free uint16_t
+*
+**/
+uint16_t dbg_free_uint16_t_ptr(uint16_t *num);
 
 #endif /*_DEBUG_H*/
 

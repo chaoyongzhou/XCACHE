@@ -1805,7 +1805,7 @@ CXFSNP *cxfsnp_mgr_fetch_specific_np(CXFSNP_MGR *cxfsnp_mgr, const uint32_t cxfs
 }
 
 /*ino = inode no = np id | node_pos*/
-EC_BOOL cxfsnp_mgr_ino(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, uint64_t *ino)
+EC_BOOL cxfsnp_mgr_ino(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, const uint32_t dflag, uint64_t *ino)
 {
     CXFSNP *cxfsnp;
     uint32_t cxfsnp_id;
@@ -1828,18 +1828,7 @@ EC_BOOL cxfsnp_mgr_ino(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *file_path, uint64_
         return (EC_FALSE);
     }
 
-    node_pos = cxfsnp_search_no_lock(cxfsnp, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), CXFSNP_ITEM_FILE_IS_REG);
-    if(CXFSNPRB_ERR_POS != node_pos)
-    {
-        if(NULL_PTR != ino)
-        {
-            (*ino) = CXFSNP_ATTR_INO_MAKE(cxfsnp_id, node_pos);
-        }
-
-        return (EC_TRUE);
-    }
-
-    node_pos = cxfsnp_search_no_lock(cxfsnp, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), CXFSNP_ITEM_FILE_IS_DIR);
+    node_pos = cxfsnp_search_no_lock(cxfsnp, (uint32_t)cstring_get_len(file_path), cstring_get_str(file_path), dflag);
     if(CXFSNPRB_ERR_POS != node_pos)
     {
         if(NULL_PTR != ino)
@@ -1896,6 +1885,158 @@ CXFSNP_ITEM *cxfsnp_mgr_fetch_item(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino)
     return (NULL_PTR);
 }
 
+EC_BOOL cxfsnp_mgr_relative_path(CXFSNP_MGR *cxfsnp_mgr, const uint64_t src_ino, const uint64_t des_ino, CSTRING *path)
+{
+    if(CXFSNP_ATTR_INO_FETCH_NP_ID(des_ino) == CXFSNP_ATTR_INO_FETCH_NP_ID(src_ino))
+    {
+        CXFSNP   *cxfsnp;
+
+        cxfsnp = cxfsnp_mgr_fetch_np(cxfsnp_mgr, des_ino);
+        if(NULL_PTR == cxfsnp)
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_relative_path: "
+                                                      "ino %lu, "
+                                                      "fetch np failed\n",
+                                                      des_ino);
+            return (EC_FALSE);
+        }
+        return cxfsnp_relative_path_name_cstr(cxfsnp,
+                                              CXFSNP_ATTR_INO_FETCH_NODE_POS(src_ino),
+                                              CXFSNP_ATTR_INO_FETCH_NODE_POS(des_ino),
+                                              path);
+    }
+    else
+    {
+        CXFSNP   *cxfsnp_src;
+        CXFSNP   *cxfsnp_des;
+
+        CSTACK   *cstack_src;
+        CSTACK   *cstack_des;
+
+        cxfsnp_src = cxfsnp_mgr_fetch_np(cxfsnp_mgr, src_ino);
+        if(NULL_PTR == cxfsnp_src)
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_relative_path: "
+                                                      "src ino %lu, "
+                                                      "fetch np failed\n",
+                                                      src_ino);
+            return (EC_FALSE);
+        }
+
+        cxfsnp_des = cxfsnp_mgr_fetch_np(cxfsnp_mgr, des_ino);
+        if(NULL_PTR == cxfsnp_des)
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_relative_path: "
+                                                      "des ino %lu, "
+                                                      "fetch np failed\n",
+                                                      des_ino);
+            return (EC_FALSE);
+        }
+
+        cstack_src = cstack_new(MM_IGNORE, LOC_CXFSNPMGR_0005);
+        if(NULL_PTR == cstack_src)
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_relative_path: "
+                                                      "src ino %lu, "
+                                                      "new src stack failed\n",
+                                                      src_ino);
+            return (EC_FALSE);
+        }
+        cstack_des = cstack_new(MM_IGNORE, LOC_CXFSNPMGR_0006);
+        if(NULL_PTR == cstack_des)
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_relative_path: "
+                                                      "des ino %lu, "
+                                                      "new des stack failed\n",
+                                                      des_ino);
+
+            cstack_free(cstack_src, LOC_CXFSNPMGR_0007);
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == cxfsnp_path_seg_stack(cxfsnp_src, CXFSNP_ATTR_INO_FETCH_NODE_POS(src_ino), cstack_src))
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_relative_path: "
+                                                      "src ino %lu, "
+                                                      "path seg stack failed\n",
+                                                      src_ino);
+
+            cstack_clean(cstack_src, NULL_PTR);
+            cstack_free(cstack_src, LOC_CXFSNPMGR_0008);
+
+            cstack_clean(cstack_des, NULL_PTR);
+            cstack_free(cstack_des, LOC_CXFSNPMGR_0009);
+            return (EC_FALSE);
+        }
+
+        if(EC_FALSE == cxfsnp_path_seg_stack(cxfsnp_des, CXFSNP_ATTR_INO_FETCH_NODE_POS(des_ino), cstack_des))
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_relative_path: "
+                                                      "des ino %lu, "
+                                                      "path seg stack failed\n",
+                                                      des_ino);
+
+            cstack_clean(cstack_des, NULL_PTR);
+            cstack_free(cstack_des, LOC_CXFSNPMGR_0010);
+
+            cstack_clean(cstack_des, NULL_PTR);
+            cstack_free(cstack_des, LOC_CXFSNPMGR_0011);
+            return (EC_FALSE);
+        }
+
+        cstring_format(path, "../");
+
+        while(EC_FALSE == cstack_is_empty(cstack_src)
+           && EC_FALSE == cstack_is_empty(cstack_des))
+        {
+            CXFSNP_ITEM *cxfsnp_item_src;
+            CXFSNP_ITEM *cxfsnp_item_des;
+            uint32_t     node_pos_src;
+            uint32_t     node_pos_des;
+
+            node_pos_src     = (uint32_t)(uintptr_t)cstack_pop(cstack_src);
+            node_pos_des     = (uint32_t)(uintptr_t)cstack_pop(cstack_des);
+
+            cxfsnp_item_src  = cxfsnp_fetch(cxfsnp_src, node_pos_src);
+            cxfsnp_item_des  = cxfsnp_fetch(cxfsnp_src, node_pos_des);
+
+            if(CXFSNP_ITEM_FILE_IS_DIR == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item_des))
+            {
+                cstring_format(path, "%.*s/", CXFSNP_ITEM_KLEN(cxfsnp_item_des),
+                                              (char *)CXFSNP_ITEM_KNAME(cxfsnp_item_des));
+            }
+            else if(CXFSNP_ITEM_FILE_IS_REG == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item_des))
+            {
+                cstring_format(path, "%.*s", CXFSNP_ITEM_KLEN(cxfsnp_item_des),
+                                             (char *)CXFSNP_ITEM_KNAME(cxfsnp_item_des));
+            }
+            else
+            {
+                dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_relative_path: "
+                                                          "des ino %lu, "
+                                                          "np %u, invalid dir flag %u at node %u\n",
+                                                          CXFSNP_ID(cxfsnp_des),
+                                                          CXFSNP_ITEM_DIR_FLAG(cxfsnp_item_des),
+                                                          node_pos_des);
+            }
+
+            if(EC_FALSE == cxfsnp_item_cmp(cxfsnp_item_src, cxfsnp_item_des))
+            {
+                break;
+            }
+        }
+
+        cstack_clean(cstack_des, NULL_PTR);
+        cstack_free(cstack_des, LOC_CXFSNPMGR_0012);
+
+        cstack_clean(cstack_des, NULL_PTR);
+        cstack_free(cstack_des, LOC_CXFSNPMGR_0013);
+    }
+
+    /*never reach here*/
+    return (EC_FALSE);
+}
+
 EC_BOOL cxfsnp_mgr_resize(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino, const uint32_t old_size, const uint32_t new_size)
 {
     CXFSNP_ITEM    *cxfsnp_item;
@@ -1918,7 +2059,7 @@ EC_BOOL cxfsnp_mgr_resize(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino, const uint
 
     if(CXFSNP_ITEM_FILE_IS_REG != CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
     {
-        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfs_fuses_write: "
+        dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_resize: "
                                                   "ino %lu, "
                                                   "item dir flag %x is not regular file\n",
                                                   ino,
@@ -1938,7 +2079,7 @@ EC_BOOL cxfsnp_mgr_resize(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino, const uint
     CXFSNP_DNODE_FILE_SIZE(cxfsnp_dnode_parent) += new_size;
     CXFSNP_FNODE_FILESZ(cxfsnp_fnode)            = new_size;
 
-    dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfs_fuses_write: "
+    dbg_log(SEC_0190_CXFSNPMGR, 9)(LOGSTDOUT, "[DEBUG] cxfsnp_mgr_resize: "
                                               "ino %lu, "
                                               "resize %u => %u\n",
                                               ino, old_size, new_size);
@@ -2321,7 +2462,7 @@ EC_BOOL cxfsnp_mgr_list_path_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, 
         return (EC_TRUE);
     }
 
-    cur_path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CXFSNPMGR_0005);
+    cur_path_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CXFSNPMGR_0014);
     if(NULL_PTR == cur_path_cstr_vec)
     {
         dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_list_path_of_np: new cur_path_cstr_vec failed\n");
@@ -2330,8 +2471,8 @@ EC_BOOL cxfsnp_mgr_list_path_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, 
 
     if(EC_FALSE == cxfsnp_list_path_vec(cxfsnp, node_pos, cur_path_cstr_vec))
     {
-        cvector_clean(cur_path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CXFSNPMGR_0006);
-        cvector_free(cur_path_cstr_vec, LOC_CXFSNPMGR_0007);
+        cvector_clean(cur_path_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CXFSNPMGR_0015);
+        cvector_free(cur_path_cstr_vec, LOC_CXFSNPMGR_0016);
 
         dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_list_path_of_np: list path %s in np %u failed\n",
                            (char *)cstring_get_str(path), cxfsnp_id);
@@ -2343,7 +2484,7 @@ EC_BOOL cxfsnp_mgr_list_path_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, 
         /*merge*/
         cvector_merge_direct_no_lock(cur_path_cstr_vec, path_cstr_vec);
     }
-    cvector_free(cur_path_cstr_vec, LOC_CXFSNPMGR_0008);
+    cvector_free(cur_path_cstr_vec, LOC_CXFSNPMGR_0017);
 
     return (EC_TRUE);
 }
@@ -2386,7 +2527,7 @@ EC_BOOL cxfsnp_mgr_list_seg_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, c
         return (EC_TRUE);
     }
 
-    cur_seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CXFSNPMGR_0009);
+    cur_seg_cstr_vec = cvector_new(0, MM_CSTRING, LOC_CXFSNPMGR_0018);
     if(NULL_PTR == cur_seg_cstr_vec)
     {
         dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_list_seg_of_np: new cur_seg_cstr_vec failed\n");
@@ -2395,8 +2536,8 @@ EC_BOOL cxfsnp_mgr_list_seg_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, c
 
     if(EC_FALSE == cxfsnp_list_seg_vec(cxfsnp, node_pos, cur_seg_cstr_vec))
     {
-        cvector_clean(cur_seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CXFSNPMGR_0010);
-        cvector_free(cur_seg_cstr_vec, LOC_CXFSNPMGR_0011);
+        cvector_clean(cur_seg_cstr_vec, (CVECTOR_DATA_CLEANER)cstring_free, LOC_CXFSNPMGR_0019);
+        cvector_free(cur_seg_cstr_vec, LOC_CXFSNPMGR_0020);
 
         dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_list_seg_of_np: list seg of path %s in np %u failed\n",
                            (char *)cstring_get_str(path), cxfsnp_id);
@@ -2408,7 +2549,7 @@ EC_BOOL cxfsnp_mgr_list_seg_of_np(CXFSNP_MGR *cxfsnp_mgr, const CSTRING *path, c
         /*merge*/
         cvector_merge_direct_no_lock(cur_seg_cstr_vec, seg_cstr_vec);
     }
-    cvector_free(cur_seg_cstr_vec, LOC_CXFSNPMGR_0012);
+    cvector_free(cur_seg_cstr_vec, LOC_CXFSNPMGR_0021);
 
     return (EC_TRUE);
 }

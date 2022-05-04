@@ -806,16 +806,18 @@ int cxfs_fuseo_removexattr(const char *path, const char *name)
 /*int (*access) (const char *, int);*/
 int cxfs_fuseo_access(const char *path, int mask)
 {
+    UINT32    mode;
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_access");
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_access);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
     CXFS_FUSEO_TASK_PARA_VAL_SET(1, mask);
-    CXFS_FUSEO_TASK_PARA_NUM_SET(2);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, (uintptr_t)&mode);
+    CXFS_FUSEO_TASK_PARA_NUM_SET(3);
 
     CXFS_FUSEO_TASK_EMIT();
 
-    if(0 == CXFS_FUSEO_TASK_RET_VAL_GET())
+    if(0 == CXFS_FUSEO_TASK_RET_VAL_GET() && (((uint16_t)mode) & S_IFDIR))
     {
         __cxfs_fuseo_set_cwd(path);
         dbg_log(SEC_0071_CXFS_FUSEO, 9)(LOGSTDOUT, "[DEBUG] cxfs_fuseo_access: "

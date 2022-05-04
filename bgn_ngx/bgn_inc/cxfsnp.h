@@ -135,6 +135,8 @@ void cxfsnp_item_print(LOG *log, const CXFSNP_ITEM *cxfsnp_item);
 
 void cxfsnp_item_and_key_print(LOG *log, const CXFSNP_ITEM *cxfsnp_item);
 
+EC_BOOL cxfsnp_item_cmp(const CXFSNP_ITEM *cxfsnp_item_src, const CXFSNP_ITEM *cxfsnp_item_des);
+
 EC_BOOL cxfsnp_item_is(const CXFSNP_ITEM *cxfsnp_item, const uint32_t klen, const uint8_t *key);
 
 CXFSNP_ITEM *cxfsnp_item_parent(const CXFSNP *cxfsnp, const CXFSNP_ITEM *cxfsnp_item);
@@ -308,6 +310,10 @@ EC_BOOL cxfsnp_path_name(const CXFSNP *cxfsnp, const uint32_t node_pos, const ui
 EC_BOOL cxfsnp_path_name_cstr(const CXFSNP *cxfsnp, const uint32_t node_pos, CSTRING *path_cstr);
 
 EC_BOOL cxfsnp_relative_path_name_cstr(const CXFSNP *cxfsnp, const uint32_t node_pos_src, const uint32_t node_pos_des, CSTRING *path_cstr);
+
+EC_BOOL cxfsnp_path_seg_stack(const CXFSNP *cxfsnp, const uint32_t node_pos, CSTACK *cstack);
+
+EC_BOOL cxfsnp_path_seg_join(const CXFSNP *cxfsnp, CSTACK *cstack, CSTRING *path_cstr);
 
 EC_BOOL cxfsnp_seg_name(const CXFSNP *cxfsnp, const uint32_t offset, const uint32_t seg_name_max_len, uint32_t *seg_name_len, uint8_t *seg_name);
 

@@ -118,10 +118,14 @@ typedef struct
 
 #define CXFSNP_ATTR_ERR_INO                      ((uint64_t)(~((uint64_t)0)))
 
+#define CXFSNP_ATTR_FUSES_IS_ERR                 ((uint16_t) 0x0000)
+#define CXFSNP_ATTR_FUSES_IS_DIR                 ((uint16_t) 0x0001)  /*fuse directory*/
+#define CXFSNP_ATTR_FUSES_IS_REG                 ((uint16_t) 0x0002)  /*fuse regular file*/
+
 typedef struct
 {
     /*8B*/
-    uint16_t        rsvd;
+    uint16_t        flag;
     uint16_t        mode;
     /*----------------------------------------------------------------*\
       mode definition:
@@ -172,6 +176,7 @@ typedef struct
     uint64_t        next_ino;   /*next link ino*/
 }CXFSNP_ATTR;/*64B*/
 
+#define CXFSNP_ATTR_FLAG(cxfsnp_attr)            ((cxfsnp_attr)->flag)
 #define CXFSNP_ATTR_MODE(cxfsnp_attr)            ((cxfsnp_attr)->mode)
 #define CXFSNP_ATTR_UID(cxfsnp_attr)             ((cxfsnp_attr)->uid)
 #define CXFSNP_ATTR_GID(cxfsnp_attr)             ((cxfsnp_attr)->gid)
@@ -273,15 +278,6 @@ typedef struct
 /*get CXFSNP_ITEM from CXFSNPDEL_NODE*/
 #define CXFSNP_DEL_NODE_ITEM(cxfsnpdel_node)        ((NULL_PTR == (cxfsnpdel_node)) ? NULL_PTR : \
     ((CXFSNP_ITEM *)((char *)(cxfsnpdel_node)-(unsigned long)(&((CXFSNP_ITEM *)0)->del_node))))
-
-#define CXFSNP_ITEM_IS_REG(cxfsnp_item)            (CXFSNP_ITEM_FILE_IS_REG == (CXFSNP_ITEM_FILE_IS_REG & CXFSNP_ITEM_DIR_FLAG(cxfsnp_item)))
-#define CXFSNP_ITEM_IS_DIR(cxfsnp_item)            (CXFSNP_ITEM_FILE_IS_DIR == (CXFSNP_ITEM_FILE_IS_DIR & CXFSNP_ITEM_DIR_FLAG(cxfsnp_item)))
-
-#define CXFSNP_ITEM_IS_NOT_REG(cxfsnp_item)        (CXFSNP_ITEM_FILE_IS_REG != (CXFSNP_ITEM_FILE_IS_REG & CXFSNP_ITEM_DIR_FLAG(cxfsnp_item)))
-#define CXFSNP_ITEM_IS_NOT_DIR(cxfsnp_item)        (CXFSNP_ITEM_FILE_IS_DIR != (CXFSNP_ITEM_FILE_IS_DIR & CXFSNP_ITEM_DIR_FLAG(cxfsnp_item)))
-
-#define CXFSNP_ITEM_IS_INVALID(cxfsnp_item)        ((CXFSNP_ITEM_FILE_IS_REG | CXFSNP_ITEM_FILE_IS_DIR) & CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
-#define CXFSNP_ITEM_IS_NOT_INVALID(cxfsnp_item)    (0 == ((CXFSNP_ITEM_FILE_IS_REG | CXFSNP_ITEM_FILE_IS_DIR) & CXFSNP_ITEM_DIR_FLAG(cxfsnp_item)) )
 
 #if (CXFSNP_KEY_SIZE_255B == CXFSNP_KEY_MAX_SIZE)
 /*item max num = [file size / 1280] * 4*/

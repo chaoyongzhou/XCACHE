@@ -13252,7 +13252,7 @@ EC_BOOL api_cmd_ui_cxfs_fuses_getattr(CMD_PARA_VEC * param)
         {
             sys_log(des_log, "st_dev     = %d\n", stat.st_dev);
             sys_log(des_log, "st_ino     = %d\n", stat.st_ino);
-            sys_log(des_log, "st_mode    = %d\n", stat.st_mode);
+            sys_log(des_log, "st_mode    = %#o\n", stat.st_mode);
             sys_log(des_log, "st_nlink   = %d\n", stat.st_nlink);
             sys_log(des_log, "st_uid     = %d\n", stat.st_uid);
             sys_log(des_log, "st_gid     = %d\n", stat.st_gid);

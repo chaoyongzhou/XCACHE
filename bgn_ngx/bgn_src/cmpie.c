@@ -5011,6 +5011,27 @@ UINT32 cmpi_decode_cmon_node(const UINT32 comm, const UINT8 *in_buff, const UINT
 #endif
 
 #if 1
+UINT32 cmpi_encode_uint16_t(const UINT32 comm, const uint16_t *num, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
+{
+    cmpi_encode_uint8_array(comm, (UINT8 *)num, sizeof(uint16_t), out_buff, out_buff_max_len, position);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_encode_uint16_t_size(const UINT32 comm, const uint16_t *num, UINT32 *size)
+{
+    cmpi_encode_uint8_array_size(comm, (UINT8 *)num, sizeof(uint16_t), size);
+    return ((UINT32)0);
+}
+
+UINT32 cmpi_decode_uint16_t(const UINT32 comm, const UINT8 *in_buff, const UINT32 in_buff_max_len, UINT32 *position, uint16_t *num)
+{
+    UINT32      len;
+    cmpi_decode_uint8_array(comm, in_buff, in_buff_max_len, position, (UINT8 *)num, &len);
+    ASSERT(sizeof(uint16_t) == len);
+
+    return ((UINT32)0);
+}
+
 UINT32 cmpi_encode_i32(const UINT32 comm, const int *i32, UINT8 *out_buff, const UINT32 out_buff_max_len, UINT32 *position)
 {
     cmpi_encode_uint8_array(comm, (UINT8 *)i32, sizeof(int), out_buff, out_buff_max_len, position);

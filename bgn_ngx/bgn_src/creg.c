@@ -729,14 +729,40 @@ EC_BOOL creg_type_conv_vec_add_default(CVECTOR *type_conv_vec)
         /* cmpi_encode_type_size  */(UINT32)cmpi_encode_cmon_node_size
     );
     creg_type_conv_vec_add(type_conv_vec,
+        /* type                   */e_dbg_uint16_t_ptr,
+        /* type_sizeof            */sizeof(uint16_t),
+        /* pointer_flag           */EC_TRUE,
+        /* var_mm_type            */MM_UINT16T,
+        /* new_type_func          */0,
+        /* init_type_func         */(UINT32)dbg_init_uint16_t_ptr,
+        /* clean_type_func        */(UINT32)dbg_clean_uint16_t_ptr,
+        /* free_type_func         */(UINT32)dbg_free_uint16_t_ptr,
+        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_uint16_t,
+        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_uint16_t,
+        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_uint16_t_size
+    );
+    creg_type_conv_vec_add(type_conv_vec,
+        /* type                   */e_dbg_uint32_t_ptr,
+        /* type_sizeof            */sizeof(uint32_t),
+        /* pointer_flag           */EC_TRUE,
+        /* var_mm_type            */MM_UINT32T,
+        /* new_type_func          */0,
+        /* init_type_func         */(UINT32)dbg_init_uint32_t_ptr,
+        /* clean_type_func        */(UINT32)dbg_clean_uint32_t_ptr,
+        /* free_type_func         */(UINT32)dbg_free_uint32_t_ptr,
+        /* cmpi_encode_type_func  */(UINT32)cmpi_encode_uint32_t_ptr,
+        /* cmpi_decode_type_func  */(UINT32)cmpi_decode_uint32_t,
+        /* cmpi_encode_type_size  */(UINT32)cmpi_encode_uint32_t_ptr_size
+    );
+    creg_type_conv_vec_add(type_conv_vec,
         /* type                   */e_dbg_uint64_t_ptr,
         /* type_sizeof            */sizeof(uint64_t),
         /* pointer_flag           */EC_TRUE,
         /* var_mm_type            */MM_UINT64,
         /* new_type_func          */0,
-        /* init_type_func         */(UINT32)dbg_init_uint64_ptr,
-        /* clean_type_func        */(UINT32)dbg_clean_uint64_ptr,
-        /* free_type_func         */(UINT32)dbg_free_uint64_ptr,
+        /* init_type_func         */(UINT32)dbg_init_uint64_t_ptr,
+        /* clean_type_func        */(UINT32)dbg_clean_uint64_t_ptr,
+        /* free_type_func         */(UINT32)dbg_free_uint64_t_ptr,
         /* cmpi_encode_type_func  */(UINT32)cmpi_encode_uint64_t_ptr,
         /* cmpi_decode_type_func  */(UINT32)cmpi_decode_uint64_t,
         /* cmpi_encode_type_size  */(UINT32)cmpi_encode_uint64_t_ptr_size

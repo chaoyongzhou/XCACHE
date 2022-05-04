@@ -139,8 +139,7 @@ int cxfs_fusec_listxattr(const char *path, char *list, UINT32 size);
 int cxfs_fusec_removexattr(const char *path, const char *name);
 
 /*int (*access) (const char *, int);*/
-int cxfs_fusec_access(const char *path, UINT32 mask);
-
+int cxfs_fusec_access(const char *path, UINT32 mask, UINT32 *mode);
 
 /*int (*ftruncate) (const char *, off_t);*/
 int cxfs_fusec_ftruncate(const char *path, UINT32 length);
