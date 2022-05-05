@@ -10207,7 +10207,7 @@ EC_BOOL cxfs_process_space(const UINT32 cxfs_md_id)
 
     if(NULL_PTR == CXFS_MD_NPP(cxfs_md))
     {
-        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_process_space: npp was not open\n");
+        dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "warn:cxfs_process_space: npp was not open\n");
 
         task_brd_process_add(task_brd_default_get(),
                             (TASK_BRD_CALLBACK)cxfs_process_space,
@@ -10218,7 +10218,7 @@ EC_BOOL cxfs_process_space(const UINT32 cxfs_md_id)
 
     if(NULL_PTR == CXFS_MD_DN(cxfs_md))
     {
-        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_process_space: dn was not open\n");
+        dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "warn:cxfs_process_space: dn was not open\n");
 
         task_brd_process_add(task_brd_default_get(),
                             (TASK_BRD_CALLBACK)cxfs_process_space,
@@ -10233,7 +10233,7 @@ EC_BOOL cxfs_process_space(const UINT32 cxfs_md_id)
                                          "npp used ratio %.3f, dn used ratio %.3f\n",
                                          npp_used_ratio, dn_used_ratio);
 
-    if(CXFSNP_MAX_USED_RATIO < npp_used_ratio)
+    if(CXFSNP_MAX_USED_RATIO < npp_used_ratio && 0 < CXFSNP_TRY_RETIRE_MAX_NUM)
     {
         dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_process_space: "
                                              "npp used ratio %.3f >= %.3f => retire & recycle\n",
@@ -10243,7 +10243,7 @@ EC_BOOL cxfs_process_space(const UINT32 cxfs_md_id)
     }
 
     dn_used_ratio = cxfsdn_used_ratio(CXFS_MD_DN(cxfs_md));
-    if(CXFSDN_MAX_USED_RATIO < dn_used_ratio)
+    if(CXFSDN_MAX_USED_RATIO < dn_used_ratio && 0 < CXFSNP_TRY_RETIRE_MAX_NUM)
     {
         dbg_log(SEC_0192_CXFS, 5)(LOGSTDOUT, "[DEBUG] cxfs_process_space: "
                                              "dn used ratio %.3f >= %.3f => retire & recycle\n",
@@ -11074,6 +11074,12 @@ EC_BOOL cxfs_retire(const UINT32 cxfs_md_id, const UINT32 expect_retire_num, UIN
     {
         dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_retire: npp was not open\n");
         return (EC_FALSE);
+    }
+
+    if(0 == expect_retire_num)
+    {
+        dbg_log(SEC_0192_CXFS, 3)(LOGSTDOUT, "warn:cxfs_retire: expect_retire_num is zero\n");
+        return (EC_TRUE);
     }
 
     CXFS_STAT_RETIRE_COUNTER(CXFS_MD_STAT(cxfs_md)) ++;
