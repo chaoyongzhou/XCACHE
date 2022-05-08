@@ -1885,6 +1885,39 @@ CXFSNP_ITEM *cxfsnp_mgr_fetch_item(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino)
     return (NULL_PTR);
 }
 
+CXFSNP_ITEM *cxfsnp_mgr_fetch_parent_item(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino)
+{
+    CXFSNP   *cxfsnp;
+
+    cxfsnp = cxfsnp_mgr_fetch_np(cxfsnp_mgr, ino);
+    if(NULL_PTR != cxfsnp)
+    {
+        CXFSNP_ITEM *cxfsnp_item;
+        CXFSNP_ITEM *cxfsnp_item_parent;
+        uint32_t     node_pos;
+        uint32_t     node_pos_parent;
+
+        node_pos = CXFSNP_ATTR_INO_FETCH_NODE_POS(ino);
+        if(CXFSNPRB_ERR_POS == node_pos)
+        {
+            return (NULL_PTR);
+        }
+
+        cxfsnp_item     = cxfsnp_fetch(cxfsnp, node_pos);
+        node_pos_parent = CXFSNP_ITEM_PARENT_POS(cxfsnp_item);
+        if(CXFSNPRB_ERR_POS == node_pos_parent)
+        {
+            return (NULL_PTR);
+        }
+
+        cxfsnp_item_parent = cxfsnp_fetch(cxfsnp, node_pos_parent);
+        cxfsnpque_node_move_head(cxfsnp, CXFSNP_ITEM_QUE_NODE(cxfsnp_item_parent), node_pos_parent);
+
+        return (cxfsnp_item_parent);
+    }
+    return (NULL_PTR);
+}
+
 EC_BOOL cxfsnp_mgr_relative_path(CXFSNP_MGR *cxfsnp_mgr, const uint64_t src_ino, const uint64_t des_ino, CSTRING *path)
 {
     if(CXFSNP_ATTR_INO_FETCH_NP_ID(des_ino) == CXFSNP_ATTR_INO_FETCH_NP_ID(src_ino))

@@ -33,9 +33,9 @@ EC_BOOL cxfs_fuses_getattr(const UINT32 cxfs_md_id, const CSTRING *file_path, st
 
 EC_BOOL cxfs_fuses_readlink(const UINT32 cxfs_md_id, const CSTRING *path, CSTRING *buf, const UINT32 bufsize, int *res);
 
-EC_BOOL cxfs_fuses_mknod(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 dev, int *res);
+EC_BOOL cxfs_fuses_mknod(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 uid, const UINT32 gid, const UINT32 dev, int *res);
 
-EC_BOOL cxfs_fuses_mkdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, int *res);
+EC_BOOL cxfs_fuses_mkdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 uid, const UINT32 gid, int *res);
 
 EC_BOOL cxfs_fuses_unlink(const UINT32 cxfs_md_id, const CSTRING *path, int *res);
 
@@ -49,13 +49,15 @@ EC_BOOL cxfs_fuses_link(const UINT32 cxfs_md_id, const CSTRING *from_path, const
 
 EC_BOOL cxfs_fuses_chmod(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, int *res);
 
-EC_BOOL cxfs_fuses_chown(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 owner, const UINT32 group, int *res);
+EC_BOOL cxfs_fuses_chown(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 uid, const UINT32 gid, int *res);
 
 EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 length, int *res);
 
 EC_BOOL cxfs_fuses_utime(const UINT32 cxfs_md_id, const CSTRING *path, const struct utimbuf *times, int *res);
 
-EC_BOOL cxfs_fuses_open(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 flags, int *res);
+EC_BOOL cxfs_fuses_open(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 flags, const UINT32 uid, const UINT32 gid, int *res);
+
+EC_BOOL cxfs_fuses_create(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 uid, const UINT32 gid, int *res);
 
 EC_BOOL cxfs_fuses_read(const UINT32 cxfs_md_id, const CSTRING *path, CBYTES *buf, const UINT32 size, const UINT32 offset, int *res);
 

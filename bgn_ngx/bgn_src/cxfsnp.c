@@ -1741,9 +1741,18 @@ uint32_t cxfsnp_dnode_insert(CXFSNP *cxfsnp, const uint32_t parent_pos,
         if(SWITCH_ON == CXFSFUSE_SWITCH)
         {
             CXFSNP_ATTR *cxfsnp_attr_parent;
+            uint64_t     nsec;   /*seconds*/
+            uint64_t     nanosec;/*nanosecond*/
+
+            c_get_cur_time_nsec_and_nanosec(&nsec, &nanosec);
 
             cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(CXFSNP_DNODE_ITEM(cxfsnp_dnode_parent));
             CXFSNP_ATTR_NLINK(cxfsnp_attr_parent) ++;
+
+            CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr_parent)  = (uint64_t)nsec;
+            CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr_parent)  = (uint64_t)nsec;
+            CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr_parent) = (uint32_t)nanosec;
+            CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr_parent) = (uint32_t)nanosec;
         }
     }
 
@@ -1786,8 +1795,18 @@ uint32_t cxfsnp_dnode_umount_son(const CXFSNP *cxfsnp, CXFSNP_DNODE *cxfsnp_dnod
         if(SWITCH_ON == CXFSFUSE_SWITCH && CXFSNP_ITEM_FILE_IS_DIR == dflag)
         {
             CXFSNP_ATTR *cxfsnp_attr;
+            uint64_t     nsec;   /*seconds*/
+            uint64_t     nanosec;/*nanosecond*/
+
+            c_get_cur_time_nsec_and_nanosec(&nsec, &nanosec);
+
             cxfsnp_attr = CXFSNP_ITEM_ATTR(CXFSNP_DNODE_ITEM(cxfsnp_dnode));
             CXFSNP_ATTR_NLINK(cxfsnp_attr) --;
+
+            CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+            CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+            CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+            CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
         }
     }
 
@@ -1812,8 +1831,18 @@ STATIC_CAST static EC_BOOL __cxfsnp_dnode_delete_item(const CXFSNP *cxfsnp, CXFS
         if(SWITCH_ON == CXFSFUSE_SWITCH)
         {
             CXFSNP_ATTR *cxfsnp_attr;
+            uint64_t     nsec;   /*seconds*/
+            uint64_t     nanosec;/*nanosecond*/
+
+            c_get_cur_time_nsec_and_nanosec(&nsec, &nanosec);
+
             cxfsnp_attr = CXFSNP_ITEM_ATTR(CXFSNP_DNODE_ITEM(cxfsnp_dnode));
             CXFSNP_ATTR_NLINK(cxfsnp_attr) --;
+
+            CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+            CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+            CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+            CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
         }
     }
 
@@ -3234,7 +3263,20 @@ EC_BOOL cxfsnp_umount_item_deep(CXFSNP *cxfsnp, const uint32_t node_pos)
             if(SWITCH_ON == CXFSFUSE_SWITCH
             && CXFSNPRB_ERR_POS != node_pos_t && node_pos == node_pos_t)
             {
+                CXFSNP_ATTR *cxfsnp_attr_parent;
+                uint64_t     nsec;   /*seconds*/
+                uint64_t     nanosec;/*nanosecond*/
+
+                c_get_cur_time_nsec_and_nanosec(&nsec, &nanosec);
+
+                cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
                 CXFSNP_DNODE_FILE_SIZE(parent_dnode) -= (uint64_t)CXFSNP_FNODE_FILESZ(cxfsnp_fnode);
+
+                CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr_parent)  = (uint64_t)nsec;
+                CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr_parent)  = (uint64_t)nsec;
+                CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr_parent) = (uint32_t)nanosec;
+                CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr_parent) = (uint32_t)nanosec;
             }
 
             if(CXFSNPRB_ERR_POS != node_pos_t && node_pos == node_pos_t)
@@ -3253,7 +3295,8 @@ EC_BOOL cxfsnp_umount_item_deep(CXFSNP *cxfsnp, const uint32_t node_pos)
                 CXFSNP_ITEM_PARENT_POS(cxfsnp_item) = CXFSNPRB_ERR_POS; /*fix*/
             }
 
-            if(0 == CXFSNP_DNODE_FILE_NUM(parent_dnode))
+            if(SWITCH_OFF == CXFSFUSE_SWITCH
+            && 0 == CXFSNP_DNODE_FILE_NUM(parent_dnode))
             {
                 /*recursively umount parent if it is empty directory*/
                 return cxfsnp_umount_item_deep(cxfsnp, parent_node_pos);
@@ -3305,7 +3348,8 @@ EC_BOOL cxfsnp_umount_item_deep(CXFSNP *cxfsnp, const uint32_t node_pos)
                 CXFSNP_ITEM_PARENT_POS(cxfsnp_item) = CXFSNPRB_ERR_POS; /*fix*/
             }
 
-            if(0 == CXFSNP_DNODE_FILE_NUM(parent_dnode))
+            if(SWITCH_OFF == CXFSFUSE_SWITCH
+            && 0 == CXFSNP_DNODE_FILE_NUM(parent_dnode))
             {
                 /*recursively umount parent if it is empty directory*/
                 return cxfsnp_umount_item_deep(cxfsnp, parent_node_pos);
@@ -4704,8 +4748,18 @@ EC_BOOL cxfsnp_recycle_dnode_item(CXFSNP *cxfsnp, CXFSNP_DNODE *cxfsnp_dnode, CX
         if(SWITCH_ON == CXFSFUSE_SWITCH)
         {
             CXFSNP_ATTR *cxfsnp_attr;
+            uint64_t     nsec;   /*seconds*/
+            uint64_t     nanosec;/*nanosecond*/
+
+            c_get_cur_time_nsec_and_nanosec(&nsec, &nanosec);
+
             cxfsnp_attr = CXFSNP_ITEM_ATTR(CXFSNP_DNODE_ITEM(cxfsnp_dnode));
             CXFSNP_ATTR_NLINK(cxfsnp_attr) --;
+
+            CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+            CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+            CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+            CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
         }
 
         cxfsnp_item_clean(cxfsnp_item);

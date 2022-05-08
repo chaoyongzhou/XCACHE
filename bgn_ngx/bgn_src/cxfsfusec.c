@@ -236,7 +236,7 @@ int cxfs_fusec_getattr(const char *path, struct stat *stat, struct fuse_file_inf
 }
 
 /*int (*readlink) (const char *, char *, size_t);*/
-int cxfs_fusec_readlink(const char *path, char *buf, UINT32 size)
+int cxfs_fusec_readlink(const char *path, char *buf, const UINT32 size)
 {
     CSTRING         path_arg;
     CSTRING         buf_arg;
@@ -266,7 +266,7 @@ int cxfs_fusec_readlink(const char *path, char *buf, UINT32 size)
 }
 
 /*int (*mknod)       (const char *, mode_t, dev_t);*/
-int cxfs_fusec_mknod(const char *path, UINT32 mode, UINT32 dev)
+int cxfs_fusec_mknod(const char *path, const UINT32 mode, const UINT32 uid, const UINT32 gid, const UINT32 dev)
 {
     CSTRING         path_arg;
 
@@ -283,7 +283,7 @@ int cxfs_fusec_mknod(const char *path, UINT32 mode, UINT32 dev)
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cxfs_fusec_get_remote_mod_node(),
              &ret,
-             FI_cxfs_fuses_mknod, CMPI_ERROR_MODI, &path_arg, mode, dev, &res);
+             FI_cxfs_fuses_mknod, CMPI_ERROR_MODI, &path_arg, mode, uid, gid, dev, &res);
 
     if(EC_FALSE == ret)
     {
@@ -294,7 +294,7 @@ int cxfs_fusec_mknod(const char *path, UINT32 mode, UINT32 dev)
 }
 
 /*int (*mkdir) (const char *, mode_t);*/
-int cxfs_fusec_mkdir(const char *path, UINT32 mode)
+int cxfs_fusec_mkdir(const char *path, const UINT32 mode, const UINT32 uid, const UINT32 gid)
 {
     CSTRING         path_arg;
 
@@ -311,7 +311,7 @@ int cxfs_fusec_mkdir(const char *path, UINT32 mode)
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cxfs_fusec_get_remote_mod_node(),
              &ret,
-             FI_cxfs_fuses_mkdir, CMPI_ERROR_MODI, &path_arg, mode, &res);
+             FI_cxfs_fuses_mkdir, CMPI_ERROR_MODI, &path_arg, mode, uid, gid, &res);
 
     if(EC_FALSE == ret)
     {
@@ -409,7 +409,7 @@ int cxfs_fusec_symlink(const char *src_path, const char *des_path)
 }
 
 /*int (*rename) (const char *, const char *, unsigned int flags);*/
-int cxfs_fusec_rename(const char *src_path, const char *des_path, UINT32 flags /*RENAME_EXCHANGE|RENAME_NOREPLACE*/)
+int cxfs_fusec_rename(const char *src_path, const char *des_path, const UINT32 flags /*RENAME_EXCHANGE|RENAME_NOREPLACE*/)
 {
     CSTRING         src_path_arg;
     CSTRING         des_path_arg;
@@ -471,7 +471,7 @@ int cxfs_fusec_link(const char *src_path, const char *des_path)
 
 /** Change the permission bits of a file */
 /*int (*chmod) (const char *, mode_t, struct fuse_file_info *fi);*/
-int cxfs_fusec_chmod(const char *path, UINT32 mode, struct fuse_file_info *fi)
+int cxfs_fusec_chmod(const char *path, const UINT32 mode, struct fuse_file_info *fi)
 {
     CSTRING         path_arg;
 
@@ -502,7 +502,7 @@ int cxfs_fusec_chmod(const char *path, UINT32 mode, struct fuse_file_info *fi)
 
 /** Change the owner and group of a file */
 /*int (*chown) (const char *, uid_t, gid_t);*/
-int cxfs_fusec_chown(const char *path, UINT32 owner, UINT32 group, struct fuse_file_info *fi)
+int cxfs_fusec_chown(const char *path, const UINT32 owner, const UINT32 group, struct fuse_file_info *fi)
 {
     CSTRING         path_arg;
 
@@ -533,7 +533,7 @@ int cxfs_fusec_chown(const char *path, UINT32 owner, UINT32 group, struct fuse_f
 
 /** Change the size of a file */
 /*int (*truncate) (const char *, off_t);*/
-int cxfs_fusec_truncate(const char *path, UINT32 length, struct fuse_file_info *fi)
+int cxfs_fusec_truncate(const char *path, const UINT32 length, struct fuse_file_info *fi)
 {
     CSTRING         path_arg;
 
@@ -595,7 +595,7 @@ int cxfs_fusec_utime(const char *path, /*const*/struct utimbuf *times)
 }
 
 /*int (*open) (const char *, struct fuse_file_info *);*/
-int cxfs_fusec_open(const char *path, struct fuse_file_info *fi)
+int cxfs_fusec_open(const char *path, const UINT32 uid, const UINT32 gid, struct fuse_file_info *fi)
 {
     CSTRING         path_arg;
 
@@ -612,7 +612,7 @@ int cxfs_fusec_open(const char *path, struct fuse_file_info *fi)
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cxfs_fusec_get_remote_mod_node(),
              &ret,
-             FI_cxfs_fuses_open, CMPI_ERROR_MODI, &path_arg, (UINT32)(fi->flags), &res);
+             FI_cxfs_fuses_open, CMPI_ERROR_MODI, &path_arg, (UINT32)(fi->flags), uid, gid, &res);
 
     if(EC_FALSE == ret)
     {
@@ -622,8 +622,38 @@ int cxfs_fusec_open(const char *path, struct fuse_file_info *fi)
     return (res);
 }
 
+/*int (*create) (const char *, mode_t, struct fuse_file_info *);*/
+int cxfs_fusec_create(const char *path, const UINT32 mode, const UINT32 uid, const UINT32 gid, struct fuse_file_info *fi)
+{
+    CSTRING         path_arg;
+
+    EC_BOOL         ret;
+    int             res;
+
+    CXFS_FUSEC_DEBUG_ENTER("cxfs_fusec_create");
+
+    (void)fi;
+
+    cstring_set_str(&path_arg, (UINT8 *)path);
+
+    ret = EC_FALSE;
+    res = -ECOMM;
+
+    task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
+             cxfs_fusec_get_remote_mod_node(),
+             &ret,
+             FI_cxfs_fuses_create, CMPI_ERROR_MODI, &path_arg, mode, uid, gid, &res);
+
+    if(EC_FALSE == ret)
+    {
+        dbg_log(SEC_0049_CXFS_FUSEC, 0)(LOGSTDOUT, "warn:cxfs_fusec_create: return false\n");
+    }
+
+    return (res);
+}
+
 /*int (*read) (const char *, char *, size_t, off_t, struct fuse_file_info *);*/
-int cxfs_fusec_read(const char *path, char *buf, UINT32 size, UINT32 offset, struct fuse_file_info *fi)
+int cxfs_fusec_read(const char *path, char *buf, const UINT32 size, const UINT32 offset, struct fuse_file_info *fi)
 {
     CSTRING         path_arg;
     CBYTES          buf_arg;
@@ -654,7 +684,7 @@ int cxfs_fusec_read(const char *path, char *buf, UINT32 size, UINT32 offset, str
 }
 
 /*int (*write) (const char *, const char *, size_t, off_t, struct fuse_file_info *);*/
-int cxfs_fusec_write(const char *path, const char *buf, UINT32 size, UINT32 offset, struct fuse_file_info *fi)
+int cxfs_fusec_write(const char *path, const char *buf, const UINT32 size, const UINT32 offset, struct fuse_file_info *fi)
 {
     CSTRING         path_arg;
     CBYTES          buf_arg;
@@ -772,7 +802,7 @@ int cxfs_fusec_release(const char *path, struct fuse_file_info *fi)
 }
 
 /*int (*fsync) (const char *, int);*/
-int cxfs_fusec_fsync(const char * path, UINT32 sync, struct fuse_file_info *fi)
+int cxfs_fusec_fsync(const char * path, const UINT32 sync, struct fuse_file_info *fi)
 {
     CSTRING         path_arg;
 
@@ -802,7 +832,7 @@ int cxfs_fusec_fsync(const char * path, UINT32 sync, struct fuse_file_info *fi)
 
 /** Set extended attributes */
 /*int (*setxattr) (const char *, const char *, const char *, size_t, int);*/
-int cxfs_fusec_setxattr(const char *path, const char *name, const char *value, UINT32 size, UINT32 flags)
+int cxfs_fusec_setxattr(const char *path, const char *name, const char *value, const UINT32 size, const UINT32 flags)
 {
     CSTRING         path_arg;
     CSTRING         name_arg;
@@ -835,7 +865,7 @@ int cxfs_fusec_setxattr(const char *path, const char *name, const char *value, U
 
 /** Get extended attributes */
 /*int (*getxattr) (const char *, const char *, char *, size_t);*/
-int cxfs_fusec_getxattr(const char *path, const char *name, char *value, UINT32 size)
+int cxfs_fusec_getxattr(const char *path, const char *name, char *value, const UINT32 size)
 {
     CSTRING         path_arg;
     CSTRING         name_arg;
@@ -868,7 +898,7 @@ int cxfs_fusec_getxattr(const char *path, const char *name, char *value, UINT32 
 
 /** List extended attributes */
 /*int (*listxattr) (const char *, char *, size_t);*/
-int cxfs_fusec_listxattr(const char *path, char *list, UINT32 size)
+int cxfs_fusec_listxattr(const char *path, char *list, const UINT32 size)
 {
     CSTRING         path_arg;
     CBYTES          list_arg;
@@ -929,7 +959,7 @@ int cxfs_fusec_removexattr(const char *path, const char *name)
 }
 
 /*int (*access) (const char *, int);*/
-int cxfs_fusec_access(const char *path, UINT32 mask, UINT32 *mode)
+int cxfs_fusec_access(const char *path, const UINT32 mask, UINT32 *mode)
 {
     CSTRING         path_arg;
 
@@ -957,7 +987,7 @@ int cxfs_fusec_access(const char *path, UINT32 mask, UINT32 *mode)
 }
 
 /*int (*ftruncate) (const char *, off_t, struct fuse_file_info *);*/
-int cxfs_fusec_ftruncate(const char *path, UINT32 length)
+int cxfs_fusec_ftruncate(const char *path, const UINT32 length)
 {
     CSTRING         path_arg;
 
@@ -1016,7 +1046,7 @@ int cxfs_fusec_utimens(const char *path, const struct timespec *ts0, const struc
 }
 
 /* int (*fallocate) (const char *, int, off_t, off_t, struct fuse_file_info *); */
-int cxfs_fusec_fallocate(const char * path, UINT32 mode, UINT32 offset, UINT32 length, struct fuse_file_info *fi)
+int cxfs_fusec_fallocate(const char * path, const UINT32 mode, const UINT32 offset, const UINT32 length, struct fuse_file_info *fi)
 {
     CSTRING         path_arg;
 
@@ -1057,7 +1087,7 @@ int cxfs_fusec_opendir(const char *path, struct fuse_file_info *fi)
 }
 
 /*int (*readdir) (const char *, void *, fuse_fill_dir_t, off_t, struct fuse_file_info *);*/
-int cxfs_fusec_readdir(const char *path, void *buf, UINT32 filler, UINT32 offset, struct fuse_file_info *fi, UINT32 eflags)
+int cxfs_fusec_readdir(const char *path, void *buf, const UINT32 filler, const UINT32 offset, struct fuse_file_info *fi, const UINT32 eflags)
 {
     CSTRING         path_arg;
 
@@ -1123,7 +1153,7 @@ int cxfs_fusec_releasedir(const char *path, struct fuse_file_info *fi)
 }
 
 /*int (*fsyncdir) (const char *, int, struct fuse_file_info *);*/
-int cxfs_fusec_fsyncdir(const char *path, int datasync, struct fuse_file_info *fi)
+int cxfs_fusec_fsyncdir(const char *path, const int datasync, struct fuse_file_info *fi)
 {
     (void)path;
     (void)datasync;

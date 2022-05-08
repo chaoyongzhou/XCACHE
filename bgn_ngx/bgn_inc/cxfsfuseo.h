@@ -142,6 +142,9 @@ int cxfs_fuseo_utime(const char *path, /*const*/struct utimbuf *times);
 /*int (*open) (const char *, struct fuse_file_info *);*/
 int cxfs_fuseo_open(const char *path, struct fuse_file_info *);
 
+/*int (*create) (const char *, mode_t, struct fuse_file_info *);*/
+int cxfs_fuseo_create(const char *path, mode_t mode, struct fuse_file_info *fi);
+
 /*int (*read) (const char *, char *, size_t, off_t);*/
 int cxfs_fuseo_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi);
 

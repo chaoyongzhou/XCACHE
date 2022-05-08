@@ -140,18 +140,18 @@ typedef struct
         S_ISUID     0004000     set user-id on execution
         S_ISGID     0002000     set group-id on execution
         S_ISVTX     0001000     sticky
-        S_IRWXU     00700       owner bit mask
-        S_IRUSR     00400       owner bit read
-        S_IWUSR     00200       owner bit write
-        S_IXUSR     00100       owner bit exec
-        S_IRWXG     00070       group bit mask
-        S_IRGRP     00040       group bit read
-        S_IWGRP     00020       group bit write
-        S_IXGRP     00010       group bit exec
-        S_IRWXO     00007       other bit mask
-        S_IROTH     00004       other bit read
-        S_IWOTH     00002       other bit write
-        S_IXOTH     00001       other bit exec
+        S_IRWXU       00700     owner bit mask
+        S_IRUSR       00400     owner bit read
+        S_IWUSR       00200     owner bit write
+        S_IXUSR       00100     owner bit exec
+        S_IRWXG       00070     group bit mask
+        S_IRGRP       00040     group bit read
+        S_IWGRP       00020     group bit write
+        S_IXGRP       00010     group bit exec
+        S_IRWXO       00007     other bit mask
+        S_IROTH       00004     other bit read
+        S_IWOTH       00002     other bit write
+        S_IXOTH       00001     other bit exec
     \*----------------------------------------------------------------*/
     uint32_t        uid;        /*owner id*/
 

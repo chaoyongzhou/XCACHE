@@ -369,6 +369,7 @@
 #define                     FI_cxfs_fuses_utimens  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 151))
 #define                   FI_cxfs_fuses_fallocate  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 152))
 #define                     FI_cxfs_fuses_readdir  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 153))
+#define                      FI_cxfs_fuses_create  ((UINT32) ((MD_CXFS << (WORDSIZE/2)) + 154))
 
 #define               FI_cmon_print_module_status  ((UINT32) ((MD_CMON << (WORDSIZE/2)) +  0))
 #define            FI_cmon_free_module_static_mem  ((UINT32) ((MD_CMON << (WORDSIZE/2)) +  1))

@@ -84,6 +84,393 @@ extern "C"{
     }                                                                       \
 }while(0)
 
+STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const char *path, const uint64_t ino, const uint32_t mode, const uint32_t uid, const uint32_t gid)
+{
+    CXFS_MD         *cxfs_md;
+    CXFSNP_ITEM     *cxfsnp_item;
+    CXFSNP_ATTR     *cxfsnp_attr;
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    cxfsnp_item = cxfsnp_mgr_fetch_item(CXFS_MD_NPP(cxfs_md), ino);
+    cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
+
+    if(0 == uid || 0 == gid)
+    {
+        if(O_RDONLY == mode)
+        {
+            CXFSNP_ITEM     *cxfsnp_item_parent;
+            CXFSNP_ATTR     *cxfsnp_attr_parent;
+
+            if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IRUSR | S_IRGRP | S_IROTH)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                                 "dir '%s', "
+                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                 "=> uid = 0 or gid = 0, "
+                                 "mode & (S_IRUSR | S_IRGRP | S_IROTH) == 0\n",
+                                 path, mode, uid, gid,
+                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                 CXFSNP_ATTR_GID(cxfsnp_attr));
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                             "dir '%s', "
+                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                             "=> uid = 0 or gid = 0, "
+                             "mode & (S_IRUSR | S_IRGRP | S_IROTH) != 0 => check parent\n",
+                             path, mode, uid, gid,
+                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                             CXFSNP_ATTR_GID(cxfsnp_attr));
+
+            cxfsnp_item_parent = cxfsnp_mgr_fetch_parent_item(CXFS_MD_NPP(cxfs_md), ino);
+            cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+            if(0 == (S_IXUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                                 "dir '%s', "
+                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                 "=> uid = 0 or gid = 0, "
+                                 "parent mode %#o & S_IXUSR == 0\n",
+                                 path, mode, uid, gid,
+                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                 CXFSNP_ATTR_MODE(cxfsnp_attr_parent));
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                             "dir '%s', "
+                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                             "=> uid = 0 or gid = 0, "
+                             "parent mode %#o & S_IXUSR != 0\n",
+                             path, mode, uid, gid,
+                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                             CXFSNP_ATTR_GID(cxfsnp_attr),
+                             CXFSNP_ATTR_MODE(cxfsnp_attr_parent));
+
+            return (EC_TRUE);
+        }
+        else
+        {
+            if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IWUSR | S_IWGRP | S_IWOTH)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                                                     "dir '%s', "
+                                                     "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                                     "its mode %#o & (S_IWUSR | S_IWGRP S_IWOTH) == 0\n",
+                                                     path, mode, uid, gid,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                     CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                     CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr));
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                                                 "dir '%s', "
+                                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                                 "its mode %#o & (S_IWUSR | S_IWGRP S_IWOTH) == 0\n",
+                                                 path, mode, uid, gid,
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr));
+
+            return (EC_TRUE);
+        }
+    }
+
+    if(uid == CXFSNP_ATTR_UID(cxfsnp_attr) && gid == CXFSNP_ATTR_GID(cxfsnp_attr))
+    {
+        if(O_RDONLY == mode)
+        {
+            CXFSNP_ITEM     *cxfsnp_item_parent;
+            CXFSNP_ATTR     *cxfsnp_attr_parent;
+
+            if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IRUSR)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                                 "dir '%s', "
+                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                 "=> uid = 0 or gid = 0, "
+                                 "mode & (S_IRUSR) == 0\n",
+                                 path, mode, uid, gid,
+                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                 CXFSNP_ATTR_GID(cxfsnp_attr));
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                             "dir '%s', "
+                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                             "=> uid = 0 or gid = 0, "
+                             "mode & (S_IRUSR) != 0 => check parent\n",
+                             path, mode, uid, gid,
+                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                             CXFSNP_ATTR_GID(cxfsnp_attr));
+
+            cxfsnp_item_parent = cxfsnp_mgr_fetch_parent_item(CXFS_MD_NPP(cxfs_md), ino);
+            cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+            if(0 == (S_IXUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                                 "dir '%s', "
+                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                 "=> uid = 0 or gid = 0, "
+                                 "parent mode %#o & S_IXUSR == 0\n",
+                                 path, mode, uid, gid,
+                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                 CXFSNP_ATTR_MODE(cxfsnp_attr_parent));
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                             "dir '%s', "
+                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                             "=> uid = 0 or gid = 0, "
+                             "parent mode %#o & S_IXUSR != 0\n",
+                             path, mode, uid, gid,
+                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                             CXFSNP_ATTR_GID(cxfsnp_attr),
+                             CXFSNP_ATTR_MODE(cxfsnp_attr_parent));
+
+            return (EC_TRUE);
+        }
+        else
+        {
+            if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IWUSR)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                                 "dir '%s', "
+                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => uid & gid matched, "
+                                 "mode & S_IWUSR == 0\n",
+                                 path, mode, uid, gid,
+                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                 CXFSNP_ATTR_GID(cxfsnp_attr));
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                             "dir '%s', "
+                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => uid & gid matched, "
+                             "mode & S_IWUSR != 0\n",
+                             path, mode, uid, gid,
+                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                             CXFSNP_ATTR_GID(cxfsnp_attr));
+
+            return (EC_TRUE);
+        }
+    }
+
+    if(gid == CXFSNP_ATTR_GID(cxfsnp_attr))
+    {
+        if(O_RDONLY == mode)
+        {
+            CXFSNP_ITEM     *cxfsnp_item_parent;
+            CXFSNP_ATTR     *cxfsnp_attr_parent;
+
+            if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IRGRP)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                                 "dir '%s', "
+                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                 "=> uid = 0 or gid = 0, "
+                                 "mode & (S_IRGRP) == 0\n",
+                                 path, mode, uid, gid,
+                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                 CXFSNP_ATTR_GID(cxfsnp_attr));
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                             "dir '%s', "
+                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                             "=> uid = 0 or gid = 0, "
+                             "mode & (S_IRGRP) != 0 => check parent\n",
+                             path, mode, uid, gid,
+                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                             CXFSNP_ATTR_GID(cxfsnp_attr));
+
+            cxfsnp_item_parent = cxfsnp_mgr_fetch_parent_item(CXFS_MD_NPP(cxfs_md), ino);
+            cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+            if(0 == (S_IXUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                                 "dir '%s', "
+                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                 "=> uid = 0 or gid = 0, "
+                                 "parent mode %#o & S_IXUSR == 0\n",
+                                 path, mode, uid, gid,
+                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                 CXFSNP_ATTR_MODE(cxfsnp_attr_parent));
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                             "dir '%s', "
+                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                             "=> uid = 0 or gid = 0, "
+                             "parent mode %#o & S_IXUSR != 0\n",
+                             path, mode, uid, gid,
+                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                             CXFSNP_ATTR_GID(cxfsnp_attr),
+                             CXFSNP_ATTR_MODE(cxfsnp_attr_parent));
+
+            return (EC_TRUE);
+        }
+        else
+        {
+            if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IWGRP)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                                 "dir '%s', "
+                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => gid matched, "
+                                 "mode & S_IWGRP == 0\n",
+                                 path, mode, uid, gid,
+                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                 CXFSNP_ATTR_GID(cxfsnp_attr));
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                             "dir '%s', "
+                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => gid matched, "
+                             "mode & S_IWGRP != 0\n",
+                             path, mode, uid, gid,
+                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                             CXFSNP_ATTR_GID(cxfsnp_attr));
+
+            return (EC_TRUE);
+        }
+    }
+
+
+    /*other*/
+    if(O_RDONLY == mode)
+    {
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_parent;
+
+        if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IROTH)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                             "dir '%s', "
+                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                             "=> uid = 0 or gid = 0, "
+                             "mode & (S_IROTH) == 0\n",
+                             path, mode, uid, gid,
+                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                             CXFSNP_ATTR_GID(cxfsnp_attr));
+
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                         "dir '%s', "
+                         "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                         "=> uid = 0 or gid = 0, "
+                         "mode & (S_IROTH) != 0 => check parent\n",
+                         path, mode, uid, gid,
+                         CXFSNP_ATTR_MODE(cxfsnp_attr),
+                         CXFSNP_ATTR_UID(cxfsnp_attr),
+                         CXFSNP_ATTR_GID(cxfsnp_attr));
+
+        cxfsnp_item_parent = cxfsnp_mgr_fetch_parent_item(CXFS_MD_NPP(cxfs_md), ino);
+        cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+        if(0 == (S_IXUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                             "dir '%s', "
+                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                             "=> uid = 0 or gid = 0, "
+                             "parent mode %#o & S_IXUSR == 0\n",
+                             path, mode, uid, gid,
+                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                             CXFSNP_ATTR_GID(cxfsnp_attr),
+                             CXFSNP_ATTR_MODE(cxfsnp_attr_parent));
+
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                         "dir '%s', "
+                         "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                         "=> uid = 0 or gid = 0, "
+                         "parent mode %#o & S_IXUSR != 0\n",
+                         path, mode, uid, gid,
+                         CXFSNP_ATTR_MODE(cxfsnp_attr),
+                         CXFSNP_ATTR_UID(cxfsnp_attr),
+                         CXFSNP_ATTR_GID(cxfsnp_attr),
+                         CXFSNP_ATTR_MODE(cxfsnp_attr_parent));
+
+        return (EC_TRUE);
+    }
+    else
+    {
+        if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IWOTH)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                             "dir '%s', "
+                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => not matched\n",
+                             path, mode, uid, gid,
+                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                             CXFSNP_ATTR_GID(cxfsnp_attr));
+
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                         "dir '%s', "
+                         "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => other, "
+                         "mode & S_IWOTH != 0\n",
+                         path, mode, uid, gid,
+                         CXFSNP_ATTR_MODE(cxfsnp_attr),
+                         CXFSNP_ATTR_UID(cxfsnp_attr),
+                         CXFSNP_ATTR_GID(cxfsnp_attr));
+
+        return (EC_TRUE);
+    }
+
+    /*should never reach here*/
+    return (EC_FALSE);
+}
+
 STATIC_CAST EC_BOOL __cxfs_fuses_dn_resize(const UINT32 cxfs_md_id, const uint32_t old_size, const uint32_t new_size)
 {
     CXFS_MD         *cxfs_md;
@@ -385,7 +772,7 @@ EC_BOOL cxfs_fuses_readlink(const UINT32 cxfs_md_id, const CSTRING *path, CSTRIN
     return (EC_TRUE);
 }
 
-EC_BOOL cxfs_fuses_mknod(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 dev, int *res)
+EC_BOOL cxfs_fuses_mknod(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 uid, const UINT32 gid, const UINT32 dev, int *res)
 {
     CXFS_MD         *cxfs_md;
     CXFSNP_ITEM     *cxfsnp_item;
@@ -441,17 +828,23 @@ EC_BOOL cxfs_fuses_mknod(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
 
     cxfsnp_attr_set_file(cxfsnp_attr);
     CXFSNP_ATTR_MODE(cxfsnp_attr)       = (uint16_t)(mode | S_IFREG);
+    CXFSNP_ATTR_UID(cxfsnp_attr)        = (uint32_t)uid;
+    CXFSNP_ATTR_GID(cxfsnp_attr)        = (uint32_t)gid;
     CXFSNP_ATTR_RDEV(cxfsnp_attr)       = (uint32_t)dev;
 
-    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_mknod: %s => ino %lu => done\n",
-                                         (char *)cstring_get_str(path), ino);
+    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_mknod: "
+                                         "%s => ino %lu => mode %#o uid %u, gid %u => done\n",
+                                         (char *)cstring_get_str(path), ino,
+                                         CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                         CXFSNP_ATTR_UID(cxfsnp_attr),
+                                         CXFSNP_ATTR_GID(cxfsnp_attr));
 
     (*res) = 0;
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfs_fuses_mkdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, int *res)
+EC_BOOL cxfs_fuses_mkdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 uid, const UINT32 gid, int *res)
 {
     CXFS_MD         *cxfs_md;
     CXFSNP_ITEM     *cxfsnp_item;
@@ -498,10 +891,15 @@ EC_BOOL cxfs_fuses_mkdir(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
     cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
     cxfsnp_attr_set_dir(cxfsnp_attr);
     CXFSNP_ATTR_MODE(cxfsnp_attr)       = (uint16_t)(mode | S_IFDIR);
+    CXFSNP_ATTR_UID(cxfsnp_attr)        = (uint32_t)uid;
+    CXFSNP_ATTR_GID(cxfsnp_attr)        = (uint32_t)gid;
 
     dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_mkdir: "
-                                         "mkdir %s => ino %lu => done\n",
-                                         (char *)cstring_get_str(path), ino);
+                                         "mkdir %s => ino %lu => mode %#o uid %u, gid %u => done\n",
+                                         (char *)cstring_get_str(path), ino,
+                                         CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                         CXFSNP_ATTR_UID(cxfsnp_attr),
+                                         CXFSNP_ATTR_GID(cxfsnp_attr));
 
     (*res) = 0;
 
@@ -765,7 +1163,7 @@ EC_BOOL cxfs_fuses_chmod(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
     return (EC_TRUE);
 }
 
-EC_BOOL cxfs_fuses_chown(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 owner, const UINT32 group, int *res)
+EC_BOOL cxfs_fuses_chown(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 uid, const UINT32 gid, int *res)
 {
     CXFS_MD         *cxfs_md;
     CXFSNP_ITEM     *cxfsnp_item;
@@ -807,8 +1205,8 @@ EC_BOOL cxfs_fuses_chown(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
 
     cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
 
-    CXFSNP_ATTR_UID(cxfsnp_attr)        = (uint32_t)owner;
-    CXFSNP_ATTR_GID(cxfsnp_attr)        = (uint32_t)group;
+    CXFSNP_ATTR_UID(cxfsnp_attr)        = (uint32_t)uid;
+    CXFSNP_ATTR_GID(cxfsnp_attr)        = (uint32_t)gid;
     CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
     CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
     CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
@@ -817,7 +1215,8 @@ EC_BOOL cxfs_fuses_chown(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
     dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chown: "
                                          "chown %s => ino %lu, uid %u, gid %u => done\n",
                                          (char *)cstring_get_str(path), ino,
-                                         (uint32_t)owner, (uint32_t)group);
+                                         CXFSNP_ATTR_UID(cxfsnp_attr),
+                                         CXFSNP_ATTR_GID(cxfsnp_attr));
 
     (*res) = 0;
 
@@ -901,9 +1300,6 @@ EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const 
     CXFSNP_ATTR     *cxfsnp_attr;
     uint64_t         ino;
 
-    CRANGE_NODE     *crange_node;
-    CRANGE_SEG      *crange_seg;
-    UINT32           complete_size;
     UINT32           seg_no_src;
     UINT32           seg_no_des;
 
@@ -1000,87 +1396,97 @@ EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const 
                                          (char *)cstring_get_str(path),
                                          ino, dnode_file_size);
 
-    crange_node = crange_node_new();
-    if(NULL_PTR == crange_node)
+    if(0 < length)
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
-                                             "'%s', new crange node failed\n",
-                                             (char *)cstring_get_str(path));
-        (*res) = -ENOMEM;
-        return (EC_TRUE);
-    }
+        CRANGE_NODE     *crange_node;
+        CRANGE_SEG      *crange_seg;
 
-    CRANGE_NODE_SUFFIX_START(crange_node)  = EC_FALSE;
-    CRANGE_NODE_SUFFIX_END(crange_node)    = EC_FALSE;
-    CRANGE_NODE_RANGE_START(crange_node)   = 0;
-    CRANGE_NODE_RANGE_END(crange_node)     = length - 1;
+        UINT32           complete_size;
 
-    if(EC_FALSE == crange_node_split(crange_node, (UINT32)CXFSPGB_PAGE_BYTE_SIZE))
-    {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
-                                             "'%s' split [%ld, %ld) failed\n",
-                                             (char *)cstring_get_str(path),
-                                             CRANGE_NODE_RANGE_START(crange_node),
-                                             CRANGE_NODE_RANGE_END(crange_node) + 1);
-
-        crange_node_free(crange_node);
-
-        (*res) = -ERANGE;
-        return (EC_TRUE);
-    }
-
-    if(do_log(SEC_0192_CXFS, 2))
-    {
-        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_truncate: segs:\n");
-        crange_node_print(LOGSTDOUT, crange_node);
-    }
-
-    complete_size = 0;
-    while(NULL_PTR != (crange_seg = clist_pop_front(CRANGE_NODE_RANGE_SEGS(crange_node))))
-    {
-        CSTRING         *seg_path;
-
-        ASSERT(0 == CRANGE_SEG_S_OFFSET(crange_seg));
-
-        seg_path = cstring_make("%s/%ld", cstring_get_str(path), CRANGE_SEG_NO(crange_seg));
-        if(NULL_PTR == seg_path)
+        crange_node = crange_node_new();
+        if(NULL_PTR == crange_node)
         {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
-                                                 "make seg path %s/%ld failed\n",
-                                                 (char *)cstring_get_str(path),
-                                                 CRANGE_SEG_NO(crange_seg));
-
-            crange_seg_free(crange_seg);
-            crange_node_free(crange_node);
-
+                                                 "'%s', new crange node failed\n",
+                                                 (char *)cstring_get_str(path));
             (*res) = -ENOMEM;
             return (EC_TRUE);
         }
 
-        if(EC_FALSE == __cxfs_fuses_truncate_seg(cxfs_md_id, seg_path, crange_seg, res))
+        CRANGE_NODE_SUFFIX_START(crange_node)  = EC_FALSE;
+        CRANGE_NODE_SUFFIX_END(crange_node)    = EC_FALSE;
+        CRANGE_NODE_RANGE_START(crange_node)   = 0;
+        CRANGE_NODE_RANGE_END(crange_node)     = length - 1;
+
+        if(EC_FALSE == crange_node_split(crange_node, (UINT32)CXFSPGB_PAGE_BYTE_SIZE))
         {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
-                                                 "truncate seg %s failed\n",
-                                                 (char *)cstring_get_str(seg_path));
+                                                 "'%s' split [%ld, %ld) failed\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CRANGE_NODE_RANGE_START(crange_node),
+                                                 CRANGE_NODE_RANGE_END(crange_node) + 1);
 
-            cstring_free(seg_path);
-
-            crange_seg_free(crange_seg);
             crange_node_free(crange_node);
 
+            (*res) = -ERANGE;
             return (EC_TRUE);
         }
 
-        complete_size  += (CRANGE_SEG_E_OFFSET(crange_seg) - CRANGE_SEG_S_OFFSET(crange_seg) + 1);
+        if(do_log(SEC_0192_CXFS, 2))
+        {
+            sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_truncate: segs:\n");
+            crange_node_print(LOGSTDOUT, crange_node);
+        }
 
-        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_write: "
-                                             "truncate '%s' seg %ld => complete %ld / %ld\n",
-                                             (char *)cstring_get_str(path),
-                                             CRANGE_SEG_NO(crange_seg),
-                                             complete_size, length);
+        complete_size = 0;
+        while(NULL_PTR != (crange_seg = clist_pop_front(CRANGE_NODE_RANGE_SEGS(crange_node))))
+        {
+            CSTRING         *seg_path;
 
-        cstring_free(seg_path);
-        crange_seg_free(crange_seg);
+            ASSERT(0 == CRANGE_SEG_S_OFFSET(crange_seg));
+
+            seg_path = cstring_make("%s/%ld", cstring_get_str(path), CRANGE_SEG_NO(crange_seg));
+            if(NULL_PTR == seg_path)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
+                                                     "make seg path %s/%ld failed\n",
+                                                     (char *)cstring_get_str(path),
+                                                     CRANGE_SEG_NO(crange_seg));
+
+                crange_seg_free(crange_seg);
+                crange_node_free(crange_node);
+
+                (*res) = -ENOMEM;
+                return (EC_TRUE);
+            }
+
+            if(EC_FALSE == __cxfs_fuses_truncate_seg(cxfs_md_id, seg_path, crange_seg, res))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
+                                                     "truncate seg %s failed\n",
+                                                     (char *)cstring_get_str(seg_path));
+
+                cstring_free(seg_path);
+
+                crange_seg_free(crange_seg);
+                crange_node_free(crange_node);
+
+                return (EC_TRUE);
+            }
+
+            complete_size  += (CRANGE_SEG_E_OFFSET(crange_seg) - CRANGE_SEG_S_OFFSET(crange_seg) + 1);
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_write: "
+                                                 "truncate '%s' seg %ld => complete %ld / %ld\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CRANGE_SEG_NO(crange_seg),
+                                                 complete_size, length);
+
+            cstring_free(seg_path);
+            crange_seg_free(crange_seg);
+        }
+
+        crange_node_free(crange_node);
     }
 
     seg_no_src = (UINT32)((dnode_file_size + CXFSPGB_PAGE_BYTE_SIZE - 1) /  CXFSPGB_PAGE_BYTE_SIZE);
@@ -1088,8 +1494,6 @@ EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const 
 
     if(dnode_file_size <= length ||seg_no_src <= seg_no_des)
     {
-        crange_node_free(crange_node);
-
         cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
 
         c_get_cur_time_nsec_and_nanosec(&nsec, &nanosec);
@@ -1113,74 +1517,90 @@ EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const 
 
     /*(dnode_file_size > length && seg_no_src > seg_no_des)*/
 
-    CRANGE_NODE_SUFFIX_START(crange_node)  = EC_FALSE;
-    CRANGE_NODE_SUFFIX_END(crange_node)    = EC_FALSE;
-    CRANGE_NODE_RANGE_START(crange_node)   = (UINT32)(seg_no_des * CXFSPGB_PAGE_BYTE_SIZE);
-    CRANGE_NODE_RANGE_END(crange_node)     = (UINT32)(dnode_file_size - 1);
-
-    if(EC_FALSE == crange_node_split(crange_node, (UINT32)CXFSPGB_PAGE_BYTE_SIZE))
+    if(0 < dnode_file_size)
     {
-        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
-                                             "[retire] '%s' split [%ld, %ld) failed\n",
-                                             (char *)cstring_get_str(path),
-                                             CRANGE_NODE_RANGE_START(crange_node),
-                                             CRANGE_NODE_RANGE_END(crange_node) + 1);
+        CRANGE_NODE     *crange_node;
+        CRANGE_SEG      *crange_seg;
 
-        crange_node_free(crange_node);
-
-        (*res) = -ERANGE;
-        return (EC_TRUE);
-    }
-
-    if(do_log(SEC_0192_CXFS, 2))
-    {
-        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_truncate: retired segs:\n");
-        crange_node_print(LOGSTDOUT, crange_node);
-    }
-
-    while(NULL_PTR != (crange_seg = clist_pop_front(CRANGE_NODE_RANGE_SEGS(crange_node))))
-    {
-        CSTRING         *seg_path;
-
-        seg_path = cstring_make("%s/%ld", cstring_get_str(path), CRANGE_SEG_NO(crange_seg));
-        if(NULL_PTR == seg_path)
+        crange_node = crange_node_new();
+        if(NULL_PTR == crange_node)
         {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
-                                                 "[retire] make seg path %s/%ld failed\n",
-                                                 (char *)cstring_get_str(path),
-                                                 CRANGE_SEG_NO(crange_seg));
-
-            crange_seg_free(crange_seg);
-            crange_node_free(crange_node);
-
+                                                 "'%s', new crange node failed\n",
+                                                 (char *)cstring_get_str(path));
             (*res) = -ENOMEM;
             return (EC_TRUE);
         }
 
-        if(EC_FALSE == cxfs_delete_file(cxfs_md_id, seg_path))
+        CRANGE_NODE_SUFFIX_START(crange_node)  = EC_FALSE;
+        CRANGE_NODE_SUFFIX_END(crange_node)    = EC_FALSE;
+        CRANGE_NODE_RANGE_START(crange_node)   = (UINT32)(seg_no_des * CXFSPGB_PAGE_BYTE_SIZE);
+        CRANGE_NODE_RANGE_END(crange_node)     = (UINT32)(dnode_file_size - 1);
+
+        if(EC_FALSE == crange_node_split(crange_node, (UINT32)CXFSPGB_PAGE_BYTE_SIZE))
         {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
-                                                 "[retire] delete seg %s failed\n",
-                                                 (char *)cstring_get_str(seg_path));
+                                                 "[retire] '%s' split [%ld, %ld) failed\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CRANGE_NODE_RANGE_START(crange_node),
+                                                 CRANGE_NODE_RANGE_END(crange_node) + 1);
 
-            cstring_free(seg_path);
-
-            crange_seg_free(crange_seg);
             crange_node_free(crange_node);
 
-            (*res) = -ENOENT;
+            (*res) = -ERANGE;
             return (EC_TRUE);
         }
 
-        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_write: "
-                                             "[retire] delete '%s' done\n",
-                                             (char *)cstring_get_str(seg_path));
+        if(do_log(SEC_0192_CXFS, 2))
+        {
+            sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_truncate: retired segs:\n");
+            crange_node_print(LOGSTDOUT, crange_node);
+        }
 
-        cstring_free(seg_path);
-        crange_seg_free(crange_seg);
+        while(NULL_PTR != (crange_seg = clist_pop_front(CRANGE_NODE_RANGE_SEGS(crange_node))))
+        {
+            CSTRING         *seg_path;
+
+            seg_path = cstring_make("%s/%ld", cstring_get_str(path), CRANGE_SEG_NO(crange_seg));
+            if(NULL_PTR == seg_path)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
+                                                     "[retire] make seg path %s/%ld failed\n",
+                                                     (char *)cstring_get_str(path),
+                                                     CRANGE_SEG_NO(crange_seg));
+
+                crange_seg_free(crange_seg);
+                crange_node_free(crange_node);
+
+                (*res) = -ENOMEM;
+                return (EC_TRUE);
+            }
+
+            if(EC_FALSE == cxfs_delete_file(cxfs_md_id, seg_path))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
+                                                     "[retire] delete seg %s failed\n",
+                                                     (char *)cstring_get_str(seg_path));
+
+                cstring_free(seg_path);
+
+                crange_seg_free(crange_seg);
+                crange_node_free(crange_node);
+
+                (*res) = -ENOENT;
+                return (EC_TRUE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_write: "
+                                                 "[retire] delete '%s' done\n",
+                                                 (char *)cstring_get_str(seg_path));
+
+            cstring_free(seg_path);
+            crange_seg_free(crange_seg);
+        }
+
+        crange_node_free(crange_node);
     }
-
-    crange_node_free(crange_node);
 
     dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_truncate: "
                                          "[retire] truncate %s: ino %lu, length %lu => %ld done\n",
@@ -1256,10 +1676,30 @@ EC_BOOL cxfs_fuses_utime(const UINT32 cxfs_md_id, const CSTRING *path, const str
     return (EC_TRUE);
 }
 
-EC_BOOL cxfs_fuses_open(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 flags, int *res)
+/**
+ * Open a file
+ *
+ * Open flags are available in fi->flags. The following rules
+ * apply.
+ *
+ *  - Creation (O_CREAT, O_EXCL, O_NOCTTY) flags will be
+ *    filtered out / handled by the kernel.
+ *
+ *  - Access modes (O_RDONLY, O_WRONLY, O_RDWR) should be used
+ *    by the filesystem to check if the operation is
+ *    permitted.  If the ``-o default_permissions`` mount
+ *    option is given, this check is already done by the
+ *    kernel before calling open() and may thus be omitted by
+ *    the filesystem.
+ *    ......
+ **/
+EC_BOOL cxfs_fuses_open(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 flags, const UINT32 uid, const UINT32 gid, int *res)
 {
     CXFS_MD         *cxfs_md;
+
     uint64_t         ino;
+
+    uint32_t         accmode;
 
 #if (SWITCH_ON == CXFS_DEBUG_SWITCH)
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
@@ -1278,21 +1718,192 @@ EC_BOOL cxfs_fuses_open(const UINT32 cxfs_md_id, const CSTRING *path, const UINT
 
     CXFS_FUSES_CHECK_ENV(cxfs_md_id, cxfs_md, "cxfs_fuses_open", res);
 
-    (void)flags;
+    if(NULL_PTR == __cxfs_fuses_lookup(cxfs_md_id, path, &ino))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_open: "
+                                             "no dir '%s'\n",
+                                             (char *)cstring_get_str(path));
+        (*res) = -ENOENT;
+        return (EC_TRUE);
+    }
+
+    if(((uint32_t)flags) & O_TRUNC)
+    {
+        accmode = O_WRONLY;
+
+        if(EC_FALSE == __cxfs_fuses_check_access(cxfs_md_id,
+                                                (char *)cstring_get_str(path), ino,
+                                                accmode, (uint32_t)uid, (uint32_t)gid))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_open: "
+                                                 "find dir '%s', accmode %#o, uid %u, gid %u => not access "
+                                                 "=> truncate refused\n",
+                                                 (char *)cstring_get_str(path),
+                                                 accmode, (uint32_t)uid, (uint32_t)gid);
+                (*res) = -EACCES;
+                return (EC_TRUE);
+        }
+
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_fuses_open: "
+                                             "find dir '%s' => ino %lu => truncate to length 0\n",
+                                             (char *)cstring_get_str(path), ino);
+
+        return cxfs_fuses_truncate(cxfs_md_id, path, (UINT32)0, res);
+    }
+
+    accmode = (((uint32_t)flags) & O_ACCMODE);
+
+    if(EC_FALSE == __cxfs_fuses_check_access(cxfs_md_id,
+                                            (char *)cstring_get_str(path), ino,
+                                            accmode, (uint32_t)uid, (uint32_t)gid))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_open: "
+                                             "find dir '%s', accmode %#o, uid %u, gid %u => not access\n",
+                                             (char *)cstring_get_str(path),
+                                             accmode, (uint32_t)uid, (uint32_t)gid);
+            (*res) = -EACCES;
+            return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_fuses_open: "
+                                         "find dir '%s', accmode %#o, uid %u, gid %u => access\n",
+                                         (char *)cstring_get_str(path),
+                                         accmode, (uint32_t)uid, (uint32_t)gid);
+    (*res) = 0;
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfs_fuses_create(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 uid, const UINT32 gid, int *res)
+{
+    CXFS_MD         *cxfs_md;
+    CXFSNP_ITEM     *cxfsnp_item;
+    CXFSNP_ATTR     *cxfsnp_attr;
+    uint64_t         ino;
+
+#if (SWITCH_ON == CXFS_DEBUG_SWITCH)
+    if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
+    {
+        sys_log(LOGSTDOUT,
+                "error:cxfs_fuses_create: cxfs module #%ld not started.\n",
+                cxfs_md_id);
+        cxfs_print_module_status(cxfs_md_id, LOGSTDOUT);
+        dbg_exit(MD_CXFS, cxfs_md_id);
+    }
+#endif/*(SWITCH_ON == CXFS_DEBUG_SWITCH)*/
+
+    CXFS_FUSES_DEBUG_ENTER("cxfs_fuses_create");
+
+    cxfs_md = CXFS_MD_GET(cxfs_md_id);
+
+    CXFS_FUSES_CHECK_ENV(cxfs_md_id, cxfs_md, "cxfs_fuses_create", res);
 
     if(NULL_PTR != __cxfs_fuses_lookup(cxfs_md_id, path, &ino))
     {
-        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_fuses_open: "
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_fuses_create: "
                                              "find dir '%s' => ino %lu\n",
                                              (char *)cstring_get_str(path), ino);
         (*res) = 0;
         return (EC_TRUE);
     }
 
-    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_open: "
-                                         "no dir '%s'\n",
-                                         (char *)cstring_get_str(path));
-    (*res) = -ENOENT;
+    if(1) /*check parent acccess*/
+    {
+        CSTRING  parent_path_cstr;
+        char    *parent_path;
+        uint64_t parent_ino;
+        uint32_t parent_path_len;
+        uint32_t accmode;
+
+        parent_path = c_dirname((char *)cstring_get_str(path));
+        if(NULL_PTR == parent_path)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_create: "
+                                                 "dirname '%s', failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -ENOMEM;
+            return (EC_TRUE);
+        }
+
+        parent_path_len = strlen(parent_path);
+
+        cstring_mount(&parent_path_cstr, (UINT8 *)parent_path, parent_path_len, parent_path_len + 1);
+
+        if(NULL_PTR == __cxfs_fuses_lookup(cxfs_md_id, &parent_path_cstr, &parent_ino))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_create: "
+                                                 "find parent '%s' of '%s' failed\n",
+                                                 parent_path,
+                                                 (char *)cstring_get_str(path));
+            c_str_free(parent_path);
+
+            (*res) = -EIO;
+            return (EC_TRUE);
+        }
+
+        accmode = O_WRONLY;
+
+        if(EC_FALSE == __cxfs_fuses_check_access(cxfs_md_id, parent_path, parent_ino,
+                                                accmode, (uint32_t)uid, (uint32_t)gid))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_create: "
+                                                 "find parent '%s', accmode %#o, uid %u, gid %u => not access "
+                                                 "=> create '%s' refused\n",
+                                                 parent_path,
+                                                 accmode, (uint32_t)uid, (uint32_t)gid,
+                                                 (char *)cstring_get_str(path));
+            c_str_free(parent_path);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        c_str_free(parent_path);
+    }
+
+    if(EC_FALSE == cxfs_mkdir(cxfs_md_id, path))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_create: "
+                                             "mkdir '%s'failed\n",
+                                             (char *)cstring_get_str(path));
+        (*res) = -EACCES;
+        return (EC_FALSE);
+    }
+
+    if(EC_FALSE == __cxfs_fuses_make_empty_hidden_seg(cxfs_md_id, path, res))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_create: "
+                                             "%s, make hidden seg file failed\n",
+                                             (char *)cstring_get_str(path));
+        return (EC_TRUE);
+    }
+
+    cxfsnp_item = __cxfs_fuses_lookup(cxfs_md_id, path, &ino);
+    if(NULL_PTR == cxfsnp_item)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_create: "
+                                             "path '%s' ino %lu fetch item failed\n",
+                                             (char *)cstring_get_str(path),
+                                             ino);
+        (*res) = -ENOENT;
+        return (EC_TRUE);
+    }
+
+    cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
+
+    cxfsnp_attr_set_file(cxfsnp_attr);
+    CXFSNP_ATTR_MODE(cxfsnp_attr)       = (uint16_t)(mode | S_IFREG);
+    CXFSNP_ATTR_UID(cxfsnp_attr)        = (uint32_t)uid;
+    CXFSNP_ATTR_GID(cxfsnp_attr)        = (uint32_t)gid;
+
+    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_create: "
+                                         "%s => ino %lu => mode %#o uid %u, gid %u => done\n",
+                                         (char *)cstring_get_str(path), ino,
+                                         CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                         CXFSNP_ATTR_UID(cxfsnp_attr),
+                                         CXFSNP_ATTR_GID(cxfsnp_attr));
+
+    (*res) = 0;
+
     return (EC_TRUE);
 }
 

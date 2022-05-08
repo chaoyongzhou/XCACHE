@@ -36,7 +36,7 @@ extern "C"{
 #include "cbc.h"
 #include "cmisc.h"
 #include "task.h"
-
+#include "cxfsnp.inc"
 #include "cxfsfuseo.h"
 #include "cxfsfusec.h"
 #include "cxfsfuses.h"
@@ -73,26 +73,33 @@ static uint32_t                     g_path_idx = 0;
 
 #define CXFS_FUSEO_TASK_DEFAULT() CXFS_FUSEO_MD_TASK(cxfs_fuseo_md_default_get())
 
-#define CXFS_FUSEO_TASK_FUNC_SET(func)    do{                                     \
+#define CXFS_FUSEO_TASK_FUNC_SET(func)    do{                                         \
     CXFS_FUSEO_TASK_FUNC_ADDR(CXFS_FUSEO_TASK_DEFAULT()) = ((UINT32)func);            \
     CXFS_FUSEO_TASK_FUNC_NAME(CXFS_FUSEO_TASK_DEFAULT()) = ((const char *)# func );   \
 }while(0)
 
-#define CXFS_FUSEO_TASK_PARA_NUM_SET(num)    do{                                  \
+#define CXFS_FUSEO_TASK_PARA_NUM_SET(num)    do{                                      \
     CXFS_FUSEO_TASK_PARA_NUM(CXFS_FUSEO_TASK_DEFAULT()) = ((UINT32)num);              \
 }while(0)
 
-#define CXFS_FUSEO_TASK_PARA_VAL_SET(idx, val)    do{                             \
+#define CXFS_FUSEO_TASK_PARA_VAL_SET(idx, val)    do{                                 \
     CXFS_FUSEO_TASK_PARA_VAL(CXFS_FUSEO_TASK_DEFAULT(), idx) = ((UINT32)val);         \
 }while(0)
 
-#define CXFS_FUSEO_TASK_EMIT()    do{                                             \
+#define CXFS_FUSEO_TASK_EMIT()    do{                                                 \
     cxfs_fuseo_task_num_inc(cxfs_fuseo_md_default_get());                             \
-    task_brd_inc_notify_counter(task_brd_default_get());                      \
+    task_brd_inc_notify_counter(task_brd_default_get());                              \
     cxfs_fuseo_task_wait(cxfs_fuseo_md_default_get());                                \
 }while(0)
 
 #define CXFS_FUSEO_TASK_RET_VAL_GET() CXFS_FUSEO_TASK_RET_VAL(CXFS_FUSEO_TASK_DEFAULT())
+
+#define CXFS_FUSEO_CHECK_PATH_VALID(func_name, path) do {                             \
+    if(EC_FALSE == __cxfs_fuseo_check_path_valid(func_name, path))                    \
+    {                                                                                 \
+        return -ENAMETOOLONG;                                                         \
+    }                                                                                 \
+}while(0)
 
 CXFS_FUSEO_MD *cxfs_fuseo_md_default_get()
 {
@@ -116,6 +123,96 @@ STATIC_CAST const char *__cxfs_fuseo_set_cwd(const char *path)
 STATIC_CAST const char *__cxfs_fuseo_get_cwd()
 {
     return (const char *)g_cwd;
+}
+
+STATIC_CAST EC_BOOL __cxfs_fuseo_check_path_valid(const char *func_name, const char *path)
+{
+    uint32_t path_seg_len;
+    char    *s;
+    char    *e;
+
+    s = (char *)path;
+    e = (char *)(path + strlen(path) + 1);
+
+    for(path_seg_len = 0;s < e; s ++)
+    {
+        if('/' == (*s) || 0x00 == (*s))
+        {
+            if(CXFSNP_KEY_MAX_SIZE < path_seg_len)
+            {
+                dbg_log(SEC_0071_CXFS_FUSEO, 0)(LOGSTDOUT, "error:%s:"
+                                                           "%s is invalid (%.*s)\n",
+                                                           func_name,
+                                                           path,
+                                                           path_seg_len, s - path_seg_len);
+                return (EC_FALSE);
+            }
+            path_seg_len = 0; /*reset*/
+            continue;
+        }
+        path_seg_len ++;
+    }
+
+    return (EC_TRUE);
+}
+
+STATIC_CAST void __cxfs_fuseo_set_fi(struct fuse_file_info *fi)
+{
+    if(NULL_PTR != fi)
+    {
+	/** In case of a write operation indicates if this was caused
+	    by a delayed write from the page cache. If so, then the
+	    context's pid, uid, and gid fields will not be valid, and
+	    the *fh* value may not match the *fh* value that would
+	    have been sent with the corresponding individual write
+	    requests if write caching had been disabled. */
+        fi->writepage           = 0;
+
+        /** Can be filled in by open, to use direct I/O on this file. */
+        fi->direct_io           = 0;
+
+	/** Can be filled in by open. It signals the kernel that any
+	    currently cached file data (ie., data that the filesystem
+	    provided the last time the file was open) need not be
+	    invalidated. Has no effect when set in other contexts (in
+	    particular it does nothing when set by opendir()). */
+        fi->keep_cache          = 0;
+
+	/** Indicates a flush operation.  Set in flush operation, also
+	    maybe set in highlevel lock operation and lowlevel release
+	    operation. */
+        fi->flush               = 0;
+
+	/** Can be filled in by open, to indicate that the file is not
+	    seekable. */
+        fi->nonseekable         = 0;
+
+	/* Indicates that flock locks for this file should be
+	   released.  If set, lock_owner shall contain a valid value.
+	   May only be set in ->release(). */
+        fi->flock_release       = 0;
+
+	/** Can be filled in by opendir. It signals the kernel to
+	    enable caching of entries returned by readdir().  Has no
+	    effect when set in other contexts (in particular it does
+	    nothing when set by open()). */
+        fi->cache_readdir       = 0;
+
+	/** File handle id.  May be filled in by filesystem in create,
+	 * open, and opendir().  Available in most other file operations on the
+	 * same file handle. */
+        fi->fh                  = 0;
+
+	/** Lock owner id.  Available in locking operations and flush */
+        fi->lock_owner          = 0;
+
+	/** Requested poll events.  Available in ->poll.  Only set on kernels
+	    which support it.  If unsupported, this field is set to zero. */
+        fi->poll_events         = 0;
+
+    }
+
+    return;
 }
 
 /**
@@ -197,7 +294,7 @@ void cxfs_fuseo_init_ops(CXFS_FUSEO_MD *cxfs_fuseo_md)
 	fuse_ops->releasedir        = cxfs_fuseo_releasedir;
 	fuse_ops->fsyncdir          = cxfs_fuseo_fsyncdir;
 	fuse_ops->access            = cxfs_fuseo_access;
-	fuse_ops->create            = NULL_PTR;
+	fuse_ops->create            = cxfs_fuseo_create;
 	fuse_ops->lock              = NULL_PTR;
 	fuse_ops->utimens           = cxfs_fuseo_utimens;
 
@@ -348,6 +445,7 @@ STATIC_CAST const char *__cxfs_fuseo_abs_path(const char *path)
 int cxfs_fuseo_getattr(const char *path, struct stat *stat, struct fuse_file_info *fi)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_getattr");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_getattr", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_getattr);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -366,6 +464,7 @@ int cxfs_fuseo_readlink(const char *path, char *buf, size_t size)
     const char    *abs_path;
 
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_readlink");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_readlink", path);
 
     abs_path = __cxfs_fuseo_abs_path(path);
 
@@ -383,13 +482,29 @@ int cxfs_fuseo_readlink(const char *path, char *buf, size_t size)
 /*int (*mknod)       (const char *, mode_t, dev_t);*/
 int cxfs_fuseo_mknod(const char *path, mode_t mode, dev_t dev)
 {
+    struct fuse_context *c;
+
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_mknod");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_mknod", path);
+
+    c = fuse_get_context();
+
+    if(NULL_PTR == c)
+    {
+        return -EIO;
+    }
+
+    dbg_log(SEC_0071_CXFS_FUSEO, 9)(LOGSTDOUT, "[DEBUG] cxfs_fuseo_mknod: "
+                       "context:  fuse %p, uid %u, gid %u, pid %ld, umask %#o\n",
+                       c->fuse, c->uid, c->gid, c->pid, c->umask);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_mknod);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
     CXFS_FUSEO_TASK_PARA_VAL_SET(1, mode);
-    CXFS_FUSEO_TASK_PARA_VAL_SET(2, dev);
-    CXFS_FUSEO_TASK_PARA_NUM_SET(3);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, c->uid);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(3, c->gid);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(4, dev);
+    CXFS_FUSEO_TASK_PARA_NUM_SET(5);
 
     CXFS_FUSEO_TASK_EMIT();
 
@@ -399,12 +514,24 @@ int cxfs_fuseo_mknod(const char *path, mode_t mode, dev_t dev)
 /*int (*mkdir) (const char *, mode_t);*/
 int cxfs_fuseo_mkdir(const char *path, mode_t mode)
 {
+    struct fuse_context *c;
+
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_mkdir");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_mkdir", path);
+
+    c = fuse_get_context();
+
+    if(NULL_PTR == c)
+    {
+        return -EIO;
+    }
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_mkdir);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
     CXFS_FUSEO_TASK_PARA_VAL_SET(1, mode);
-    CXFS_FUSEO_TASK_PARA_NUM_SET(2);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, c->uid);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(3, c->gid);
+    CXFS_FUSEO_TASK_PARA_NUM_SET(4);
 
     CXFS_FUSEO_TASK_EMIT();
 
@@ -415,6 +542,7 @@ int cxfs_fuseo_mkdir(const char *path, mode_t mode)
 int cxfs_fuseo_unlink(const char *path)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_unlink");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_unlink", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_unlink);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -429,6 +557,7 @@ int cxfs_fuseo_unlink(const char *path)
 int cxfs_fuseo_rmdir(const char *path)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_rmdir");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_rmdir", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_rmdir);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -446,6 +575,8 @@ int cxfs_fuseo_symlink(const char *src_path, const char *des_path)
     const char    *src_abs_path;
 
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_symlink");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_symlink", src_path);
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_symlink", des_path);
 
     src_abs_path = __cxfs_fuseo_abs_path(src_path);
 
@@ -463,6 +594,8 @@ int cxfs_fuseo_symlink(const char *src_path, const char *des_path)
 int cxfs_fuseo_rename(const char *src_path, const char *des_path, unsigned int flags /*RENAME_EXCHANGE|RENAME_NOREPLACE*/)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_rename");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_rename", src_path);
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_rename", des_path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_rename);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, src_path);
@@ -482,6 +615,8 @@ int cxfs_fuseo_link(const char *src_path, const char *des_path)
     const char    *src_abs_path;
 
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_link");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_link", src_path);
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_link", des_path);
 
     src_abs_path = __cxfs_fuseo_abs_path(src_path);
 
@@ -500,6 +635,7 @@ int cxfs_fuseo_link(const char *src_path, const char *des_path)
 int cxfs_fuseo_chmod(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_chmod");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_chmod", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_chmod);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -517,6 +653,7 @@ int cxfs_fuseo_chmod(const char *path, mode_t mode, struct fuse_file_info *fi)
 int cxfs_fuseo_chown(const char *path, uid_t owner, gid_t group, struct fuse_file_info *fi)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_chown");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_chown", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_chown);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -535,6 +672,7 @@ int cxfs_fuseo_chown(const char *path, uid_t owner, gid_t group, struct fuse_fil
 int cxfs_fuseo_truncate(const char *path, off_t length, struct fuse_file_info *fi)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_truncate");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_truncate", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_truncate);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -555,6 +693,7 @@ int cxfs_fuseo_truncate(const char *path, off_t length, struct fuse_file_info *f
 int cxfs_fuseo_utime(const char *path, /*const*/struct utimbuf *times)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_utime");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_utime", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_utime);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -569,68 +708,67 @@ int cxfs_fuseo_utime(const char *path, /*const*/struct utimbuf *times)
 /*int (*open) (const char *, struct fuse_file_info *);*/
 int cxfs_fuseo_open(const char *path, struct fuse_file_info *fi)
 {
+    struct fuse_context *c;
+
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_open");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_open", path);
+
+    c = fuse_get_context();
+
+    if(NULL_PTR == c)
+    {
+        return -EIO;
+    }
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_open);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
-    CXFS_FUSEO_TASK_PARA_VAL_SET(1, fi);
-    CXFS_FUSEO_TASK_PARA_NUM_SET(2);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(1, c->uid);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, c->gid);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(3, fi);
+    CXFS_FUSEO_TASK_PARA_NUM_SET(4);
 
     CXFS_FUSEO_TASK_EMIT();
 
-    if(NULL_PTR != fi
-    && 0 == CXFS_FUSEO_TASK_RET_VAL_GET())
+    if(0 == CXFS_FUSEO_TASK_RET_VAL_GET())
     {
-	/** In case of a write operation indicates if this was caused
-	    by a delayed write from the page cache. If so, then the
-	    context's pid, uid, and gid fields will not be valid, and
-	    the *fh* value may not match the *fh* value that would
-	    have been sent with the corresponding individual write
-	    requests if write caching had been disabled. */
-        fi->writepage           = 0;
+        __cxfs_fuseo_set_fi(fi);
+    }
 
-        /** Can be filled in by open, to use direct I/O on this file. */
-        fi->direct_io           = 0;
+    return CXFS_FUSEO_TASK_RET_VAL_GET();
+}
 
-	/** Can be filled in by open. It signals the kernel that any
-	    currently cached file data (ie., data that the filesystem
-	    provided the last time the file was open) need not be
-	    invalidated. Has no effect when set in other contexts (in
-	    particular it does nothing when set by opendir()). */
-        fi->keep_cache          = 0;
+/*int (*create) (const char *, mode_t, struct fuse_file_info *);*/
+int cxfs_fuseo_create(const char *path, mode_t mode, struct fuse_file_info *fi)
+{
+    struct fuse_context *c;
 
-	/** Indicates a flush operation.  Set in flush operation, also
-	    maybe set in highlevel lock operation and lowlevel release
-	    operation. */
-        fi->flush               = 0;
+    CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_create");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_create", path);
 
-	/** Can be filled in by open, to indicate that the file is not
-	    seekable. */
-        fi->nonseekable         = 0;
+    c = fuse_get_context();
 
-	/* Indicates that flock locks for this file should be
-	   released.  If set, lock_owner shall contain a valid value.
-	   May only be set in ->release(). */
-        fi->flock_release       = 0;
+    if(NULL_PTR == c)
+    {
+        return -EIO;
+    }
 
-	/** Can be filled in by opendir. It signals the kernel to
-	    enable caching of entries returned by readdir().  Has no
-	    effect when set in other contexts (in particular it does
-	    nothing when set by open()). */
-        fi->cache_readdir       = 0;
+    dbg_log(SEC_0071_CXFS_FUSEO, 9)(LOGSTDOUT, "[DEBUG] cxfs_fuseo_create: "
+                       "context:  fuse %p, uid %u, gid %u, pid %ld, umask %#o\n",
+                       c->fuse, c->uid, c->gid, c->pid, c->umask);
 
-	/** File handle id.  May be filled in by filesystem in create,
-	 * open, and opendir().  Available in most other file operations on the
-	 * same file handle. */
-        fi->fh                  = 0;
+    CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_create);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(1, mode);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, c->uid);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(3, c->gid);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(4, fi);
+    CXFS_FUSEO_TASK_PARA_NUM_SET(5);
 
-	/** Lock owner id.  Available in locking operations and flush */
-        fi->lock_owner          = 0;
+    CXFS_FUSEO_TASK_EMIT();
 
-	/** Requested poll events.  Available in ->poll.  Only set on kernels
-	    which support it.  If unsupported, this field is set to zero. */
-        fi->poll_events         = 0;
-
+    if(0 == CXFS_FUSEO_TASK_RET_VAL_GET())
+    {
+        __cxfs_fuseo_set_fi(fi);
     }
 
     return CXFS_FUSEO_TASK_RET_VAL_GET();
@@ -640,6 +778,7 @@ int cxfs_fuseo_open(const char *path, struct fuse_file_info *fi)
 int cxfs_fuseo_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_read");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_read", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_read);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -658,6 +797,7 @@ int cxfs_fuseo_read(const char *path, char *buf, size_t size, off_t offset, stru
 int cxfs_fuseo_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_write");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_write", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_write);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -676,6 +816,7 @@ int cxfs_fuseo_write(const char *path, const char *buf, size_t size, off_t offse
 int cxfs_fuseo_statfs(const char *path, struct statvfs *statvfs)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_statfs");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_statfs", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_statfs);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -691,6 +832,7 @@ int cxfs_fuseo_statfs(const char *path, struct statvfs *statvfs)
 int cxfs_fuseo_flush(const char *path, struct fuse_file_info *fi)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_flush");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_flush", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_flush);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -706,6 +848,7 @@ int cxfs_fuseo_flush(const char *path, struct fuse_file_info *fi)
 int cxfs_fuseo_release(const char *path, struct fuse_file_info *fi)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_release");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_release", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_release);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -721,6 +864,7 @@ int cxfs_fuseo_release(const char *path, struct fuse_file_info *fi)
 int cxfs_fuseo_fsync(const char * path, int sync, struct fuse_file_info *fi)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_fsync");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_fsync", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_fsync);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -738,6 +882,7 @@ int cxfs_fuseo_fsync(const char * path, int sync, struct fuse_file_info *fi)
 int cxfs_fuseo_setxattr(const char *path, const char *name, const char *value, size_t size, int flags)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_setxattr");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_setxattr", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_setxattr);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -757,6 +902,7 @@ int cxfs_fuseo_setxattr(const char *path, const char *name, const char *value, s
 int cxfs_fuseo_getxattr(const char *path, const char *name, char *value, size_t size)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_getxattr");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_getxattr", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_getxattr);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -775,6 +921,7 @@ int cxfs_fuseo_getxattr(const char *path, const char *name, char *value, size_t 
 int cxfs_fuseo_listxattr(const char *path, char *list, size_t size)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_listxattr");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_listxattr", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_listxattr);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -792,6 +939,7 @@ int cxfs_fuseo_listxattr(const char *path, char *list, size_t size)
 int cxfs_fuseo_removexattr(const char *path, const char *name)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_removexattr");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_removexattr", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_removexattr);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -808,6 +956,7 @@ int cxfs_fuseo_access(const char *path, int mask)
 {
     UINT32    mode;
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_access");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_access", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_access);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -832,6 +981,7 @@ int cxfs_fuseo_access(const char *path, int mask)
 int cxfs_fuseo_ftruncate(const char *path, off_t offset)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_ftruncate");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_ftruncate", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_ftruncate);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -848,6 +998,7 @@ int cxfs_fuseo_ftruncate(const char *path, off_t offset)
 int cxfs_fuseo_utimens(const char *path, const struct timespec ts[2], struct fuse_file_info *fi)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_utimens");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_utimens", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_utimens);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -865,6 +1016,7 @@ int cxfs_fuseo_utimens(const char *path, const struct timespec ts[2], struct fus
 int cxfs_fuseo_fallocate(const char * path, int mode, off_t offset, off_t length, struct fuse_file_info *fi)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_fallocate");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_fallocate", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_fallocate);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -883,61 +1035,13 @@ int cxfs_fuseo_fallocate(const char * path, int mode, off_t offset, off_t length
 int cxfs_fuseo_opendir(const char *path, struct fuse_file_info *fi)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_opendir");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_opendir", path);
 
     (void)path;
 
     if(NULL_PTR != fi)
     {
-	/** In case of a write operation indicates if this was caused
-	    by a delayed write from the page cache. If so, then the
-	    context's pid, uid, and gid fields will not be valid, and
-	    the *fh* value may not match the *fh* value that would
-	    have been sent with the corresponding individual write
-	    requests if write caching had been disabled. */
-        fi->writepage           = 0;
-
-        /** Can be filled in by open, to use direct I/O on this file. */
-        fi->direct_io           = 0;
-
-	/** Can be filled in by open. It signals the kernel that any
-	    currently cached file data (ie., data that the filesystem
-	    provided the last time the file was open) need not be
-	    invalidated. Has no effect when set in other contexts (in
-	    particular it does nothing when set by opendir()). */
-        fi->keep_cache          = 0;
-
-	/** Indicates a flush operation.  Set in flush operation, also
-	    maybe set in highlevel lock operation and lowlevel release
-	    operation. */
-        fi->flush               = 0;
-
-	/** Can be filled in by open, to indicate that the file is not
-	    seekable. */
-        fi->nonseekable         = 0;
-
-	/* Indicates that flock locks for this file should be
-	   released.  If set, lock_owner shall contain a valid value.
-	   May only be set in ->release(). */
-        fi->flock_release       = 0;
-
-	/** Can be filled in by opendir. It signals the kernel to
-	    enable caching of entries returned by readdir().  Has no
-	    effect when set in other contexts (in particular it does
-	    nothing when set by open()). */
-        fi->cache_readdir       = 0;
-
-	/** File handle id.  May be filled in by filesystem in create,
-	 * open, and opendir().  Available in most other file operations on the
-	 * same file handle. */
-        fi->fh                  = 0;
-
-	/** Lock owner id.  Available in locking operations and flush */
-        fi->lock_owner          = 0;
-
-	/** Requested poll events.  Available in ->poll.  Only set on kernels
-	    which support it.  If unsupported, this field is set to zero. */
-        fi->poll_events         = 0;
-
+        __cxfs_fuseo_set_fi(fi);
     }
 
     return (0);
@@ -947,6 +1051,7 @@ int cxfs_fuseo_opendir(const char *path, struct fuse_file_info *fi)
 int cxfs_fuseo_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi, enum fuse_readdir_flags eflags)
 {
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_readdir");
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_readdir", path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_readdir);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
@@ -965,7 +1070,8 @@ int cxfs_fuseo_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 /*int (*releasedir) (const char *, struct fuse_file_info *);*/
 int cxfs_fuseo_releasedir(const char *path, struct fuse_file_info *fi)
 {
-    (void)path;
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_releasedir", path);
+
     (void)fi;
 
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_releasedir");
@@ -975,7 +1081,8 @@ int cxfs_fuseo_releasedir(const char *path, struct fuse_file_info *fi)
 /*int (*fsyncdir) (const char *, int, struct fuse_file_info *);*/
 int cxfs_fuseo_fsyncdir(const char *path, int datasync, struct fuse_file_info *fi)
 {
-    (void)path;
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_fsyncdir", path);
+
     (void)datasync;
     (void)fi;
 
