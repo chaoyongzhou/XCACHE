@@ -57,7 +57,7 @@ extern "C"{
  * cxfs_fuseo thread condition lock.                                              *
 \*----------------------------------------------------------------------------*/
 
-#define CXFS_FUSEO_PATH_MAX_SIZE   (8192) /*8K > PATH_MAX*/
+#define CXFS_FUSEO_PATH_MAX_SIZE   (4096) /*4K > PATH_MAX*/
 #define CXFS_FUSEO_PATH_MAX_NUM    (8)
 
 static CXFS_FUSEO_MD                g_cxfs_fuseo_md;
@@ -127,12 +127,23 @@ STATIC_CAST const char *__cxfs_fuseo_get_cwd()
 
 STATIC_CAST EC_BOOL __cxfs_fuseo_check_path_valid(const char *func_name, const char *path)
 {
+    uint32_t path_len;
     uint32_t path_seg_len;
     char    *s;
     char    *e;
 
+    path_len = strlen(path);
+    if(CXFS_FUSEO_PATH_MAX_SIZE <= path_len + 1)
+    {
+        dbg_log(SEC_0071_CXFS_FUSEO, 0)(LOGSTDOUT, "error:%s:"
+                                                   "%s, len %u => too long\n",
+                                                   func_name,
+                                                   path, path_len);
+        return (EC_FALSE);
+    }
+
     s = (char *)path;
-    e = (char *)(path + strlen(path) + 1);
+    e = (char *)(path + path_len + 1);
 
     for(path_seg_len = 0;s < e; s ++)
     {
@@ -299,7 +310,7 @@ void cxfs_fuseo_init_ops(CXFS_FUSEO_MD *cxfs_fuseo_md)
 	fuse_ops->utimens           = cxfs_fuseo_utimens;
 
 	fuse_ops->bmap              = NULL_PTR;
-	fuse_ops->ioctl             = NULL_PTR;
+	fuse_ops->ioctl             = cxfs_fuseo_ioctl;
 	fuse_ops->poll              = NULL_PTR;
 	fuse_ops->write_buf         = NULL_PTR;
 	fuse_ops->read_buf          = NULL_PTR;
@@ -441,6 +452,18 @@ STATIC_CAST const char *__cxfs_fuseo_abs_path(const char *path)
     return (path);
 }
 
+/** Get file attributes.
+ *
+ * Similar to stat().  The 'st_dev' and 'st_blksize' fields are
+ * ignored. The 'st_ino' field is ignored except if the 'use_ino'
+ * mount option is given. In that case it is passed to userspace,
+ * but libfuse and the kernel will still assign a different
+ * inode for internal use (called the "nodeid").
+ *
+ * `fi` will always be NULL if the file is not currently open, but
+ * may also be NULL if the file is open.
+**/
+
 /*int (*getattr) (const char *, struct stat *);*/
 int cxfs_fuseo_getattr(const char *path, struct stat *stat, struct fuse_file_info *fi)
 {
@@ -455,6 +478,27 @@ int cxfs_fuseo_getattr(const char *path, struct stat *stat, struct fuse_file_inf
 
     CXFS_FUSEO_TASK_EMIT();
 
+    sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuseo_getattr: path %s => (%u, %u)\n",
+                       path, stat->st_uid, stat->st_gid);
+
+    if(do_log(SEC_0071_CXFS_FUSEO, 9))
+    {
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuseo_getattr: path %s\n", path);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuseo_getattr: st_dev     = %#x\n", stat->st_dev);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuseo_getattr: st_ino     = %lu\n", stat->st_ino);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuseo_getattr: st_mode    = %#o\n", stat->st_mode);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuseo_getattr: st_nlink   = %d\n", stat->st_nlink);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuseo_getattr: st_uid     = %u\n", stat->st_uid);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuseo_getattr: st_gid     = %u\n", stat->st_gid);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuseo_getattr: st_rdev    = %u\n", stat->st_rdev);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuseo_getattr: st_size    = %ld\n", stat->st_size);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuseo_getattr: st_blksize = %d\n", stat->st_blksize);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuseo_getattr: st_blocks  = %ld\n", stat->st_blocks);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuseo_getattr: st_atime   = %ld %ld\n", stat->st_atim.tv_sec, stat->st_atim.tv_nsec);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuseo_getattr: st_mtime   = %ld %ld\n", stat->st_mtim.tv_sec, stat->st_mtim.tv_nsec);
+        sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuseo_getattr: st_ctime   = %ld %ld\n", stat->st_ctim.tv_sec, stat->st_ctim.tv_nsec);
+    }
+
     return CXFS_FUSEO_TASK_RET_VAL_GET();
 }
 
@@ -464,9 +508,10 @@ int cxfs_fuseo_readlink(const char *path, char *buf, size_t size)
     const char    *abs_path;
 
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_readlink");
-    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_readlink", path);
 
     abs_path = __cxfs_fuseo_abs_path(path);
+
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_readlink", abs_path);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_readlink);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, abs_path);
@@ -501,8 +546,8 @@ int cxfs_fuseo_mknod(const char *path, mode_t mode, dev_t dev)
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_mknod);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
     CXFS_FUSEO_TASK_PARA_VAL_SET(1, mode);
-    CXFS_FUSEO_TASK_PARA_VAL_SET(2, c->uid);
-    CXFS_FUSEO_TASK_PARA_VAL_SET(3, c->gid);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, (c->uid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(3, (c->gid & 0xFFFF));
     CXFS_FUSEO_TASK_PARA_VAL_SET(4, dev);
     CXFS_FUSEO_TASK_PARA_NUM_SET(5);
 
@@ -529,8 +574,8 @@ int cxfs_fuseo_mkdir(const char *path, mode_t mode)
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_mkdir);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
     CXFS_FUSEO_TASK_PARA_VAL_SET(1, mode);
-    CXFS_FUSEO_TASK_PARA_VAL_SET(2, c->uid);
-    CXFS_FUSEO_TASK_PARA_VAL_SET(3, c->gid);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, (c->uid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(3, (c->gid & 0xFFFF));
     CXFS_FUSEO_TASK_PARA_NUM_SET(4);
 
     CXFS_FUSEO_TASK_EMIT();
@@ -541,12 +586,23 @@ int cxfs_fuseo_mkdir(const char *path, mode_t mode)
 /*int (*unlink) (const char *);*/
 int cxfs_fuseo_unlink(const char *path)
 {
+    struct fuse_context *c;
+
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_unlink");
     CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_unlink", path);
 
+    c = fuse_get_context();
+
+    if(NULL_PTR == c)
+    {
+        return -EIO;
+    }
+
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_unlink);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
-    CXFS_FUSEO_TASK_PARA_NUM_SET(1);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(1, (c->uid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, (c->gid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_NUM_SET(3);
 
     CXFS_FUSEO_TASK_EMIT();
 
@@ -556,12 +612,23 @@ int cxfs_fuseo_unlink(const char *path)
 /*int (*rmdir) (const char *);*/
 int cxfs_fuseo_rmdir(const char *path)
 {
+    struct fuse_context *c;
+
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_rmdir");
     CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_rmdir", path);
 
+    c = fuse_get_context();
+
+    if(NULL_PTR == c)
+    {
+        return -EIO;
+    }
+
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_rmdir);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
-    CXFS_FUSEO_TASK_PARA_NUM_SET(1);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(1, (c->uid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, (c->gid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_NUM_SET(3);
 
     CXFS_FUSEO_TASK_EMIT();
 
@@ -572,18 +639,29 @@ int cxfs_fuseo_rmdir(const char *path)
 /*int (*symlink) (const char *, const char *);*/
 int cxfs_fuseo_symlink(const char *src_path, const char *des_path)
 {
+    struct fuse_context *c;
     const char    *src_abs_path;
 
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_symlink");
-    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_symlink", src_path);
-    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_symlink", des_path);
 
     src_abs_path = __cxfs_fuseo_abs_path(src_path);
+
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_symlink", src_abs_path);
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_symlink", des_path);
+
+    c = fuse_get_context();
+
+    if(NULL_PTR == c)
+    {
+        return -EIO;
+    }
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_symlink);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, src_abs_path);
     CXFS_FUSEO_TASK_PARA_VAL_SET(1, des_path);
-    CXFS_FUSEO_TASK_PARA_NUM_SET(2);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, (c->uid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(3, (c->gid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_NUM_SET(4);
 
     CXFS_FUSEO_TASK_EMIT();
 
@@ -593,15 +671,26 @@ int cxfs_fuseo_symlink(const char *src_path, const char *des_path)
 /*int (*rename) (const char *, const char *, unsigned int flags);*/
 int cxfs_fuseo_rename(const char *src_path, const char *des_path, unsigned int flags /*RENAME_EXCHANGE|RENAME_NOREPLACE*/)
 {
+    struct fuse_context *c;
+
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_rename");
     CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_rename", src_path);
     CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_rename", des_path);
+
+    c = fuse_get_context();
+
+    if(NULL_PTR == c)
+    {
+        return -EIO;
+    }
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_rename);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, src_path);
     CXFS_FUSEO_TASK_PARA_VAL_SET(1, des_path);
     CXFS_FUSEO_TASK_PARA_VAL_SET(2, flags);
-    CXFS_FUSEO_TASK_PARA_NUM_SET(3);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(3, (c->uid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(4, (c->gid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_NUM_SET(5);
 
     CXFS_FUSEO_TASK_EMIT();
 
@@ -612,18 +701,29 @@ int cxfs_fuseo_rename(const char *src_path, const char *des_path, unsigned int f
 /*int (*link) (const char *, const char *);*/
 int cxfs_fuseo_link(const char *src_path, const char *des_path)
 {
+    struct fuse_context *c;
     const char    *src_abs_path;
 
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_link");
-    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_link", src_path);
-    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_link", des_path);
 
     src_abs_path = __cxfs_fuseo_abs_path(src_path);
+
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_link", src_abs_path);
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_link", des_path);
+
+    c = fuse_get_context();
+
+    if(NULL_PTR == c)
+    {
+        return -EIO;
+    }
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_link);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, src_abs_path);
     CXFS_FUSEO_TASK_PARA_VAL_SET(1, des_path);
-    CXFS_FUSEO_TASK_PARA_NUM_SET(2);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, (c->uid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(3, (c->gid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_NUM_SET(4);
 
     CXFS_FUSEO_TASK_EMIT();
 
@@ -634,14 +734,28 @@ int cxfs_fuseo_link(const char *src_path, const char *des_path)
 /*int (*chmod) (const char *, mode_t, struct fuse_file_info *fi);*/
 int cxfs_fuseo_chmod(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
+    struct fuse_context *c;
+
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_chmod");
     CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_chmod", path);
+
+    c = fuse_get_context();
+
+    if(NULL_PTR == c)
+    {
+        return -EIO;
+    }
+
+    sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuseo_chmod: path %s (%u, %u) -> mode %#o\n",
+                       path, c->uid, c->gid, mode);
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_chmod);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
     CXFS_FUSEO_TASK_PARA_VAL_SET(1, mode);
-    CXFS_FUSEO_TASK_PARA_VAL_SET(2, fi);
-    CXFS_FUSEO_TASK_PARA_NUM_SET(3);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, (c->uid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(3, (c->gid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(4, fi);
+    CXFS_FUSEO_TASK_PARA_NUM_SET(5);
 
     CXFS_FUSEO_TASK_EMIT();
 
@@ -652,15 +766,29 @@ int cxfs_fuseo_chmod(const char *path, mode_t mode, struct fuse_file_info *fi)
 /*int (*chown) (const char *, uid_t, gid_t);*/
 int cxfs_fuseo_chown(const char *path, uid_t owner, gid_t group, struct fuse_file_info *fi)
 {
+    struct fuse_context *c;
+
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_chown");
     CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_chown", path);
 
+    c = fuse_get_context();
+
+    if(NULL_PTR == c)
+    {
+        return -EIO;
+    }
+
+    sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuseo_chown: path %s, (%u, %u)->(%u, %u)\n",
+                       path, c->uid, c->gid, owner, group);
+
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_chown);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
-    CXFS_FUSEO_TASK_PARA_VAL_SET(1, owner);
-    CXFS_FUSEO_TASK_PARA_VAL_SET(2, group);
-    CXFS_FUSEO_TASK_PARA_VAL_SET(3, fi);
-    CXFS_FUSEO_TASK_PARA_NUM_SET(4);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(1, (owner & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, (group & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(3, (c->uid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(4, (c->gid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(5, fi);
+    CXFS_FUSEO_TASK_PARA_NUM_SET(6);
 
     CXFS_FUSEO_TASK_EMIT();
 
@@ -671,14 +799,25 @@ int cxfs_fuseo_chown(const char *path, uid_t owner, gid_t group, struct fuse_fil
 /*int (*truncate) (const char *, off_t);*/
 int cxfs_fuseo_truncate(const char *path, off_t length, struct fuse_file_info *fi)
 {
+    struct fuse_context *c;
+
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_truncate");
     CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_truncate", path);
+
+    c = fuse_get_context();
+
+    if(NULL_PTR == c)
+    {
+        return -EIO;
+    }
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_truncate);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
     CXFS_FUSEO_TASK_PARA_VAL_SET(1, length);
-    CXFS_FUSEO_TASK_PARA_VAL_SET(2, fi);
-    CXFS_FUSEO_TASK_PARA_NUM_SET(3);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, (c->uid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(3, (c->gid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(4, fi);
+    CXFS_FUSEO_TASK_PARA_NUM_SET(5);
 
     CXFS_FUSEO_TASK_EMIT();
 
@@ -722,8 +861,8 @@ int cxfs_fuseo_open(const char *path, struct fuse_file_info *fi)
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_open);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
-    CXFS_FUSEO_TASK_PARA_VAL_SET(1, c->uid);
-    CXFS_FUSEO_TASK_PARA_VAL_SET(2, c->gid);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(1, (c->uid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, (c->gid & 0xFFFF));
     CXFS_FUSEO_TASK_PARA_VAL_SET(3, fi);
     CXFS_FUSEO_TASK_PARA_NUM_SET(4);
 
@@ -759,8 +898,8 @@ int cxfs_fuseo_create(const char *path, mode_t mode, struct fuse_file_info *fi)
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_create);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
     CXFS_FUSEO_TASK_PARA_VAL_SET(1, mode);
-    CXFS_FUSEO_TASK_PARA_VAL_SET(2, c->uid);
-    CXFS_FUSEO_TASK_PARA_VAL_SET(3, c->gid);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, (c->uid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(3, (c->gid & 0xFFFF));
     CXFS_FUSEO_TASK_PARA_VAL_SET(4, fi);
     CXFS_FUSEO_TASK_PARA_NUM_SET(5);
 
@@ -980,13 +1119,24 @@ int cxfs_fuseo_access(const char *path, int mask)
 /*int (*ftruncate) (const char *, off_t, struct fuse_file_info *);*/
 int cxfs_fuseo_ftruncate(const char *path, off_t offset)
 {
+    struct fuse_context *c;
+
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_ftruncate");
     CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_ftruncate", path);
+
+    c = fuse_get_context();
+
+    if(NULL_PTR == c)
+    {
+        return -EIO;
+    }
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_ftruncate);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
     CXFS_FUSEO_TASK_PARA_VAL_SET(1, offset);
-    CXFS_FUSEO_TASK_PARA_NUM_SET(2);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, (c->uid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(3, (c->gid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_NUM_SET(4);
 
     CXFS_FUSEO_TASK_EMIT();
 
@@ -997,15 +1147,26 @@ int cxfs_fuseo_ftruncate(const char *path, off_t offset)
 /*int (*utimens) (const char *, const struct timespec tv[2], struct fuse_file_info *fi);*/
 int cxfs_fuseo_utimens(const char *path, const struct timespec ts[2], struct fuse_file_info *fi)
 {
+    struct fuse_context *c;
+
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_utimens");
     CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_utimens", path);
+
+    c = fuse_get_context();
+
+    if(NULL_PTR == c)
+    {
+        return -EIO;
+    }
 
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_utimens);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
     CXFS_FUSEO_TASK_PARA_VAL_SET(1, &ts[0]);
     CXFS_FUSEO_TASK_PARA_VAL_SET(2, &ts[1]);
-    CXFS_FUSEO_TASK_PARA_VAL_SET(3, fi);
-    CXFS_FUSEO_TASK_PARA_NUM_SET(4);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(3, (c->uid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(4, (c->gid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(5, fi);
+    CXFS_FUSEO_TASK_PARA_NUM_SET(6);
 
     CXFS_FUSEO_TASK_EMIT();
 
@@ -1088,6 +1249,26 @@ int cxfs_fuseo_fsyncdir(const char *path, int datasync, struct fuse_file_info *f
 
     CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_fsyncdir");
     return (0);
+}
+
+/*
+int (*ioctl) (const char *, unsigned int cmd, void *arg,
+		      struct fuse_file_info *, unsigned int flags, void *data)
+*/
+int cxfs_fuseo_ioctl (const char *path, unsigned int cmd, void *arg,
+		      struct fuse_file_info *fi, unsigned int flags, void *data)
+
+{
+    CXFS_FUSEO_CHECK_PATH_VALID("cxfs_fuseo_ioctl", path);
+
+    (void)cmd;
+    (void)arg;
+    (void)fi;
+    (void)flags;
+    (void)data;
+
+    CXFS_FUSEO_DEBUG_ENTER("cxfs_fuseo_ioctl");
+    return -EACCES;
 }
 
 #endif/*(SWITCH_ON == CXFSFUSE_SWITCH)*/

@@ -156,6 +156,9 @@ EC_BOOL cxfsnprb_tree_delete_data(CXFSNPRB_POOL *pool, uint32_t *root_pos, const
 
 EC_BOOL cxfsnprb_tree_delete(CXFSNPRB_POOL *pool, uint32_t *root_pos, const uint32_t node_pos);
 
+/*if found duplicate node, return EC_FALSE, otherwise return EC_TRUE*/
+EC_BOOL cxfsnprb_tree_insert(CXFSNPRB_POOL *pool, uint32_t *root_pos, const uint32_t data, const uint32_t klen, const uint8_t *key, const uint32_t dflag, const uint32_t insert_pos);
+
 EC_BOOL cxfsnprb_tree_erase(CXFSNPRB_POOL *pool, const uint32_t node_pos, uint32_t *root_pos);
 
 EC_BOOL cxfsnprb_flush_size(const CXFSNPRB_POOL *pool, UINT32 *size);

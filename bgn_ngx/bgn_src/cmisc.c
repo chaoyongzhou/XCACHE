@@ -3107,6 +3107,43 @@ char *c_realpath(char *path)
     return (path);
 }
 
+char *c_basename(const char *path)
+{
+    char        *s;
+    char        *e;
+    char        *p;
+
+    uint32_t     len;
+
+    s = (char *)path;
+    e = (char *)path + strlen(path) - 1;
+
+    while(s < e && '/' == *e)
+    {
+        e --;
+    }
+
+    p = e;
+    while(s < p && '/' != *p)
+    {
+        p --;
+    }
+
+    if('/' == *p)
+    {
+        p ++;
+    }
+
+    if(s >= p)
+    {
+        return (NULL_PTR);
+    }
+
+    len = (uint32_t)(e - p + 1);
+
+    return c_str_n_dup(p, len);
+}
+
 char *c_dirname(const char *path_name)
 {
     char        *dir_name;

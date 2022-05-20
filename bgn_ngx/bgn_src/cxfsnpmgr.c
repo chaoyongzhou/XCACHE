@@ -1918,6 +1918,81 @@ CXFSNP_ITEM *cxfsnp_mgr_fetch_parent_item(CXFSNP_MGR *cxfsnp_mgr, const uint64_t
     return (NULL_PTR);
 }
 
+EC_BOOL cxfsnp_mgr_umount_item(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino)
+{
+    CXFSNP   *cxfsnp;
+
+    cxfsnp = cxfsnp_mgr_fetch_np(cxfsnp_mgr, ino);
+    if(NULL_PTR != cxfsnp)
+    {
+        uint32_t    node_pos;
+
+        node_pos = CXFSNP_ATTR_INO_FETCH_NODE_POS(ino);
+        if(CXFSNPRB_ERR_POS != node_pos)
+        {
+            return cxfsnp_umount_item(cxfsnp, node_pos);
+        }
+        return (EC_TRUE);
+    }
+    return (EC_TRUE);
+}
+
+EC_BOOL cxfsnp_mgr_hide_item(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino)
+{
+    CXFSNP   *cxfsnp;
+
+    cxfsnp = cxfsnp_mgr_fetch_np(cxfsnp_mgr, ino);
+    if(NULL_PTR != cxfsnp)
+    {
+        uint32_t     node_pos;
+
+        node_pos = CXFSNP_ATTR_INO_FETCH_NODE_POS(ino);
+        if(CXFSNPRB_ERR_POS == node_pos)
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_hide_item: "
+                                                      "ino %lu => invalid node_pos\n",
+                                                      ino);
+            return (EC_FALSE);
+        }
+
+        return cxfsnp_hide_item(cxfsnp, node_pos);
+    }
+
+    dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_hide_item: "
+                                              "ino %lu, "
+                                              "fetch np failed\n",
+                                              ino);
+    return (EC_FALSE);
+}
+
+EC_BOOL cxfsnp_mgr_delete_hidden_item(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino)
+{
+    CXFSNP   *cxfsnp;
+
+    cxfsnp = cxfsnp_mgr_fetch_np(cxfsnp_mgr, ino);
+    if(NULL_PTR != cxfsnp)
+    {
+        uint32_t     node_pos;
+
+        node_pos = CXFSNP_ATTR_INO_FETCH_NODE_POS(ino);
+        if(CXFSNPRB_ERR_POS == node_pos)
+        {
+            dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_delete_hidden_item: "
+                                                      "ino %lu => invalid node_pos\n",
+                                                      ino);
+            return (EC_FALSE);
+        }
+
+        return cxfsnp_delete_hidden_item(cxfsnp, node_pos);
+    }
+
+    dbg_log(SEC_0190_CXFSNPMGR, 0)(LOGSTDOUT, "error:cxfsnp_mgr_delete_hidden_item: "
+                                              "ino %lu, "
+                                              "fetch np failed\n",
+                                              ino);
+    return (EC_FALSE);
+}
+
 EC_BOOL cxfsnp_mgr_relative_path(CXFSNP_MGR *cxfsnp_mgr, const uint64_t src_ino, const uint64_t des_ino, CSTRING *path)
 {
     if(CXFSNP_ATTR_INO_FETCH_NP_ID(des_ino) == CXFSNP_ATTR_INO_FETCH_NP_ID(src_ino))

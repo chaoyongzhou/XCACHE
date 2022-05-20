@@ -84,11 +84,35 @@ extern "C"{
     }                                                                       \
 }while(0)
 
-STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const char *path, const uint64_t ino, const uint32_t mode, const uint32_t uid, const uint32_t gid)
+#define CXFS_FUSES_GOTO_HARD_LINK_TOP(cxfs_md, ino, cxfsnp_item, cxfsnp_attr) do{\
+    if(CXFSNP_ATTR_LINK_HARD_MID == CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr))     \
+    {                                                                       \
+        while(CXFSNP_ATTR_ERR_INO != CXFSNP_ATTR_NEXT_INO(cxfsnp_attr))     \
+        {                                                                   \
+            ino         = CXFSNP_ATTR_NEXT_INO(cxfsnp_attr);                \
+            cxfsnp_item = cxfsnp_mgr_fetch_item(CXFS_MD_NPP(cxfs_md), ino); \
+            cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);                    \
+        }                                                                   \
+    }                                                                       \
+}while(0)
+
+#define CXFS_FUSES_PERM_SWITCH      (SWITCH_ON)
+
+/*mode: O_RDONLY, O_WRONLY, O_RDWR*/
+STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const uint64_t ino,
+                                const uint32_t accmode, const uint32_t uid, const uint32_t gid)
 {
     CXFS_MD         *cxfs_md;
     CXFSNP_ITEM     *cxfsnp_item;
     CXFSNP_ATTR     *cxfsnp_attr;
+
+    static const char *accmode_str[] = {
+        /*O_RDONLY = 0*/    "O_RDONLY",
+        /*O_WRONLY = 1*/    "O_WRONLY",
+        /*O_RDWR   = 2*/    "O_RDWR",
+    };
+
+    ASSERT(O_ACCMODE > accmode);
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
@@ -97,7 +121,7 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
 
     if(0 == uid || 0 == gid)
     {
-        if(O_RDONLY == mode)
+        if(O_RDONLY == accmode)
         {
             CXFSNP_ITEM     *cxfsnp_item_parent;
             CXFSNP_ATTR     *cxfsnp_attr_parent;
@@ -105,11 +129,11 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
             if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IRUSR | S_IRGRP | S_IROTH)))
             {
                 dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                                 "dir '%s', "
-                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                 "ino %lu, "
+                                 "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                                  "=> uid = 0 or gid = 0, "
                                  "mode & (S_IRUSR | S_IRGRP | S_IROTH) == 0\n",
-                                 path, mode, uid, gid,
+                                 ino, accmode_str[accmode], uid, gid,
                                  CXFSNP_ATTR_MODE(cxfsnp_attr),
                                  CXFSNP_ATTR_UID(cxfsnp_attr),
                                  CXFSNP_ATTR_GID(cxfsnp_attr));
@@ -118,11 +142,11 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
             }
 
             dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                             "dir '%s', "
-                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                             "ino %lu, "
+                             "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                              "=> uid = 0 or gid = 0, "
                              "mode & (S_IRUSR | S_IRGRP | S_IROTH) != 0 => check parent\n",
-                             path, mode, uid, gid,
+                             ino, accmode_str[accmode], uid, gid,
                              CXFSNP_ATTR_MODE(cxfsnp_attr),
                              CXFSNP_ATTR_UID(cxfsnp_attr),
                              CXFSNP_ATTR_GID(cxfsnp_attr));
@@ -133,11 +157,11 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
             if(0 == (S_IXUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
             {
                 dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                                 "dir '%s', "
-                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                 "ino %lu, "
+                                 "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                                  "=> uid = 0 or gid = 0, "
                                  "parent mode %#o & S_IXUSR == 0\n",
-                                 path, mode, uid, gid,
+                                 ino, accmode_str[accmode], uid, gid,
                                  CXFSNP_ATTR_MODE(cxfsnp_attr),
                                  CXFSNP_ATTR_UID(cxfsnp_attr),
                                  CXFSNP_ATTR_GID(cxfsnp_attr),
@@ -147,11 +171,11 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
             }
 
             dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                             "dir '%s', "
-                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                             "ino %lu, "
+                             "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                              "=> uid = 0 or gid = 0, "
                              "parent mode %#o & S_IXUSR != 0\n",
-                             path, mode, uid, gid,
+                             ino, accmode_str[accmode], uid, gid,
                              CXFSNP_ATTR_MODE(cxfsnp_attr),
                              CXFSNP_ATTR_UID(cxfsnp_attr),
                              CXFSNP_ATTR_GID(cxfsnp_attr),
@@ -159,15 +183,15 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
 
             return (EC_TRUE);
         }
-        else
+        else if(O_WRONLY == accmode)
         {
             if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IWUSR | S_IWGRP | S_IWOTH)))
             {
                 dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                                                     "dir '%s', "
-                                                     "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                                     "ino %lu, "
+                                                     "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                                                      "its mode %#o & (S_IWUSR | S_IWGRP S_IWOTH) == 0\n",
-                                                     path, mode, uid, gid,
+                                                     ino, accmode_str[accmode], uid, gid,
                                                      CXFSNP_ATTR_MODE(cxfsnp_attr),
                                                      CXFSNP_ATTR_UID(cxfsnp_attr),
                                                      CXFSNP_ATTR_GID(cxfsnp_attr),
@@ -177,10 +201,10 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
             }
 
             dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                                                 "dir '%s', "
-                                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                                 "ino %lu, "
+                                                 "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                                                  "its mode %#o & (S_IWUSR | S_IWGRP S_IWOTH) == 0\n",
-                                                 path, mode, uid, gid,
+                                                 ino, accmode_str[accmode], uid, gid,
                                                  CXFSNP_ATTR_MODE(cxfsnp_attr),
                                                  CXFSNP_ATTR_UID(cxfsnp_attr),
                                                  CXFSNP_ATTR_GID(cxfsnp_attr),
@@ -188,11 +212,44 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
 
             return (EC_TRUE);
         }
+        else/*O_RDWR*/
+        {
+            if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IWUSR | S_IRUSR))
+            && 0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IWGRP | S_IRGRP))
+            && 0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IWOTH | S_IROTH)) )
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                                                     "ino %lu, "
+                                                     "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                                     "its mode & (S_IWUSR | S_IRUSR) == 0 && "
+                                                     "its mode & (S_IWGRP | S_IRGRP) == 0 && "
+                                                     "its mode & (S_IWOTH | S_IROTH) == 0\n",
+                                                     ino, accmode_str[accmode], uid, gid,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                     CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                     CXFSNP_ATTR_GID(cxfsnp_attr));
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                                                 "ino %lu, "
+                                                 "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                                 "its mode & (S_IWUSR | S_IRUSR) != 0 || "
+                                                 "its mode & (S_IWGRP | S_IRGRP) != 0 || "
+                                                 "its mode & (S_IWOTH | S_IROTH) != 0\n",
+                                                 ino, accmode_str[accmode], uid, gid,
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr));
+
+            return (EC_TRUE);
+        }
     }
 
     if(uid == CXFSNP_ATTR_UID(cxfsnp_attr) && gid == CXFSNP_ATTR_GID(cxfsnp_attr))
     {
-        if(O_RDONLY == mode)
+        if(O_RDONLY == accmode)
         {
             CXFSNP_ITEM     *cxfsnp_item_parent;
             CXFSNP_ATTR     *cxfsnp_attr_parent;
@@ -200,11 +257,11 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
             if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IRUSR)))
             {
                 dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                                 "dir '%s', "
-                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                 "ino %lu, "
+                                 "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                                  "=> uid = 0 or gid = 0, "
                                  "mode & (S_IRUSR) == 0\n",
-                                 path, mode, uid, gid,
+                                 ino, accmode_str[accmode], uid, gid,
                                  CXFSNP_ATTR_MODE(cxfsnp_attr),
                                  CXFSNP_ATTR_UID(cxfsnp_attr),
                                  CXFSNP_ATTR_GID(cxfsnp_attr));
@@ -213,11 +270,11 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
             }
 
             dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                             "dir '%s', "
-                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                             "ino %lu, "
+                             "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                              "=> uid = 0 or gid = 0, "
                              "mode & (S_IRUSR) != 0 => check parent\n",
-                             path, mode, uid, gid,
+                             ino, accmode_str[accmode], uid, gid,
                              CXFSNP_ATTR_MODE(cxfsnp_attr),
                              CXFSNP_ATTR_UID(cxfsnp_attr),
                              CXFSNP_ATTR_GID(cxfsnp_attr));
@@ -228,11 +285,11 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
             if(0 == (S_IXUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
             {
                 dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                                 "dir '%s', "
-                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                 "ino %lu, "
+                                 "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                                  "=> uid = 0 or gid = 0, "
                                  "parent mode %#o & S_IXUSR == 0\n",
-                                 path, mode, uid, gid,
+                                 ino, accmode_str[accmode], uid, gid,
                                  CXFSNP_ATTR_MODE(cxfsnp_attr),
                                  CXFSNP_ATTR_UID(cxfsnp_attr),
                                  CXFSNP_ATTR_GID(cxfsnp_attr),
@@ -242,11 +299,11 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
             }
 
             dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                             "dir '%s', "
-                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                             "ino %lu, "
+                             "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                              "=> uid = 0 or gid = 0, "
                              "parent mode %#o & S_IXUSR != 0\n",
-                             path, mode, uid, gid,
+                             ino, accmode_str[accmode], uid, gid,
                              CXFSNP_ATTR_MODE(cxfsnp_attr),
                              CXFSNP_ATTR_UID(cxfsnp_attr),
                              CXFSNP_ATTR_GID(cxfsnp_attr),
@@ -254,15 +311,15 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
 
             return (EC_TRUE);
         }
-        else
+        else if(O_WRONLY == accmode)
         {
             if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IWUSR)))
             {
                 dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                                 "dir '%s', "
-                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => uid & gid matched, "
+                                 "ino %lu, "
+                                 "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => uid & gid matched, "
                                  "mode & S_IWUSR == 0\n",
-                                 path, mode, uid, gid,
+                                 ino, accmode_str[accmode], uid, gid,
                                  CXFSNP_ATTR_MODE(cxfsnp_attr),
                                  CXFSNP_ATTR_UID(cxfsnp_attr),
                                  CXFSNP_ATTR_GID(cxfsnp_attr));
@@ -271,10 +328,38 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
             }
 
             dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                             "dir '%s', "
-                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => uid & gid matched, "
+                             "ino %lu, "
+                             "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => uid & gid matched, "
                              "mode & S_IWUSR != 0\n",
-                             path, mode, uid, gid,
+                             ino, accmode_str[accmode], uid, gid,
+                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                             CXFSNP_ATTR_GID(cxfsnp_attr));
+
+            return (EC_TRUE);
+        }
+        else/*O_RDWR*/
+        {
+            if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IRUSR))
+            || 0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IWUSR)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                                 "ino %lu, "
+                                 "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => uid & gid matched, "
+                                 "mode & S_IRUSR == 0 || mode & S_IWUSR == 0\n",
+                                 ino, accmode_str[accmode], uid, gid,
+                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                 CXFSNP_ATTR_GID(cxfsnp_attr));
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                             "ino %lu, "
+                             "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => uid & gid matched, "
+                             "mode & S_IWUSR != 0 && mode & S_IWUSR != 0\n",
+                             ino, accmode_str[accmode], uid, gid,
                              CXFSNP_ATTR_MODE(cxfsnp_attr),
                              CXFSNP_ATTR_UID(cxfsnp_attr),
                              CXFSNP_ATTR_GID(cxfsnp_attr));
@@ -285,7 +370,7 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
 
     if(gid == CXFSNP_ATTR_GID(cxfsnp_attr))
     {
-        if(O_RDONLY == mode)
+        if(O_RDONLY == accmode)
         {
             CXFSNP_ITEM     *cxfsnp_item_parent;
             CXFSNP_ATTR     *cxfsnp_attr_parent;
@@ -293,11 +378,11 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
             if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IRGRP)))
             {
                 dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                                 "dir '%s', "
-                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                 "ino %lu, "
+                                 "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                                  "=> uid = 0 or gid = 0, "
                                  "mode & (S_IRGRP) == 0\n",
-                                 path, mode, uid, gid,
+                                 ino, accmode_str[accmode], uid, gid,
                                  CXFSNP_ATTR_MODE(cxfsnp_attr),
                                  CXFSNP_ATTR_UID(cxfsnp_attr),
                                  CXFSNP_ATTR_GID(cxfsnp_attr));
@@ -306,11 +391,11 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
             }
 
             dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                             "dir '%s', "
-                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                             "ino %lu, "
+                             "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                              "=> uid = 0 or gid = 0, "
                              "mode & (S_IRGRP) != 0 => check parent\n",
-                             path, mode, uid, gid,
+                             ino, accmode_str[accmode], uid, gid,
                              CXFSNP_ATTR_MODE(cxfsnp_attr),
                              CXFSNP_ATTR_UID(cxfsnp_attr),
                              CXFSNP_ATTR_GID(cxfsnp_attr));
@@ -321,11 +406,11 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
             if(0 == (S_IXUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
             {
                 dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                                 "dir '%s', "
-                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                                 "ino %lu, "
+                                 "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                                  "=> uid = 0 or gid = 0, "
                                  "parent mode %#o & S_IXUSR == 0\n",
-                                 path, mode, uid, gid,
+                                 ino, accmode_str[accmode], uid, gid,
                                  CXFSNP_ATTR_MODE(cxfsnp_attr),
                                  CXFSNP_ATTR_UID(cxfsnp_attr),
                                  CXFSNP_ATTR_GID(cxfsnp_attr),
@@ -335,11 +420,11 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
             }
 
             dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                             "dir '%s', "
-                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                             "ino %lu, "
+                             "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                              "=> uid = 0 or gid = 0, "
                              "parent mode %#o & S_IXUSR != 0\n",
-                             path, mode, uid, gid,
+                             ino, accmode_str[accmode], uid, gid,
                              CXFSNP_ATTR_MODE(cxfsnp_attr),
                              CXFSNP_ATTR_UID(cxfsnp_attr),
                              CXFSNP_ATTR_GID(cxfsnp_attr),
@@ -347,15 +432,15 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
 
             return (EC_TRUE);
         }
-        else
+        else if(O_WRONLY == accmode)
         {
             if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IWGRP)))
             {
                 dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                                 "dir '%s', "
-                                 "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => gid matched, "
+                                 "ino %lu, "
+                                 "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => gid matched, "
                                  "mode & S_IWGRP == 0\n",
-                                 path, mode, uid, gid,
+                                 ino, accmode_str[accmode], uid, gid,
                                  CXFSNP_ATTR_MODE(cxfsnp_attr),
                                  CXFSNP_ATTR_UID(cxfsnp_attr),
                                  CXFSNP_ATTR_GID(cxfsnp_attr));
@@ -364,10 +449,38 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
             }
 
             dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                             "dir '%s', "
-                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => gid matched, "
+                             "ino %lu, "
+                             "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => gid matched, "
                              "mode & S_IWGRP != 0\n",
-                             path, mode, uid, gid,
+                             ino, accmode_str[accmode], uid, gid,
+                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                             CXFSNP_ATTR_GID(cxfsnp_attr));
+
+            return (EC_TRUE);
+        }
+        else/*O_RDWR*/
+        {
+            if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IRGRP))
+            || 0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IWGRP)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                                 "ino %lu, "
+                                 "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => gid matched, "
+                                 "mode & S_IRGRP == 0 || mode & S_IWGRP == 0\n",
+                                 ino, accmode_str[accmode], uid, gid,
+                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                 CXFSNP_ATTR_GID(cxfsnp_attr));
+
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                             "ino %lu, "
+                             "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => gid matched, "
+                             "mode & S_IWGRP != 0 && mode & S_IWGRP != 0\n",
+                             ino, accmode_str[accmode], uid, gid,
                              CXFSNP_ATTR_MODE(cxfsnp_attr),
                              CXFSNP_ATTR_UID(cxfsnp_attr),
                              CXFSNP_ATTR_GID(cxfsnp_attr));
@@ -378,7 +491,7 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
 
 
     /*other*/
-    if(O_RDONLY == mode)
+    if(O_RDONLY == accmode)
     {
         CXFSNP_ITEM     *cxfsnp_item_parent;
         CXFSNP_ATTR     *cxfsnp_attr_parent;
@@ -386,11 +499,11 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
         if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IROTH)))
         {
             dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                             "dir '%s', "
-                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                             "ino %lu, "
+                             "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                              "=> uid = 0 or gid = 0, "
                              "mode & (S_IROTH) == 0\n",
-                             path, mode, uid, gid,
+                             ino, accmode_str[accmode], uid, gid,
                              CXFSNP_ATTR_MODE(cxfsnp_attr),
                              CXFSNP_ATTR_UID(cxfsnp_attr),
                              CXFSNP_ATTR_GID(cxfsnp_attr));
@@ -399,11 +512,11 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
         }
 
         dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                         "dir '%s', "
-                         "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                         "ino %lu, "
+                         "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                          "=> uid = 0 or gid = 0, "
                          "mode & (S_IROTH) != 0 => check parent\n",
-                         path, mode, uid, gid,
+                         ino, accmode_str[accmode], uid, gid,
                          CXFSNP_ATTR_MODE(cxfsnp_attr),
                          CXFSNP_ATTR_UID(cxfsnp_attr),
                          CXFSNP_ATTR_GID(cxfsnp_attr));
@@ -414,11 +527,11 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
         if(0 == (S_IXUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
         {
             dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                             "dir '%s', "
-                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                             "ino %lu, "
+                             "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                              "=> uid = 0 or gid = 0, "
                              "parent mode %#o & S_IXUSR == 0\n",
-                             path, mode, uid, gid,
+                             ino, accmode_str[accmode], uid, gid,
                              CXFSNP_ATTR_MODE(cxfsnp_attr),
                              CXFSNP_ATTR_UID(cxfsnp_attr),
                              CXFSNP_ATTR_GID(cxfsnp_attr),
@@ -428,11 +541,11 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
         }
 
         dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                         "dir '%s', "
-                         "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
+                         "ino %lu, "
+                         "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) "
                          "=> uid = 0 or gid = 0, "
                          "parent mode %#o & S_IXUSR != 0\n",
-                         path, mode, uid, gid,
+                         ino, accmode_str[accmode], uid, gid,
                          CXFSNP_ATTR_MODE(cxfsnp_attr),
                          CXFSNP_ATTR_UID(cxfsnp_attr),
                          CXFSNP_ATTR_GID(cxfsnp_attr),
@@ -440,14 +553,15 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
 
         return (EC_TRUE);
     }
-    else
+    else if(O_WRONLY == accmode)
     {
         if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IWOTH)))
         {
             dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                             "dir '%s', "
-                             "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => not matched\n",
-                             path, mode, uid, gid,
+                             "ino %lu, "
+                             "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => other, "
+                             "mode & S_IWOTH == 0\n",
+                             ino, accmode_str[accmode], uid, gid,
                              CXFSNP_ATTR_MODE(cxfsnp_attr),
                              CXFSNP_ATTR_UID(cxfsnp_attr),
                              CXFSNP_ATTR_GID(cxfsnp_attr));
@@ -456,17 +570,44 @@ STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const cha
         }
 
         dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
-                         "dir '%s', "
-                         "(mode %#o, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => other, "
+                         "ino %lu, "
+                         "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => other, "
                          "mode & S_IWOTH != 0\n",
-                         path, mode, uid, gid,
+                         ino, accmode_str[accmode], uid, gid,
                          CXFSNP_ATTR_MODE(cxfsnp_attr),
                          CXFSNP_ATTR_UID(cxfsnp_attr),
                          CXFSNP_ATTR_GID(cxfsnp_attr));
 
         return (EC_TRUE);
     }
+    else /*O_RDWR*/
+    {
+        if(0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IROTH))
+        || 0 == (CXFSNP_ATTR_MODE(cxfsnp_attr) & (S_IWOTH)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                             "ino %lu, "
+                             "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => other, "
+                             "mode & S_IROTH == 0 || mode & S_IWOTH == 0\n",
+                             ino, accmode_str[accmode], uid, gid,
+                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                             CXFSNP_ATTR_GID(cxfsnp_attr));
 
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_check_access: "
+                         "ino %lu, "
+                         "(accmode %s, uid %u, gid %u) vs its (mode %#o, uid %u, gid %u) => other, "
+                         "mode & S_IROTH != 0 && mode & S_IWOTH != 0\n",
+                         ino, accmode_str[accmode], uid, gid,
+                         CXFSNP_ATTR_MODE(cxfsnp_attr),
+                         CXFSNP_ATTR_UID(cxfsnp_attr),
+                         CXFSNP_ATTR_GID(cxfsnp_attr));
+
+        return (EC_TRUE);
+    }
     /*should never reach here*/
     return (EC_FALSE);
 }
@@ -557,6 +698,47 @@ STATIC_CAST CXFSNP_ITEM *__cxfs_fuses_lookup_seg(const UINT32 cxfs_md_id, const 
     return (cxfsnp_item);
 }
 
+STATIC_CAST CXFSNP_ITEM *__cxfs_fuses_lookup_parent(const UINT32 cxfs_md_id, const CSTRING *path, uint64_t *ino)
+{
+    CXFSNP_ITEM     *parent_item;
+    CSTRING          parent_path_cstr;
+    char            *parent_path;
+    uint64_t         parent_ino;
+    uint32_t         parent_path_len;
+
+    parent_path = c_dirname((char *)cstring_get_str(path));
+    if(NULL_PTR == parent_path)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_fuses_lookup_parent: "
+                                             "dirname '%s', failed\n",
+                                             (char *)cstring_get_str(path));
+        return (NULL_PTR);
+    }
+
+    parent_path_len = strlen(parent_path);
+
+    cstring_mount(&parent_path_cstr, (UINT8 *)parent_path, parent_path_len, parent_path_len + 1);
+
+    parent_item = __cxfs_fuses_lookup(cxfs_md_id, &parent_path_cstr, &parent_ino);
+    if(NULL_PTR == parent_item)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:__cxfs_fuses_lookup_parent: "
+                                             "find parent '%s' of '%s' failed\n",
+                                             parent_path,
+                                             (char *)cstring_get_str(path));
+        c_str_free(parent_path);
+
+        return (NULL_PTR);
+    }
+    c_str_free(parent_path);
+
+    if(NULL_PTR != ino)
+    {
+        (*ino) = parent_ino;
+    }
+
+    return (parent_item);
+}
 
 STATIC_CAST EC_BOOL __cxfs_fuses_make_empty_hidden_seg(const UINT32 cxfs_md_id, const CSTRING *path, int *res)
 {
@@ -602,6 +784,7 @@ EC_BOOL cxfs_fuses_getattr(const UINT32 cxfs_md_id, const CSTRING *file_path, st
 {
     CXFS_MD      *cxfs_md;
     CXFSNP_ITEM  *cxfsnp_item;
+    CXFSNP_ATTR  *cxfsnp_attr;
 
     uint64_t      ino;
 
@@ -632,45 +815,72 @@ EC_BOOL cxfs_fuses_getattr(const UINT32 cxfs_md_id, const CSTRING *file_path, st
         (*res) = -ENOENT;
         return (EC_TRUE);
     }
+    cxfsnp_attr  = CXFSNP_ITEM_ATTR(cxfsnp_item);
+
+    if(CXFSNP_ATTR_IS_HIDE == CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr))
+    {
+        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "warn:cxfs_fuses_getattr: "
+                                             "%s is hide file or dir => nlink %u\n",
+                                             (char *)cstring_get_str(file_path),
+                                             CXFSNP_ATTR_NLINK(cxfsnp_attr));
+
+        (*res) = -ENOENT;
+        return (EC_TRUE);
+    }
+
+    if(do_log(SEC_0192_CXFS, 2))
+    {
+        cxfsnp_attr_print(LOGSTDOUT, cxfsnp_attr);
+    }
+
+    if(CXFSNP_ATTR_LINK_HARD_MASK & CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr))
+    {
+        CXFS_FUSES_GOTO_HARD_LINK_TOP(cxfs_md, ino, cxfsnp_item, cxfsnp_attr);
+    }
 
     if(NULL_PTR != stat)
     {
-        CXFSNP_ATTR  *cxfsnp_attr;
         CXFSNP_DNODE *cxfsnp_dnode;
 
-        cxfsnp_attr  = CXFSNP_ITEM_ATTR(cxfsnp_item);
         cxfsnp_dnode = CXFSNP_ITEM_DNODE(cxfsnp_item);
 
-        stat->st_ino        = ino;
+        stat->st_ino                = ino;
 
-        stat->st_mode       = CXFSNP_ATTR_MODE(cxfsnp_attr);
-        stat->st_uid        = CXFSNP_ATTR_UID(cxfsnp_attr);
-        stat->st_gid        = CXFSNP_ATTR_GID(cxfsnp_attr);
-        stat->st_rdev       = CXFSNP_ATTR_RDEV(cxfsnp_attr);
+        stat->st_mode               = CXFSNP_ATTR_MODE(cxfsnp_attr);
+        stat->st_uid                = CXFSNP_ATTR_UID(cxfsnp_attr);
+        stat->st_gid                = CXFSNP_ATTR_GID(cxfsnp_attr);
+        stat->st_rdev               = CXFS_FUSES_RDEV_DEFAULT;
 
-        stat->st_atime      = CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr);
-        stat->st_mtime      = CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr);
-        stat->st_ctime      = CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr);
-        stat->st_nlink      = CXFSNP_ATTR_NLINK(cxfsnp_attr);
+        stat->st_atim.tv_sec        = CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr);
+        stat->st_mtim.tv_sec        = CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr);
+        stat->st_ctim.tv_sec        = CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr);
 
-        stat->st_dev        = 0;/*xxx*/
+        stat->st_atim.tv_nsec       = CXFSNP_ATTR_ATIME_NSEC(cxfsnp_attr);
+        stat->st_mtim.tv_nsec       = CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr);
+        stat->st_ctim.tv_nsec       = CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr);
+        stat->st_nlink              = CXFSNP_ATTR_NLINK(cxfsnp_attr);
+        stat->st_dev                = CXFSNP_ATTR_DEV(cxfsnp_attr);/*st_dev ignored by fuse*/
 
-        if(CXFSNP_ATTR_FUSES_IS_REG == CXFSNP_ATTR_FLAG(cxfsnp_attr))
+        stat->st_size               = CXFSNP_DNODE_FILE_SIZE(cxfsnp_dnode); /*xxx*/
+        stat->st_blksize            = CXFS_FUSES_BLOCK_SIZE; /*st_blksize ignored by fuse*/
+        stat->st_blocks             = CXFS_FUSES_SECTOR_NUM(CXFSNP_DNODE_FILE_SIZE(cxfsnp_dnode));
+
+        if(do_log(SEC_0192_CXFS, 2))
         {
-            stat->st_size       = CXFSNP_DNODE_FILE_SIZE(cxfsnp_dnode); /*xxx*/
-            stat->st_blksize    = CXFS_FUSES_BLOCK_SIZE; /*xxx*/
-            stat->st_blocks     = CXFS_FUSES_SECTOR_NUM(CXFSNP_DNODE_FILE_SIZE(cxfsnp_dnode));
-        }
-
-        else if(CXFSNP_ATTR_FUSES_IS_DIR == CXFSNP_ATTR_FLAG(cxfsnp_attr))
-        {
-            stat->st_size       = CXFSNP_DNODE_FILE_SIZE(cxfsnp_dnode); /*xxx*/
-            stat->st_blksize    = CXFS_FUSES_BLOCK_SIZE; /*xxx*/
-            stat->st_blocks     = CXFS_FUSES_SECTOR_NUM(CXFSNP_DNODE_FILE_SIZE(cxfsnp_dnode));
-        }
-        else
-        {
-            /*never reach here*/
+            sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_getattr: path %s\n", (char *)cstring_get_str(file_path));
+            sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_getattr: st_dev     = %#x\n", stat->st_dev);
+            sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_getattr: st_ino     = %lu\n", stat->st_ino);
+            sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_getattr: st_mode    = %#o\n", stat->st_mode);
+            sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_getattr: st_nlink   = %d\n", stat->st_nlink);
+            sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_getattr: st_uid     = %u\n", stat->st_uid);
+            sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_getattr: st_gid     = %u\n", stat->st_gid);
+            sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_getattr: st_rdev    = %u\n", stat->st_rdev);
+            sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_getattr: st_size    = %ld\n", stat->st_size);
+            sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_getattr: st_blksize = %d\n", stat->st_blksize);
+            sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_getattr: st_blocks  = %ld\n", stat->st_blocks);
+            sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_getattr: st_atime   = %ld %ld\n", stat->st_atim.tv_sec, stat->st_atim.tv_nsec);
+            sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_getattr: st_mtime   = %ld %ld\n", stat->st_mtim.tv_sec, stat->st_mtim.tv_nsec);
+            sys_log(LOGSTDOUT, "[DEBUG] cxfs_fuses_getattr: st_ctime   = %ld %ld\n", stat->st_ctim.tv_sec, stat->st_ctim.tv_nsec);
         }
     }
 
@@ -796,13 +1006,146 @@ EC_BOOL cxfs_fuses_mknod(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
 
     CXFS_FUSES_CHECK_ENV(cxfs_md_id, cxfs_md, "cxfs_fuses_mknod", res);
 
+    ASSERT(uid == (uid & CXFS_FUSES_UID_MASK));
+    ASSERT(gid == (gid & CXFS_FUSES_GID_MASK));
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 != uid && 0 != gid) /*not root*/
+    {
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_parent;
+        uint64_t         ino_parent;
+
+        cxfsnp_item_parent = __cxfs_fuses_lookup_parent(cxfs_md_id, path, &ino_parent);
+        if(NULL_PTR == cxfsnp_item_parent)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_mknod: "
+                                                 "lookup parent of '%s' failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+        cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+        if(CXFS_FUSES_UID_ERR == (uint32_t)uid)
+        {
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_mknod: "
+                                                     "'%s', uid %u, parent uid %u => not matched\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)uid, CXFSNP_ATTR_UID(cxfsnp_attr_parent));
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+        else
+        {
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) == (uint32_t)uid
+            && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_mknod: "
+                                                     "'%s', parent ino %lu, "
+                                                     "uid %u same, parent mode %#o & (S_IWUSR) == 0 "
+                                                     "=> deny (uid %u, gid %u) mode %#o\n",
+                                                     (char *)cstring_get_str(path), ino_parent,
+                                                     (uint32_t)uid,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid, (uint16_t)mode);
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid
+            && 0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_mknod: "
+                                                     "path '%s', parent ino %lu, "
+                                                     "parent mode %#o & (S_IXOTH) == 0 "
+                                                     "=> deny (uid %u, gid %u) mode %#o\n",
+                                                     (char *)cstring_get_str(path), ino_parent,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid, (uint16_t)mode);
+
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+
+        if(CXFS_FUSES_GID_ERR == (uint32_t)gid)
+        {
+            if(CXFSNP_ATTR_GID(cxfsnp_attr_parent) != (uint32_t)gid)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_mknod: "
+                                                     "'%s', gid %#x overflow\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)gid);
+                (*res) = -EOVERFLOW;
+                return (EC_TRUE);
+            }
+        }
+        else
+        {
+            if(0 == (S_IXGRP & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_mknod: "
+                                                     "path '%s', parent ino %lu, "
+                                                     "parent mode %#o & (S_IXGRP) == 0 "
+                                                     "=> deny (uid %u, gid %u)\n",
+                                                     (char *)cstring_get_str(path),
+                                                     ino_parent,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid,
+                                                     (uint32_t)gid);
+
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+    }
+
+    cxfsnp_item = __cxfs_fuses_lookup(cxfs_md_id, path, &ino);
+    if(NULL_PTR != cxfsnp_item)
+    {
+        cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
+
+        if(EC_FALSE == __cxfs_fuses_make_empty_hidden_seg(cxfs_md_id, path, res))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_mknod: "
+                                                 "%s, make hidden seg file failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr)  = CXFSNP_ATTR_NOT_HIDE;
+
+        cxfsnp_attr_set_file(cxfsnp_attr);
+        CXFSNP_ATTR_MODE(cxfsnp_attr)       = (uint16_t)mode;
+        CXFSNP_ATTR_UID(cxfsnp_attr)        = (uint32_t)uid;
+        CXFSNP_ATTR_GID(cxfsnp_attr)        = (uint32_t)gid;
+        CXFSNP_ATTR_DEV(cxfsnp_attr)        = (uint32_t)dev;
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_mknod: "
+                                             "[obscure] %s, mode %#o => ino %lu => mode %#o uid %u, gid %u, dev %#x => done\n",
+                                             (char *)cstring_get_str(path), (uint16_t)mode, ino,
+                                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                                             CXFSNP_ATTR_GID(cxfsnp_attr),
+                                             CXFSNP_ATTR_DEV(cxfsnp_attr));
+
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
     if(EC_FALSE == cxfs_mkdir(cxfs_md_id, path))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_mknod: "
-                                             "mkdir '%s'failed\n",
+                                             "mkdir '%s' failed\n",
                                              (char *)cstring_get_str(path));
         (*res) = -EACCES;
-        return (EC_FALSE);
+        return (EC_TRUE);
     }
 
     if(EC_FALSE == __cxfs_fuses_make_empty_hidden_seg(cxfs_md_id, path, res))
@@ -810,6 +1153,7 @@ EC_BOOL cxfs_fuses_mknod(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_mknod: "
                                              "%s, make hidden seg file failed\n",
                                              (char *)cstring_get_str(path));
+        (*res) = -EACCES;
         return (EC_TRUE);
     }
 
@@ -827,17 +1171,20 @@ EC_BOOL cxfs_fuses_mknod(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
     cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
 
     cxfsnp_attr_set_file(cxfsnp_attr);
-    CXFSNP_ATTR_MODE(cxfsnp_attr)       = (uint16_t)(mode | S_IFREG);
+    CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr)  = CXFSNP_ATTR_NOT_HIDE;
+
+    CXFSNP_ATTR_MODE(cxfsnp_attr)       = (uint16_t)mode;
     CXFSNP_ATTR_UID(cxfsnp_attr)        = (uint32_t)uid;
     CXFSNP_ATTR_GID(cxfsnp_attr)        = (uint32_t)gid;
-    CXFSNP_ATTR_RDEV(cxfsnp_attr)       = (uint32_t)dev;
+    CXFSNP_ATTR_DEV(cxfsnp_attr)        = (uint32_t)dev;
 
     dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_mknod: "
-                                         "%s => ino %lu => mode %#o uid %u, gid %u => done\n",
-                                         (char *)cstring_get_str(path), ino,
+                                         "%s, mode %#o => ino %lu => mode %#o uid %u, gid %u, dev %#x => done\n",
+                                         (char *)cstring_get_str(path), (uint16_t)mode, ino,
                                          CXFSNP_ATTR_MODE(cxfsnp_attr),
                                          CXFSNP_ATTR_UID(cxfsnp_attr),
-                                         CXFSNP_ATTR_GID(cxfsnp_attr));
+                                         CXFSNP_ATTR_GID(cxfsnp_attr),
+                                         CXFSNP_ATTR_DEV(cxfsnp_attr));
 
     (*res) = 0;
 
@@ -868,6 +1215,129 @@ EC_BOOL cxfs_fuses_mkdir(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
 
     CXFS_FUSES_CHECK_ENV(cxfs_md_id, cxfs_md, "cxfs_fuses_mkdir", res);
 
+    ASSERT(uid == (uid & CXFS_FUSES_UID_MASK));
+    ASSERT(gid == (gid & CXFS_FUSES_GID_MASK));
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 != uid && 0 != gid) /*not root*/
+    {
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_parent;
+        uint64_t         ino_parent;
+
+        cxfsnp_item_parent = __cxfs_fuses_lookup_parent(cxfs_md_id, path, &ino_parent);
+        if(NULL_PTR == cxfsnp_item_parent)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_mkdir: "
+                                                 "lookup parent of '%s' failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+        cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+        if(CXFS_FUSES_UID_ERR == (uint32_t)uid)
+        {
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_mkdir: "
+                                                     "'%s', uid %u, parent uid %u => not matched\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)uid, CXFSNP_ATTR_UID(cxfsnp_attr_parent));
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+        else
+        {
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) == (uint32_t)uid
+            && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_mkdir: "
+                                                     "'%s', parent ino %lu, "
+                                                     "uid %u same, parent mode %#o & (S_IWUSR) == 0 "
+                                                     "=> deny (uid %u, gid %u) mode %#o\n",
+                                                     (char *)cstring_get_str(path), ino_parent,
+                                                     (uint32_t)uid,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid, (uint16_t)mode);
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid
+            && 0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_mkdir: "
+                                                     "path '%s', parent ino %lu, "
+                                                     "parent mode %#o & (S_IXOTH) == 0 "
+                                                     "=> deny (uid %u, gid %u) mode %#o\n",
+                                                     (char *)cstring_get_str(path), ino_parent,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid, (uint16_t)mode);
+
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+
+        if(CXFS_FUSES_GID_ERR == (uint32_t)gid)
+        {
+            if(CXFSNP_ATTR_GID(cxfsnp_attr_parent) != (uint32_t)gid)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_mkdir: "
+                                                     "'%s', gid %#x overflow\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)gid);
+                (*res) = -EOVERFLOW;
+                return (EC_TRUE);
+            }
+        }
+        else
+        {
+            if(0 == (S_IXGRP & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_mkdir: "
+                                                     "path '%s', parent ino %lu, "
+                                                     "parent mode %#o & (S_IXGRP) == 0 "
+                                                     "=> deny (uid %u, gid %u)\n",
+                                                     (char *)cstring_get_str(path),
+                                                     ino_parent,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid,
+                                                     (uint32_t)gid);
+
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+    }
+
+    cxfsnp_item = __cxfs_fuses_lookup(cxfs_md_id, path, &ino);
+    if(NULL_PTR != cxfsnp_item)
+    {
+        cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
+
+        ASSERT(CXFSNP_ATTR_IS_HIDE == CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr));
+
+        cxfsnp_attr_set_dir(cxfsnp_attr);
+        CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr)  = CXFSNP_ATTR_NOT_HIDE;
+        CXFSNP_ATTR_MODE(cxfsnp_attr)       = (uint16_t)(mode | S_IFDIR);
+        CXFSNP_ATTR_UID(cxfsnp_attr)        = (uint32_t)uid;
+        CXFSNP_ATTR_GID(cxfsnp_attr)        = (uint32_t)gid;
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_mkdir: "
+                                             "[obscure] mkdir %s => ino %lu => mode %#o uid %u, gid %u => done\n",
+                                             (char *)cstring_get_str(path), ino,
+                                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                                             CXFSNP_ATTR_GID(cxfsnp_attr));
+
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
     if(EC_FALSE == cxfs_mkdir(cxfs_md_id, path))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_mkdir: "
@@ -889,7 +1359,9 @@ EC_BOOL cxfs_fuses_mkdir(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
     }
 
     cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
+
     cxfsnp_attr_set_dir(cxfsnp_attr);
+    CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr)  = CXFSNP_ATTR_NOT_HIDE;
     CXFSNP_ATTR_MODE(cxfsnp_attr)       = (uint16_t)(mode | S_IFDIR);
     CXFSNP_ATTR_UID(cxfsnp_attr)        = (uint32_t)uid;
     CXFSNP_ATTR_GID(cxfsnp_attr)        = (uint32_t)gid;
@@ -906,9 +1378,14 @@ EC_BOOL cxfs_fuses_mkdir(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
     return (EC_TRUE);
 }
 
-EC_BOOL cxfs_fuses_unlink(const UINT32 cxfs_md_id, const CSTRING *path, int *res)
+EC_BOOL cxfs_fuses_unlink(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 uid, const UINT32 gid, int *res)
 {
     CXFS_MD         *cxfs_md;
+
+    CXFSNP_ITEM     *cxfsnp_item;
+    CXFSNP_ATTR     *cxfsnp_attr;
+
+    uint64_t         ino;
 
 #if (SWITCH_ON == CXFS_DEBUG_SWITCH)
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
@@ -926,6 +1403,389 @@ EC_BOOL cxfs_fuses_unlink(const UINT32 cxfs_md_id, const CSTRING *path, int *res
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
     CXFS_FUSES_CHECK_ENV(cxfs_md_id, cxfs_md, "cxfs_fuses_unlink", res);
+
+    cxfsnp_item = __cxfs_fuses_lookup(cxfs_md_id, path, &ino);
+    if(NULL_PTR == cxfsnp_item)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_unlink: "
+                                             "path '%s' ino %lu fetch item failed\n",
+                                             (char *)cstring_get_str(path),
+                                             ino);
+        (*res) = -ENOENT;
+        return (EC_TRUE);
+    }
+    cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 != uid && 0 != gid /*not root*/
+    && (CXFSNP_ATTR_UID(cxfsnp_attr) == (uint32_t)uid
+       && CXFSNP_ATTR_GID(cxfsnp_attr) == (uint32_t)gid))
+    {
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_parent;
+
+        cxfsnp_item_parent = cxfsnp_mgr_fetch_parent_item(CXFS_MD_NPP(cxfs_md), ino);
+        if(NULL_PTR == cxfsnp_item_parent)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_unlink: "
+                                                 "fetch parent of '%s' failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+        cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid
+        && 0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_unlink: "
+                                                 "path '%s', "
+                                                 "same uid %u and gid %u, "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IXOTH) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(path),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) == (uint32_t)uid
+        && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_unlink: "
+                                                 "path '%s', "
+                                                 "same uid %u and gid %u, "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IWUSR) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(path),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) == (uint32_t)uid
+        && 0 == (S_IXUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_unlink: "
+                                                 "path '%s', "
+                                                 "same uid %u and gid %u, "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IXUSR) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(path),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 != uid && 0 != gid /*not root*/
+    && (CXFSNP_ATTR_UID(cxfsnp_attr) != (uint32_t)uid
+       || CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)gid))
+    {
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_parent;
+
+        cxfsnp_item_parent = cxfsnp_mgr_fetch_parent_item(CXFS_MD_NPP(cxfs_md), ino);
+        if(NULL_PTR == cxfsnp_item_parent)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_unlink: "
+                                                 "lookup parent of '%s' failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+        cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+        if(CXFS_FUSES_UID_ERR == (uint32_t)uid)
+        {
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_unlink: "
+                                                     "'%s', uid %u, parent uid %u => not matched\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)uid, CXFSNP_ATTR_UID(cxfsnp_attr_parent));
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+        else
+        {
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_unlink: "
+                                                     "'%s', uid %u, parent uid %u => not matched\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)uid, CXFSNP_ATTR_UID(cxfsnp_attr_parent));
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) == (uint32_t)uid
+            && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_unlink: "
+                                                     "'%s', "
+                                                     "uid %u same, parent mode %#o & (S_IWUSR) == 0 "
+                                                     "=> deny (uid %u, gid %u)\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)uid,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid);
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid
+            && 0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_unlink: "
+                                                     "path '%s', "
+                                                     "parent mode %#o & (S_IXOTH) == 0 "
+                                                     "=> deny (uid %u, gid %u)\n",
+                                                     (char *)cstring_get_str(path),
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid);
+
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+
+        if(CXFS_FUSES_GID_ERR == (uint32_t)gid)
+        {
+            if(CXFSNP_ATTR_GID(cxfsnp_attr_parent) != (uint32_t)gid)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_unlink: "
+                                                     "'%s', gid %#x overflow\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)gid);
+                (*res) = -EOVERFLOW;
+                return (EC_TRUE);
+            }
+        }
+        else
+        {
+            if(0 == (S_IXGRP & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_unlink: "
+                                                     "path '%s', "
+                                                     "parent mode %#o & (S_IXGRP) == 0 "
+                                                     "=> deny (uid %u, gid %u)\n",
+                                                     (char *)cstring_get_str(path),
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid);
+
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+    }
+
+    if(CXFSNP_ATTR_LINK_HARD_MID == CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr))/*hard link middle*/
+    {
+        CXFSNP_ATTR     *cxfsnp_attr_save;
+        uint64_t         ino_save;
+
+        cxfsnp_attr_save = cxfsnp_attr; /*save*/
+        ino_save         = ino; /*save*/
+
+        CXFS_FUSES_GOTO_HARD_LINK_TOP(cxfs_md, ino, cxfsnp_item, cxfsnp_attr);
+
+        /*now attr is hard link tail*/
+
+        ASSERT(cxfsnp_attr != cxfsnp_attr_save);
+
+        //CXFSNP_ATTR_NLINK(cxfsnp_attr_save) = 0;
+        CXFSNP_ATTR_NEXT_INO(cxfsnp_attr_save) = CXFSNP_ATTR_ERR_INO; /*break hard link*/
+
+        cxfsnp_attr_dec_link(cxfsnp_attr);
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_unlink: "
+                                             "'%s' => hard link ino %lu => dec nlink to %u\n",
+                                             (char *)cstring_get_str(path), ino,
+                                             CXFSNP_ATTR_NLINK(cxfsnp_attr));
+
+        if(0 == CXFSNP_ATTR_NLINK(cxfsnp_attr))
+        {
+            ASSERT(CXFSNP_ATTR_IS_HIDE == CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr));
+
+            cxfsnp_mgr_delete_hidden_item(CXFS_MD_NPP(cxfs_md), ino);
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_unlink: "
+                                                 "'%s' => delete hidden hard link ino %lu\n",
+                                                 (char *)cstring_get_str(path), ino);
+        }
+
+        cxfsnp_attr = cxfsnp_attr_save;/*restore*/
+        ino         = ino_save;/*restore*/
+
+        /*fall through*/
+
+        if(EC_FALSE == cxfs_delete_dir(cxfs_md_id, path))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_unlink: "
+                                                 "[hard link middle] delete dir '%s' failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -EACCES;
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_unlink: "
+                                             "[hard link middle] delete dir %s => done\n",
+                                             (char *)cstring_get_str(path));
+
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
+    if(CXFSNP_ATTR_LINK_HARD_TAIL == CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr)) /*hard link tail*/
+    {
+        ASSERT(CXFSNP_ATTR_NOT_HIDE == CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr));
+
+        cxfsnp_attr_dec_link(cxfsnp_attr);
+
+        if(0 < CXFSNP_ATTR_NLINK(cxfsnp_attr))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_unlink: "
+                                                 "delete dir %s => tail nlink %u => set hide\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CXFSNP_ATTR_NLINK(cxfsnp_attr));
+
+            CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr) = CXFSNP_ATTR_IS_HIDE;
+
+            cxfsnp_mgr_hide_item(CXFS_MD_NPP(cxfs_md), ino);
+
+            (*res) = 0;
+            return (EC_TRUE);
+        }
+
+        /*fall through to remove this item*/
+        CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr) = CXFSNP_ATTR_NOT_HIDE; /*clear flag*/
+
+        if(EC_FALSE == cxfs_delete_dir(cxfs_md_id, path))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_unlink: "
+                                                 "[hard link tail] delete dir '%s' failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -EACCES;
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_unlink: "
+                                             "[hard link tail] delete dir %s => done\n",
+                                             (char *)cstring_get_str(path));
+
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
+    /*soft link middle*/
+    if(CXFSNP_ATTR_LINK_SOFT == CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr)
+    && CXFSNP_ATTR_ERR_INO != CXFSNP_ATTR_NEXT_INO(cxfsnp_attr))
+    {
+        CXFSNP_ITEM     *cxfsnp_item_link;
+        CXFSNP_ATTR     *cxfsnp_attr_link;
+        uint64_t         ino_link;
+
+        ino_link = CXFSNP_ATTR_NEXT_INO(cxfsnp_attr);
+        cxfsnp_item_link = cxfsnp_mgr_fetch_item(CXFS_MD_NPP(cxfs_md), ino_link);
+        ASSERT(NULL_PTR != cxfsnp_item_link);
+
+        CXFSNP_ATTR_NEXT_INO(cxfsnp_attr) = CXFSNP_ATTR_ERR_INO; /*break soft link*/
+
+        cxfsnp_attr_link = CXFSNP_ITEM_ATTR(cxfsnp_item_link);
+        CXFSNP_ATTR_SLINK(cxfsnp_attr_link) --;
+
+        if(0 == CXFSNP_ATTR_SLINK(cxfsnp_attr_link)
+        && CXFSNP_ATTR_IS_HIDE == CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr_link))
+        {
+            cxfsnp_mgr_umount_item(CXFS_MD_NPP(cxfs_md), ino_link);
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_unlink: "
+                                                 "'%s' => delete hidden soft link ino %lu\n",
+                                                 (char *)cstring_get_str(path), ino_link);
+        }
+
+        /*fall through*/
+
+        if(EC_FALSE == cxfs_delete_dir(cxfs_md_id, path))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_unlink: "
+                                                 "[soft link middle] delete dir '%s' failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -EACCES;
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_unlink: "
+                                             "[soft link middle] delete dir %s => done\n",
+                                             (char *)cstring_get_str(path));
+
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
+    /*soft link tail*/
+    if(CXFSNP_ATTR_LINK_SOFT == CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr)
+    && CXFSNP_ATTR_ERR_INO == CXFSNP_ATTR_NEXT_INO(cxfsnp_attr))
+    {
+        if(0 < CXFSNP_ATTR_SLINK(cxfsnp_attr))
+        {
+            CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr) = CXFSNP_ATTR_IS_HIDE;
+            cxfsnp_mgr_hide_item(CXFS_MD_NPP(cxfs_md), ino);
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_unlink: "
+                                                 "'%s' => hide soft link ino %lu\n",
+                                                 (char *)cstring_get_str(path), ino);
+
+            (*res) = 0;
+
+            return (EC_TRUE);
+        }
+
+        if(EC_FALSE == cxfs_delete_dir(cxfs_md_id, path))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_unlink: "
+                                                 "[soft link tail] delete dir '%s' failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -EACCES;
+            return (EC_FALSE);
+        }
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_unlink: "
+                                             "[soft link tail] delete dir %s => done\n",
+                                             (char *)cstring_get_str(path));
+
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
+    /*else*/
+
+    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_unlink: "
+                                         "'%s' =>  ino %lu, nlink %u\n",
+                                         (char *)cstring_get_str(path), ino,
+                                         CXFSNP_ATTR_NLINK(cxfsnp_attr));
 
     if(EC_FALSE == cxfs_delete_dir(cxfs_md_id, path))
     {
@@ -945,9 +1805,13 @@ EC_BOOL cxfs_fuses_unlink(const UINT32 cxfs_md_id, const CSTRING *path, int *res
     return (EC_TRUE);
 }
 
-EC_BOOL cxfs_fuses_rmdir(const UINT32 cxfs_md_id, const CSTRING *path, int *res)
+EC_BOOL cxfs_fuses_rmdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 uid, const UINT32 gid, int *res)
 {
     CXFS_MD         *cxfs_md;
+
+    CXFSNP_ITEM     *cxfsnp_item;
+    CXFSNP_ATTR     *cxfsnp_attr;
+    uint64_t         ino;
 
 #if (SWITCH_ON == CXFS_DEBUG_SWITCH)
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
@@ -965,6 +1829,222 @@ EC_BOOL cxfs_fuses_rmdir(const UINT32 cxfs_md_id, const CSTRING *path, int *res)
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
 
     CXFS_FUSES_CHECK_ENV(cxfs_md_id, cxfs_md, "cxfs_fuses_rmdir", res);
+
+    cxfsnp_item = __cxfs_fuses_lookup(cxfs_md_id, path, &ino);
+    if(NULL_PTR == cxfsnp_item)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rmdir: "
+                                             "path '%s' ino %lu fetch item failed\n",
+                                             (char *)cstring_get_str(path),
+                                             ino);
+        (*res) = -ENOENT;
+        return (EC_TRUE);
+    }
+    cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
+
+    if(CXFSNP_ATTR_FILE_IS_DIR != CXFSNP_ATTR_DIR_FLAG(cxfsnp_attr))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rmdir: "
+                                             "path '%s' => ino %lu, flag %#x => failed\n",
+                                             (char *)cstring_get_str(path),
+                                             ino, CXFSNP_ATTR_DIR_FLAG(cxfsnp_attr));
+        (*res) = -ENOENT;
+        return (EC_TRUE);
+    }
+
+#if 0
+    if(0 < CXFSNP_DNODE_FILE_NUM(CXFSNP_ITEM_DNODE(cxfsnp_item)))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rmdir: "
+                                             "path '%s' => ino %lu, flag %#x, file num %lu => failed\n",
+                                             (char *)cstring_get_str(path),
+                                             ino, CXFSNP_ATTR_DIR_FLAG(cxfsnp_attr),
+                                             CXFSNP_DNODE_FILE_NUM(CXFSNP_ITEM_DNODE(cxfsnp_item)));
+        (*res) = -ENOTEMPTY;
+        return (EC_TRUE);
+    }
+#endif
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 != uid && 0 != gid /*not root*/
+    && (CXFSNP_ATTR_UID(cxfsnp_attr) == (uint32_t)uid
+       && CXFSNP_ATTR_GID(cxfsnp_attr) == (uint32_t)gid))
+    {
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_parent;
+
+        cxfsnp_item_parent = cxfsnp_mgr_fetch_parent_item(CXFS_MD_NPP(cxfs_md), ino);
+        if(NULL_PTR == cxfsnp_item_parent)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rmdir: "
+                                                 "fetch parent of '%s' failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+        cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid
+        && 0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rmdir: "
+                                                 "path '%s', "
+                                                 "same uid %u and gid %u, "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IXOTH) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(path),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) == (uint32_t)uid
+        && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rmdir: "
+                                                 "path '%s', "
+                                                 "same uid %u and gid %u, "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IWUSR) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(path),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) == (uint32_t)uid
+        && 0 == (S_IXUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rmdir: "
+                                                 "path '%s', "
+                                                 "same uid %u and gid %u, "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IXUSR) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(path),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 != uid && 0 != gid /*not root*/
+    && (CXFSNP_ATTR_UID(cxfsnp_attr) != (uint32_t)uid
+       || CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)gid))
+    {
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_parent;
+
+        cxfsnp_item_parent = cxfsnp_mgr_fetch_parent_item(CXFS_MD_NPP(cxfs_md), ino);
+        if(NULL_PTR == cxfsnp_item_parent)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rmdir: "
+                                                 "lookup parent of '%s' failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+        cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+        if(CXFS_FUSES_UID_ERR == (uint32_t)uid)
+        {
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rmdir: "
+                                                     "'%s', uid %u, parent uid %u => not matched\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)uid, CXFSNP_ATTR_UID(cxfsnp_attr_parent));
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+        else
+        {
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rmdir: "
+                                                     "'%s', uid %u, parent uid %u => not matched\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)uid, CXFSNP_ATTR_UID(cxfsnp_attr_parent));
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) == (uint32_t)uid
+            && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rmdir: "
+                                                     "'%s', "
+                                                     "uid %u same, parent mode %#o & (S_IWUSR) == 0 "
+                                                     "=> deny (uid %u, gid %u)\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)uid,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid);
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid
+            && 0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rmdir: "
+                                                     "path '%s', "
+                                                     "parent mode %#o & (S_IXOTH) == 0 "
+                                                     "=> deny (uid %u, gid %u)\n",
+                                                     (char *)cstring_get_str(path),
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid);
+
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+
+        if(CXFS_FUSES_GID_ERR == (uint32_t)gid)
+        {
+            if(CXFSNP_ATTR_GID(cxfsnp_attr_parent) != (uint32_t)gid)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rmdir: "
+                                                     "'%s', gid %#x overflow\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)gid);
+                (*res) = -EOVERFLOW;
+                return (EC_TRUE);
+            }
+        }
+        else
+        {
+            if(0 == (S_IXGRP & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rmdir: "
+                                                     "path '%s', "
+                                                     "parent mode %#o & (S_IXGRP) == 0 "
+                                                     "=> deny (uid %u, gid %u)\n",
+                                                     (char *)cstring_get_str(path),
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid);
+
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+    }
 
     if(EC_FALSE == cxfs_delete_dir(cxfs_md_id, path))
     {
@@ -984,9 +2064,19 @@ EC_BOOL cxfs_fuses_rmdir(const UINT32 cxfs_md_id, const CSTRING *path, int *res)
     return (EC_TRUE);
 }
 
-EC_BOOL cxfs_fuses_symlink(const UINT32 cxfs_md_id, const CSTRING *from_path, const CSTRING *to_path, int *res)
+EC_BOOL cxfs_fuses_symlink(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 uid, const UINT32 gid, int *res)
 {
     CXFS_MD         *cxfs_md;
+
+    CXFSNP_ITEM     *cxfsnp_item_src;
+    CXFSNP_ATTR     *cxfsnp_attr_src;
+    uint64_t         ino_src;
+
+    CXFSNP_ITEM     *cxfsnp_item_des;
+    CXFSNP_ATTR     *cxfsnp_attr_des;
+    uint64_t         ino_des;
+
+    uint32_t         create_src_flag;
 
 #if (SWITCH_ON == CXFS_DEBUG_SWITCH)
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
@@ -1005,29 +2095,291 @@ EC_BOOL cxfs_fuses_symlink(const UINT32 cxfs_md_id, const CSTRING *from_path, co
 
     CXFS_FUSES_CHECK_ENV(cxfs_md_id, cxfs_md, "cxfs_fuses_symlink", res);
 
-    if(EC_FALSE == cxfs_link_dir(cxfs_md_id, from_path, to_path))
+    create_src_flag = BIT_FALSE;
+
+    cxfsnp_item_src = __cxfs_fuses_lookup(cxfs_md_id, src_path, &ino_src);
+    if(NULL_PTR == cxfsnp_item_src)
     {
+        if(EC_FALSE == cxfs_mkdir(cxfs_md_id, src_path))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_symlink: "
+                                                 "make src '%s' failed\n",
+                                                 (char *)cstring_get_str(src_path));
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+
+        cxfsnp_item_src = __cxfs_fuses_lookup(cxfs_md_id, src_path, &ino_src);
+        if(NULL_PTR == cxfsnp_item_src)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_symlink: "
+                                                 "[obscure] lookup src '%s' failed\n",
+                                                 (char *)cstring_get_str(src_path));
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        cxfsnp_attr_src = CXFSNP_ITEM_ATTR(cxfsnp_item_src);
+
+        cxfsnp_attr_set_dir_symlink(cxfsnp_attr_src, CXFSNP_ATTR_ERR_INO); /*default is dir link */
+        CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr_src) = CXFSNP_ATTR_IS_HIDE;
+        CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr_src) = CXFSNP_ATTR_LINK_SOFT; /*set soft link*/
+
+        create_src_flag = BIT_TRUE; /*set src created flag*/
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_symlink: "
+                                             "[obscure] make src '%s' done\n",
+                                             (char *)cstring_get_str(src_path));
+    }
+    else
+    {
+        cxfsnp_attr_src = CXFSNP_ITEM_ATTR(cxfsnp_item_src);
+    }
+
+    cxfsnp_item_des = __cxfs_fuses_lookup(cxfs_md_id, des_path, &ino_des);
+    if(NULL_PTR != cxfsnp_item_des)
+    {
+        if(ino_src == ino_des)
+        {
+            if(BIT_TRUE == create_src_flag)
+            {
+                cxfs_delete_dir(cxfs_md_id, src_path);
+            }
+
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_symlink: "
+                                                 "src '%s' and des '%s' have same ino %lu => deny\n",
+                                                 (char *)cstring_get_str(src_path),
+                                                 (char *)cstring_get_str(des_path),
+                                                 ino_src);
+            (*res) = -ELOOP;
+            return (EC_TRUE);
+        }
+
+        cxfsnp_attr_des = CXFSNP_ITEM_ATTR(cxfsnp_item_des);
+
+        if(CXFSNP_ATTR_LINK_SOFT != CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr_des))
+        {
+            if(BIT_TRUE == create_src_flag)
+            {
+                cxfs_delete_dir(cxfs_md_id, src_path);
+            }
+
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_symlink: "
+                                                 "des '%s' exist already\n",
+                                                 (char *)cstring_get_str(des_path));
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        cxfsnp_attr_set_dir_symlink(cxfsnp_attr_des, ino_src);
+        CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr_des) = CXFSNP_ATTR_NOT_HIDE;
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_symlink: "
+                                             "link dir '%s' des [obscure] '%s' done\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(des_path));
+
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
+    /*check permission*/
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && NULL_PTR == cxfsnp_item_des
+    && 0 != uid && 0 != gid)
+    {
+        CXFSNP_ITEM     *cxfsnp_item_des_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_des_parent;
+        uint64_t         ino_des_parent;
+
+        cxfsnp_item_des_parent = __cxfs_fuses_lookup_parent(cxfs_md_id, des_path, &ino_des_parent);
+        if(NULL_PTR == cxfsnp_item_des_parent)
+        {
+            if(BIT_TRUE == create_src_flag)
+            {
+                cxfs_delete_dir(cxfs_md_id, src_path);
+            }
+
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_symlink: "
+                                                 "lookup parent of '%s' failed\n",
+                                                 (char *)cstring_get_str(des_path));
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+        cxfsnp_attr_des_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_des_parent);
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_des_parent) != (uint32_t)uid
+        && 0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_des_parent)))
+        {
+            if(BIT_TRUE == create_src_flag)
+            {
+                cxfs_delete_dir(cxfs_md_id, src_path);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_symlink: "
+                                                 "path '%s', "
+                                                 "same uid %u and gid %u, "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IXOTH) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(des_path),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_des_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_des_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_des_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_des_parent) == (uint32_t)uid
+        && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_des_parent)))
+        {
+            if(BIT_TRUE == create_src_flag)
+            {
+                cxfs_delete_dir(cxfs_md_id, src_path);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_symlink: "
+                                                 "path '%s', "
+                                                 "same uid %u and gid %u, "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IWUSR) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(des_path),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_des_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_des_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_des_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_des_parent) == (uint32_t)uid
+        && 0 == (S_IXUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_des_parent)))
+        {
+            if(BIT_TRUE == create_src_flag)
+            {
+                cxfs_delete_dir(cxfs_md_id, src_path);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_symlink: "
+                                                 "path '%s', "
+                                                 "same uid %u and gid %u, "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IXUSR) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(des_path),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_des_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_des_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_des_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+    }
+
+    ASSERT(NULL_PTR != cxfsnp_item_src);
+    ASSERT(NULL_PTR == cxfsnp_item_des);
+
+    if(EC_FALSE == cxfs_mkdir(cxfs_md_id, des_path))
+    {
+        if(BIT_TRUE == create_src_flag)
+        {
+            cxfs_delete_dir(cxfs_md_id, src_path);
+        }
+
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_symlink: "
-                                             "link dir '%s' to '%s' failed\n",
-                                             (char *)cstring_get_str(from_path),
-                                             (char *)cstring_get_str(to_path));
+                                             "make des dir '%s' failed\n",
+                                             (char *)cstring_get_str(des_path));
         (*res) = -EACCES;
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_symlink: "
-                                         "link dir '%s' to '%s' done\n",
-                                         (char *)cstring_get_str(from_path),
-                                         (char *)cstring_get_str(to_path));
+    cxfsnp_item_des = __cxfs_fuses_lookup(cxfs_md_id, des_path, &ino_des);
+    if(NULL_PTR == cxfsnp_item_des)
+    {
+        if(BIT_TRUE == create_src_flag)
+        {
+            cxfs_delete_dir(cxfs_md_id, src_path);
+        }
 
-    (*res) = 0;
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_symlink: "
+                                             "lookup des '%s' failed\n",
+                                             (char *)cstring_get_str(des_path));
+        (*res) = -ENOENT;
+        return (EC_FALSE);
+    }
+    cxfsnp_attr_des = CXFSNP_ITEM_ATTR(cxfsnp_item_des);
+
+    if(CXFSNP_ATTR_FILE_IS_REG == CXFSNP_ATTR_DIR_FLAG(cxfsnp_attr_src))
+    {
+        cxfsnp_attr_set_file_symlink(cxfsnp_attr_des, ino_src);
+        CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr_des) = CXFSNP_ATTR_NOT_HIDE;
+        CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr_des) = CXFSNP_ATTR_LINK_SOFT; /*set soft link*/
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_symlink: "
+                                             "link file src '%s' des '%s' done\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(des_path));
+
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
+    if(CXFSNP_ATTR_FILE_IS_DIR == CXFSNP_ATTR_DIR_FLAG(cxfsnp_attr_src))
+    {
+        cxfsnp_attr_set_dir_symlink(cxfsnp_attr_des, ino_src);
+        CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr_des) = CXFSNP_ATTR_NOT_HIDE;
+        CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr_des) = CXFSNP_ATTR_LINK_SOFT; /*set soft link*/
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_symlink: "
+                                             "link dir src '%s' des '%s' done\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(des_path));
+
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
+    /*should never reach here*/
+    if(BIT_TRUE == create_src_flag)
+    {
+        cxfs_delete_dir(cxfs_md_id, src_path);
+    }
+    cxfs_delete_dir(cxfs_md_id, des_path);
+
+    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_symlink: "
+                                         "unknow src '%s' flag %#x\n",
+                                         (char *)cstring_get_str(src_path),
+                                         CXFSNP_ATTR_DIR_FLAG(cxfsnp_attr_src));
+
+    (*res) = -EACCES;
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfs_fuses_rename(const UINT32 cxfs_md_id, const CSTRING *from_path, const CSTRING *to_path, int *res)
+EC_BOOL cxfs_fuses_rename(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 uid, const UINT32 gid, int *res)
 {
     CXFS_MD         *cxfs_md;
+
+    CXFSNP_ITEM     *cxfsnp_item_src;
+    uint64_t         ino_src;
+
+    CXFSNP_ITEM     *cxfsnp_item_des; /*target parent item*/
+    CXFSNP_DNODE    *cxfsnp_dnode_des;/*target parent dnode*/
+    uint64_t         ino_des;
+    uint64_t         ino_des_save; /*only if des path is hard link*/
+
+    CXFSNP          *cxfsnp;
+
+    uint32_t         node_pos_src;
+    uint32_t         root_pos_des;
 
 #if (SWITCH_ON == CXFS_DEBUG_SWITCH)
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
@@ -1046,29 +2398,701 @@ EC_BOOL cxfs_fuses_rename(const UINT32 cxfs_md_id, const CSTRING *from_path, con
 
     CXFS_FUSES_CHECK_ENV(cxfs_md_id, cxfs_md, "cxfs_fuses_rename", res);
 
-    if(EC_FALSE == cxfs_rename_dir(cxfs_md_id, from_path, to_path))
+    cxfsnp_item_src = __cxfs_fuses_lookup(cxfs_md_id, src_path, &ino_src);
+    if(NULL_PTR == cxfsnp_item_src)
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rename: "
-                                             "rename dir '%s' to '%s' failed\n",
-                                             (char *)cstring_get_str(from_path),
-                                             (char *)cstring_get_str(to_path));
+                                             "no src '%s'\n",
+                                             (char *)cstring_get_str(src_path));
+        (*res) = -ENOENT;
+        return (EC_TRUE);
+    }
+
+    cxfsnp = cxfsnp_mgr_fetch_np(CXFS_MD_NPP(cxfs_md), ino_src);
+    if(NULL_PTR == cxfsnp)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rename: "
+                                             "fetch src '%s' np failed\n",
+                                             (char *)cstring_get_str(src_path));
+
         (*res) = -EACCES;
-        return (EC_FALSE);
+        return (EC_TRUE);
+    }
+
+    ino_des_save = CXFSNP_ATTR_ERR_INO;
+    cxfsnp_item_des = __cxfs_fuses_lookup(cxfs_md_id, des_path, &ino_des);
+    if(NULL_PTR != cxfsnp_item_des)
+    {
+        CXFSNP_ATTR     *cxfsnp_attr_des;
+
+        cxfsnp_attr_des        = CXFSNP_ITEM_ATTR(cxfsnp_item_des);
+
+        if(0 == (CXFSNP_ATTR_LINK_HARD_MASK & CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr_des))) /*not hard link*/
+        {
+            if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+            && 0 != uid && 0 != gid)
+            {
+                CXFSNP_ITEM     *cxfsnp_item_des_parent;
+                CXFSNP_ATTR     *cxfsnp_attr_des_parent;
+
+                cxfsnp_item_des_parent = cxfsnp_mgr_fetch_parent_item(CXFS_MD_NPP(cxfs_md), ino_des);
+                cxfsnp_attr_des_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_des_parent);
+
+                if(/*CXFSNP_ATTR_UID(cxfsnp_attr_des_parent) == (uint32_t)uid
+                && CXFSNP_ATTR_GID(cxfsnp_attr_des_parent) == (uint32_t)gid
+                && */(S_ISVTX & CXFSNP_ATTR_MODE(cxfsnp_attr_des_parent)))
+                {
+                    (*res) = 0;
+
+                    /*warning:  do not call cxfs_delete_dir*/
+                    if(EC_FALSE == cxfs_fuses_unlink(cxfs_md_id, des_path, uid, gid, res)
+                    || 0 != (*res))
+                    {
+                        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rename: "
+                                                             "[des sticky] delete des '%s' failed\n",
+                                                             (char *)cstring_get_str(des_path));
+
+                        return (EC_TRUE);
+                    }
+
+                    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                         "[des sticky] delete des '%s' done\n",
+                                                         (char *)cstring_get_str(des_path));
+
+                    ino_des         = CXFSNP_ATTR_ERR_INO;
+                    ino_des_save    = CXFSNP_ATTR_ERR_INO;
+                    cxfsnp_item_des = NULL_PTR;
+                }
+                else
+                {
+                    ino_des_save = ino_des; /*save*/
+
+                    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                         "[not hard link] des '%s' exist => save ino %lu\n",
+                                                         (char *)cstring_get_str(des_path), ino_des_save);
+                }
+            }
+            else
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rename: "
+                                                     "des '%s' exist already\n",
+                                                     (char *)cstring_get_str(des_path));
+                (*res) = -EEXIST;
+                return (EC_TRUE);
+            }
+        }
+        else /*hard link*/
+        {
+            ino_des_save = ino_des; /*save*/
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                 "[hard link] des '%s' exist => save ino %lu\n",
+                                                 (char *)cstring_get_str(des_path), ino_des_save);
+        }
+    }
+
+    cxfsnp_item_des = __cxfs_fuses_lookup_parent(cxfs_md_id, des_path, &ino_des);
+    if(NULL_PTR == cxfsnp_item_des)
+    {
+        /*give up creating the parent directory*/
+
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rename: "
+                                             "lookup parent of created '%s' failed\n",
+                                             (char *)cstring_get_str(des_path));
+        (*res) = -ENOENT;
+        return (EC_TRUE);
+    }
+    cxfsnp_dnode_des = CXFSNP_ITEM_DNODE(cxfsnp_item_des);
+
+    /*check permission*/
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 != uid && 0 == gid)
+    {
+        CXFSNP_ATTR     *cxfsnp_attr_src;
+
+        cxfsnp_attr_src = CXFSNP_ITEM_ATTR(cxfsnp_item_src);
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_src) != (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr_src) == (uint32_t)gid
+        && 0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_src)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                 "src '%s', "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IXOTH) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(src_path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_src),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_src),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_src),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_src) != (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr_src) == (uint32_t)gid
+        && 0 == (S_IWOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_src)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                 "src '%s', "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IWOTH) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(src_path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_src),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_src),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_src),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_src) != (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr_src) == (uint32_t)gid
+        && S_IFSOCK == (S_IFSOCK & CXFSNP_ATTR_MODE(cxfsnp_attr_src)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                 "src '%s', "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IFSOCK) == S_IFSOCK"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(src_path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_src),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_src),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_src),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 != uid && 0 != gid)
+    {
+        CXFSNP_ATTR     *cxfsnp_attr_des;
+
+        cxfsnp_attr_des = CXFSNP_ITEM_ATTR(cxfsnp_item_des);
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_des) != (uint32_t)uid
+        && 0 == (S_IWOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_des)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                 "des '%s', "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IWOTH) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(des_path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_des),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_des),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_des),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_des) == (uint32_t)uid
+        && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_des)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                 "des '%s', "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IWUSR) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(des_path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_des),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_des),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_des),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_des) == (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr_des) == (uint32_t)gid /*04.tt*/
+        && 0 == (S_IXUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_des)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                 "des '%s', "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IXUSR) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(des_path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_des),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_des),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_des),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 != uid && 0 != gid)
+    {
+        CXFSNP_ATTR     *cxfsnp_attr_src;
+
+        CXFSNP_ITEM     *cxfsnp_item_src_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_src_parent;
+        uint64_t         ino_src_parent;
+
+        cxfsnp_attr_src = CXFSNP_ITEM_ATTR(cxfsnp_item_src);
+
+        cxfsnp_item_src_parent = __cxfs_fuses_lookup_parent(cxfs_md_id, src_path, &ino_src_parent);
+        if(NULL_PTR == cxfsnp_item_src_parent)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rename: "
+                                                 "lookup parent of src '%s' failed\n",
+                                                 (char *)cstring_get_str(src_path));
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+        cxfsnp_attr_src_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_src_parent);
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_src_parent) != (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr_src_parent) != (uint32_t)gid
+        && 0 == (S_IWOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                 "src '%s', "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IWOTH) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(src_path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_src_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_src_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_src_parent) != (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr_src_parent) == (uint32_t)gid
+        && 0 == (S_IWGRP & CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                 "src '%s', "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IWGRP) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(src_path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_src_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_src_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_src_parent) == (uint32_t)uid
+        && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                 "src '%s', "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IWUSR) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(src_path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_src_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_src_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_src_parent) == (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr_src_parent) == (uint32_t)gid /*04.tt*/
+        && 0 == (S_IXUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                 "src '%s', "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IXUSR) == 0 "
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(src_path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_src_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_src_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        /*09.tt*/
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_src_parent) == (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr_src_parent) == (uint32_t)gid
+        && 0 != (S_ISVTX & CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent))
+        && (CXFSNP_ATTR_UID(cxfsnp_attr_src) != (uint32_t)uid
+        || CXFSNP_ATTR_GID(cxfsnp_attr_src) != (uint32_t)gid)
+        && cxfsnp_item_src_parent != cxfsnp_item_des/*here is des parent*/
+        )
+        {
+            if(CXFSNP_ATTR_ERR_INO != ino_des_save) /*des exist*/
+            {
+                CXFSNP_ITEM     *cxfsnp_item_des_t;
+                CXFSNP_ATTR     *cxfsnp_attr_des_t;
+
+                cxfsnp_item_des_t = cxfsnp_mgr_fetch_item(CXFS_MD_NPP(cxfs_md), ino_des_save);
+                cxfsnp_attr_des_t = CXFSNP_ITEM_ATTR(cxfsnp_item_des_t);
+
+                if(CXFSNP_ATTR_UID(cxfsnp_attr_des_t) != (uint32_t)uid
+                || CXFSNP_ATTR_GID(cxfsnp_attr_des_t) != (uint32_t)gid)
+                {
+                    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                         "src '%s' (uid %u, gid %u), "
+                                                         "parent (uid %u, gid %u) mode %#o & (S_ISVTX) != 0, "
+                                                         "des (uid %u, gid %u) exists "
+                                                         "=> deny (uid %u, gid %u)\n",
+                                                         (char *)cstring_get_str(src_path),
+                                                         CXFSNP_ATTR_UID(cxfsnp_attr_src),
+                                                         CXFSNP_ATTR_GID(cxfsnp_attr_src),
+                                                         CXFSNP_ATTR_UID(cxfsnp_attr_src_parent),
+                                                         CXFSNP_ATTR_GID(cxfsnp_attr_src_parent),
+                                                         CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent),
+                                                         CXFSNP_ATTR_UID(cxfsnp_attr_des_t),
+                                                         CXFSNP_ATTR_GID(cxfsnp_attr_des_t),
+                                                         (uint32_t)uid, (uint32_t)gid);
+
+                    (*res) = -EACCES;
+                    return (EC_TRUE);
+                }
+            }
+            else /*des not exist*/
+            {
+                CXFSNP_ATTR     *cxfsnp_attr_des; /*des parent*/
+
+                cxfsnp_attr_des = CXFSNP_ITEM_ATTR(cxfsnp_item_des);
+
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                     "src '%s' (uid %u, gid %u), "
+                                                     "src parent (uid %u, gid %u) mode %#o,"
+                                                     "no des, des parent (uid %u, gid %u) mode %#o, "
+                                                     "=> (uid %u, gid %u) XXXXXXX\n",
+                                                     (char *)cstring_get_str(src_path),
+                                                     CXFSNP_ATTR_UID(cxfsnp_attr_src),
+                                                     CXFSNP_ATTR_GID(cxfsnp_attr_src),
+                                                     CXFSNP_ATTR_UID(cxfsnp_attr_src_parent),
+                                                     CXFSNP_ATTR_GID(cxfsnp_attr_src_parent),
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent),
+                                                     CXFSNP_ATTR_UID(cxfsnp_attr_des),
+                                                     CXFSNP_ATTR_GID(cxfsnp_attr_des),
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_des),
+                                                     (uint32_t)uid, (uint32_t)gid);
+
+                if(CXFSNP_ATTR_UID(cxfsnp_attr_des) != (uint32_t)uid
+                || CXFSNP_ATTR_GID(cxfsnp_attr_des) != (uint32_t)gid)
+                {
+                    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                         "src '%s' (uid %u, gid %u), "
+                                                         "src parent (uid %u, gid %u) mode %#o & (S_ISVTX) != 0, "
+                                                         "no des, "
+                                                         "=> deny (uid %u, gid %u)\n",
+                                                         (char *)cstring_get_str(src_path),
+                                                         CXFSNP_ATTR_UID(cxfsnp_attr_src),
+                                                         CXFSNP_ATTR_GID(cxfsnp_attr_src),
+                                                         CXFSNP_ATTR_UID(cxfsnp_attr_src_parent),
+                                                         CXFSNP_ATTR_GID(cxfsnp_attr_src_parent),
+                                                         CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent),
+                                                         (uint32_t)uid, (uint32_t)gid);
+
+                    (*res) = -EACCES;
+                    return (EC_TRUE);
+                }
+
+                if(0 /*faint, failed to satisfy all cases in 09.tt*/
+                && (CXFSNP_ATTR_UID(cxfsnp_attr_des) == (uint32_t)uid
+                && CXFSNP_ATTR_GID(cxfsnp_attr_des) == (uint32_t)gid)
+                && (CXFSNP_ATTR_UID(cxfsnp_attr_des) != CXFSNP_ATTR_UID(cxfsnp_attr_src)
+                && CXFSNP_ATTR_GID(cxfsnp_attr_des) != CXFSNP_ATTR_GID(cxfsnp_attr_src))
+                && 0 == (S_IWOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_des)))
+                {
+                    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                         "src '%s' (uid %u, gid %u), "
+                                                         "src parent (uid %u, gid %u) mode %#o & (S_ISVTX) != 0, "
+                                                         "no des, des parent (uid %u, gid %u) mode %#o & (S_IWOTH) == 0 "
+                                                         "=> deny (uid %u, gid %u)\n",
+                                                         (char *)cstring_get_str(src_path),
+                                                         CXFSNP_ATTR_UID(cxfsnp_attr_src),
+                                                         CXFSNP_ATTR_GID(cxfsnp_attr_src),
+                                                         CXFSNP_ATTR_UID(cxfsnp_attr_src_parent),
+                                                         CXFSNP_ATTR_GID(cxfsnp_attr_src_parent),
+                                                         CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent),
+                                                         CXFSNP_ATTR_UID(cxfsnp_attr_des),
+                                                         CXFSNP_ATTR_GID(cxfsnp_attr_des),
+                                                         CXFSNP_ATTR_MODE(cxfsnp_attr_des),
+                                                         (uint32_t)uid, (uint32_t)gid);
+
+                    (*res) = -EACCES;
+                    return (EC_TRUE);
+                }
+            }
+        }
+
+        if((CXFSNP_ATTR_UID(cxfsnp_attr_src_parent) != (uint32_t)uid
+            || CXFSNP_ATTR_GID(cxfsnp_attr_src_parent) != (uint32_t)gid)
+        && 0 != (S_ISVTX & CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent)))
+        {
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_src) != (uint32_t)uid
+            || CXFSNP_ATTR_GID(cxfsnp_attr_src) != (uint32_t)gid)
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                     "src '%s' (uid %u, gid %u), "
+                                                     "parent (uid %u, gid %u) mode %#o & (S_ISVTX) != 0"
+                                                     "=> deny (uid %u, gid %u)\n",
+                                                     (char *)cstring_get_str(src_path),
+                                                     CXFSNP_ATTR_UID(cxfsnp_attr_src),
+                                                     CXFSNP_ATTR_GID(cxfsnp_attr_src),
+                                                     CXFSNP_ATTR_UID(cxfsnp_attr_src_parent),
+                                                     CXFSNP_ATTR_GID(cxfsnp_attr_src_parent),
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent),
+                                                     (uint32_t)uid, (uint32_t)gid);
+
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+    }
+
+    node_pos_src = CXFSNP_ATTR_INO_FETCH_NODE_POS(ino_src);
+    if(EC_FALSE == cxfsnp_tear_item(cxfsnp, node_pos_src))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rename: "
+                                             "tear src '%s', ino_src %lu failed\n",
+                                             (char *)cstring_get_str(src_path), ino_src);
+
+        (*res) = -EACCES;
+        return (EC_TRUE);
+    }
+
+    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                         "tear src '%s', ino_src %lu done\n",
+                                         (char *)cstring_get_str(src_path), ino_src);
+
+    if(CXFSNP_ATTR_ERR_INO != ino_des_save)
+    {
+        CXFSNP_ATTR     *cxfsnp_attr_des;
+
+        cxfsnp_item_des = cxfsnp_mgr_fetch_item(CXFS_MD_NPP(cxfs_md), ino_des_save);
+        cxfsnp_attr_des = CXFSNP_ITEM_ATTR(cxfsnp_item_des);
+
+        if(CXFSNP_ATTR_LINK_HARD_MID == CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr_des))
+        {
+            CXFSNP_ITEM     *cxfsnp_item_tail;
+            CXFSNP_ATTR     *cxfsnp_attr_tail;
+            uint64_t         ino_tail;
+
+            cxfsnp_item_tail = cxfsnp_item_des;
+            cxfsnp_attr_tail = cxfsnp_attr_des;
+            ino_tail         = ino_des_save;
+
+            CXFS_FUSES_GOTO_HARD_LINK_TOP(cxfs_md, ino_tail, cxfsnp_item_tail, cxfsnp_attr_tail);
+
+            /*now attr is hard link tail*/
+
+            ASSERT(cxfsnp_attr_des != cxfsnp_attr_tail);
+
+            CXFSNP_ATTR_NEXT_INO(cxfsnp_attr_des) = CXFSNP_ATTR_ERR_INO; /*break hard link*/
+
+            cxfsnp_attr_dec_link(cxfsnp_attr_tail);
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                 "'%s' => hard link tail ino %lu "
+                                                 "=> dec nlink to %u\n",
+                                                 (char *)cstring_get_str(des_path), ino_tail,
+                                                 CXFSNP_ATTR_NLINK(cxfsnp_attr_tail));
+
+            if(0 == CXFSNP_ATTR_NLINK(cxfsnp_attr_tail))
+            {
+                ASSERT(CXFSNP_ATTR_IS_HIDE == CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr_tail));
+
+                cxfsnp_mgr_delete_hidden_item(CXFS_MD_NPP(cxfs_md), ino_tail);
+
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                     "'%s' => delete hidden hard link ino %lu\n",
+                                                     (char *)cstring_get_str(des_path), ino_tail);
+            }
+
+            /*fall through*/
+
+            if(EC_FALSE == cxfs_delete_dir(cxfs_md_id, des_path))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rename: "
+                                                     "[hard link middle] delete dir '%s' failed\n",
+                                                     (char *)cstring_get_str(des_path));
+                (*res) = -EACCES;
+                return (EC_FALSE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                 "[hard link middle] delete dir %s => done\n",
+                                                 (char *)cstring_get_str(des_path));
+        }
+
+        else if(CXFSNP_ATTR_LINK_HARD_TAIL == CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr_des))
+        {
+            ASSERT(CXFSNP_ATTR_NOT_HIDE == CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr_des));
+
+            cxfsnp_attr_dec_link(cxfsnp_attr_des);
+
+            if(0 < CXFSNP_ATTR_NLINK(cxfsnp_attr_des))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                     "[hard link tail] delete dir %s "
+                                                     "=> tail nlink %u => set hide\n",
+                                                     (char *)cstring_get_str(des_path),
+                                                     CXFSNP_ATTR_NLINK(cxfsnp_attr_des));
+
+                CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr_des) = CXFSNP_ATTR_IS_HIDE;
+
+                cxfsnp_mgr_hide_item(CXFS_MD_NPP(cxfs_md), ino_des_save);
+            }
+            else
+            {
+                CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr_des) = CXFSNP_ATTR_NOT_HIDE; /*clear flag*/
+
+                if(EC_FALSE == cxfs_delete_dir(cxfs_md_id, des_path))
+                {
+                    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rename: "
+                                                         "[hard link tail] delete dir '%s' failed\n",
+                                                         (char *)cstring_get_str(des_path));
+                    (*res) = -EACCES;
+                    return (EC_FALSE);
+                }
+
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                     "[hard link tail] delete dir %s => done\n",
+                                                     (char *)cstring_get_str(des_path));
+            }
+        }
+
+        else
+        {
+            (*res) = 0;
+
+            /*warning:  do not call cxfs_delete_dir which cannont handle soft link etc.*/
+            if(EC_FALSE == cxfs_fuses_unlink(cxfs_md_id, des_path, uid, gid, res)
+            || 0 != (*res))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rename: "
+                                                     "[not hard link] delete des '%s' failed\n",
+                                                     (char *)cstring_get_str(des_path));
+
+                return (EC_TRUE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                 "[not hard link] delete des '%s' done\n",
+                                                 (char *)cstring_get_str(des_path));
+
+            ASSERT(NULL_PTR != __cxfs_fuses_lookup_parent(cxfs_md_id, des_path, NULL_PTR));
+
+            /*ino_des and cxfsnp_item_des are parent of des => never change it*/
+            ino_des_save    = CXFSNP_ATTR_ERR_INO;
+        }
+    }
+
+    do
+    {
+        char            *path_seg;
+        uint32_t         path_seg_len;
+        uint32_t         path_seg_second_hash;
+
+        path_seg     = c_basename((char *)cstring_get_str(des_path));
+        if(NULL_PTR == path_seg)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rename: "
+                                                 "basename des '%s' failed\n",
+                                                 (char *)cstring_get_str(src_path));
+
+            (*res) = -ENOMEM;
+            return (EC_TRUE);
+        }
+
+        path_seg_len = strlen(path_seg);
+
+        path_seg_second_hash = CXFSNP_2ND_CHASH_ALGO_COMPUTE(cxfsnp, path_seg_len, (uint8_t *)path_seg);
+
+        if(CXFSNP_KEY_MAX_SIZE < path_seg_len)
+        {
+            uint8_t         *md5_str;
+            uint32_t         md5_len;
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
+                                                 "des '%s' last seg '%s' => md5\n",
+                                                 (char *)cstring_get_str(des_path),
+                                                 (char *)path_seg);
+
+            md5_str = (uint8_t *)c_md5_sum_to_hex_str(path_seg_len, (uint8_t *)path_seg);
+            md5_len = (uint32_t )(2 * CMD5_DIGEST_LEN);
+
+            cxfsnp_item_set_key(cxfsnp_item_src, md5_len, md5_str);
+            CXFSNP_ITEM_SECOND_HASH(cxfsnp_item_src) = path_seg_second_hash;
+            CXFSNP_ITEM_PARENT_POS(cxfsnp_item_src)  = CXFSNP_ATTR_INO_FETCH_NODE_POS(ino_des);
+        }
+        else
+        {
+            cxfsnp_item_set_key(cxfsnp_item_src, path_seg_len, (uint8_t *)path_seg);
+            CXFSNP_ITEM_SECOND_HASH(cxfsnp_item_src) = path_seg_second_hash;
+            CXFSNP_ITEM_PARENT_POS(cxfsnp_item_src)  = CXFSNP_ATTR_INO_FETCH_NODE_POS(ino_des);
+        }
+
+        c_str_free(path_seg);
+    }while(0);
+
+    root_pos_des = CXFSNP_DNODE_ROOT_POS(cxfsnp_dnode_des);
+
+    if(EC_FALSE == cxfsnprb_tree_insert(CXFSNP_ITEMS_POOL(cxfsnp),
+                                        &root_pos_des,
+                                         CXFSNP_ITEM_SECOND_HASH(cxfsnp_item_src),
+                                         CXFSNP_ITEM_KLEN(cxfsnp_item_src),
+                                         CXFSNP_ITEM_KNAME(cxfsnp_item_src),
+                                         CXFSNP_ITEM_DIR_FLAG(cxfsnp_item_src),
+                                         node_pos_src))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_rename: "
+                                             "move src '%s' to des '%s' failed\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(des_path));
+
+        (*res) = -EACCES;
+        return (EC_TRUE);
+    }
+
+    CXFSNP_DNODE_ROOT_POS(cxfsnp_dnode_des) = root_pos_des;
+
+    /*move foward parent*/
+    cxfsnp_item_src = cxfsnp_fetch(cxfsnp, CXFSNP_ITEM_PARENT_POS(cxfsnp_item_src));
+    if(NULL_PTR != cxfsnp_item_src)
+    {
+        CXFSNP_ATTR     *cxfsnp_attr_src;
+
+        cxfsnp_attr_src = CXFSNP_ITEM_ATTR(cxfsnp_item_src);
+        CXFSNP_ATTR_NLINK(cxfsnp_attr_src) ++;
     }
 
     dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_rename: "
                                          "rename dir '%s' to '%s' done\n",
-                                         (char *)cstring_get_str(from_path),
-                                         (char *)cstring_get_str(to_path));
+                                         (char *)cstring_get_str(src_path),
+                                         (char *)cstring_get_str(des_path));
 
     (*res) = 0;
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfs_fuses_link(const UINT32 cxfs_md_id, const CSTRING *from_path, const CSTRING *to_path, int *res)
+EC_BOOL cxfs_fuses_link(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 uid, const UINT32 gid, int *res)
 {
     CXFS_MD         *cxfs_md;
+
+    CXFSNP_ITEM     *cxfsnp_item_src;
+    CXFSNP_ATTR     *cxfsnp_attr_src;
+    uint64_t         ino_src;
+
+    CXFSNP_ITEM     *cxfsnp_item_des;
+    CXFSNP_ATTR     *cxfsnp_attr_des;
+    uint64_t         ino_des;
 
 #if (SWITCH_ON == CXFS_DEBUG_SWITCH)
     if ( CXFS_MD_ID_CHECK_INVALID(cxfs_md_id) )
@@ -1084,30 +3108,289 @@ EC_BOOL cxfs_fuses_link(const UINT32 cxfs_md_id, const CSTRING *from_path, const
     CXFS_FUSES_DEBUG_ENTER("cxfs_fuses_link");
 
     cxfs_md = CXFS_MD_GET(cxfs_md_id);
+    /*des -> src*/
 
     CXFS_FUSES_CHECK_ENV(cxfs_md_id, cxfs_md, "cxfs_fuses_link", res);
 
-    if(EC_FALSE == cxfs_link_dir(cxfs_md_id, from_path, to_path))
+    cxfsnp_item_des = __cxfs_fuses_lookup(cxfs_md_id, des_path, &ino_des);
+    if(NULL_PTR != cxfsnp_item_des)
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_link: "
-                                             "link dir '%s' to '%s' failed\n",
-                                             (char *)cstring_get_str(from_path),
-                                             (char *)cstring_get_str(to_path));
+                                             "des '%s' exist\n",
+                                             (char *)cstring_get_str(src_path));
+        (*res) = -EEXIST;
+        return (EC_TRUE);
+    }
+
+    cxfsnp_item_src = __cxfs_fuses_lookup(cxfs_md_id, src_path, &ino_src);
+    if(NULL_PTR == cxfsnp_item_src)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_link: "
+                                             "src '%s' not exist\n",
+                                             (char *)cstring_get_str(src_path));
+        (*res) = -ENOENT;
+        return (EC_TRUE);
+    }
+    cxfsnp_attr_src = CXFSNP_ITEM_ATTR(cxfsnp_item_src);
+
+    /*find link tail of src: only one jump*/
+    while(CXFSNP_ATTR_ERR_INO != CXFSNP_ATTR_NEXT_INO(cxfsnp_attr_src))
+    {
+        ino_src         = CXFSNP_ATTR_NEXT_INO(cxfsnp_attr_src);
+        cxfsnp_item_src = cxfsnp_mgr_fetch_item(CXFS_MD_NPP(cxfs_md), ino_src);
+        cxfsnp_attr_src = CXFSNP_ITEM_ATTR(cxfsnp_item_src);
+    }
+
+    /*check permission*/
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && NULL_PTR == cxfsnp_item_des
+    && 0 != uid && 0 == gid)
+    {
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_src) == (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr_src) != (uint32_t)gid)
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_link: "
+                                                 "src '%s', ino %lu, "
+                                                 "(uid %u, gid %u, mode %#o), ",
+                                                 "=> deny (uid %u, gid %u), des '%s'\n",
+                                                 (char *)cstring_get_str(src_path), ino_src,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_src),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_src),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_src),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 (char *)cstring_get_str(des_path));
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && NULL_PTR == cxfsnp_item_des
+    && 0 != uid && 0 != gid)
+    {
+        CXFSNP_ITEM     *cxfsnp_item_des_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_des_parent;
+        uint64_t         ino_des_parent;
+
+        cxfsnp_item_des_parent = __cxfs_fuses_lookup_parent(cxfs_md_id, des_path, &ino_des_parent);
+        if(NULL_PTR == cxfsnp_item_des_parent)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_link: "
+                                                 "lookup parent of des '%s' failed\n",
+                                                 (char *)cstring_get_str(des_path));
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+        cxfsnp_attr_des_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_des_parent);
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_des_parent) != (uint32_t)uid
+        && 0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_des_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_link: "
+                                                 "des '%s', "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IXOTH) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(des_path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_des_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_des_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_des_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_des_parent) == (uint32_t)uid
+        && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_des_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_link: "
+                                                 "des '%s', "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IWUSR) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(des_path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_des_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_des_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_des_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_des_parent) == (uint32_t)uid
+        && 0 == (S_IXUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_des_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_link: "
+                                                 "des '%s', "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IXUSR) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(des_path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_des_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_des_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_des_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    /*&& NULL_PTR == cxfsnp_item_des*/
+    && 0 != uid && 0 != gid)
+    {
+        CXFSNP_ITEM     *cxfsnp_item_src_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_src_parent;
+        uint64_t         ino_src_parent;
+
+        cxfsnp_item_src_parent = __cxfs_fuses_lookup_parent(cxfs_md_id, src_path, &ino_src_parent);
+        if(NULL_PTR == cxfsnp_item_src_parent)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_link: "
+                                                 "lookup parent of src '%s' failed\n",
+                                                 (char *)cstring_get_str(src_path));
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+        cxfsnp_attr_src_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_src_parent);
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_src_parent) != (uint32_t)uid
+        && 0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_link: "
+                                                 "src '%s', "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IXOTH) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(src_path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_src_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_src_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_src_parent) == (uint32_t)uid
+        && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_link: "
+                                                 "src '%s', "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IWUSR) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(src_path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_src_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_src_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_src_parent) == (uint32_t)uid
+        && 0 == (S_IXUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_link: "
+                                                 "src '%s', "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IXUSR) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(src_path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_src_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_src_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_src_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+    }
+
+    ASSERT(NULL_PTR != cxfsnp_item_src);
+    ASSERT(NULL_PTR == cxfsnp_item_des);
+
+    if(EC_FALSE == cxfs_mkdir(cxfs_md_id, des_path))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_link: "
+                                             "make des dir '%s' failed\n",
+                                             (char *)cstring_get_str(des_path));
         (*res) = -EACCES;
         return (EC_FALSE);
     }
 
-    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_link: "
-                                         "link dir '%s' to '%s' done\n",
-                                         (char *)cstring_get_str(from_path),
-                                         (char *)cstring_get_str(to_path));
+    cxfsnp_item_des = __cxfs_fuses_lookup(cxfs_md_id, des_path, &ino_des);
+    if(NULL_PTR == cxfsnp_item_des)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_link: "
+                                             "lookup des '%s' failed\n",
+                                             (char *)cstring_get_str(des_path));
+        (*res) = -ENOENT;
+        return (EC_FALSE);
+    }
+    cxfsnp_attr_des = CXFSNP_ITEM_ATTR(cxfsnp_item_des);
 
-    (*res) = 0;
+    if(0 == (CXFSNP_ATTR_LINK_HARD_MASK & CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr_src)))
+    {
+        CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr_src) = CXFSNP_ATTR_LINK_HARD_TAIL; /*set hard link tail*/
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_link: "
+                                             "set src '%s' hard link tail\n",
+                                             (char *)cstring_get_str(src_path));
+    }
+
+    if(CXFSNP_ATTR_FILE_IS_REG == CXFSNP_ATTR_DIR_FLAG(cxfsnp_attr_src))
+    {
+        cxfsnp_attr_set_file_link(cxfsnp_attr_des, ino_src);
+        CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr_des) = CXFSNP_ATTR_NOT_HIDE;
+        CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr_des) = CXFSNP_ATTR_LINK_HARD_MID;/*set hard link middle*/
+
+        cxfsnp_attr_inc_link(cxfsnp_attr_src);
+
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_link: "
+                                             "link file src '%s' des '%s' => nlink %u\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(des_path),
+                                             CXFSNP_ATTR_NLINK(cxfsnp_attr_src));
+
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
+    if(CXFSNP_ATTR_FILE_IS_DIR == CXFSNP_ATTR_DIR_FLAG(cxfsnp_attr_src))
+    {
+        cxfsnp_attr_set_dir_link(cxfsnp_attr_des, ino_src);
+        CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr_des) = CXFSNP_ATTR_NOT_HIDE;
+        CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr_des) = CXFSNP_ATTR_LINK_HARD_MID;/*set hard link middle*/
+
+        cxfsnp_attr_inc_link(cxfsnp_attr_src);
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_link: "
+                                             "link dir src '%s' des '%s' => nlink %u\n",
+                                             (char *)cstring_get_str(src_path),
+                                             (char *)cstring_get_str(des_path),
+                                             CXFSNP_ATTR_NLINK(cxfsnp_attr_src));
+
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
+    /*should never reach here*/
+
+    dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_link: "
+                                         "unknow src '%s' flag %#x\n",
+                                         (char *)cstring_get_str(src_path),
+                                         CXFSNP_ATTR_DIR_FLAG(cxfsnp_attr_src));
+
+    (*res) = -EACCES;
 
     return (EC_TRUE);
 }
 
-EC_BOOL cxfs_fuses_chmod(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, int *res)
+EC_BOOL cxfs_fuses_chmod(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 op_uid, const UINT32 op_gid, int *res)
 {
     CXFS_MD         *cxfs_md;
     CXFSNP_ITEM     *cxfsnp_item;
@@ -1148,6 +3431,181 @@ EC_BOOL cxfs_fuses_chmod(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
     }
 
     cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 == op_uid && 0 == op_gid) /*root*/
+    {
+        CXFS_FUSES_GOTO_HARD_LINK_TOP(cxfs_md, ino, cxfsnp_item, cxfsnp_attr);
+
+        CXFSNP_ATTR_MODE(cxfsnp_attr)       = (uint16_t)mode;
+        CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+        CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+        CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+        CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chmod: "
+                                             "[op:%u:%u] chmod %s => ino %lu, mod %#o => done\n",
+                                             (uint32_t)op_uid, (uint32_t)op_gid,
+                                             (char *)cstring_get_str(path), ino, (uint16_t)mode);
+
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 != op_uid && 0 != op_gid) /*not root*/
+    {
+        if(CXFSNP_ATTR_UID(cxfsnp_attr) == (uint32_t)op_uid)
+        {
+            CXFSNP_ITEM     *cxfsnp_item_parent;
+            CXFSNP_ATTR     *cxfsnp_attr_parent;
+
+            /*
+            # POSIX: If the calling process does not have appropriate privileges, and if
+            # the group ID of the file does not match the effective group ID or one of the
+            # supplementary group IDs and if the file is a regular file, bit S_ISGID
+            # (set-group-ID on execution) in the file's mode shall be cleared upon
+            */
+            if(CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)op_gid
+            && CXFSNP_ATTR_FILE_IS_REG == CXFSNP_ATTR_DIR_FLAG(cxfsnp_attr))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chmod: "
+                                                     "path '%s', ino %lu, "
+                                                     "[op:%u:%u] (uid %u, gid %u) chmod %#o -> %#o => %#o, "
+                                                     "regulare file, "
+                                                     "=> accept but clear S_ISGID\n",
+                                                     (char *)cstring_get_str(path), ino,
+                                                     (uint32_t)op_uid, (uint32_t)op_gid,
+                                                     CXFSNP_ATTR_UID(cxfsnp_attr), CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                     (uint16_t)mode, (uint16_t)(mode & (~S_ISGID)));
+
+                CXFS_FUSES_GOTO_HARD_LINK_TOP(cxfs_md, ino, cxfsnp_item, cxfsnp_attr);
+
+                CXFSNP_ATTR_MODE(cxfsnp_attr)       = (uint16_t)(mode & (~S_ISGID));
+                CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+                CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+                CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+                CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+
+                (*res) = 0;
+
+                return (EC_TRUE);
+            }
+
+            if(CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)op_gid
+            && 0 == (S_IXGRP & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chmod: "
+                                                     "path '%s', ino %lu, "
+                                                     "[op:%u:%u] (uid %u, gid %u) chmod %#o -> %#o, "
+                                                     "mode & (S_ S_IXGRP) == 0 "
+                                                     "=> deny\n",
+                                                     (char *)cstring_get_str(path), ino,
+                                                     (uint32_t)op_uid, (uint32_t)op_gid,
+                                                     CXFSNP_ATTR_UID(cxfsnp_attr), CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr), (uint16_t)mode);
+                (*res) = -EPERM;
+                return (EC_TRUE);
+            }
+
+            cxfsnp_item_parent = cxfsnp_mgr_fetch_parent_item(CXFS_MD_NPP(cxfs_md), ino);
+            cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+            /*check parent*/
+            if(0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chmod: "
+                                                     "path '%s', ino %lu, "
+                                                     "[op:%u:%u] (uid %u, gid %u) chmod %#o -> %#o, "
+                                                     "parent mode %#o & (S_IXOTH) == 0 "
+                                                     "=> deny\n",
+                                                     (char *)cstring_get_str(path), ino,
+                                                     (uint32_t)op_uid, (uint32_t)op_gid,
+                                                     CXFSNP_ATTR_UID(cxfsnp_attr), CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr), (uint16_t)mode,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent));
+
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+        else
+        {
+            if(0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chmod: "
+                                                     "path '%s', ino %lu, "
+                                                     "[op:%u:%u] (uid %u, gid %u) chmod %#o -> %#o, "
+                                                     "mode & (S_ IXOTH) == 0 "
+                                                     "=> deny\n",
+                                                     (char *)cstring_get_str(path), ino,
+                                                     (uint32_t)op_uid, (uint32_t)op_gid,
+                                                     CXFSNP_ATTR_UID(cxfsnp_attr), CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr), (uint16_t)mode);
+                (*res) = -EPERM;
+                return (EC_TRUE);
+            }
+        }
+    }
+
+    /*op_uid == 0 || op_gid ==0*/
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 == op_uid)
+    {
+        if(CXFSNP_ATTR_UID(cxfsnp_attr) != (uint32_t)op_uid)
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chmod: "
+                                                 "path '%s', ino %lu, "
+                                                 "[op:%u:%u] (uid %u, gid %u) chmod %#o -> %#o, "
+                                                 "uid mismatched, "
+                                                 "=> deny\n",
+                                                 (char *)cstring_get_str(path), ino,
+                                                 (uint32_t)op_uid, (uint32_t)op_gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr), CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr), (uint16_t)mode);
+            (*res) = -EPERM;
+            return (EC_TRUE);
+        }
+        if(CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)op_gid
+        && 0 == (S_IXGRP & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chmod: "
+                                                 "path '%s', ino %lu, "
+                                                 "[op:%u:%u] (uid %u, gid %u) chmod %#o -> %#o, "
+                                                 "mode & (S_ S_IXGRP) == 0 "
+                                                 "=> deny\n",
+                                                 (char *)cstring_get_str(path), ino,
+                                                 (uint32_t)op_uid, (uint32_t)op_gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr), CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr), (uint16_t)mode);
+            (*res) = -EPERM;
+            return (EC_TRUE);
+        }
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 == op_gid)
+    {
+        if(CXFSNP_ATTR_UID(cxfsnp_attr) != (uint32_t)op_uid)
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chmod: "
+                                                 "path '%s', ino %lu, "
+                                                 "[op:%u:%u] (uid %u, gid %u) chmod %#o -> %#o, "
+                                                 "uid mismatched, "
+                                                 "=> deny\n",
+                                                 (char *)cstring_get_str(path), ino,
+                                                 (uint32_t)op_uid, (uint32_t)op_gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr), CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr), (uint16_t)mode);
+            (*res) = -EPERM;
+            return (EC_TRUE);
+        }
+    }
+
+    CXFS_FUSES_GOTO_HARD_LINK_TOP(cxfs_md, ino, cxfsnp_item, cxfsnp_attr);
+
     CXFSNP_ATTR_MODE(cxfsnp_attr)       = (uint16_t)mode;
     CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
     CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
@@ -1163,7 +3621,7 @@ EC_BOOL cxfs_fuses_chmod(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
     return (EC_TRUE);
 }
 
-EC_BOOL cxfs_fuses_chown(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 uid, const UINT32 gid, int *res)
+EC_BOOL cxfs_fuses_chown(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 uid, const UINT32 gid, const UINT32 op_uid, const UINT32 op_gid, int *res)
 {
     CXFS_MD         *cxfs_md;
     CXFSNP_ITEM     *cxfsnp_item;
@@ -1190,6 +3648,9 @@ EC_BOOL cxfs_fuses_chown(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
 
     CXFS_FUSES_CHECK_ENV(cxfs_md_id, cxfs_md, "cxfs_fuses_chown", res);
 
+    ASSERT(uid == (uid & CXFS_FUSES_UID_MASK));
+    ASSERT(gid == (gid & CXFS_FUSES_GID_MASK));
+
     c_get_cur_time_nsec_and_nanosec(&nsec, &nanosec);
 
     cxfsnp_item = __cxfs_fuses_lookup(cxfs_md_id, path, &ino);
@@ -1202,22 +3663,271 @@ EC_BOOL cxfs_fuses_chown(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
         (*res) = -ENOENT;
         return (EC_TRUE);
     }
-
     cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
 
-    CXFSNP_ATTR_UID(cxfsnp_attr)        = (uint32_t)uid;
-    CXFSNP_ATTR_GID(cxfsnp_attr)        = (uint32_t)gid;
-    CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-    CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
-    CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
-    CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && (0 != op_uid && 0 != op_gid) /*not root*/
+    && CXFS_FUSES_UID_ERR == uid && CXFS_FUSES_GID_ERR == gid)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_chown: "
+                                             "'%s', (uid %u, gid %#x) overflow => deny\n",
+                                             (char *)cstring_get_str(path),
+                                             (uint32_t)uid, (uint32_t)gid);
+        (*res) = -EACCES;
+        return (EC_TRUE);
+    }
 
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_OFF)
+    {
+        CXFS_FUSES_GOTO_HARD_LINK_TOP(cxfs_md, ino, cxfsnp_item, cxfsnp_attr);
+
+        CXFSNP_ATTR_UID(cxfsnp_attr)        = (uint32_t)uid;
+        CXFSNP_ATTR_GID(cxfsnp_attr)        = (uint32_t)gid;
+
+        CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+        CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+        CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+        CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chown: "
+                                             "chown %s => ino %lu, uid %u, gid %u => done\n",
+                                             (char *)cstring_get_str(path), ino,
+                                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                                             CXFSNP_ATTR_GID(cxfsnp_attr));
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 == op_uid && 0 == op_gid) /*root*/
+    {
+        CXFS_FUSES_GOTO_HARD_LINK_TOP(cxfs_md, ino, cxfsnp_item, cxfsnp_attr);
+
+        CXFSNP_ATTR_UID(cxfsnp_attr)        = (uint32_t)uid;
+        CXFSNP_ATTR_GID(cxfsnp_attr)        = (uint32_t)gid;
+
+        /*According to POSIX: If both owner and group are -1, the times need not be updated.*/
+        if(CXFS_FUSES_UID_ERR != uid || CXFS_FUSES_GID_ERR != gid)
+        {
+            /*update time only when change happen*/
+            CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+            CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+            CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+            CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+        }
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chown: "
+                                             "[op:%u:%u] chown %s => ino %lu, uid %u, gid %u => done\n",
+                                             (uint32_t)op_uid, (uint32_t)op_gid,
+                                             (char *)cstring_get_str(path), ino,
+                                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                                             CXFSNP_ATTR_GID(cxfsnp_attr));
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && CXFSNP_ATTR_UID(cxfsnp_attr) == (uint32_t)uid
+    && op_uid == uid)
+    {
+        CXFS_FUSES_GOTO_HARD_LINK_TOP(cxfs_md, ino, cxfsnp_item, cxfsnp_attr);
+
+        CXFSNP_ATTR_GID(cxfsnp_attr)        = (uint32_t)gid;
+
+        /*update time only when change happen*/
+        CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+        CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+        CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+        CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chown: "
+                                             "path '%s', ino %lu, "
+                                             "[op:%u:%u] (uid %u, gid %u) -> (uid %u, gid %u), "
+                                             "uid == op uid == current uid "
+                                             "=> done\n",
+                                             (char *)cstring_get_str(path), ino,
+                                             (uint32_t)op_uid, (uint32_t)op_gid,
+                                             CXFSNP_ATTR_UID(cxfsnp_attr), CXFSNP_ATTR_GID(cxfsnp_attr),
+                                             (uint32_t)uid, (uint32_t)gid,
+                                             CXFSNP_ATTR_MODE(cxfsnp_attr));
+
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && CXFSNP_ATTR_UID(cxfsnp_attr) != (uint32_t)uid
+    && CXFS_FUSES_UID_ERR != uid)
+    {
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_parent;
+
+        if(0 == CXFSNP_ATTR_UID(cxfsnp_attr))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chown: "
+                                                 "path '%s', ino %lu, "
+                                                 "[op:%u:%u] chown (uid %u, gid %u) -> (uid %u, gid %u), "
+                                                 "mode %#o, uid is root "
+                                                 "=> deny\n",
+                                                 (char *)cstring_get_str(path), ino,
+                                                 (uint32_t)op_uid, (uint32_t)op_gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr), CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr));
+
+            (*res) = -EPERM;
+            return (EC_TRUE);
+        }
+
+        if(0 != op_uid
+        && 0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chown: "
+                                                 "path '%s', ino %lu, "
+                                                 "[op:%u:%u] chown (uid %u, gid %u) -> (uid %u, gid %u), "
+                                                 "mode %#o & (S_ IXOTH) == 0 "
+                                                 "=> deny\n",
+                                                 (char *)cstring_get_str(path), ino,
+                                                 (uint32_t)op_uid, (uint32_t)op_gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr), CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr));
+
+            (*res) = -EPERM;
+            return (EC_TRUE);
+        }
+
+        cxfsnp_item_parent = cxfsnp_mgr_fetch_parent_item(CXFS_MD_NPP(cxfs_md), ino);
+        cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr) != (uint32_t)uid
+        && 0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chown: "
+                                                 "path '%s', ino %lu, "
+                                                 "(uid %u, gid %u) -> (uid %u, gid %u), "
+                                                 "parent mode %#o & (S_IXOTH) == 0 "
+                                                 "=> deny\n",
+                                                 (char *)cstring_get_str(path), ino,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr), CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_parent));
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        CXFS_FUSES_GOTO_HARD_LINK_TOP(cxfs_md, ino, cxfsnp_item, cxfsnp_attr);
+
+        CXFSNP_ATTR_UID(cxfsnp_attr)        = (uint32_t)uid;
+
+        /*update time only when change happen*/
+        CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+        CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+        CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+        CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chown: "
+                                             "chown %s => ino %lu, uid %u, gid %u => done\n",
+                                             (char *)cstring_get_str(path), ino,
+                                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                                             CXFSNP_ATTR_GID(cxfsnp_attr));
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)gid
+    && CXFS_FUSES_GID_ERR != gid)
+    {
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_parent;
+
+        if(0 == CXFSNP_ATTR_GID(cxfsnp_attr))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chown: "
+                                                 "path '%s', ino %lu, "
+                                                 "[op:%u:%u] chown (uid %u, gid %u) -> (uid %u, gid %u), "
+                                                 "mode %#o, gid is root "
+                                                 "=> deny\n",
+                                                 (char *)cstring_get_str(path), ino,
+                                                 (uint32_t)op_uid, (uint32_t)op_gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr), CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr));
+
+            (*res) = -EPERM;
+            return (EC_TRUE);
+        }
+
+        if(0 != op_gid
+        && 0 == (S_IXGRP & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chown: "
+                                                 "path '%s', ino %lu, "
+                                                 "[op:%u:%u] chown (uid %u, gid %u) -> (uid %u, gid %u), "
+                                                 "mode %#o & (S_IXGRP) == 0 "
+                                                 "=> deny\n",
+                                                 (char *)cstring_get_str(path), ino,
+                                                 (uint32_t)op_uid, (uint32_t)op_gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr), CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr));
+
+            (*res) = -EPERM;
+            return (EC_TRUE);
+        }
+
+        cxfsnp_item_parent = cxfsnp_mgr_fetch_parent_item(CXFS_MD_NPP(cxfs_md), ino);
+        cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+        if(CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)gid
+        && 0 == (S_IXGRP & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chown: "
+                                                 "path '%s', ino %lu, "
+                                                 "(uid %u, gid %u) -> (uid %u, gid %u), "
+                                                 "parent mode %#o & (S_IXGRP) == 0 "
+                                                 "=> deny\n",
+                                                 (char *)cstring_get_str(path), ino,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr), CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_parent));
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        CXFS_FUSES_GOTO_HARD_LINK_TOP(cxfs_md, ino, cxfsnp_item, cxfsnp_attr);
+
+        CXFSNP_ATTR_GID(cxfsnp_attr)        = (uint32_t)gid;
+
+        /*update time only when change happen*/
+        CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+        CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
+        CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+        CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chown: "
+                                             "chown %s => ino %lu, uid %u, gid %u => done\n",
+                                             (char *)cstring_get_str(path), ino,
+                                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                                             CXFSNP_ATTR_GID(cxfsnp_attr));
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
+    /*should never reach here*/
     dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_chown: "
                                          "chown %s => ino %lu, uid %u, gid %u => done\n",
                                          (char *)cstring_get_str(path), ino,
                                          CXFSNP_ATTR_UID(cxfsnp_attr),
                                          CXFSNP_ATTR_GID(cxfsnp_attr));
-
     (*res) = 0;
 
     return (EC_TRUE);
@@ -1293,7 +4003,7 @@ STATIC_CAST EC_BOOL __cxfs_fuses_truncate_seg(const UINT32 cxfs_md_id, const CST
     return (EC_TRUE);
 }
 
-EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 length, int *res)
+EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 length, const UINT32 uid, const UINT32 gid, int *res)
 {
     CXFS_MD         *cxfs_md;
     CXFSNP_ITEM     *cxfsnp_item;
@@ -1325,7 +4035,285 @@ EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const 
 
     CXFS_FUSES_CHECK_ENV(cxfs_md_id, cxfs_md, "cxfs_fuses_truncate", res);
 
-    if(EC_FALSE == cxfs_is_dir(cxfs_md_id, path))
+    if(CXFS_FUSES_FILE_MAX_SIZE < ((uint64_t)length))
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
+                                             "path %s, expect length %lu overflow\n",
+                                             (char *)cstring_get_str(path),
+                                             (uint64_t)length);
+        (*res) = -EFBIG;
+        return (EC_TRUE);
+    }
+
+    ASSERT(uid == (uid & CXFS_FUSES_UID_MASK));
+    ASSERT(gid == (gid & CXFS_FUSES_GID_MASK));
+
+    cxfsnp_item = __cxfs_fuses_lookup(cxfs_md_id, path, &ino);
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && NULL_PTR != cxfsnp_item /*file exist*/
+    && 0 != uid && 0 == gid) /*not root*/
+    {
+        cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_truncate: "
+                                             "'%s', its (uid %u, gid %u, mod %#o), "
+                                             "op (uid %u, gid %u)\n",
+                                             (char *)cstring_get_str(path),
+                                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                                             CXFSNP_ATTR_GID(cxfsnp_attr),
+                                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                             (uint32_t)uid, (uint32_t)gid);
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr) == (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr) == (uint32_t)gid
+        && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
+                                                 "'%s', its (uid %u, gid %u, mod %#o), "
+                                                 "op (uid %u, gid %u), "
+                                                 "mod & (S_IWUSR) == 0\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid);
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr) == (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)gid
+        && 0 == (S_IWGRP & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
+                                                 "'%s', its (uid %u, gid %u, mod %#o), "
+                                                 "op (uid %u, gid %u), "
+                                                 "mod & (S_IWGRP) == 0\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid);
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr) != (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr) == (uint32_t)gid
+        && 0 == (S_IXGRP & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
+                                                 "'%s', its (uid %u, gid %u, mod %#o), "
+                                                 "op (uid %u, gid %u), "
+                                                 "mod & (S_IXGRP) == 0\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid);
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr) != (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)gid
+        && 0 == (S_IWOTH & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
+                                                 "'%s', its (uid %u, gid %u, mod %#o), "
+                                                 "op (uid %u, gid %u), "
+                                                 "mod & (S_IWOTH) == 0\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid);
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && NULL_PTR != cxfsnp_item /*file exist*/
+    && 0 != uid && 0 != gid) /*not root*/
+    {
+        cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_truncate: "
+                                             "'%s', its (uid %u, gid %u, mod %#o), "
+                                             "op (uid %u, gid %u)\n",
+                                             (char *)cstring_get_str(path),
+                                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                                             CXFSNP_ATTR_GID(cxfsnp_attr),
+                                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                             (uint32_t)uid, (uint32_t)gid);
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr) == (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr) == (uint32_t)gid
+        && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
+                                                 "'%s', its (uid %u, gid %u, mod %#o), "
+                                                 "op (uid %u, gid %u), "
+                                                 "mod & (S_IWUSR) == 0\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid);
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr) == (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)gid
+        && 0 == (S_IWGRP & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
+                                                 "'%s', its (uid %u, gid %u, mod %#o), "
+                                                 "op (uid %u, gid %u), "
+                                                 "mod & (S_IWGRP) == 0\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid);
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr) != (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr) == (uint32_t)gid
+        && 0 == (S_IXGRP & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
+                                                 "'%s', its (uid %u, gid %u, mod %#o), "
+                                                 "op (uid %u, gid %u), "
+                                                 "mod & (S_IXGRP) == 0\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid);
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr) != (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)gid
+        && 0 == (S_IWOTH & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
+                                                 "'%s', its (uid %u, gid %u, mod %#o), "
+                                                 "op (uid %u, gid %u), "
+                                                 "mod & (S_IWOTH) == 0\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid);
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 != uid && 0 != gid) /*not root*/
+    {
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_parent;
+        uint64_t         ino_parent;
+
+        cxfsnp_item_parent = __cxfs_fuses_lookup_parent(cxfs_md_id, path, &ino_parent);
+        if(NULL_PTR == cxfsnp_item_parent)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
+                                                 "lookup parent of '%s' failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+        cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+        if(CXFS_FUSES_UID_ERR == (uint32_t)uid)
+        {
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
+                                                     "'%s', uid %u, parent uid %u => not matched\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)uid, CXFSNP_ATTR_UID(cxfsnp_attr_parent));
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+        else
+        {
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) == (uint32_t)uid
+            && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
+                                                     "'%s', parent ino %lu, "
+                                                     "uid %u same, parent mode %#o & (S_IWUSR) == 0 "
+                                                     "=> deny (uid %u, gid %u)\n",
+                                                     (char *)cstring_get_str(path), ino_parent,
+                                                     (uint32_t)uid,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid);
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid
+            && 0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_truncate: "
+                                                     "path '%s', parent ino %lu, "
+                                                     "parent mode %#o & (S_IXOTH) == 0 "
+                                                     "=> deny (uid %u, gid %u)\n",
+                                                     (char *)cstring_get_str(path), ino_parent,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid);
+
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+
+        if(CXFS_FUSES_GID_ERR == (uint32_t)gid)
+        {
+            if(CXFSNP_ATTR_GID(cxfsnp_attr_parent) != (uint32_t)gid)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
+                                                     "'%s', gid %#x overflow\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)gid);
+                (*res) = -EOVERFLOW;
+                return (EC_TRUE);
+            }
+        }
+        else
+        {
+            if(0 == (S_IXGRP & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_truncate: "
+                                                     "path '%s', parent ino %lu, "
+                                                     "parent mode %#o & (S_IXGRP) == 0 "
+                                                     "=> deny (uid %u, gid %u)\n",
+                                                     (char *)cstring_get_str(path),
+                                                     ino_parent,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid,
+                                                     (uint32_t)gid);
+
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+    }
+
+    if(NULL_PTR == cxfsnp_item)
     {
         if(EC_FALSE == cxfs_mkdir(cxfs_md_id, path))
         {
@@ -1345,6 +4333,7 @@ EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const 
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
                                                  "%s, make hidden seg file failed\n",
                                                  (char *)cstring_get_str(path));
+            (*res) = -EACCES;
             return (EC_TRUE);
         }
 
@@ -1367,7 +4356,7 @@ EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const 
 
         c_get_cur_time_nsec_and_nanosec(&nsec, &nanosec);
 
-        CXFSNP_ATTR_FLAG(cxfsnp_attr)       = CXFSNP_ATTR_FUSES_IS_REG;
+        CXFSNP_ATTR_DIR_FLAG(cxfsnp_attr)   = CXFSNP_ATTR_FILE_IS_REG;
 
         CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
         CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)  = (uint64_t)nsec;
@@ -1376,19 +4365,7 @@ EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const 
         CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
         CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr) = (uint32_t)nanosec;
     }
-    else
-    {
-        cxfsnp_item = __cxfs_fuses_lookup(cxfs_md_id, path, &ino);
-        if(NULL_PTR == cxfsnp_item)
-        {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_truncate: "
-                                                 "path '%s' ino %lu fetch item failed\n",
-                                                 (char *)cstring_get_str(path),
-                                                 ino);
-            (*res) = -ENOENT;
-            return (EC_TRUE);
-        }
-    }
+
     dnode_file_size = CXFSNP_DNODE_FILE_SIZE(CXFSNP_ITEM_DNODE(cxfsnp_item));
 
     dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_truncate: "
@@ -1697,6 +4674,8 @@ EC_BOOL cxfs_fuses_open(const UINT32 cxfs_md_id, const CSTRING *path, const UINT
 {
     CXFS_MD         *cxfs_md;
 
+    CXFSNP_ITEM     *cxfsnp_item;
+    //CXFSNP_ATTR     *cxfsnp_attr;
     uint64_t         ino;
 
     uint32_t         accmode;
@@ -1718,7 +4697,8 @@ EC_BOOL cxfs_fuses_open(const UINT32 cxfs_md_id, const CSTRING *path, const UINT
 
     CXFS_FUSES_CHECK_ENV(cxfs_md_id, cxfs_md, "cxfs_fuses_open", res);
 
-    if(NULL_PTR == __cxfs_fuses_lookup(cxfs_md_id, path, &ino))
+    cxfsnp_item = __cxfs_fuses_lookup(cxfs_md_id, path, &ino);
+    if(NULL_PTR == cxfsnp_item)
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_open: "
                                              "no dir '%s'\n",
@@ -1726,14 +4706,14 @@ EC_BOOL cxfs_fuses_open(const UINT32 cxfs_md_id, const CSTRING *path, const UINT
         (*res) = -ENOENT;
         return (EC_TRUE);
     }
+    //cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
 
     if(((uint32_t)flags) & O_TRUNC)
     {
         accmode = O_WRONLY;
 
-        if(EC_FALSE == __cxfs_fuses_check_access(cxfs_md_id,
-                                                (char *)cstring_get_str(path), ino,
-                                                accmode, (uint32_t)uid, (uint32_t)gid))
+        if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+        && EC_FALSE == __cxfs_fuses_check_access(cxfs_md_id, ino, accmode, (uint32_t)uid, (uint32_t)gid))
         {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_open: "
                                                  "find dir '%s', accmode %#o, uid %u, gid %u => not access "
@@ -1748,14 +4728,26 @@ EC_BOOL cxfs_fuses_open(const UINT32 cxfs_md_id, const CSTRING *path, const UINT
                                              "find dir '%s' => ino %lu => truncate to length 0\n",
                                              (char *)cstring_get_str(path), ino);
 
-        return cxfs_fuses_truncate(cxfs_md_id, path, (UINT32)0, res);
+        return cxfs_fuses_truncate(cxfs_md_id, path, (UINT32)0, uid, gid, res);
     }
 
     accmode = (((uint32_t)flags) & O_ACCMODE);
+    if(O_ACCMODE <= accmode)
+    {
+        dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_open: "
+                                             "dir '%s', "
+                                             "flags %#x & O_ACCMODE %#x = %#x >= O_ACCMODE "
+                                             "=> invalid flags\n",
+                                             (char *)cstring_get_str(path),
+                                             ((uint32_t)flags), accmode);
 
-    if(EC_FALSE == __cxfs_fuses_check_access(cxfs_md_id,
-                                            (char *)cstring_get_str(path), ino,
-                                            accmode, (uint32_t)uid, (uint32_t)gid))
+
+        (*res) = -EINVAL;
+        return (EC_FALSE);
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && EC_FALSE == __cxfs_fuses_check_access(cxfs_md_id, ino, accmode, (uint32_t)uid, (uint32_t)gid))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_open: "
                                              "find dir '%s', accmode %#o, uid %u, gid %u => not access\n",
@@ -1797,67 +4789,160 @@ EC_BOOL cxfs_fuses_create(const UINT32 cxfs_md_id, const CSTRING *path, const UI
 
     CXFS_FUSES_CHECK_ENV(cxfs_md_id, cxfs_md, "cxfs_fuses_create", res);
 
-    if(NULL_PTR != __cxfs_fuses_lookup(cxfs_md_id, path, &ino))
+    ASSERT(uid == (uid & CXFS_FUSES_UID_MASK));
+    ASSERT(gid == (gid & CXFS_FUSES_GID_MASK));
+
+    cxfsnp_item = __cxfs_fuses_lookup(cxfs_md_id, path, &ino);
+    if(NULL_PTR != cxfsnp_item) /*file exist*/
     {
-        dbg_log(SEC_0192_CXFS, 1)(LOGSTDOUT, "[DEBUG] cxfs_fuses_create: "
-                                             "find dir '%s' => ino %lu\n",
-                                             (char *)cstring_get_str(path), ino);
-        (*res) = 0;
-        return (EC_TRUE);
-    }
+        cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
 
-    if(1) /*check parent acccess*/
-    {
-        CSTRING  parent_path_cstr;
-        char    *parent_path;
-        uint64_t parent_ino;
-        uint32_t parent_path_len;
-        uint32_t accmode;
-
-        parent_path = c_dirname((char *)cstring_get_str(path));
-        if(NULL_PTR == parent_path)
+        if(EC_FALSE == __cxfs_fuses_make_empty_hidden_seg(cxfs_md_id, path, res))
         {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_create: "
-                                                 "dirname '%s', failed\n",
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_mknod: "
+                                                 "[obscure] %s, make hidden seg file failed\n",
                                                  (char *)cstring_get_str(path));
-            (*res) = -ENOMEM;
-            return (EC_TRUE);
-        }
-
-        parent_path_len = strlen(parent_path);
-
-        cstring_mount(&parent_path_cstr, (UINT8 *)parent_path, parent_path_len, parent_path_len + 1);
-
-        if(NULL_PTR == __cxfs_fuses_lookup(cxfs_md_id, &parent_path_cstr, &parent_ino))
-        {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_create: "
-                                                 "find parent '%s' of '%s' failed\n",
-                                                 parent_path,
-                                                 (char *)cstring_get_str(path));
-            c_str_free(parent_path);
-
-            (*res) = -EIO;
-            return (EC_TRUE);
-        }
-
-        accmode = O_WRONLY;
-
-        if(EC_FALSE == __cxfs_fuses_check_access(cxfs_md_id, parent_path, parent_ino,
-                                                accmode, (uint32_t)uid, (uint32_t)gid))
-        {
-            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_create: "
-                                                 "find parent '%s', accmode %#o, uid %u, gid %u => not access "
-                                                 "=> create '%s' refused\n",
-                                                 parent_path,
-                                                 accmode, (uint32_t)uid, (uint32_t)gid,
-                                                 (char *)cstring_get_str(path));
-            c_str_free(parent_path);
 
             (*res) = -EACCES;
             return (EC_TRUE);
         }
 
-        c_str_free(parent_path);
+        cxfsnp_attr_set_file(cxfsnp_attr);
+        CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr)  = CXFSNP_ATTR_NOT_HIDE;
+        CXFSNP_ATTR_MODE(cxfsnp_attr)       = (uint16_t)mode;
+        CXFSNP_ATTR_UID(cxfsnp_attr)        = (uint32_t)uid;
+        CXFSNP_ATTR_GID(cxfsnp_attr)        = (uint32_t)gid;
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_mknod: "
+                                             "[obscure] %s, mode %#o => ino %lu => mode %#o uid %u, gid %u => done\n",
+                                             (char *)cstring_get_str(path), (uint16_t)mode, ino,
+                                             CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                             CXFSNP_ATTR_UID(cxfsnp_attr),
+                                             CXFSNP_ATTR_GID(cxfsnp_attr));
+
+        (*res) = 0;
+
+        return (EC_TRUE);
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 != uid && 0 != gid) /*not root*/
+    {
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_parent;
+        uint64_t         ino_parent;
+        cxfsnp_item_parent = __cxfs_fuses_lookup_parent(cxfs_md_id, path, &ino_parent);
+        if(NULL_PTR == cxfsnp_item_parent)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_create: "
+                                                 "lookup parent of '%s' failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+        cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+        if(CXFS_FUSES_UID_ERR == (uint32_t)uid)
+        {
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) == (uint32_t)uid
+            && CXFSNP_ATTR_GID(cxfsnp_attr_parent) != (uint32_t)gid
+            && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_create: "
+                                                     "path '%s', parent ino %lu, "
+                                                     "parent (uid %u, gid %u mode %#o), "
+                                                     "parent mode & (S_IWUSR) == 0 "
+                                                     "=> deny (uid %u, gid %u, mode %#o)\n",
+                                                     (char *)cstring_get_str(path), ino_parent,
+                                                     CXFSNP_ATTR_UID(cxfsnp_attr_parent),
+                                                     CXFSNP_ATTR_GID(cxfsnp_attr_parent),
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid, (uint16_t)mode);
+
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid
+            && CXFSNP_ATTR_GID(cxfsnp_attr_parent) != (uint32_t)gid
+            && 0 == (S_IWOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_create: "
+                                                     "path '%s', parent ino %lu, "
+                                                     "parent (uid %u, gid %u mode %#o), "
+                                                     "parent mode & (S_IWOTH) == 0 "
+                                                     "=> deny (uid %u, gid %u, mode %#o)\n",
+                                                     (char *)cstring_get_str(path), ino_parent,
+                                                     CXFSNP_ATTR_UID(cxfsnp_attr_parent),
+                                                     CXFSNP_ATTR_GID(cxfsnp_attr_parent),
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid, (uint16_t)mode);
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+        else
+        {
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) == (uint32_t)uid
+            && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_create: "
+                                                     "'%s', parent ino %lu, "
+                                                     "uid %u same, parent mode %#o & (S_IWUSR) == 0 "
+                                                     "=> deny (uid %u, gid %u) mode %#o\n",
+                                                     (char *)cstring_get_str(path), ino_parent,
+                                                     (uint32_t)uid,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid, (uint16_t)mode);
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid
+            && 0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_create: "
+                                                     "path '%s', parent ino %lu, "
+                                                     "parent mode %#o & (S_IXOTH) == 0 "
+                                                     "=> deny (uid %u, gid %u) mode %#o\n",
+                                                     (char *)cstring_get_str(path), ino_parent,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid, (uint16_t)mode);
+
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+
+        if(CXFS_FUSES_GID_ERR == (uint32_t)gid)
+        {
+            if(CXFSNP_ATTR_GID(cxfsnp_attr_parent) != (uint32_t)gid)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_create: "
+                                                     "'%s', gid %#x overflow\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)gid);
+                (*res) = -EOVERFLOW;
+                return (EC_TRUE);
+            }
+        }
+        else
+        {
+            if(0 == (S_IXGRP & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_create: "
+                                                     "path '%s', parent ino %lu, "
+                                                     "parent mode %#o & (S_IXGRP) == 0 "
+                                                     "=> deny (uid %u, gid %u)\n",
+                                                     (char *)cstring_get_str(path), ino_parent,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid,
+                                                     (uint32_t)gid);
+
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
     }
 
     if(EC_FALSE == cxfs_mkdir(cxfs_md_id, path))
@@ -1874,6 +4959,7 @@ EC_BOOL cxfs_fuses_create(const UINT32 cxfs_md_id, const CSTRING *path, const UI
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_create: "
                                              "%s, make hidden seg file failed\n",
                                              (char *)cstring_get_str(path));
+        (*res) = -EACCES;
         return (EC_TRUE);
     }
 
@@ -1891,13 +4977,14 @@ EC_BOOL cxfs_fuses_create(const UINT32 cxfs_md_id, const CSTRING *path, const UI
     cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
 
     cxfsnp_attr_set_file(cxfsnp_attr);
-    CXFSNP_ATTR_MODE(cxfsnp_attr)       = (uint16_t)(mode | S_IFREG);
+    CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr)  = CXFSNP_ATTR_NOT_HIDE;
+    CXFSNP_ATTR_MODE(cxfsnp_attr)       = (uint16_t)mode;
     CXFSNP_ATTR_UID(cxfsnp_attr)        = (uint32_t)uid;
     CXFSNP_ATTR_GID(cxfsnp_attr)        = (uint32_t)gid;
 
     dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_create: "
-                                         "%s => ino %lu => mode %#o uid %u, gid %u => done\n",
-                                         (char *)cstring_get_str(path), ino,
+                                         "%s mode %#o => ino %lu => mode %#o uid %u, gid %u => done\n",
+                                         (char *)cstring_get_str(path), (uint16_t)mode, ino,
                                          CXFSNP_ATTR_MODE(cxfsnp_attr),
                                          CXFSNP_ATTR_UID(cxfsnp_attr),
                                          CXFSNP_ATTR_GID(cxfsnp_attr));
@@ -2297,6 +5384,62 @@ EC_BOOL cxfs_fuses_write(const UINT32 cxfs_md_id, const CSTRING *path, const CBY
         crange_node_print(LOGSTDOUT, crange_node);
     }
 
+    /*fix*/
+    if(EC_FALSE == clist_is_empty(CRANGE_NODE_RANGE_SEGS(crange_node)))
+    {
+        CSTRING         *seg_path;
+        CRANGE_SEG      *crange_seg;
+        UINT32           seg_no;
+
+        crange_seg = clist_first_data(CRANGE_NODE_RANGE_SEGS(crange_node));
+
+        for(seg_no = 1; seg_no < CRANGE_SEG_NO(crange_seg); seg_no ++)
+        {
+            seg_path = cstring_make("%s/%ld", cstring_get_str(path), seg_no);
+            if(NULL_PTR == seg_path)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_write_seg: "
+                                                     "make seg path %s/%ld failed\n",
+                                                     (char *)cstring_get_str(path),
+                                                     seg_no);
+
+                crange_node_free(crange_node);
+
+                (*res) = -ENOMEM;
+                return (EC_TRUE);
+            }
+
+            if(EC_TRUE == cxfs_find_file(cxfs_md_id, seg_path))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_write: "
+                                                     "check seg %s exist\n",
+                                                     (char *)cstring_get_str(seg_path));
+
+                cstring_free(seg_path);
+
+                continue;
+            }
+
+            if(EC_FALSE == cxfs_reserve(cxfs_md_id, seg_path, (UINT32)CXFSPGB_PAGE_BYTE_SIZE))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_write: "
+                                                     "reserve seg %s failed\n",
+                                                     (char *)cstring_get_str(seg_path));
+
+                cstring_free(seg_path);
+
+                crange_node_free(crange_node);
+                return (EC_TRUE);
+            }
+
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_write: "
+                                                 "reserve seg %s done\n",
+                                                 (char *)cstring_get_str(seg_path));
+
+            cstring_free(seg_path);
+        }
+    }
+
     complete_size = 0;
     while(NULL_PTR != (crange_seg = clist_pop_front(CRANGE_NODE_RANGE_SEGS(crange_node))))
     {
@@ -2475,7 +5618,7 @@ EC_BOOL cxfs_fuses_statfs(const UINT32 cxfs_md_id, const CSTRING *path, struct s
 
     cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
 
-    if(CXFSNP_ATTR_FUSES_IS_REG == CXFSNP_ATTR_FLAG(cxfsnp_attr))
+    if(CXFSNP_ATTR_FILE_IS_REG == CXFSNP_ATTR_DIR_FLAG(cxfsnp_attr))
     {
         statfs->f_bsize     = 4096;                 /* Filesystem block size */
         statfs->f_frsize    = 4096;                 /* Fragment size */
@@ -2497,7 +5640,41 @@ EC_BOOL cxfs_fuses_statfs(const UINT32 cxfs_md_id, const CSTRING *path, struct s
         return (EC_TRUE);
     }
 
-    if(CXFSNP_ATTR_FUSES_IS_DIR == CXFSNP_ATTR_FLAG(cxfsnp_attr))
+#if 0
+/* Definitions for the flag in `f_flag'.  These definitions should be
+   kept in sync with the definitions in <sys/mount.h>.  */
+enum
+{
+  ST_RDONLY = 1,        /* Mount read-only.  */
+#define ST_RDONLY   ST_RDONLY
+  ST_NOSUID = 2         /* Ignore suid and sgid bits.  */
+#define ST_NOSUID   ST_NOSUID
+#ifdef __USE_GNU
+  ,
+  ST_NODEV = 4,         /* Disallow access to device special files.  */
+# define ST_NODEV   ST_NODEV
+  ST_NOEXEC = 8,        /* Disallow program execution.  */
+# define ST_NOEXEC  ST_NOEXEC
+  ST_SYNCHRONOUS = 16,      /* Writes are synced at once.  */
+# define ST_SYNCHRONOUS ST_SYNCHRONOUS
+  ST_MANDLOCK = 64,     /* Allow mandatory locks on an FS.  */
+# define ST_MANDLOCK    ST_MANDLOCK
+  ST_WRITE = 128,       /* Write on file/directory/symlink.  */
+# define ST_WRITE   ST_WRITE
+  ST_APPEND = 256,      /* Append-only file.  */
+# define ST_APPEND  ST_APPEND
+  ST_IMMUTABLE = 512,       /* Immutable file.  */
+# define ST_IMMUTABLE   ST_IMMUTABLE
+  ST_NOATIME = 1024,        /* Do not update access times.  */
+# define ST_NOATIME ST_NOATIME
+  ST_NODIRATIME = 2048,     /* Do not update directory access times.  */
+# define ST_NODIRATIME  ST_NODIRATIME
+  ST_RELATIME = 4096        /* Update atime relative to mtime/ctime.  */
+# define ST_RELATIME    ST_RELATIME
+#endif  /* Use GNU.  */
+};
+#endif
+    if(CXFSNP_ATTR_FILE_IS_DIR == CXFSNP_ATTR_DIR_FLAG(cxfsnp_attr))
     {
         statfs->f_bsize     = 4096;                 /* Filesystem block size */
         statfs->f_frsize    = 4096;                 /* Fragment size */
@@ -2523,7 +5700,7 @@ EC_BOOL cxfs_fuses_statfs(const UINT32 cxfs_md_id, const CSTRING *path, struct s
     dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_statfs: "
                                          "statfs %s => ino %lu, flag %u=> unsupported\n",
                                          (char *)cstring_get_str(path), ino,
-                                         CXFSNP_ATTR_FLAG(cxfsnp_attr));
+                                         CXFSNP_ATTR_DIR_FLAG(cxfsnp_attr));
 
     (*res) = -ENOENT;
 
@@ -2897,7 +6074,7 @@ EC_BOOL cxfs_fuses_access(const UINT32 cxfs_md_id, const CSTRING *path, const UI
     return (EC_TRUE);
 }
 
-EC_BOOL cxfs_fuses_ftruncate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 length, int *res)
+EC_BOOL cxfs_fuses_ftruncate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 length, const UINT32 uid, const UINT32 gid, int *res)
 {
     CXFS_MD         *cxfs_md;
 
@@ -2918,10 +6095,10 @@ EC_BOOL cxfs_fuses_ftruncate(const UINT32 cxfs_md_id, const CSTRING *path, const
 
     CXFS_FUSES_CHECK_ENV(cxfs_md_id, cxfs_md, "cxfs_fuses_ftruncate", res);
 
-    return cxfs_fuses_truncate(cxfs_md_id, path, length, res);
+    return cxfs_fuses_truncate(cxfs_md_id, path, length, uid, gid, res);
 }
 
-EC_BOOL cxfs_fuses_utimens(const UINT32 cxfs_md_id, const CSTRING *path, const struct timespec *tv0, const struct timespec *tv1, int *res)
+EC_BOOL cxfs_fuses_utimens(const UINT32 cxfs_md_id, const CSTRING *path, const struct timespec *tv0, const struct timespec *tv1, const UINT32 uid, const UINT32 gid, int *res)
 {
     CXFS_MD         *cxfs_md;
     CXFSNP_ITEM     *cxfsnp_item;
@@ -2955,22 +6132,474 @@ EC_BOOL cxfs_fuses_utimens(const UINT32 cxfs_md_id, const CSTRING *path, const s
         (*res) = -ENOENT;
         return (EC_TRUE);
     }
-
     cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
 
-    CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr)   = (uint64_t)tv0->tv_sec;
-    CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)   = (uint64_t)tv1->tv_sec;
-
-    CXFSNP_ATTR_ATIME_NSEC(cxfsnp_attr)  = (uint64_t)tv0->tv_nsec;
-    CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr)  = (uint64_t)tv1->tv_nsec;
-
     dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
-                                         "utimens %s => ino %lu, atime %lu:%u, mtime %lu:%u => done\n",
-                                         (char *)cstring_get_str(path), ino,
-                                         CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr),
-                                         CXFSNP_ATTR_ATIME_NSEC(cxfsnp_attr),
-                                         CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr),
-                                         CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr));
+                                         "path '%s', its (uid %u, gid %u, mode %#o), "
+                                         "op (uid %u, gid %u)\n",
+                                         (char *)cstring_get_str(path),
+                                         CXFSNP_ATTR_UID(cxfsnp_attr),
+                                         CXFSNP_ATTR_GID(cxfsnp_attr),
+                                         CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                         (uint32_t)uid, (uint32_t)gid);
+
+
+    if(CXFS_FUSES_UID_NOBODY == uid && CXFS_FUSES_GID_ROOT == gid
+    && (CXFS_FUSES_GID_ROOT == CXFSNP_ATTR_UID(cxfsnp_attr)
+       && CXFS_FUSES_GID_ROOT == CXFSNP_ATTR_GID(cxfsnp_attr)))
+    {
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_parent;
+
+        cxfsnp_item_parent = cxfsnp_mgr_fetch_parent_item(CXFS_MD_NPP(cxfs_md), ino);
+        if(NULL_PTR == cxfsnp_item_parent)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_utimens: "
+                                                 "fetch parent of '%s' failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+        cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid
+        && CXFS_FUSES_GID_ROOT == CXFSNP_ATTR_UID(cxfsnp_attr_parent)
+        && 0 == (S_IXGRP & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                                 "path '%s', its uid %u, gid %u, "
+                                                 "parent uid %u, gid %u, mode %#o, "
+                                                 "mode & (S_IXGRP) == 0 "
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 != uid && 0 == gid
+    && (CXFSNP_ATTR_UID(cxfsnp_attr) != (uint32_t)uid
+       || CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)gid))
+    {
+        if(0 == CXFSNP_ATTR_UID(cxfsnp_attr)
+        && 0 == CXFSNP_ATTR_GID(cxfsnp_attr)
+        && 0 == (S_IXGRP & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+        {
+            if(0 == (S_IWGRP & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+            {
+                if(UTIME_NOW == tv0->tv_nsec || UTIME_NOW == tv1->tv_nsec)
+                {
+                    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                                         "path '%s', its uid %u, gid %u, mode %#o, "
+                                                         "mode & (S_IXGRP) == 0 && mode & (S_IWGRP) == 0 && UTIME_NOW "
+                                                         "=> deny (uid %u, gid %u)\n",
+                                                         (char *)cstring_get_str(path),
+                                                         CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                         CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                         CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                         (uint32_t)uid, (uint32_t)gid);
+
+                    (*res) = -EACCES;
+                    return (EC_TRUE);
+                }
+                else
+                {
+                    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                                         "path '%s', its uid %u, gid %u, mode %#o, "
+                                                         "mode & (S_IXGRP) == 0 && mode & (S_IWGRP) == 0 && NOT UTIME_NOW "
+                                                         "=> deny (uid %u, gid %u)\n",
+                                                         (char *)cstring_get_str(path),
+                                                         CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                         CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                         CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                         (uint32_t)uid, (uint32_t)gid);
+
+                    (*res) = -EPERM;
+                    return (EC_TRUE);
+                }
+            }
+            else
+            {
+                if(UTIME_NOW != tv0->tv_nsec && UTIME_NOW != tv1->tv_nsec)
+                {
+                    dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                                         "path '%s', its uid %u, gid %u, mode %#o, "
+                                                         "mode & (S_IXGRP) == 0 && mode & (S_IWGRP) != 0 && NOT UTIME_NOW "
+                                                         "=> deny (uid %u, gid %u)\n",
+                                                         (char *)cstring_get_str(path),
+                                                         CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                         CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                         CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                         (uint32_t)uid, (uint32_t)gid);
+
+                    (*res) = -EPERM;
+                    return (EC_TRUE);
+                }
+            }
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr) != (uint32_t)uid
+        && 0 == (S_IWOTH & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                                 "path '%s', its uid %u, gid %u, "
+                                                 "mode %#o & (S_IWOTH) == 0 "
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 != uid && 0 != gid /*not root*/
+    && (CXFSNP_ATTR_UID(cxfsnp_attr) == (uint32_t)uid
+       && CXFSNP_ATTR_GID(cxfsnp_attr) == (uint32_t)gid))
+    {
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_parent;
+
+        cxfsnp_item_parent = cxfsnp_mgr_fetch_parent_item(CXFS_MD_NPP(cxfs_md), ino);
+        if(NULL_PTR == cxfsnp_item_parent)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_utimens: "
+                                                 "fetch parent of '%s' failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+        cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid
+        && 0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                                 "path '%s', "
+                                                 "same uid %u and gid %u, "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IXOTH) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(path),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) == (uint32_t)uid
+        && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                                 "path '%s', "
+                                                 "same uid %u and gid %u, "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IWUSR) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(path),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) == (uint32_t)uid
+        && 0 == (S_IXUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                                 "path '%s', "
+                                                 "same uid %u and gid %u, "
+                                                 "parent (uid %u, gid %u) mode %#o & (S_IXUSR) == 0"
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(path),
+                                                 (uint32_t)uid, (uint32_t)gid,
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr_parent),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 != uid && 0 != gid /*not root*/
+    && (CXFSNP_ATTR_UID(cxfsnp_attr) != (uint32_t)uid
+       || CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)gid))
+    {
+        if(CXFSNP_ATTR_UID(cxfsnp_attr) != (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)gid
+        && 0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                                 "path '%s', its uid %u, gid %u, "
+                                                 "mode %#o & (S_IXOTH) == 0 "
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr) != (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)gid
+        && 0 == (S_IWOTH & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                                 "path '%s', its uid %u, gid %u, "
+                                                 "mode %#o & (S_IWOTH) == 0 "
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr) == (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)gid
+        && 0 == (S_IXGRP & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                                 "path '%s', its uid %u, gid %u, "
+                                                 "mode %#o & (S_IXGRP) == 0 "
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+
+        if(CXFSNP_ATTR_UID(cxfsnp_attr) == (uint32_t)uid
+        && CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)gid
+        && 0 == (S_IWGRP & CXFSNP_ATTR_MODE(cxfsnp_attr)))
+        {
+            dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                                 "path '%s', its uid %u, gid %u, "
+                                                 "mode %#o & (S_IWGRP) == 0 "
+                                                 "=> deny (uid %u, gid %u)\n",
+                                                 (char *)cstring_get_str(path),
+                                                 CXFSNP_ATTR_UID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_GID(cxfsnp_attr),
+                                                 CXFSNP_ATTR_MODE(cxfsnp_attr),
+                                                 (uint32_t)uid, (uint32_t)gid);
+
+            (*res) = -EACCES;
+            return (EC_TRUE);
+        }
+    }
+
+    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    && 0 != uid && 0 != gid /*not root*/
+    && (CXFSNP_ATTR_UID(cxfsnp_attr) != (uint32_t)uid
+       || CXFSNP_ATTR_GID(cxfsnp_attr) != (uint32_t)gid))
+    {
+        CXFSNP_ITEM     *cxfsnp_item_parent;
+        CXFSNP_ATTR     *cxfsnp_attr_parent;
+
+        cxfsnp_item_parent = cxfsnp_mgr_fetch_parent_item(CXFS_MD_NPP(cxfs_md), ino);
+        if(NULL_PTR == cxfsnp_item_parent)
+        {
+            dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_utimens: "
+                                                 "lookup parent of '%s' failed\n",
+                                                 (char *)cstring_get_str(path));
+            (*res) = -ENOENT;
+            return (EC_TRUE);
+        }
+        cxfsnp_attr_parent = CXFSNP_ITEM_ATTR(cxfsnp_item_parent);
+
+        if(CXFS_FUSES_UID_ERR == (uint32_t)uid)
+        {
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_utimens: "
+                                                     "'%s', uid %u, parent uid %u => not matched\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)uid, CXFSNP_ATTR_UID(cxfsnp_attr_parent));
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+        else
+        {
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_utimens: "
+                                                     "'%s', uid %u, parent uid %u => not matched\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)uid, CXFSNP_ATTR_UID(cxfsnp_attr_parent));
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) == (uint32_t)uid
+            && 0 == (S_IWUSR & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_utimens: "
+                                                     "'%s', "
+                                                     "uid %u same, parent mode %#o & (S_IWUSR) == 0 "
+                                                     "=> deny (uid %u, gid %u)\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)uid,
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid);
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+
+            if(CXFSNP_ATTR_UID(cxfsnp_attr_parent) != (uint32_t)uid
+            && 0 == (S_IXOTH & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                                     "path '%s', "
+                                                     "parent mode %#o & (S_IXOTH) == 0 "
+                                                     "=> deny (uid %u, gid %u)\n",
+                                                     (char *)cstring_get_str(path),
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid);
+
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+
+        if(CXFS_FUSES_GID_ERR == (uint32_t)gid)
+        {
+            if(CXFSNP_ATTR_GID(cxfsnp_attr_parent) != (uint32_t)gid)
+            {
+                dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_utimens: "
+                                                     "'%s', gid %#x overflow\n",
+                                                     (char *)cstring_get_str(path),
+                                                     (uint32_t)gid);
+                (*res) = -EOVERFLOW;
+                return (EC_TRUE);
+            }
+        }
+        else
+        {
+            if(0 == (S_IXGRP & CXFSNP_ATTR_MODE(cxfsnp_attr_parent)))
+            {
+                dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                                     "path '%s', "
+                                                     "parent mode %#o & (S_IXGRP) == 0 "
+                                                     "=> deny (uid %u, gid %u)\n",
+                                                     (char *)cstring_get_str(path),
+                                                     CXFSNP_ATTR_MODE(cxfsnp_attr_parent),
+                                                     (uint32_t)uid, (uint32_t)gid);
+
+                (*res) = -EACCES;
+                return (EC_TRUE);
+            }
+        }
+    }
+
+    if(UTIME_NOW == tv0->tv_nsec)
+    {
+        uint64_t         nsec;  /*seconds*/
+        uint64_t         nanosec;/*nanosecond*/
+
+        c_get_cur_time_nsec_and_nanosec(&nsec, &nanosec);
+
+        CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr)   = nsec;
+        CXFSNP_ATTR_ATIME_NSEC(cxfsnp_attr)  = nanosec;
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                             "utimens %s => ino %lu, atime %lu:%u "
+                                             "=> set now done\n",
+                                             (char *)cstring_get_str(path), ino,
+                                             CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr),
+                                             CXFSNP_ATTR_ATIME_NSEC(cxfsnp_attr));
+    }
+    else if(UTIME_OMIT == tv0->tv_nsec)
+    {
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                             "utimens %s => ino %lu, atime %lu:%u "
+                                             "=> keep unchanged\n",
+                                             (char *)cstring_get_str(path), ino,
+                                             CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr),
+                                             CXFSNP_ATTR_ATIME_NSEC(cxfsnp_attr));
+    }
+    else
+    {
+        CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr)   = (uint64_t)tv0->tv_sec;
+        CXFSNP_ATTR_ATIME_NSEC(cxfsnp_attr)  = (uint64_t)tv0->tv_nsec;
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                             "utimens %s => ino %lu, atime %lu:%u "
+                                             "=> done\n",
+                                             (char *)cstring_get_str(path), ino,
+                                             CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr),
+                                             CXFSNP_ATTR_ATIME_NSEC(cxfsnp_attr));
+    }
+
+    if(UTIME_NOW == tv1->tv_nsec)
+    {
+        uint64_t         nsec;  /*seconds*/
+        uint64_t         nanosec;/*nanosecond*/
+
+        c_get_cur_time_nsec_and_nanosec(&nsec, &nanosec);
+
+        CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)   = nsec;
+        CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr)  = nanosec;
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                             "utimens %s => ino %lu, mtime %lu:%u "
+                                             "=> set now done\n",
+                                             (char *)cstring_get_str(path), ino,
+                                             CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr),
+                                             CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr));
+    }
+    else if(UTIME_OMIT == tv1->tv_nsec)
+    {
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                             "utimens %s => ino %lu, mtime %lu:%u "
+                                             "=> keep unchanged\n",
+                                             (char *)cstring_get_str(path), ino,
+                                             CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr),
+                                             CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr));
+    }
+    else
+    {
+        CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)   = (uint64_t)tv1->tv_sec;
+        CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr)  = (uint64_t)tv1->tv_nsec;
+
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] cxfs_fuses_utimens: "
+                                             "utimens %s => ino %lu, mtime %lu:%u "
+                                             "=> done\n",
+                                             (char *)cstring_get_str(path), ino,
+                                             CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr),
+                                             CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr));
+    }
 
     (*res) = 0;
 
@@ -3150,11 +6779,18 @@ STATIC_CAST static EC_BOOL __cxfs_fuses_readdir_walker(CXFSNP_DIT_NODE *cxfsnp_d
 
     cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
 
-    if(CXFSNP_ATTR_FUSES_IS_DIR == CXFSNP_ATTR_FLAG(cxfsnp_attr)
+    if(CXFSNP_ATTR_FILE_IS_DIR == CXFSNP_ATTR_DIR_FLAG(cxfsnp_attr)
     && 1 == CXFSNP_DIT_NODE_MAX_DEPTH(cxfsnp_dit_node))
     {
         dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_readdir_walker: "
                                              "skip entrance dir item\n");
+        return (EC_TRUE);
+    }
+
+    if(CXFSNP_ATTR_IS_HIDE == CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr))
+    {
+        dbg_log(SEC_0192_CXFS, 2)(LOGSTDOUT, "[DEBUG] __cxfs_fuses_readdir_walker: "
+                                             "skip hide item\n");
         return (EC_TRUE);
     }
 
@@ -3198,14 +6834,14 @@ STATIC_CAST static EC_BOOL __cxfs_fuses_readdir_walker(CXFSNP_DIT_NODE *cxfsnp_d
         dirnode->stat.st_mode       = CXFSNP_ATTR_MODE(cxfsnp_attr);
         dirnode->stat.st_uid        = CXFSNP_ATTR_UID(cxfsnp_attr);
         dirnode->stat.st_gid        = CXFSNP_ATTR_GID(cxfsnp_attr);
-        dirnode->stat.st_rdev       = CXFSNP_ATTR_RDEV(cxfsnp_attr);
+        dirnode->stat.st_rdev       = CXFS_FUSES_RDEV_DEFAULT;
 
         dirnode->stat.st_atime      = CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr);
         dirnode->stat.st_mtime      = CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr);
         dirnode->stat.st_ctime      = CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr);
         dirnode->stat.st_nlink      = CXFSNP_ATTR_NLINK(cxfsnp_attr);
 
-        dirnode->stat.st_dev        = 0;/*xxx*/
+        dirnode->stat.st_dev        = CXFSNP_ATTR_DEV(cxfsnp_attr);
 
         if(CXFSNP_ITEM_FILE_IS_REG == CXFSNP_ITEM_DIR_FLAG(cxfsnp_item))
         {

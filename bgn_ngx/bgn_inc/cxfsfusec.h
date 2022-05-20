@@ -66,33 +66,33 @@ int cxfs_fusec_mknod(const char *path, const UINT32 mode, const UINT32 uid, cons
 int cxfs_fusec_mkdir(const char *path, const UINT32 mode, const UINT32 uid, const UINT32 gid);
 
 /*int (*unlink) (const char *);*/
-int cxfs_fusec_unlink(const char *path);
+int cxfs_fusec_unlink(const char *path, const UINT32 op_uid, const UINT32 op_gid);
 
 /*int (*rmdir) (const char *);*/
-int cxfs_fusec_rmdir(const char *path);
+int cxfs_fusec_rmdir(const char *path, const UINT32 op_uid, const UINT32 op_gid);
 
 /** Create a symbolic link */
 /*int (*symlink) (const char *, const char *);*/
-int cxfs_fusec_symlink(const char *src_path, const char *des_path);
+int cxfs_fusec_symlink(const char *src_path, const char *des_path, const UINT32 op_uid, const UINT32 op_gid);
 
 /*int (*rename) (const char *, const char *);*/
-int cxfs_fusec_rename(const char *src_path, const char *des_path, const UINT32 flags);
+int cxfs_fusec_rename(const char *src_path, const char *des_path, const UINT32 flags, const UINT32 op_uid, const UINT32 op_gid);
 
 /** Create a hard link to a file */
 /*int (*link) (const char *, const char *);*/
-int cxfs_fusec_link(const char *src_path, const char *des_path);
+int cxfs_fusec_link(const char *src_path, const char *des_path, const UINT32 op_uid, const UINT32 op_gid);
 
 /** Change the permission bits of a file */
 /*int (*chmod) (const char *, mode_t);*/
-int cxfs_fusec_chmod(const char *path, const UINT32 mode, struct fuse_file_info *fi);
+int cxfs_fusec_chmod(const char *path, const UINT32 mode, const UINT32 op_uid, const UINT32 op_gid, struct fuse_file_info *fi);
 
 /** Change the owner and group of a file */
 /*int (*chown) (const char *, uid_t, gid_t);*/
-int cxfs_fusec_chown(const char *path, const UINT32 owner, const UINT32 group, struct fuse_file_info *fi);
+int cxfs_fusec_chown(const char *path, const UINT32 owner, const UINT32 group, const UINT32 op_uid, const UINT32 op_gid, struct fuse_file_info *fi);
 
 /** Change the size of a file */
 /*int (*truncate) (const char *, off_t);*/
-int cxfs_fusec_truncate(const char *path, const UINT32 length, struct fuse_file_info *fi);
+int cxfs_fusec_truncate(const char *path, const UINT32 length, const UINT32 op_uid, const UINT32 op_gid, struct fuse_file_info *fi);
 
 /** Change the access and/or modification times of a file
  *
@@ -145,11 +145,10 @@ int cxfs_fusec_removexattr(const char *path, const char *name);
 int cxfs_fusec_access(const char *path, const UINT32 mask, UINT32 *mode);
 
 /*int (*ftruncate) (const char *, off_t);*/
-int cxfs_fusec_ftruncate(const char *path, const UINT32 length);
-
+int cxfs_fusec_ftruncate(const char *path, const UINT32 length, const UINT32 op_uid, const UINT32 op_gid);
 
 /*int (*utimens) (const char *, const struct timespec tv[2]);*/
-int cxfs_fusec_utimens(const char *path, const struct timespec *ts0, const struct timespec *ts1, struct fuse_file_info *fi);
+int cxfs_fusec_utimens(const char *path, const struct timespec *ts0, const struct timespec *ts1, const UINT32 op_uid, const UINT32 op_gid, struct fuse_file_info *fi);
 
 /* int (*fallocate) (const char *, int, off_t, off_t); */
 int cxfs_fusec_fallocate(const char * path, const UINT32 mode, const UINT32 offset, const UINT32 length, struct fuse_file_info *fi);

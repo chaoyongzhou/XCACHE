@@ -115,6 +115,18 @@ EC_BOOL cxfsnp_attr_set_file(CXFSNP_ATTR *cxfsnp_attr);
 
 EC_BOOL cxfsnp_attr_set_dir(CXFSNP_ATTR *cxfsnp_attr);
 
+EC_BOOL cxfsnp_attr_set_file_symlink(CXFSNP_ATTR *cxfsnp_attr, const uint64_t next_ino);
+
+EC_BOOL cxfsnp_attr_set_dir_symlink(CXFSNP_ATTR *cxfsnp_attr, const uint64_t next_ino);
+
+EC_BOOL cxfsnp_attr_set_file_link(CXFSNP_ATTR *cxfsnp_attr, const uint64_t next_ino);
+
+EC_BOOL cxfsnp_attr_set_dir_link(CXFSNP_ATTR *cxfsnp_attr, const uint64_t next_ino);
+
+EC_BOOL cxfsnp_attr_inc_link(CXFSNP_ATTR *cxfsnp_attr);
+
+EC_BOOL cxfsnp_attr_dec_link(CXFSNP_ATTR *cxfsnp_attr);
+
 EC_BOOL cxfsnp_attr_update_time(CXFSNP_ATTR *cxfsnp_attr);
 
 void cxfsnp_attr_print(LOG *log, const CXFSNP_ATTR *cxfsnp_attr);
@@ -139,11 +151,11 @@ EC_BOOL cxfsnp_item_cmp(const CXFSNP_ITEM *cxfsnp_item_src, const CXFSNP_ITEM *c
 
 EC_BOOL cxfsnp_item_is(const CXFSNP_ITEM *cxfsnp_item, const uint32_t klen, const uint8_t *key);
 
-CXFSNP_ITEM *cxfsnp_item_parent(const CXFSNP *cxfsnp, const CXFSNP_ITEM *cxfsnp_item);
+CXFSNP_ITEM *cxfsnp_item_rb_parent(const CXFSNP *cxfsnp, const CXFSNP_ITEM *cxfsnp_item);
 
-CXFSNP_ITEM *cxfsnp_item_left(const CXFSNP *cxfsnp, const CXFSNP_ITEM *cxfsnp_item);
+CXFSNP_ITEM *cxfsnp_item_rb_left(const CXFSNP *cxfsnp, const CXFSNP_ITEM *cxfsnp_item);
 
-CXFSNP_ITEM *cxfsnp_item_right(const CXFSNP *cxfsnp, const CXFSNP_ITEM *cxfsnp_item);
+CXFSNP_ITEM *cxfsnp_item_rb_right(const CXFSNP *cxfsnp, const CXFSNP_ITEM *cxfsnp_item);
 
 EC_BOOL cxfsnp_dit_node_init(CXFSNP_DIT_NODE *cxfsnp_dit_node);
 
@@ -276,6 +288,12 @@ EC_BOOL cxfsnp_retire(CXFSNP *cxfsnp, const UINT32 expect_retire_num, UINT32 *re
 
 EC_BOOL cxfsnp_walk(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag, CXFSNP_DIT_NODE *cxfsnp_dit_node);
 
+/*hide but not delete or recycle*/
+EC_BOOL cxfsnp_hide_item(CXFSNP *cxfsnp, const uint32_t node_pos);
+
+/*delete and recycle later the hidden item*/
+EC_BOOL cxfsnp_delete_hidden_item(CXFSNP *cxfsnp, const uint32_t node_pos);
+
 EC_BOOL cxfsnp_umount_item(CXFSNP *cxfsnp, const uint32_t node_pos);
 
 EC_BOOL cxfsnp_umount_item_deep(CXFSNP *cxfsnp, const uint32_t node_pos);
@@ -289,8 +307,6 @@ EC_BOOL cxfsnp_umount_wildcard(CXFSNP *cxfsnp, const uint32_t path_len, const ui
 EC_BOOL cxfsnp_umount_wildcard_deep(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag);
 
 EC_BOOL cxfsnp_tear_item(CXFSNP *cxfsnp, const uint32_t node_pos);
-
-EC_BOOL cxfsnp_tear(CXFSNP *cxfsnp, const uint32_t path_len, const uint8_t *path, const uint32_t dflag, uint32_t *node_pos);
 
 EC_BOOL cxfsnp_recycle_item_file(CXFSNP *cxfsnp, CXFSNP_ITEM *cxfsnp_item, const uint32_t node_pos, CXFSNP_RECYCLE_NP *cxfsnp_recycle_np, CXFSNP_RECYCLE_DN *cxfsnp_recycle_dn);
 

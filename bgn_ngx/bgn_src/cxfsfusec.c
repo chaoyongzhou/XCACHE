@@ -322,7 +322,7 @@ int cxfs_fusec_mkdir(const char *path, const UINT32 mode, const UINT32 uid, cons
 }
 
 /*int (*unlink) (const char *);*/
-int cxfs_fusec_unlink(const char *path)
+int cxfs_fusec_unlink(const char *path, const UINT32 op_uid, const UINT32 op_gid)
 {
     CSTRING         path_arg;
 
@@ -339,7 +339,7 @@ int cxfs_fusec_unlink(const char *path)
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cxfs_fusec_get_remote_mod_node(),
              &ret,
-             FI_cxfs_fuses_unlink, CMPI_ERROR_MODI, &path_arg, &res);
+             FI_cxfs_fuses_unlink, CMPI_ERROR_MODI, &path_arg, op_uid, op_gid, &res);
 
     if(EC_FALSE == ret)
     {
@@ -350,7 +350,7 @@ int cxfs_fusec_unlink(const char *path)
 }
 
 /*int (*rmdir) (const char *);*/
-int cxfs_fusec_rmdir(const char *path)
+int cxfs_fusec_rmdir(const char *path, const UINT32 op_uid, const UINT32 op_gid)
 {
     CSTRING         path_arg;
 
@@ -367,7 +367,7 @@ int cxfs_fusec_rmdir(const char *path)
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cxfs_fusec_get_remote_mod_node(),
              &ret,
-             FI_cxfs_fuses_rmdir, CMPI_ERROR_MODI, &path_arg, &res);
+             FI_cxfs_fuses_rmdir, CMPI_ERROR_MODI, &path_arg, op_uid, op_gid, &res);
 
     if(EC_FALSE == ret)
     {
@@ -379,7 +379,7 @@ int cxfs_fusec_rmdir(const char *path)
 
 /** Create a symbolic link */
 /*int (*symlink) (const char *, const char *);*/
-int cxfs_fusec_symlink(const char *src_path, const char *des_path)
+int cxfs_fusec_symlink(const char *src_path, const char *des_path, const UINT32 op_uid, const UINT32 op_gid)
 {
     CSTRING         src_path_arg;
     CSTRING         des_path_arg;
@@ -398,7 +398,7 @@ int cxfs_fusec_symlink(const char *src_path, const char *des_path)
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cxfs_fusec_get_remote_mod_node(),
              &ret,
-             FI_cxfs_fuses_symlink, CMPI_ERROR_MODI, &src_path_arg, &des_path_arg, &res);
+             FI_cxfs_fuses_symlink, CMPI_ERROR_MODI, &src_path_arg, &des_path_arg, op_uid, op_gid, &res);
 
     if(EC_FALSE == ret)
     {
@@ -409,7 +409,7 @@ int cxfs_fusec_symlink(const char *src_path, const char *des_path)
 }
 
 /*int (*rename) (const char *, const char *, unsigned int flags);*/
-int cxfs_fusec_rename(const char *src_path, const char *des_path, const UINT32 flags /*RENAME_EXCHANGE|RENAME_NOREPLACE*/)
+int cxfs_fusec_rename(const char *src_path, const char *des_path, const UINT32 flags /*RENAME_EXCHANGE|RENAME_NOREPLACE*/, const UINT32 op_uid, const UINT32 op_gid)
 {
     CSTRING         src_path_arg;
     CSTRING         des_path_arg;
@@ -428,7 +428,7 @@ int cxfs_fusec_rename(const char *src_path, const char *des_path, const UINT32 f
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cxfs_fusec_get_remote_mod_node(),
              &ret,
-             FI_cxfs_fuses_rename, CMPI_ERROR_MODI, &src_path_arg, &des_path_arg, &res);
+             FI_cxfs_fuses_rename, CMPI_ERROR_MODI, &src_path_arg, &des_path_arg, op_uid, op_gid, &res);
 
     if(EC_FALSE == ret)
     {
@@ -440,7 +440,7 @@ int cxfs_fusec_rename(const char *src_path, const char *des_path, const UINT32 f
 
 /** Create a hard link to a file */
 /*int (*link) (const char *, const char *);*/
-int cxfs_fusec_link(const char *src_path, const char *des_path)
+int cxfs_fusec_link(const char *src_path, const char *des_path, const UINT32 op_uid, const UINT32 op_gid)
 {
     CSTRING         src_path_arg;
     CSTRING         des_path_arg;
@@ -459,7 +459,7 @@ int cxfs_fusec_link(const char *src_path, const char *des_path)
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cxfs_fusec_get_remote_mod_node(),
              &ret,
-             FI_cxfs_fuses_link, CMPI_ERROR_MODI, &src_path_arg, &des_path_arg, &res);
+             FI_cxfs_fuses_link, CMPI_ERROR_MODI, &src_path_arg, &des_path_arg, op_uid, op_gid, &res);
 
     if(EC_FALSE == ret)
     {
@@ -471,7 +471,7 @@ int cxfs_fusec_link(const char *src_path, const char *des_path)
 
 /** Change the permission bits of a file */
 /*int (*chmod) (const char *, mode_t, struct fuse_file_info *fi);*/
-int cxfs_fusec_chmod(const char *path, const UINT32 mode, struct fuse_file_info *fi)
+int cxfs_fusec_chmod(const char *path, const UINT32 mode, const UINT32 op_uid, const UINT32 op_gid, struct fuse_file_info *fi)
 {
     CSTRING         path_arg;
 
@@ -490,7 +490,7 @@ int cxfs_fusec_chmod(const char *path, const UINT32 mode, struct fuse_file_info 
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cxfs_fusec_get_remote_mod_node(),
              &ret,
-             FI_cxfs_fuses_chmod, CMPI_ERROR_MODI, &path_arg, mode, &res);
+             FI_cxfs_fuses_chmod, CMPI_ERROR_MODI, &path_arg, mode, op_uid, op_gid, &res);
 
     if(EC_FALSE == ret)
     {
@@ -502,7 +502,7 @@ int cxfs_fusec_chmod(const char *path, const UINT32 mode, struct fuse_file_info 
 
 /** Change the owner and group of a file */
 /*int (*chown) (const char *, uid_t, gid_t);*/
-int cxfs_fusec_chown(const char *path, const UINT32 owner, const UINT32 group, struct fuse_file_info *fi)
+int cxfs_fusec_chown(const char *path, const UINT32 owner, const UINT32 group, const UINT32 op_uid, const UINT32 op_gid, struct fuse_file_info *fi)
 {
     CSTRING         path_arg;
 
@@ -521,7 +521,7 @@ int cxfs_fusec_chown(const char *path, const UINT32 owner, const UINT32 group, s
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cxfs_fusec_get_remote_mod_node(),
              &ret,
-             FI_cxfs_fuses_chown, CMPI_ERROR_MODI, &path_arg, owner, group, &res);
+             FI_cxfs_fuses_chown, CMPI_ERROR_MODI, &path_arg, owner, group, op_uid, op_gid, &res);
 
     if(EC_FALSE == ret)
     {
@@ -533,7 +533,7 @@ int cxfs_fusec_chown(const char *path, const UINT32 owner, const UINT32 group, s
 
 /** Change the size of a file */
 /*int (*truncate) (const char *, off_t);*/
-int cxfs_fusec_truncate(const char *path, const UINT32 length, struct fuse_file_info *fi)
+int cxfs_fusec_truncate(const char *path, const UINT32 length, const UINT32 op_uid, const UINT32 op_gid, struct fuse_file_info *fi)
 {
     CSTRING         path_arg;
 
@@ -552,7 +552,7 @@ int cxfs_fusec_truncate(const char *path, const UINT32 length, struct fuse_file_
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cxfs_fusec_get_remote_mod_node(),
              &ret,
-             FI_cxfs_fuses_truncate, CMPI_ERROR_MODI, &path_arg, length, &res);
+             FI_cxfs_fuses_truncate, CMPI_ERROR_MODI, &path_arg, length, op_uid, op_gid, &res);
 
     if(EC_FALSE == ret)
     {
@@ -987,7 +987,7 @@ int cxfs_fusec_access(const char *path, const UINT32 mask, UINT32 *mode)
 }
 
 /*int (*ftruncate) (const char *, off_t, struct fuse_file_info *);*/
-int cxfs_fusec_ftruncate(const char *path, const UINT32 length)
+int cxfs_fusec_ftruncate(const char *path, const UINT32 length, const UINT32 op_uid, const UINT32 op_gid)
 {
     CSTRING         path_arg;
 
@@ -1004,7 +1004,7 @@ int cxfs_fusec_ftruncate(const char *path, const UINT32 length)
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cxfs_fusec_get_remote_mod_node(),
              &ret,
-             FI_cxfs_fuses_ftruncate, CMPI_ERROR_MODI, &path_arg, length, &res);
+             FI_cxfs_fuses_ftruncate, CMPI_ERROR_MODI, &path_arg, length, op_uid, op_gid, &res);
 
     if(EC_FALSE == ret)
     {
@@ -1016,7 +1016,7 @@ int cxfs_fusec_ftruncate(const char *path, const UINT32 length)
 
 
 /*int (*utimens) (const char *, const struct timespec tv[2], struct fuse_file_info *fi);*/
-int cxfs_fusec_utimens(const char *path, const struct timespec *ts0, const struct timespec *ts1, struct fuse_file_info *fi)
+int cxfs_fusec_utimens(const char *path, const struct timespec *ts0, const struct timespec *ts1, const UINT32 op_uid, const UINT32 op_gid, struct fuse_file_info *fi)
 {
     CSTRING         path_arg;
 
@@ -1035,7 +1035,7 @@ int cxfs_fusec_utimens(const char *path, const struct timespec *ts0, const struc
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cxfs_fusec_get_remote_mod_node(),
              &ret,
-             FI_cxfs_fuses_utimens, CMPI_ERROR_MODI, &path_arg, ts0, ts1, &res);
+             FI_cxfs_fuses_utimens, CMPI_ERROR_MODI, &path_arg, ts0, ts1, op_uid, op_gid, &res);
 
     if(EC_FALSE == ret)
     {

@@ -804,48 +804,6 @@ EC_BOOL cxfs_update_npp(const UINT32 cxfs_md_id, const CSTRING *file_path, const
 
 /**
 *
-*  rename src file to des file
-*
-**/
-EC_BOOL cxfs_rename_file(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path);
-
-/**
-*
-*  rename src dir to des dir
-*
-**/
-EC_BOOL cxfs_rename_dir(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path);
-
-/**
-*
-*  rename src path to des path
-*
-**/
-EC_BOOL cxfs_rename(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path);
-
-/**
-*
-*  link src file to des file
-*
-**/
-EC_BOOL cxfs_link_file(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path);
-
-/**
-*
-*  link src dir to des dir
-*
-**/
-EC_BOOL cxfs_link_dir(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path);
-
-/**
-*
-*  link src path to des path
-*
-**/
-EC_BOOL cxfs_link(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path);
-
-/**
-*
 *  reallink of path
 *
 **/

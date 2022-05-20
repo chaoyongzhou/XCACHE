@@ -200,6 +200,12 @@ CXFSNP_ITEM *cxfsnp_mgr_fetch_item(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino);
 
 CXFSNP_ITEM *cxfsnp_mgr_fetch_parent_item(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino);
 
+EC_BOOL cxfsnp_mgr_umount_item(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino);
+
+EC_BOOL cxfsnp_mgr_hide_item(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino);
+
+EC_BOOL cxfsnp_mgr_delete_hidden_item(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino);
+
 EC_BOOL cxfsnp_mgr_relative_path(CXFSNP_MGR *cxfsnp_mgr, const uint64_t src_ino, const uint64_t des_ino, CSTRING *path);
 
 EC_BOOL cxfsnp_mgr_resize(CXFSNP_MGR *cxfsnp_mgr, const uint64_t ino, const uint32_t old_size, const uint32_t new_size);

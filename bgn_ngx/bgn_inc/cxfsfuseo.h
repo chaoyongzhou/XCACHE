@@ -28,7 +28,6 @@ extern "C"{
 
 #include <fuse.h>
 
-
 typedef struct
 {
     const char    *func_name;             /* func name*/
@@ -204,6 +203,9 @@ int cxfs_fuseo_releasedir(const char *path, struct fuse_file_info *fi);
 
 /*int (*fsyncdir) (const char *, int, struct fuse_file_info *);*/
 int cxfs_fuseo_fsyncdir(const char *path, int datasync, struct fuse_file_info *fi);
+
+int cxfs_fuseo_ioctl (const char *path, unsigned int cmd, void *arg,
+		      struct fuse_file_info *fi, unsigned int flags, void *data);
 
 #endif/*(SWITCH_ON == FUSE_SWITCH)*/
 

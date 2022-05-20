@@ -117,15 +117,29 @@ typedef struct
     ((CXFSNP_ITEM *)((char *)(cxfsnp_dnode)-(unsigned long)(&((CXFSNP_ITEM *)0)->u.dnode)))
 
 #define CXFSNP_ATTR_ERR_INO                      ((uint64_t)(~((uint64_t)0)))
+#define CXFSNP_ATTR_ERR_NLINK                    ((uint32_t) 0xFFFF)
 
-#define CXFSNP_ATTR_FUSES_IS_ERR                 ((uint16_t) 0x0000)
-#define CXFSNP_ATTR_FUSES_IS_DIR                 ((uint16_t) 0x0001)  /*fuse directory*/
-#define CXFSNP_ATTR_FUSES_IS_REG                 ((uint16_t) 0x0002)  /*fuse regular file*/
+#define CXFSNP_ATTR_NOT_HIDE                     ((uint16_t) 0x0000)
+#define CXFSNP_ATTR_IS_HIDE                      ((uint16_t) 0x0001)
+
+#define CXFSNP_ATTR_FILE_IS_ERR                  ((uint16_t) 0x0000)
+#define CXFSNP_ATTR_FILE_IS_DIR                  ((uint16_t) 0x0001)  /*fuse directory*/
+#define CXFSNP_ATTR_FILE_IS_REG                  ((uint16_t) 0x0002)  /*fuse regular file*/
+
+#define CXFSNP_ATTR_NOT_LINK                     ((uint16_t) 0x0000)
+#define CXFSNP_ATTR_LINK_SOFT                    ((uint16_t) 0x0001) /*binary: 001*/
+#define CXFSNP_ATTR_LINK_HARD_MID                ((uint16_t) 0x0002) /*binary: 010*/
+#define CXFSNP_ATTR_LINK_HARD_TAIL               ((uint16_t) 0x0006) /*binary: 110*/
+#define CXFSNP_ATTR_LINK_SOFT_MASK               ((uint16_t) 0x0001) /*binary: 001*/
+#define CXFSNP_ATTR_LINK_HARD_MASK               ((uint16_t) 0x0002) /*binary: 010*/
 
 typedef struct
 {
     /*8B*/
-    uint16_t        flag;
+    uint16_t        link_flag     :3; /*soft link or hard link flag*/
+    uint16_t        hide_flag     :1;
+    uint16_t        rsvd          :4;
+    uint16_t        dir_flag      :8; /*fuse dir or regular file flag*/
     uint16_t        mode;
     /*----------------------------------------------------------------*\
       mode definition:
@@ -157,7 +171,7 @@ typedef struct
 
     /*8B*/
     uint32_t        gid;        /*group id of owner*/
-    uint32_t        rdev;       /*device number*/
+    uint32_t        dev;        /*device number*/
 
     /*24B*/
     uint64_t        atime_sec;  /*seconds of last access time*/
@@ -170,23 +184,27 @@ typedef struct
     uint32_t        atime_nsec; /*nanosecond of last access time*/
     uint32_t        mtime_nsec; /*nanosecond of last modified time*/
     uint32_t        ctime_nsec; /*nanosecond of last change time*/
-    uint32_t        nlink;      /*number of links (sub-directories or hardlinks)*/
+    uint32_t        slink:16;   /*(self defined) number of soft links*/
+    uint32_t        nlink:16;   /*number of links (sub-directories or hardlinks)*/
                                 /*note: not including regular files*/
 
     uint64_t        next_ino;   /*next link ino*/
 }CXFSNP_ATTR;/*64B*/
 
-#define CXFSNP_ATTR_FLAG(cxfsnp_attr)            ((cxfsnp_attr)->flag)
+#define CXFSNP_ATTR_LINK_FLAG(cxfsnp_attr)       ((cxfsnp_attr)->link_flag)
+#define CXFSNP_ATTR_HIDE_FLAG(cxfsnp_attr)       ((cxfsnp_attr)->hide_flag)
+#define CXFSNP_ATTR_DIR_FLAG(cxfsnp_attr)        ((cxfsnp_attr)->dir_flag)
 #define CXFSNP_ATTR_MODE(cxfsnp_attr)            ((cxfsnp_attr)->mode)
 #define CXFSNP_ATTR_UID(cxfsnp_attr)             ((cxfsnp_attr)->uid)
 #define CXFSNP_ATTR_GID(cxfsnp_attr)             ((cxfsnp_attr)->gid)
-#define CXFSNP_ATTR_RDEV(cxfsnp_attr)            ((cxfsnp_attr)->rdev)
+#define CXFSNP_ATTR_DEV(cxfsnp_attr)             ((cxfsnp_attr)->dev)
 #define CXFSNP_ATTR_ATIME_SEC(cxfsnp_attr)       ((cxfsnp_attr)->atime_sec)
 #define CXFSNP_ATTR_MTIME_SEC(cxfsnp_attr)       ((cxfsnp_attr)->mtime_sec)
 #define CXFSNP_ATTR_CTIME_SEC(cxfsnp_attr)       ((cxfsnp_attr)->ctime_sec)
 #define CXFSNP_ATTR_ATIME_NSEC(cxfsnp_attr)      ((cxfsnp_attr)->atime_nsec)
 #define CXFSNP_ATTR_MTIME_NSEC(cxfsnp_attr)      ((cxfsnp_attr)->mtime_nsec)
 #define CXFSNP_ATTR_CTIME_NSEC(cxfsnp_attr)      ((cxfsnp_attr)->ctime_nsec)
+#define CXFSNP_ATTR_SLINK(cxfsnp_attr)           ((cxfsnp_attr)->slink)
 #define CXFSNP_ATTR_NLINK(cxfsnp_attr)           ((cxfsnp_attr)->nlink)
 #define CXFSNP_ATTR_NEXT_INO(cxfsnp_attr)        ((cxfsnp_attr)->next_ino)
 

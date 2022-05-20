@@ -732,51 +732,6 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_rename_file(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path); -- */
-/*func module     */     MD_CXFS,
-/*func logic addr */     (UINT32)cxfs_rename_file,
-/*func beg addr   */     0,
-/*func end addr   */     0,
-/*func addr offset*/     0,
-/*func name       */     "cxfs_rename_file",
-/*func index      */     FI_cxfs_rename_file,
-/*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     3,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,},
-/*func para val   */     0, 0, {0},
-},
-{
-/* -- EC_BOOL cxfs_rename_dir(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path); -- */
-/*func module     */     MD_CXFS,
-/*func logic addr */     (UINT32)cxfs_rename_dir,
-/*func beg addr   */     0,
-/*func end addr   */     0,
-/*func addr offset*/     0,
-/*func name       */     "cxfs_rename_dir",
-/*func index      */     FI_cxfs_rename_dir,
-/*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     3,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,},
-/*func para val   */     0, 0, {0},
-},
-{
-/* -- EC_BOOL cxfs_rename(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path); -- */
-/*func module     */     MD_CXFS,
-/*func logic addr */     (UINT32)cxfs_rename,
-/*func beg addr   */     0,
-/*func end addr   */     0,
-/*func addr offset*/     0,
-/*func name       */     "cxfs_rename",
-/*func index      */     FI_cxfs_rename,
-/*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     3,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,},
-/*func para val   */     0, 0, {0},
-},
-{
 /* -- EC_BOOL cxfs_recycle(const UINT32 cxfs_md_id, const UINT32 max_num_per_np, UINT32 *complete_num); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_recycle,
@@ -1887,7 +1842,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_unlink(const UINT32 cxfs_md_id, const CSTRING *path, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_unlink(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 uid, const UINT32 gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_unlink,
 /*func beg addr   */     0,
@@ -1896,13 +1851,13 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func name       */     "cxfs_fuses_unlink",
 /*func index      */     FI_cxfs_fuses_unlink,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     3,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_int_ptr,},
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_int_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_rmdir(const UINT32 cxfs_md_id, const CSTRING *path, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_rmdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 uid, const UINT32 gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_rmdir,
 /*func beg addr   */     0,
@@ -1911,13 +1866,13 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func name       */     "cxfs_fuses_rmdir",
 /*func index      */     FI_cxfs_fuses_rmdir,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     3,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_int_ptr,},
+/*func para num   */     5,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_int_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_symlink(const UINT32 cxfs_md_id, const CSTRING *from_path, const CSTRING *to_path, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_symlink(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 uid, const UINT32 gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_symlink,
 /*func beg addr   */     0,
@@ -1926,13 +1881,13 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func name       */     "cxfs_fuses_symlink",
 /*func index      */     FI_cxfs_fuses_symlink,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     4,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,e_dbg_int_ptr,},
+/*func para num   */     6,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_int_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_rename(const UINT32 cxfs_md_id, const CSTRING *from_path, const CSTRING *to_path, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_rename(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 uid, const UINT32 gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_rename,
 /*func beg addr   */     0,
@@ -1941,54 +1896,9 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func name       */     "cxfs_fuses_rename",
 /*func index      */     FI_cxfs_fuses_rename,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     4,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,e_dbg_int_ptr,},
-/*func para val   */     0, 0, {0},
-},
-{
-/* -- EC_BOOL cxfs_link_file(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path); -- */
-/*func module     */     MD_CXFS,
-/*func logic addr */     (UINT32)cxfs_link_file,
-/*func beg addr   */     0,
-/*func end addr   */     0,
-/*func addr offset*/     0,
-/*func name       */     "cxfs_link_file",
-/*func index      */     FI_cxfs_link_file,
-/*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     3,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,},
-/*func para val   */     0, 0, {0},
-},
-{
-/* -- EC_BOOL cxfs_link_dir(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path); -- */
-/*func module     */     MD_CXFS,
-/*func logic addr */     (UINT32)cxfs_link_dir,
-/*func beg addr   */     0,
-/*func end addr   */     0,
-/*func addr offset*/     0,
-/*func name       */     "cxfs_link_dir",
-/*func index      */     FI_cxfs_link_dir,
-/*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     3,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,},
-/*func para val   */     0, 0, {0},
-},
-{
-/* -- EC_BOOL cxfs_link(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path); -- */
-/*func module     */     MD_CXFS,
-/*func logic addr */     (UINT32)cxfs_link,
-/*func beg addr   */     0,
-/*func end addr   */     0,
-/*func addr offset*/     0,
-/*func name       */     "cxfs_link",
-/*func index      */     FI_cxfs_link,
-/*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     3,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,},
+/*func para num   */     6,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_int_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
@@ -2007,7 +1917,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_link(const UINT32 cxfs_md_id, const CSTRING *from_path, const CSTRING *to_path, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_link(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 uid, const UINT32 gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_link,
 /*func beg addr   */     0,
@@ -2016,13 +1926,13 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func name       */     "cxfs_fuses_link",
 /*func index      */     FI_cxfs_fuses_link,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     4,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,e_dbg_int_ptr,},
+/*func para num   */     6,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_int_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_chmod(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_chmod(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 op_uid, const UINT32 op_gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_chmod,
 /*func beg addr   */     0,
@@ -2031,13 +1941,13 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func name       */     "cxfs_fuses_chmod",
 /*func index      */     FI_cxfs_fuses_chmod,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     4,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_int_ptr,},
+/*func para num   */     6,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_int_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_chown(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 uid, const UINT32 gid, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_chown(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 uid, const UINT32 gid, const UINT32 op_uid, const UINT32 op_gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_chown,
 /*func beg addr   */     0,
@@ -2046,13 +1956,13 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func name       */     "cxfs_fuses_chown",
 /*func index      */     FI_cxfs_fuses_chown,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     5,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_int_ptr,},
+/*func para num   */     7,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_int_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 length, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 length, const UINT32 uid, const UINT32 gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_truncate,
 /*func beg addr   */     0,
@@ -2061,9 +1971,9 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func name       */     "cxfs_fuses_truncate",
 /*func index      */     FI_cxfs_fuses_truncate,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     4,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_int_ptr,},
+/*func para num   */     6,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_int_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
@@ -2262,7 +2172,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_ftruncate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 length, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_ftruncate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 length, const UINT32 uid, const UINT32 gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_ftruncate,
 /*func beg addr   */     0,
@@ -2271,13 +2181,13 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func name       */     "cxfs_fuses_ftruncate",
 /*func index      */     FI_cxfs_fuses_ftruncate,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     4,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_int_ptr,},
+/*func para num   */     6,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_UINT32,e_dbg_int_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_utimens(const UINT32 cxfs_md_id, const CSTRING *path, const struct timespec *tv0, const struct timespec *tv1, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_utimens(const UINT32 cxfs_md_id, const CSTRING *path, const struct timespec *tv0, const struct timespec *tv1, const UINT32 uid, const UINT32 gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_utimens,
 /*func beg addr   */     0,
@@ -2286,9 +2196,9 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func name       */     "cxfs_fuses_utimens",
 /*func index      */     FI_cxfs_fuses_utimens,
 /*func ret type   */     e_dbg_EC_BOOL,
-/*func para num   */     5,
-/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
-/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_struct_timespec_ptr,e_dbg_struct_timespec_ptr,e_dbg_int_ptr,},
+/*func para num   */     7,
+/*func para direct*/     {E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_IN,E_DIRECT_OUT,},
+/*func para type  */     {e_dbg_UINT32,e_dbg_CSTRING_ptr,e_dbg_struct_timespec_ptr,e_dbg_struct_timespec_ptr,e_dbg_UINT32,e_dbg_UINT32,e_dbg_int_ptr,},
 /*func para val   */     0, 0, {0},
 },
 {

@@ -853,6 +853,7 @@ void cxfsnprb_tree_replace_node(CXFSNPRB_POOL *pool, const uint32_t victim_pos, 
         left = CXFSNPRB_POOL_NODE(pool, CXFSNPRB_NODE_LEFT_POS(victim));
         CXFSNPRB_NODE_PARENT_POS(left) = new_pos;
     }
+
     if (CXFSNPRB_ERR_POS != CXFSNPRB_NODE_RIGHT_POS(victim))
     {
         CXFSNPRB_NODE *right;
@@ -1050,6 +1051,86 @@ EC_BOOL cxfsnprb_tree_delete(CXFSNPRB_POOL *pool, uint32_t *root_pos, const uint
     return (EC_TRUE);
 }
 
+/*if found duplicate node, return EC_FALSE, otherwise return EC_TRUE*/
+EC_BOOL cxfsnprb_tree_insert(CXFSNPRB_POOL *pool, uint32_t *root_pos, const uint32_t data, const uint32_t klen, const uint8_t *key, const uint32_t dflag, const uint32_t insert_pos)
+{
+    uint32_t  node_pos_t;
+    uint32_t  new_pos_t;
+    uint32_t  parent_pos_t;
+    uint32_t  flag; /*0: on left subtree, 1: on right subtree*/
+
+    node_pos_t   = (*root_pos);
+    parent_pos_t = CXFSNPRB_ERR_POS;
+    flag         = ~(uint32_t)0;
+
+    while (CXFSNPRB_ERR_POS != node_pos_t)
+    {
+        CXFSNPRB_NODE *node;
+        int cmp_ret;
+
+        node = CXFSNPRB_POOL_NODE(pool, node_pos_t);
+        cmp_ret = __cxfsnprb_node_data_cmp(node, data, klen, key, dflag);
+
+        parent_pos_t = node_pos_t;
+
+        if (0 < cmp_ret)/*node > (data, key)*/
+        {
+            node_pos_t = CXFSNPRB_NODE_LEFT_POS(node);
+            flag = 0;
+        }
+        else if (0 > cmp_ret)/*node < (data, key)*/
+        {
+            node_pos_t = CXFSNPRB_NODE_RIGHT_POS(node);
+            flag = 1;
+        }
+        else/*node == (data, key)*/
+        {
+            return (EC_FALSE);/*found duplicate*/
+        }
+    }
+
+
+    /*not found data in the rbtree*/
+    new_pos_t = insert_pos;
+    if(CXFSNPRB_ERR_POS == new_pos_t)
+    {
+        return (EC_FALSE);
+    }
+    else
+    {
+        CXFSNPRB_NODE *node;
+
+        node  = CXFSNPRB_POOL_NODE(pool, new_pos_t);
+        CXFSNPRB_NODE_DATA(node) = data;
+
+        CXFSNPRB_NODE_PARENT_POS(node) = parent_pos_t;
+        CXFSNPRB_NODE_COLOR(node)      = CXFSNPRB_RED;
+        CXFSNPRB_NODE_LEFT_POS(node)   = CXFSNPRB_ERR_POS;
+        CXFSNPRB_NODE_RIGHT_POS(node)  = CXFSNPRB_ERR_POS;
+
+        if(CXFSNPRB_ERR_POS == (*root_pos))
+        {
+            (*root_pos) = new_pos_t;
+        }
+        else
+        {
+            CXFSNPRB_NODE *parent;
+            parent  = CXFSNPRB_POOL_NODE(pool, parent_pos_t);
+
+            if(0 == flag)/*on left subtree*/
+            {
+                CXFSNPRB_NODE_LEFT_POS(parent) = new_pos_t;
+            }
+            else
+            {
+                CXFSNPRB_NODE_RIGHT_POS(parent) = new_pos_t;
+            }
+        }
+        __cxfsnprb_tree_insert_color(pool, new_pos_t, root_pos);
+    }
+
+    return (EC_TRUE);
+}
 
 /*postorder: left -> right -> root*/
 STATIC_CAST static void __cxfsnprb_tree_free(CXFSNPRB_POOL *pool, const uint32_t node_pos)
