@@ -60,7 +60,7 @@ int cxfs_fusec_getattr(const char *path, struct stat *stat, struct fuse_file_inf
 int cxfs_fusec_readlink(const char *path, char *buf, const UINT32 size);
 
 /*int (*mknod)       (const char *, mode_t, dev_t);*/
-int cxfs_fusec_mknod(const char *path, const UINT32 mode, const UINT32 uid, const UINT32 gid, const UINT32 dev);
+int cxfs_fusec_mknod(const char *path, const UINT32 mode, const UINT32 dev, const UINT32 uid, const UINT32 gid);
 
 /*int (*mkdir) (const char *, mode_t);*/
 int cxfs_fusec_mkdir(const char *path, const UINT32 mode, const UINT32 uid, const UINT32 gid);

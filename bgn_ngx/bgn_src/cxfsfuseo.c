@@ -546,9 +546,9 @@ int cxfs_fuseo_mknod(const char *path, mode_t mode, dev_t dev)
     CXFS_FUSEO_TASK_FUNC_SET(cxfs_fusec_mknod);
     CXFS_FUSEO_TASK_PARA_VAL_SET(0, path);
     CXFS_FUSEO_TASK_PARA_VAL_SET(1, mode);
-    CXFS_FUSEO_TASK_PARA_VAL_SET(2, (c->uid & 0xFFFF));
-    CXFS_FUSEO_TASK_PARA_VAL_SET(3, (c->gid & 0xFFFF));
-    CXFS_FUSEO_TASK_PARA_VAL_SET(4, dev);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(2, dev);
+    CXFS_FUSEO_TASK_PARA_VAL_SET(3, (c->uid & 0xFFFF));
+    CXFS_FUSEO_TASK_PARA_VAL_SET(4, (c->gid & 0xFFFF));
     CXFS_FUSEO_TASK_PARA_NUM_SET(5);
 
     CXFS_FUSEO_TASK_EMIT();

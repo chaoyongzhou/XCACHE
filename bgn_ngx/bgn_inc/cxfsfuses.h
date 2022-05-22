@@ -22,22 +22,7 @@ extern "C"{
 #include "cvector.h"
 
 #define CXFS_FUSES_DEV_DEFAULT          0x0801
-#define CXFS_FUSES_RDEV_DEFAULT         0x0000
-
-#define CXFS_FUSES_UID_ROOT             0x0000
-#define CXFS_FUSES_GID_ROOT             0x0000
-
-#define CXFS_FUSES_UID_NOBODY           0xFFFE
-#define CXFS_FUSES_GID_NOBODY           0xFFFE
-
-#define CXFS_FUSES_UID_ERR              0xFFFF
-#define CXFS_FUSES_GID_ERR              0xFFFF
-
-#define CXFS_FUSES_UID_MASK             0xFFFF
-#define CXFS_FUSES_GID_MASK             0xFFFF
-
-#define CXFS_FUSES_UID_FETCH(uid)       ((uint32_t)(uint16_t)uid)
-#define CXFS_FUSES_GID_FETCH(gid)       ((uint32_t)(uint16_t)gid)
+#define CXFS_FUSES_RDEV_DEFAULT         0x0801
 
 #define CXFS_FUSES_BLOCK_SIZE           (4096)
 #define CXFS_FUSES_BLOCK_MASK           (CXFS_FUSES_BLOCK_SIZE - 1)
@@ -53,31 +38,31 @@ EC_BOOL cxfs_fuses_getattr(const UINT32 cxfs_md_id, const CSTRING *file_path, st
 
 EC_BOOL cxfs_fuses_readlink(const UINT32 cxfs_md_id, const CSTRING *path, CSTRING *buf, const UINT32 bufsize, int *res);
 
-EC_BOOL cxfs_fuses_mknod(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 uid, const UINT32 gid, const UINT32 dev, int *res);
+EC_BOOL cxfs_fuses_mknod(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 dev, const UINT32 op_uid, const UINT32 op_gid, int *res);
 
-EC_BOOL cxfs_fuses_mkdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 uid, const UINT32 gid, int *res);
+EC_BOOL cxfs_fuses_mkdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 op_uid, const UINT32 op_gid, int *res);
 
-EC_BOOL cxfs_fuses_unlink(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 uid, const UINT32 gid, int *res);
+EC_BOOL cxfs_fuses_unlink(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 op_uid, const UINT32 op_gid, int *res);
 
-EC_BOOL cxfs_fuses_rmdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 uid, const UINT32 gid, int *res);
+EC_BOOL cxfs_fuses_rmdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 op_uid, const UINT32 op_gid, int *res);
 
-EC_BOOL cxfs_fuses_symlink(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 uid, const UINT32 gid, int *res);
+EC_BOOL cxfs_fuses_symlink(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 op_uid, const UINT32 op_gid, int *res);
 
-EC_BOOL cxfs_fuses_rename(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 uid, const UINT32 gid, int *res);
+EC_BOOL cxfs_fuses_rename(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 op_uid, const UINT32 op_gid, int *res);
 
-EC_BOOL cxfs_fuses_link(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 uid, const UINT32 gid, int *res);
+EC_BOOL cxfs_fuses_link(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 op_uid, const UINT32 op_gid, int *res);
 
 EC_BOOL cxfs_fuses_chmod(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 op_uid, const UINT32 op_gid, int *res);
 
-EC_BOOL cxfs_fuses_chown(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 uid, const UINT32 gid, const UINT32 op_uid, const UINT32 op_gid, int *res);
+EC_BOOL cxfs_fuses_chown(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 des_uid, const UINT32 des_gid, const UINT32 op_uid, const UINT32 op_gid, int *res);
 
-EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 length, const UINT32 uid, const UINT32 gid, int *res);
+EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 length, const UINT32 op_uid, const UINT32 op_gid, int *res);
 
 EC_BOOL cxfs_fuses_utime(const UINT32 cxfs_md_id, const CSTRING *path, const struct utimbuf *times, int *res);
 
-EC_BOOL cxfs_fuses_open(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 flags, const UINT32 uid, const UINT32 gid, int *res);
+EC_BOOL cxfs_fuses_open(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 flags, const UINT32 op_uid, const UINT32 op_gid, int *res);
 
-EC_BOOL cxfs_fuses_create(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 uid, const UINT32 gid, int *res);
+EC_BOOL cxfs_fuses_create(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 op_uid, const UINT32 op_gid, int *res);
 
 EC_BOOL cxfs_fuses_read(const UINT32 cxfs_md_id, const CSTRING *path, CBYTES *buf, const UINT32 size, const UINT32 offset, int *res);
 
@@ -101,9 +86,9 @@ EC_BOOL cxfs_fuses_removexattr(const UINT32 cxfs_md_id, const CSTRING *path, con
 
 EC_BOOL cxfs_fuses_access(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mask, UINT32 *mode, int *res);
 
-EC_BOOL cxfs_fuses_ftruncate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 length, const UINT32 uid, const UINT32 gid, int *res);
+EC_BOOL cxfs_fuses_ftruncate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 length, const UINT32 op_uid, const UINT32 op_gid, int *res);
 
-EC_BOOL cxfs_fuses_utimens(const UINT32 cxfs_md_id, const CSTRING *path, const struct timespec *tv0, const struct timespec *tv1, const UINT32 uid, const UINT32 gid, int *res);
+EC_BOOL cxfs_fuses_utimens(const UINT32 cxfs_md_id, const CSTRING *path, const struct timespec *tv0, const struct timespec *tv1, const UINT32 op_uid, const UINT32 op_gid, int *res);
 
 EC_BOOL cxfs_fuses_fallocate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 offset, const UINT32 length, int *res);
 

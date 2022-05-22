@@ -266,7 +266,7 @@ int cxfs_fusec_readlink(const char *path, char *buf, const UINT32 size)
 }
 
 /*int (*mknod)       (const char *, mode_t, dev_t);*/
-int cxfs_fusec_mknod(const char *path, const UINT32 mode, const UINT32 uid, const UINT32 gid, const UINT32 dev)
+int cxfs_fusec_mknod(const char *path, const UINT32 mode, const UINT32 dev, const UINT32 uid, const UINT32 gid)
 {
     CSTRING         path_arg;
 
@@ -283,7 +283,7 @@ int cxfs_fusec_mknod(const char *path, const UINT32 mode, const UINT32 uid, cons
     task_p2p(CMPI_ANY_MODI, TASK_DEFAULT_LIVE, TASK_PRIO_NORMAL, TASK_NEED_RSP_FLAG, TASK_NEED_ALL_RSP,
              cxfs_fusec_get_remote_mod_node(),
              &ret,
-             FI_cxfs_fuses_mknod, CMPI_ERROR_MODI, &path_arg, mode, uid, gid, dev, &res);
+             FI_cxfs_fuses_mknod, CMPI_ERROR_MODI, &path_arg, mode, dev, uid, gid, &res);
 
     if(EC_FALSE == ret)
     {

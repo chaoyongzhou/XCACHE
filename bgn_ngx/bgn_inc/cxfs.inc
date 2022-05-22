@@ -1812,7 +1812,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_mknod(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 uid, const UINT32 gid, const UINT32 dev, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_mknod(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 dev, const UINT32 op_uid, const UINT32 op_gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_mknod,
 /*func beg addr   */     0,
@@ -1827,7 +1827,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_mkdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 uid, const UINT32 gid, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_mkdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 op_uid, const UINT32 op_gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_mkdir,
 /*func beg addr   */     0,
@@ -1842,7 +1842,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_unlink(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 uid, const UINT32 gid, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_unlink(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 op_uid, const UINT32 op_gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_unlink,
 /*func beg addr   */     0,
@@ -1857,7 +1857,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_rmdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 uid, const UINT32 gid, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_rmdir(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 op_uid, const UINT32 op_gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_rmdir,
 /*func beg addr   */     0,
@@ -1872,7 +1872,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_symlink(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 uid, const UINT32 gid, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_symlink(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 op_uid, const UINT32 op_gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_symlink,
 /*func beg addr   */     0,
@@ -1887,7 +1887,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_rename(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 uid, const UINT32 gid, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_rename(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 op_uid, const UINT32 op_gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_rename,
 /*func beg addr   */     0,
@@ -1917,7 +1917,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_link(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 uid, const UINT32 gid, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_link(const UINT32 cxfs_md_id, const CSTRING *src_path, const CSTRING *des_path, const UINT32 op_uid, const UINT32 op_gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_link,
 /*func beg addr   */     0,
@@ -1947,7 +1947,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_chown(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 uid, const UINT32 gid, const UINT32 op_uid, const UINT32 op_gid, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_chown(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 des_uid, const UINT32 des_gid, const UINT32 op_uid, const UINT32 op_gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_chown,
 /*func beg addr   */     0,
@@ -1962,7 +1962,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 length, const UINT32 uid, const UINT32 gid, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 length, const UINT32 op_uid, const UINT32 op_gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_truncate,
 /*func beg addr   */     0,
@@ -1992,7 +1992,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_open(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 flags, const UINT32 uid, const UINT32 gid, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_open(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 flags, const UINT32 op_uid, const UINT32 op_gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_open,
 /*func beg addr   */     0,
@@ -2172,7 +2172,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_ftruncate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 length, const UINT32 uid, const UINT32 gid, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_ftruncate(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 length, const UINT32 op_uid, const UINT32 op_gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_ftruncate,
 /*func beg addr   */     0,
@@ -2187,7 +2187,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_utimens(const UINT32 cxfs_md_id, const CSTRING *path, const struct timespec *tv0, const struct timespec *tv1, const UINT32 uid, const UINT32 gid, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_utimens(const UINT32 cxfs_md_id, const CSTRING *path, const struct timespec *tv0, const struct timespec *tv1, const UINT32 op_uid, const UINT32 op_gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_utimens,
 /*func beg addr   */     0,
@@ -2232,7 +2232,7 @@ FUNC_ADDR_NODE g_cxfs_func_addr_list[ ] = {
 /*func para val   */     0, 0, {0},
 },
 {
-/* -- EC_BOOL cxfs_fuses_create(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 uid, const UINT32 gid, int *res); -- */
+/* -- EC_BOOL cxfs_fuses_create(const UINT32 cxfs_md_id, const CSTRING *path, const UINT32 mode, const UINT32 op_uid, const UINT32 op_gid, int *res); -- */
 /*func module     */     MD_CXFS,
 /*func logic addr */     (UINT32)cxfs_fuses_create,
 /*func beg addr   */     0,
