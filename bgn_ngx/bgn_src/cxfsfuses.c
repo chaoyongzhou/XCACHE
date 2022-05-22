@@ -97,7 +97,6 @@ extern "C"{
     }                                                                       \
 }while(0)
 
-#define CXFS_FUSES_PERM_SWITCH      (SWITCH_ON)
 
 /*mode: O_RDONLY, O_WRONLY, O_RDWR*/
 STATIC_CAST EC_BOOL __cxfs_fuses_check_access(const UINT32 cxfs_md_id, const uint64_t ino,
@@ -1011,7 +1010,7 @@ EC_BOOL cxfs_fuses_mknod(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
 
     CXFS_FUSES_CHECK_ENV(cxfs_md_id, cxfs_md, "cxfs_fuses_mknod", res);
 
-    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON)
+    if(CXFSFUSE_PERM_SWITCH == SWITCH_ON)
     {
         uint64_t         parent_ino;
 
@@ -1154,7 +1153,7 @@ EC_BOOL cxfs_fuses_mkdir(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
 
     CXFS_FUSES_CHECK_ENV(cxfs_md_id, cxfs_md, "cxfs_fuses_mkdir", res);
 
-    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON)
+    if(CXFSFUSE_PERM_SWITCH == SWITCH_ON)
     {
         uint64_t         parent_ino;
 
@@ -1289,7 +1288,7 @@ EC_BOOL cxfs_fuses_unlink(const UINT32 cxfs_md_id, const CSTRING *path, const UI
     }
     cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
 
-    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON)
+    if(CXFSFUSE_PERM_SWITCH == SWITCH_ON)
     {
         (*res) = cxfs_fusep_unlink(CXFS_MD_NPP(cxfs_md), ino,
                                     (uint32_t)op_uid, (uint32_t)op_gid);
@@ -1565,7 +1564,7 @@ EC_BOOL cxfs_fuses_rmdir(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
         return (EC_TRUE);
     }
 
-    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON)
+    if(CXFSFUSE_PERM_SWITCH == SWITCH_ON)
     {
         (*res) = cxfs_fusep_rmdir(CXFS_MD_NPP(cxfs_md), ino, (uint32_t)op_uid, (uint32_t)op_gid);
 
@@ -1724,7 +1723,7 @@ EC_BOOL cxfs_fuses_symlink(const UINT32 cxfs_md_id, const CSTRING *src_path, con
         return (EC_TRUE);
     }
 
-    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON)
+    if(CXFSFUSE_PERM_SWITCH == SWITCH_ON)
     {
         uint64_t         des_parent_ino;
 
@@ -1929,7 +1928,7 @@ EC_BOOL cxfs_fuses_rename(const UINT32 cxfs_md_id, const CSTRING *src_path, cons
     {
         des_cxfsnp_attr = CXFSNP_ITEM_ATTR(des_cxfsnp_item);
 
-        if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON)
+        if(CXFSFUSE_PERM_SWITCH == SWITCH_ON)
         {
             (*res) = cxfs_fusep_rename(CXFS_MD_NPP(cxfs_md),
                                         src_ino, des_ino, des_parent_ino,
@@ -1961,7 +1960,7 @@ EC_BOOL cxfs_fuses_rename(const UINT32 cxfs_md_id, const CSTRING *src_path, cons
         }
     }
 
-    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON)
+    if(CXFSFUSE_PERM_SWITCH == SWITCH_ON)
     {
         (*res) = cxfs_fusep_rename(CXFS_MD_NPP(cxfs_md),
                                     src_ino, des_ino, des_parent_ino,
@@ -2246,7 +2245,7 @@ EC_BOOL cxfs_fuses_link(const UINT32 cxfs_md_id, const CSTRING *src_path, const 
     }
     src_cxfsnp_attr = CXFSNP_ITEM_ATTR(src_cxfsnp_item);
 
-    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON)
+    if(CXFSFUSE_PERM_SWITCH == SWITCH_ON)
     {
         uint64_t         des_parent_ino;
 
@@ -2413,7 +2412,7 @@ EC_BOOL cxfs_fuses_chmod(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
 
     cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
 
-    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON)
+    if(CXFSFUSE_PERM_SWITCH == SWITCH_ON)
     {
         (*res) = cxfs_fusep_chmod(CXFS_MD_NPP(cxfs_md), ino,
                                   (uint16_t)mode, (uint32_t)op_uid, (uint32_t)op_gid);
@@ -2520,7 +2519,7 @@ EC_BOOL cxfs_fuses_chown(const UINT32 cxfs_md_id, const CSTRING *path, const UIN
     }
     cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
 
-    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON)
+    if(CXFSFUSE_PERM_SWITCH == SWITCH_ON)
     {
         (*res) = cxfs_fusep_chown(CXFS_MD_NPP(cxfs_md), ino,
                                   (uint32_t)des_uid, (uint32_t)des_gid,
@@ -2716,7 +2715,7 @@ EC_BOOL cxfs_fuses_truncate(const UINT32 cxfs_md_id, const CSTRING *path, const 
 
     cxfsnp_item = __cxfs_fuses_lookup(cxfs_md_id, path, &ino);
 
-    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON)
+    if(CXFSFUSE_PERM_SWITCH == SWITCH_ON)
     {
         (*res) = cxfs_fusep_truncate(CXFS_MD_NPP(cxfs_md), ino,
                                      (uint32_t)op_uid, (uint32_t)op_gid);
@@ -3136,7 +3135,7 @@ EC_BOOL cxfs_fuses_open(const UINT32 cxfs_md_id, const CSTRING *path, const UINT
     {
         accmode = O_WRONLY;
 
-        if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+        if(CXFSFUSE_PERM_SWITCH == SWITCH_ON
         && EC_FALSE == __cxfs_fuses_check_access(cxfs_md_id, ino, accmode, (uint32_t)op_uid, (uint32_t)op_gid))
         {
             dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_open: "
@@ -3170,7 +3169,7 @@ EC_BOOL cxfs_fuses_open(const UINT32 cxfs_md_id, const CSTRING *path, const UINT
         return (EC_FALSE);
     }
 
-    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON
+    if(CXFSFUSE_PERM_SWITCH == SWITCH_ON
     && EC_FALSE == __cxfs_fuses_check_access(cxfs_md_id, ino, accmode, (uint32_t)op_uid, (uint32_t)op_gid))
     {
         dbg_log(SEC_0192_CXFS, 0)(LOGSTDOUT, "error:cxfs_fuses_open: "
@@ -3246,7 +3245,7 @@ EC_BOOL cxfs_fuses_create(const UINT32 cxfs_md_id, const CSTRING *path, const UI
         return (EC_TRUE);
     }
 
-    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON)
+    if(CXFSFUSE_PERM_SWITCH == SWITCH_ON)
     {
         uint64_t         parent_ino;
 
@@ -4380,7 +4379,7 @@ EC_BOOL cxfs_fuses_access(const UINT32 cxfs_md_id, const CSTRING *path, const UI
 
     cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
 
-    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON)
+    if(CXFSFUSE_PERM_SWITCH == SWITCH_ON)
     {
         (*res) = cxfs_fusep_access(CXFS_MD_NPP(cxfs_md), ino, (uint16_t)mask);
         if(0 != (*res))
@@ -4469,7 +4468,7 @@ EC_BOOL cxfs_fuses_utimens(const UINT32 cxfs_md_id, const CSTRING *path, const s
     }
     cxfsnp_attr = CXFSNP_ITEM_ATTR(cxfsnp_item);
 
-    if(CXFS_FUSES_PERM_SWITCH == SWITCH_ON)
+    if(CXFSFUSE_PERM_SWITCH == SWITCH_ON)
     {
         (*res) = cxfs_fusep_utimens(CXFS_MD_NPP(cxfs_md), ino, tv0, tv1,
                                   (uint32_t)op_uid, (uint32_t)op_gid);
